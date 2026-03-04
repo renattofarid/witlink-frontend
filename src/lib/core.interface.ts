@@ -1,0 +1,41 @@
+import * as LucideReact from "lucide-react";
+
+export interface ModelInterface {
+  name: string;
+  description?: string;
+  plural?: string;
+  gender: boolean; // true for FEMALE and false for MALE
+}
+
+export interface TitleInterface {
+  title: string;
+  subtitle: string;
+}
+
+export interface TitlesInterface {
+  create: TitleInterface;
+  update: TitleInterface;
+  delete: TitleInterface;
+}
+
+export interface ModelComplete<T = undefined> {
+  MODEL: ModelInterface;
+  TITLES: TitlesInterface;
+  ICON: keyof typeof LucideReact;
+  ICON_REACT: LucideReact.LucideIcon;
+  ENDPOINT: string;
+  QUERY_KEY: string;
+  ROUTE: string;
+  ROUTE_ADD: string;
+  ROUTE_UPDATE: string;
+  EMPTY: T;
+}
+
+export interface Option {
+  label: string | (() => React.ReactNode);
+  value: string;
+  description?: string;
+  searchCode?: string; // Campo adicional para búsqueda por código
+}
+
+export type Action = "create" | "edit" | "delete";

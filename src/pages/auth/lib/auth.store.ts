@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { authenticate } from "./auth.actions";
+import { authenticate, logout as logoutAction } from "./auth.actions";
 import type { AuthUsuario } from "./auth.interface";
 
 interface AuthState {
@@ -58,7 +58,8 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  logout: () => {
+  logout: async () => {
+    await logoutAction();
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     localStorage.removeItem("message");

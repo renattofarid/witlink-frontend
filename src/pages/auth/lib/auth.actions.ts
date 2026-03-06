@@ -39,21 +39,7 @@ export async function authenticate(): Promise<AuthenticateResponse> {
 }
 
 export async function logout(): Promise<void> {
-  try {
-    const { token, clearAuth } = useAuthStore.getState();
-    if (!token) throw new Error("Token no disponible");
-
-    // await api.get("/logout", {
-    //   headers: {
-    //     Authorization: `Bearer ${token}`,
-    //   },
-    // });
-
-    clearAuth();
-  } catch (error) {
-    console.error("Error en logout:", error);
-    throw error;
-  }
+  await api.post("/auth/logout");
 }
 
 export async function updateEmail(newEmail: string): Promise<void> {

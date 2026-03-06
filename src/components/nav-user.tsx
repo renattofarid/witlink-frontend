@@ -27,10 +27,10 @@ import type { AuthUsuario } from "@/pages/auth/lib/auth.interface";
 
 export function NavUser({ user }: { user: AuthUsuario }) {
   const { setTheme } = useTheme();
-  const { clearAuth } = useAuthStore();
+  const { logout } = useAuthStore();
 
   const handleLogout = () => {
-    clearAuth();
+    logout();
   };
 
   return (

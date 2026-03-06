@@ -1,22 +1,21 @@
 import { useAuthStore } from "./auth.store";
-import type { AuthResponse } from "./auth.interface";
+import type { AuthResponse, AuthUsuario } from "./auth.interface";
 import { api } from "@/lib/config";
 
 // Define el tipo para los datos de inicio de sesión
 export interface LoginBody {
-  username: string;
-  password: string;
+  nombre_usuario: string;
+  contraseña: string;
 }
 
 export async function login(body: LoginBody): Promise<AuthResponse> {
   try {
-    const { data } = await api.post<AuthResponse>("/login", body);
+    const { data } = await api.post<AuthResponse>("/auth/login", body);
 
-    const { setToken, setUser, setAccess } = useAuthStore.getState();
+    const { setToken, setUser } = useAuthStore.getState();
 
-    setToken(data.token);
-    setUser(data.user);
-    setAccess(data.access);
+    setToken(data.data.token);
+    setUser(data.data.usuario);
 
     return data;
   } catch (error) {
@@ -25,12 +24,12 @@ export async function login(body: LoginBody): Promise<AuthResponse> {
   }
 }
 
-export async function authenticate(): Promise<AuthResponse> {
+export async function authenticate(): Promise<AuthUsuario> {
   try {
-    const { data } = await api.get<AuthResponse>("/authenticate");
+    const { data } = await api.get<AuthUsuario>("/auth/me");
     const { setUser } = useAuthStore.getState();
 
-    setUser(data.user);
+    setUser(data);
 
     return data;
   } catch (error) {

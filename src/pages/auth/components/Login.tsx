@@ -18,11 +18,11 @@ import { cn } from "@/lib/utils";
 import { Waypoints } from "lucide-react";
 
 const formSchema = z.object({
-  username: z
+  nombre_usuario: z
     .string()
     .nonempty("El usuario no puede estar vacío")
     .max(50, "El usuario no puede tener más de 50 caracteres"),
-  password: z
+  contraseña: z
     .string()
     .nonempty("La contraseña no puede estar vacía")
     .max(50, "La contraseña no puede tener más de 50 caracteres"),
@@ -38,8 +38,8 @@ export default function LoginPage({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      username: "",
-      password: "",
+      nombre_usuario: "",
+      contraseña: "",
     },
   });
 
@@ -47,8 +47,8 @@ export default function LoginPage({
     setIsLoading(true);
     try {
       await login({
-        username: data.username,
-        password: data.password,
+        nombre_usuario: data.nombre_usuario,
+        contraseña: data.contraseña,
       });
       successToast("Inicio de sesión exitoso");
       navigate("/inicio");
@@ -93,31 +93,31 @@ export default function LoginPage({
               >
                 <FieldGroup>
                   <Field>
-                    <FieldLabel htmlFor="username">Usuario</FieldLabel>
+                    <FieldLabel htmlFor="nombre_usuario">Usuario</FieldLabel>
                     <Input
-                      id="username"
+                      id="nombre_usuario"
                       type="text"
                       placeholder="Usuario o correo electrónico"
-                      {...form.register("username")}
+                      {...form.register("nombre_usuario")}
                     />
-                    {form.formState.errors.username && (
+                    {form.formState.errors.nombre_usuario && (
                       <p className="text-sm text-red-500">
-                        {form.formState.errors.username.message}
+                        {form.formState.errors.nombre_usuario.message}
                       </p>
                     )}
                   </Field>
                   <Field>
                     <div className="flex items-center">
-                      <FieldLabel htmlFor="password">Contraseña</FieldLabel>
+                      <FieldLabel htmlFor="contraseña">Contraseña</FieldLabel>
                     </div>
                     <Input
-                      id="password"
+                      id="contraseña"
                       type="password"
-                      {...form.register("password")}
+                      {...form.register("contraseña")}
                     />
-                    {form.formState.errors.password && (
+                    {form.formState.errors.contraseña && (
                       <p className="text-sm text-red-500">
-                        {form.formState.errors.password.message}
+                        {form.formState.errors.contraseña.message}
                       </p>
                     )}
                   </Field>

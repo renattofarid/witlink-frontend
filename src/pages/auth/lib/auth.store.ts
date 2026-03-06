@@ -1,17 +1,15 @@
 import { create } from "zustand";
-import type { Access, User } from "./auth.interface";
 import { authenticate } from "./auth.actions";
+import type { AuthUsuario } from "./auth.interface";
 
 interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
-  user: User | null;
+  user: AuthUsuario | null;
   message: string | null;
-  access?: Access[]; // Adjust type as needed
   setToken: (token: string) => void;
-  setUser: (user: User) => void;
+  setUser: (user: AuthUsuario) => void;
   setMessage: (message: string) => void;
-  setAccess: (access: Access[]) => void;
   authenticate: () => void;
   clearAuth: () => void;
 }
@@ -40,18 +38,12 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ message });
   },
 
-  setAccess: (access) => {
-    localStorage.setItem("access", JSON.stringify(access));
-    set({ access });
-  },
-
   authenticate: async () => {
-    const { user, access } = await authenticate();
+    const user = await authenticate();
     if (user) {
       localStorage.setItem("user", JSON.stringify(user));
       set({
         user,
-        access,
         isAuthenticated: true,
       });
     } else {
@@ -62,7 +54,6 @@ export const useAuthStore = create<AuthState>((set) => ({
         user: undefined,
         token: undefined,
         isAuthenticated: false,
-        access: [],
       });
     }
   },
@@ -72,6 +63,6 @@ export const useAuthStore = create<AuthState>((set) => ({
     localStorage.removeItem("user");
     localStorage.removeItem("message");
     localStorage.removeItem("access");
-    set({ token: null, user: null, message: null, access: [] });
+    set({ token: null, user: null, message: null });
   },
 }));

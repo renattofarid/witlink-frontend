@@ -16,15 +16,20 @@ export default function SearchInput({
   const [inputValue, setInputValue] = useState(value);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const onChangeRef = useRef(onChange);
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
+
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      onChange(inputValue);
-    }, 10);
+      onChangeRef.current(inputValue);
+    }, 300);
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [inputValue, onChange]);
+  }, [inputValue]);
 
   useEffect(() => {
     setInputValue(value);

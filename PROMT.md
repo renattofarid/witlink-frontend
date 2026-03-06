@@ -1,35 +1,75 @@
-Crea el módulo de Guia siguiendo la arquitectura definida en ARCHITECTURE.md.
+Crea el módulo de Técnico siguiendo la arquitectura definida en ARCHITECTURE.md.
 
 ## Módulo
 
-- Nombre singular: Guia
-- Nombre plural: Guias
-- Ícono (Lucide): ClipboardList
-- URL: /guias
-- Endpoint base: https://develop.garzasoft.com:85/almacen-witlink/public/api/proveedores
+- Nombre singular: Técnico
+- Nombre plural: Técnicos
+- Ícono (Lucide): User
+- URL: /tecnicos
+- Endpoint base: https://develop.garzasoft.com:85/almacen-witlink/public/api/tecnicos
 
 ## Resource (respuesta de la API)
 
 ```json
 {
       "id": 1,
-      "ruc": "20512345678",
-      "razon_social": "Cisco Networks Perú S.a.c.",
-      "telefono": "01-4567890",
-      "direccion": "Av. Javier Prado Este 4200, San Isidro, Lima",
+      "cuadrilla_id": 1,
+      "persona_id": 5,
       "created_at": "2026-02-27T16:12:14.000000Z",
       "updated_at": "2026-02-27T16:12:14.000000Z",
-      "deleted_at": null
+      "deleted_at": null,
+      "cuadrilla": {
+        "id": 1,
+        "nombre": "Cuadrilla Zona Sur",
+        "created_at": "2026-02-27T16:12:14.000000Z",
+        "updated_at": "2026-02-27T16:12:14.000000Z",
+        "deleted_at": null
+      },
+      "persona": {
+        "id": 5,
+        "nombre": "Luis",
+        "apellido_paterno": "Quispe",
+        "apellido_materno": "Huamán",
+        "dni": "22334455",
+        "direccion": "Jr. Huancavelica 150, Huancayo",
+        "telefono": "944556677",
+        "correo": "luis.quispe@example.com",
+        "created_at": "2026-02-27T16:12:13.000000Z",
+        "updated_at": "2026-02-27T16:12:13.000000Z",
+        "deleted_at": null
+      }
     }
 ```
 
 ```ts
 interface RootObject {
   id: number;
-  ruc: string;
-  razon_social: string;
-  telefono: string;
+  cuadrilla_id: number;
+  persona_id: number;
+  created_at: string;
+  updated_at: string;
+  deleted_at: null;
+  cuadrilla: Cuadrilla;
+  persona: Persona;
+}
+
+interface Persona {
+  id: number;
+  nombre: string;
+  apellido_paterno: string;
+  apellido_materno: string;
+  dni: string;
   direccion: string;
+  telefono: string;
+  correo: string;
+  created_at: string;
+  updated_at: string;
+  deleted_at: null;
+}
+
+interface Cuadrilla {
+  id: number;
+  nombre: string;
   created_at: string;
   updated_at: string;
   deleted_at: null;
@@ -42,19 +82,15 @@ interface RootObject {
 
 ```json
 {
-  "ruc": "stringstrin",
-  "razon_social": "string",
-  "telefono": "string",
-  "direccion": "string"
+  "cuadrilla_id": 0,
+  "persona_id": 0
 }
 ```
 
 ```ts
 interface RootObject {
-  ruc: string;
-  razon_social: string;
-  telefono: string;
-  direccion: string;
+  cuadrilla_id: number;
+  persona_id: number;
 }
 ```
 
@@ -62,18 +98,12 @@ interface RootObject {
 
 ```json
 {
-  "ruc": "stringstrin",
-  "razon_social": "string",
-  "telefono": "string",
-  "direccion": "string"
+  "cuadrilla_id": 0
 }
 ```
 
 ```ts
 interface RootObject {
-  ruc: string;
-  razon_social: string;
-  telefono: string;
-  direccion: string;
+  cuadrilla_id: number;
 }
 ```

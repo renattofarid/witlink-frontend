@@ -1,40 +1,40 @@
 import { ButtonAction } from "@/components/ButtonAction";
 import { Pencil, Trash2, RotateCcw } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
-import type { GuiaResource } from "../lib/guia.interface";
+import type { TecnicoResource } from "../lib/tecnico.interface";
 
 interface ColumnActions {
-  onEdit: (row: GuiaResource) => void;
-  onDelete: (row: GuiaResource) => void;
-  onRestore: (row: GuiaResource) => void;
+  onEdit: (row: TecnicoResource) => void;
+  onDelete: (row: TecnicoResource) => void;
+  onRestore: (row: TecnicoResource) => void;
 }
 
-export const getGuiaColumns = ({
+export const getTecnicoColumns = ({
   onEdit,
   onDelete,
   onRestore,
-}: ColumnActions): ColumnDef<GuiaResource>[] => [
+}: ColumnActions): ColumnDef<TecnicoResource>[] => [
   {
     accessorKey: "id",
     header: "ID",
   },
   {
-    accessorKey: "numero",
-    header: "Número",
+    id: "persona",
+    header: "Técnico",
+    cell: ({ row }) => {
+      const { nombre, apellido_paterno, apellido_materno } = row.original.persona;
+      return `${nombre} ${apellido_paterno} ${apellido_materno}`;
+    },
   },
   {
-    accessorKey: "fecha",
-    header: "Fecha",
+    id: "dni",
+    header: "DNI",
+    cell: ({ row }) => row.original.persona.dni,
   },
   {
-    id: "proveedor",
-    header: "Proveedor",
-    cell: ({ row }) => row.original.proveedor?.razon_social ?? "-",
-  },
-  {
-    id: "productos_count",
-    header: "Productos",
-    cell: ({ row }) => row.original.productos?.length ?? 0,
+    id: "cuadrilla",
+    header: "Cuadrilla",
+    cell: ({ row }) => row.original.cuadrilla.nombre,
   },
   {
     id: "acciones",

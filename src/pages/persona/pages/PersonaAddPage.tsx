@@ -1,27 +1,25 @@
-import PageWrapper from "@/components/PageWrapper";
-import TitleComponent from "@/components/TitleComponent";
-import BackButton from "@/components/BackButton";
 import PersonaForm from "../components/PersonaForm";
 import { PersonaComplete } from "../lib/persona.constants";
 import { useNavigate } from "react-router-dom";
+import FormWrapper from "@/components/FormWrapper";
+import TitleFormComponent from "@/components/TitleFormComponent";
 
 export default function PersonaAddPage() {
   const navigate = useNavigate();
 
   return (
-    <PageWrapper>
-      <TitleComponent
+    <FormWrapper>
+      <TitleFormComponent
         title="Agregar Persona"
-        subtitle={PersonaComplete.MODEL.plural ?? PersonaComplete.MODEL.name}
         icon="User2"
-      >
-        <BackButton />
-      </TitleComponent>
+        mode="create"
+        backRoute={PersonaComplete.ABSOLUTE_ROUTE}
+      ></TitleFormComponent>
 
       <PersonaForm
         mode="create"
         onSuccess={() => navigate(PersonaComplete.ABSOLUTE_ROUTE)}
       />
-    </PageWrapper>
+    </FormWrapper>
   );
 }

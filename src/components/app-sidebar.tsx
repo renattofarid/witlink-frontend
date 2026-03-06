@@ -20,6 +20,9 @@ import { TipoUsuarioComplete } from "@/pages/tipo-usuario/lib/tipo-usuario.const
 import { CuadrillaComplete } from "@/pages/cuadrilla/lib/cuadrilla.constants";
 import { CategoriaComplete } from "@/pages/categoria/lib/categoria.constants";
 import { GuiaComplete } from "@/pages/guia/lib/guia.constants";
+import { OficinaComplete } from "@/pages/oficina/lib/oficina.constants";
+import { ProductoComplete } from "@/pages/producto/lib/producto.constants";
+import { TecnicoComplete } from "@/pages/tecnico/lib/tecnico.constants";
 
 const data = {
   navMain: [
@@ -57,6 +60,21 @@ const data = {
       title: GuiaComplete.MODEL.name,
       url: GuiaComplete.ROUTE,
       icon: GuiaComplete.ICON,
+    },
+    {
+      title: OficinaComplete.MODEL.plural ?? OficinaComplete.MODEL.name,
+      url: OficinaComplete.ROUTE,
+      icon: OficinaComplete.ICON,
+    },
+    {
+      title: ProductoComplete.MODEL.plural ?? ProductoComplete.MODEL.name,
+      url: ProductoComplete.ROUTE,
+      icon: ProductoComplete.ICON,
+    },
+    {
+      title: TecnicoComplete.MODEL.plural ?? TecnicoComplete.MODEL.name,
+      url: TecnicoComplete.ROUTE,
+      icon: TecnicoComplete.ICON,
     },
   ],
 };

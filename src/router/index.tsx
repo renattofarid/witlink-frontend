@@ -18,7 +18,15 @@ import { CuadrillaComplete } from "../pages/cuadrilla/lib/cuadrilla.constants";
 import CategoriaPage from "../pages/categoria/pages/CategoriaPage";
 import { CategoriaComplete } from "../pages/categoria/lib/categoria.constants";
 import GuiaPage from "../pages/guia/pages/GuiaPage";
+import GuiaAddPage from "../pages/guia/pages/GuiaAddPage";
+import GuiaEditPage from "../pages/guia/pages/GuiaEditPage";
 import { GuiaComplete } from "../pages/guia/lib/guia.constants";
+import OficinaPage from "../pages/oficina/pages/OficinaPage";
+import { OficinaComplete } from "../pages/oficina/lib/oficina.constants";
+import ProductoPage from "../pages/producto/pages/ProductoPage";
+import { ProductoComplete } from "../pages/producto/lib/producto.constants";
+import TecnicoPage from "../pages/tecnico/pages/TecnicoPage";
+import { TecnicoComplete } from "../pages/tecnico/lib/tecnico.constants";
 
 export const hasAccessToRoute = (): boolean => {
   return true;
@@ -134,6 +142,49 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <GuiaPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={GuiaComplete.ROUTE_ADD}
+        element={
+          <ProtectedRoute>
+            <GuiaAddPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={`${GuiaComplete.ROUTE_UPDATE}/:id`}
+        element={
+          <ProtectedRoute>
+            <GuiaEditPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path={OficinaComplete.ROUTE}
+        element={
+          <ProtectedRoute>
+            <OficinaPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path={ProductoComplete.ROUTE}
+        element={
+          <ProtectedRoute>
+            <ProductoPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path={TecnicoComplete.ROUTE}
+        element={
+          <ProtectedRoute>
+            <TecnicoPage />
           </ProtectedRoute>
         }
       />

@@ -1,10 +1,9 @@
 import { useParams, useNavigate } from "react-router-dom";
-import PageWrapper from "@/components/PageWrapper";
-import TitleComponent from "@/components/TitleComponent";
-import BackButton from "@/components/BackButton";
 import PersonaForm from "../components/PersonaForm";
 import { PersonaComplete } from "../lib/persona.constants";
 import { usePersonaQuery } from "../lib/persona.hook";
+import FormWrapper from "@/components/FormWrapper";
+import TitleFormComponent from "@/components/TitleFormComponent";
 
 export default function PersonaEditPage() {
   const { id } = useParams<{ id: string }>();
@@ -13,14 +12,13 @@ export default function PersonaEditPage() {
   const { data, isLoading } = usePersonaQuery(Number(id));
 
   return (
-    <PageWrapper>
-      <TitleComponent
+    <FormWrapper>
+      <TitleFormComponent
         title="Editar Persona"
-        subtitle={PersonaComplete.MODEL.plural ?? PersonaComplete.MODEL.name}
         icon="User2"
-      >
-        <BackButton />
-      </TitleComponent>
+        mode="edit"
+        backRoute={PersonaComplete.ABSOLUTE_ROUTE}
+      ></TitleFormComponent>
 
       {!isLoading && (
         <PersonaForm
@@ -29,6 +27,6 @@ export default function PersonaEditPage() {
           onSuccess={() => navigate(PersonaComplete.ABSOLUTE_ROUTE)}
         />
       )}
-    </PageWrapper>
+    </FormWrapper>
   );
 }

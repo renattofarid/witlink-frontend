@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import PageWrapper from "@/components/PageWrapper";
 import TitleComponent from "@/components/TitleComponent";
@@ -9,16 +8,16 @@ import DataTablePagination from "@/components/DataTablePagination";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
 import { successToast, errorToast } from "@/lib/core.function";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
-import { useGuiaQuery } from "../lib/guia.hook";
-import { deleteGuia, restoreGuia } from "../lib/guia.actions";
-import { GuiaComplete } from "../lib/guia.constants";
-import { getGuiaColumns } from "../components/GuiaColumns";
-import GuiaFilters from "../components/GuiaFilters";
-import GuiaButtons from "../components/GuiaButtons";
-import type { GuiaResource } from "../lib/guia.interface";
+import { useProductoQuery } from "../lib/producto.hook";
+import { deleteProducto, restoreProducto } from "../lib/producto.actions";
+import { ProductoComplete } from "../lib/producto.constants";
+import { getProductoColumns } from "../components/ProductoColumns";
+import ProductoFilters from "../components/ProductoFilters";
+import ProductoButtons from "../components/ProductoButtons";
+import ProductoModal from "../components/ProductoModal";
+import type { ProductoResource } from "../lib/producto.interface";
 
-export default function GuiaPage() {
-  const navigate = useNavigate();
+export default function ProductoPage() {
   const queryClient = useQueryClient();
 
   const [params, setParams] = useState<Record<string, string>>({
@@ -26,43 +25,55 @@ export default function GuiaPage() {
     por_pagina: String(DEFAULT_PER_PAGE),
   });
 
-  const [deleteOpen, setDeleteOpen] = useState(false);
-  const [toDelete, setToDelete] = useState<GuiaResource | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [mode, setMode] = useState<"create" | "edit">("create");
+  const [selected, setSelected] = useState<ProductoResource | null>(null);
 
-  const { data, isLoading } = useGuiaQuery(params);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [toDelete, setToDelete] = useState<ProductoResource | null>(null);
+
+  const { data, isLoading } = useProductoQuery(params);
 
   const deleteMutation = useMutation({
-    mutationFn: () => deleteGuia(toDelete!.id),
+    mutationFn: () => deleteProducto(toDelete!.id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [GuiaComplete.QUERY_KEY] });
-      successToast("Guía eliminada correctamente.");
+      queryClient.invalidateQueries({ queryKey: [ProductoComplete.QUERY_KEY] });
+      successToast("Producto eliminado correctamente.");
     },
     onError: () => {
-      errorToast("Error al eliminar la guía.");
+      errorToast("Error al eliminar el producto.");
     },
   });
 
   const restoreMutation = useMutation({
-    mutationFn: (id: number) => restoreGuia(id),
+    mutationFn: (id: number) => restoreProducto(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [GuiaComplete.QUERY_KEY] });
-      successToast("Guía restaurada correctamente.");
+      queryClient.invalidateQueries({ queryKey: [ProductoComplete.QUERY_KEY] });
+      successToast("Producto restaurado correctamente.");
     },
     onError: () => {
-      errorToast("Error al restaurar la guía.");
+      errorToast("Error al restaurar el producto.");
     },
   });
 
-  const handleEdit = (row: GuiaResource) => {
-    navigate(`${GuiaComplete.ROUTE_UPDATE}/${row.id}`);
+  const handleAdd = () => {
+    setSelected(null);
+    setMode("create");
+    setModalOpen(true);
   };
 
-  const handleDelete = (row: GuiaResource) => {
+  const handleEdit = (row: ProductoResource) => {
+    setSelected(row);
+    setMode("edit");
+    setModalOpen(true);
+  };
+
+  const handleDelete = (row: ProductoResource) => {
     setToDelete(row);
     setDeleteOpen(true);
   };
 
-  const handleRestore = (row: GuiaResource) => {
+  const handleRestore = (row: ProductoResource) => {
     restoreMutation.mutate(row.id);
   };
 
@@ -70,16 +81,12 @@ export default function GuiaPage() {
     setParams((prev) => ({ ...prev, pagina: String(page) }));
 
   const handlePerPageChange = (perPage: number) =>
-    setParams((prev) => ({
-      ...prev,
-      por_pagina: String(perPage),
-      pagina: "1",
-    }));
+    setParams((prev) => ({ ...prev, por_pagina: String(perPage), pagina: "1" }));
 
   const handleSearchChange = (value: string) =>
     setParams((prev) => ({ ...prev, search: value, pagina: "1" }));
 
-  const columns = getGuiaColumns({
+  const columns = getProductoColumns({
     onEdit: handleEdit,
     onDelete: handleDelete,
     onRestore: handleRestore,
@@ -88,12 +95,12 @@ export default function GuiaPage() {
   return (
     <PageWrapper>
       <TitleComponent
-        title={GuiaComplete.MODEL.plural ?? GuiaComplete.MODEL.name}
-        subtitle="Gestión de guías del sistema"
-        icon="ClipboardList"
+        title={ProductoComplete.MODEL.plural ?? ProductoComplete.MODEL.name}
+        subtitle="Gestión de productos del inventario"
+        icon="Box"
       >
         <ActionsWrapper>
-          <GuiaButtons />
+          <ProductoButtons onAdd={handleAdd} />
         </ActionsWrapper>
       </TitleComponent>
 
@@ -102,7 +109,7 @@ export default function GuiaPage() {
         data={data?.data ?? []}
         isLoading={isLoading}
       >
-        <GuiaFilters
+        <ProductoFilters
           search={params.search ?? ""}
           onSearchChange={handleSearchChange}
         />
@@ -117,11 +124,18 @@ export default function GuiaPage() {
         setPerPage={handlePerPageChange}
       />
 
+      <ProductoModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        mode={mode}
+        selected={selected}
+      />
+
       <SimpleDeleteDialog
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
-        title="Eliminar Guía"
-        description="¿Estás seguro de que deseas eliminar esta guía? Esta acción no se puede deshacer."
+        title="Eliminar Producto"
+        description="¿Estás seguro de que deseas eliminar este producto? Esta acción no se puede deshacer."
         onConfirm={async () => {
           await deleteMutation.mutateAsync();
         }}

@@ -19,7 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import type { RowSelectionState, VisibilityState } from "@tanstack/react-table";
 import DataTableColumnFilter from "./DataTableColumnFilter";
 import FormSkeleton from "./FormSkeleton";
@@ -125,6 +125,11 @@ export function DataTable<TData, TValue>({
   enableRowSelection = false,
   getRowId,
 }: DataTableProps<TData, TValue>) {
+  const columnIdsKey = columns
+    .map((c) => (c as any).id ?? (c as any).accessorKey ?? "")
+    .join("|");
+  const stableColumns = useMemo(() => columns, [columnIdsKey]);
+
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
     initialColumnVisibility ?? {},
@@ -150,7 +155,7 @@ export function DataTable<TData, TValue>({
 
   const table = useReactTable({
     data,
-    columns,
+    columns: stableColumns,
     manualPagination: true,
     manualSorting,
     enableSorting: true,

@@ -1,40 +1,34 @@
 import { ButtonAction } from "@/components/ButtonAction";
 import { Pencil, Trash2, RotateCcw } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
-import type { GuiaResource } from "../lib/guia.interface";
+import type { OficinaResource } from "../lib/oficina.interface";
 
 interface ColumnActions {
-  onEdit: (row: GuiaResource) => void;
-  onDelete: (row: GuiaResource) => void;
-  onRestore: (row: GuiaResource) => void;
+  onEdit: (row: OficinaResource) => void;
+  onDelete: (row: OficinaResource) => void;
+  onRestore: (row: OficinaResource) => void;
 }
 
-export const getGuiaColumns = ({
+export const getOficinaColumns = ({
   onEdit,
   onDelete,
   onRestore,
-}: ColumnActions): ColumnDef<GuiaResource>[] => [
+}: ColumnActions): ColumnDef<OficinaResource>[] => [
   {
     accessorKey: "id",
     header: "ID",
   },
   {
-    accessorKey: "numero",
-    header: "Número",
+    accessorKey: "nombre",
+    header: "Nombre",
   },
   {
-    accessorKey: "fecha",
-    header: "Fecha",
+    accessorKey: "ubigeo",
+    header: "Ubigeo",
   },
   {
-    id: "proveedor",
-    header: "Proveedor",
-    cell: ({ row }) => row.original.proveedor?.razon_social ?? "-",
-  },
-  {
-    id: "productos_count",
-    header: "Productos",
-    cell: ({ row }) => row.original.productos?.length ?? 0,
+    accessorKey: "direccion",
+    header: "Dirección",
   },
   {
     id: "acciones",

@@ -11,7 +11,7 @@ export const CategoriaComplete: ModelComplete = {
   ROUTE: "/categoria",
   QUERY_KEY: "categoria",
   ABSOLUTE_ROUTE: "/categoria",
-  ENDPOINT: "/categoria",
+  ENDPOINT: "/categorias",
   ROUTE_ADD: "/categoria/agregar",
   ROUTE_UPDATE: "/categoria/editar",
 };

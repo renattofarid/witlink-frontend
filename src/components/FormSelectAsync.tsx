@@ -105,8 +105,8 @@ export function FormSelectAsync({
   // Hook de consulta con parámetros dinámicos
   const { data, isLoading, isFetching } = useQueryHook({
     search: debouncedSearch,
-    page,
-    per_page: perPage,
+    pagina: page,
+    por_pagina: perPage,
     ...additionalParams,
   });
 
@@ -257,25 +257,25 @@ export function FormSelectAsync({
             <div className="flex gap-2 items-center">
               <Popover open={open} onOpenChange={handleOpenChange}>
                 <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      disabled={disabled}
-                      className={cn(
-                        "w-full justify-between min-h-7 flex min-w-0",
-                        !field.value && "text-muted-foreground",
-                        className,
-                      )}
-                    >
-                      <span className="text-nowrap! line-clamp-1">
-                        {selected
-                          ? typeof selected.label === "function"
-                            ? selected.label()
-                            : selected.label
-                          : placeholder}
-                      </span>
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    disabled={disabled}
+                    className={cn(
+                      "w-full justify-between min-h-7 flex min-w-0",
+                      !field.value && "text-muted-foreground",
+                      className,
+                    )}
+                  >
+                    <span className="text-nowrap! line-clamp-1">
+                      {selected
+                        ? typeof selected.label === "function"
+                          ? selected.label()
+                          : selected.label
+                        : placeholder}
+                    </span>
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
                 </PopoverTrigger>
 
                 <PopoverContent

@@ -1,4 +1,5 @@
 import type { ModelComplete } from "@/lib/core.interface";
+import { CirclePile } from "lucide-react";
 
 export const CuadrillaComplete: ModelComplete = {
   MODEL: {
@@ -6,7 +7,7 @@ export const CuadrillaComplete: ModelComplete = {
     plural: "Cuadrillas",
     gender: true,
   },
-  ICON: "CirclePile",
+  ICON: CirclePile,
   ENDPOINT: "/cuadrillas",
   QUERY_KEY: "cuadrillas",
   ROUTE: "/cuadrilla",

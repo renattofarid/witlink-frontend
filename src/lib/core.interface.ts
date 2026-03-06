@@ -1,4 +1,4 @@
-import * as LucideReact from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 export interface TitleInterface {
   title: string;
@@ -24,7 +24,7 @@ export interface ModelInterface {
 
 export interface ModelComplete<T = undefined> {
   MODEL: ModelInterface;
-  ICON: keyof typeof LucideReact;
+  ICON: LucideIcon;
   ENDPOINT: string;
   QUERY_KEY: string;
   ROUTE: string;

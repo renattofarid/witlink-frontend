@@ -69,7 +69,7 @@ export default function AppRoutes() {
       />
 
       <Route
-        path={UsuariosComplete.url}
+        path={UsuariosComplete.ROUTE}
         element={
           <ProtectedRoute>
             <UsuariosPage />
@@ -78,7 +78,7 @@ export default function AppRoutes() {
       />
 
       <Route
-        path={PersonaComplete.url}
+        path={PersonaComplete.ROUTE}
         element={
           <ProtectedRoute>
             <PersonaPage />
@@ -86,7 +86,7 @@ export default function AppRoutes() {
         }
       />
       <Route
-        path={`${PersonaComplete.url}/agregar`}
+        path={`${PersonaComplete.ROUTE}/agregar`}
         element={
           <ProtectedRoute>
             <PersonaAddPage />
@@ -94,7 +94,7 @@ export default function AppRoutes() {
         }
       />
       <Route
-        path={`${PersonaComplete.url}/editar/:id`}
+        path={`${PersonaComplete.ROUTE}/editar/:id`}
         element={
           <ProtectedRoute>
             <PersonaEditPage />
@@ -103,7 +103,7 @@ export default function AppRoutes() {
       />
 
       <Route
-        path={TipoUsuarioComplete.url}
+        path={TipoUsuarioComplete.ROUTE}
         element={
           <ProtectedRoute>
             <TipoUsuarioPage />
@@ -112,7 +112,7 @@ export default function AppRoutes() {
       />
 
       <Route
-        path={CuadrillaComplete.url}
+        path={CuadrillaComplete.ROUTE}
         element={
           <ProtectedRoute>
             <CuadrillaPage />
@@ -121,7 +121,7 @@ export default function AppRoutes() {
       />
 
       <Route
-        path={CategoriaComplete.url}
+        path={CategoriaComplete.ROUTE}
         element={
           <ProtectedRoute>
             <CategoriaPage />
@@ -130,7 +130,7 @@ export default function AppRoutes() {
       />
 
       <Route
-        path={GuiaComplete.url}
+        path={GuiaComplete.ROUTE}
         element={
           <ProtectedRoute>
             <GuiaPage />

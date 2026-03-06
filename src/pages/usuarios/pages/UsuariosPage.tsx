@@ -21,8 +21,8 @@ export default function UsuariosPage() {
   const queryClient = useQueryClient();
 
   const [params, setParams] = useState<Record<string, string>>({
-    page: "1",
-    per_page: String(DEFAULT_PER_PAGE),
+    pagina: "1",
+    por_pagina: String(DEFAULT_PER_PAGE),
   });
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -78,13 +78,13 @@ export default function UsuariosPage() {
   };
 
   const handlePageChange = (page: number) =>
-    setParams((prev) => ({ ...prev, page: String(page) }));
+    setParams((prev) => ({ ...prev, pagina: String(page) }));
 
   const handlePerPageChange = (perPage: number) =>
-    setParams((prev) => ({ ...prev, per_page: String(perPage), page: "1" }));
+    setParams((prev) => ({ ...prev, por_pagina: String(perPage), pagina: "1" }));
 
   const handleSearchChange = (value: string) =>
-    setParams((prev) => ({ ...prev, search: value, page: "1" }));
+    setParams((prev) => ({ ...prev, search: value, pagina: "1" }));
 
   const columns = getUsuariosColumns({
     onEdit: handleEdit,
@@ -116,8 +116,8 @@ export default function UsuariosPage() {
       </DataTable>
 
       <DataTablePagination
-        page={Number(params.page)}
-        per_page={Number(params.per_page)}
+        page={Number(params.pagina)}
+        per_page={Number(params.por_pagina)}
         totalPages={data?.last_page ?? 1}
         totalData={data?.total ?? 0}
         onPageChange={handlePageChange}

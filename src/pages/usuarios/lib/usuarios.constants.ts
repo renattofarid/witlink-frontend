@@ -1,4 +1,5 @@
 import type { ModelComplete } from "@/lib/core.interface";
+import { Users } from "lucide-react";
 
 export const UsuariosComplete: ModelComplete = {
   MODEL: {
@@ -6,7 +7,7 @@ export const UsuariosComplete: ModelComplete = {
     plural: "Usuarios",
     gender: false,
   },
-  ICON: "Users",
+  ICON: Users,
   ENDPOINT: "/usuarios",
   QUERY_KEY: "usuarios",
   ROUTE: "/usuarios",

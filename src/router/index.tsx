@@ -5,6 +5,20 @@ import { useAuthStore } from "../pages/auth/lib/auth.store";
 import HomePage from "../pages/home/components/HomePage";
 import LoginPage from "../pages/auth/components/Login";
 import { ENABLE_PERMISSION_VALIDATION } from "../lib/permissions.config";
+import UsuariosPage from "../pages/usuarios/pages/UsuariosPage";
+import { UsuariosComplete } from "../pages/usuarios/lib/usuarios.constants";
+import PersonaPage from "../pages/persona/pages/PersonaPage";
+import PersonaAddPage from "../pages/persona/pages/PersonaAddPage";
+import PersonaEditPage from "../pages/persona/pages/PersonaEditPage";
+import { PersonaComplete } from "../pages/persona/lib/persona.constants";
+import TipoUsuarioPage from "../pages/tipo-usuario/pages/TipoUsuarioPage";
+import { TipoUsuarioComplete } from "../pages/tipo-usuario/lib/tipo-usuario.constants";
+import CuadrillaPage from "../pages/cuadrilla/pages/CuadrillaPage";
+import { CuadrillaComplete } from "../pages/cuadrilla/lib/cuadrilla.constants";
+import CategoriaPage from "../pages/categoria/pages/CategoriaPage";
+import { CategoriaComplete } from "../pages/categoria/lib/categoria.constants";
+import GuiaPage from "../pages/guia/pages/GuiaPage";
+import { GuiaComplete } from "../pages/guia/lib/guia.constants";
 
 export const hasAccessToRoute = (): boolean => {
   return true;
@@ -50,6 +64,76 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <HomePage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path={UsuariosComplete.url}
+        element={
+          <ProtectedRoute>
+            <UsuariosPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path={PersonaComplete.url}
+        element={
+          <ProtectedRoute>
+            <PersonaPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={`${PersonaComplete.url}/agregar`}
+        element={
+          <ProtectedRoute>
+            <PersonaAddPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={`${PersonaComplete.url}/editar/:id`}
+        element={
+          <ProtectedRoute>
+            <PersonaEditPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path={TipoUsuarioComplete.url}
+        element={
+          <ProtectedRoute>
+            <TipoUsuarioPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path={CuadrillaComplete.url}
+        element={
+          <ProtectedRoute>
+            <CuadrillaPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path={CategoriaComplete.url}
+        element={
+          <ProtectedRoute>
+            <CategoriaPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path={GuiaComplete.url}
+        element={
+          <ProtectedRoute>
+            <GuiaPage />
           </ProtectedRoute>
         }
       />

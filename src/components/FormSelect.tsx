@@ -1,11 +1,9 @@
 import {
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-  FormDescription,
-} from "@/components/ui/form";
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+} from "@/components/ui/field";
 import {
   Popover,
   PopoverTrigger,
@@ -30,7 +28,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import type { Control } from "react-hook-form";
+import { Controller, type Control } from "react-hook-form";
 import type { Option } from "@/lib/core.interface";
 
 interface FormSelectProps {
@@ -67,24 +65,24 @@ export function FormSelect({
   const [searchTab, setSearchTab] = useState<"name" | "code">("name");
 
   return (
-    <FormField
+    <Controller
       control={control}
       name={name}
       render={({ field }) => {
         const selected = options.find((opt) => opt.value === field.value);
 
         return (
-          <FormItem className="flex flex-col justify-start">
+          <Field className="flex flex-col justify-start">
             {typeof label === "function" ? (
               label()
             ) : (
-              <FormLabel className="flex justify-start items-center">
+              <FieldLabel className="flex justify-start items-center text-xs md:text-sm leading-none h-fit dark:text-muted-foreground">
                 {label}
                 {tooltip && (
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Badge
-                        variant="default"
+                        color="tertiary"
                         className="ml-2 p-0 aspect-square w-4 h-4 text-center justify-center"
                       >
                         ?
@@ -93,13 +91,13 @@ export function FormSelect({
                     <TooltipContent>{tooltip}</TooltipContent>
                   </Tooltip>
                 )}
-              </FormLabel>
+              </FieldLabel>
             )}
 
             {description && (
-              <FormDescription className="text-sm text-muted-foreground !mb-0">
+              <FieldDescription className="text-sm text-muted-foreground !mb-0">
                 {description}
-              </FormDescription>
+              </FieldDescription>
             )}
 
             <Popover
@@ -115,7 +113,6 @@ export function FormSelect({
               }}
             >
               <PopoverTrigger asChild>
-                <FormControl>
                   <Button
                     variant={"outline"}
                     role="combobox"
@@ -135,7 +132,6 @@ export function FormSelect({
                     </span>
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
-                </FormControl>
               </PopoverTrigger>
 
               <PopoverContent
@@ -364,8 +360,8 @@ export function FormSelect({
               </PopoverContent>
             </Popover>
 
-            <FormMessage />
-          </FormItem>
+            <FieldError />
+          </Field>
         );
       }}
     />

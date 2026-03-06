@@ -16,7 +16,7 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
-import { useIsMobile, useIsTablet } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export interface GeneralSheetProps {
   open: boolean;
@@ -66,13 +66,16 @@ const GeneralSheet: React.FC<GeneralSheetProps> = ({
     : null;
 
   const isMobile = useIsMobile();
-  const isTablet = useIsTablet();
 
-  const type = isMobile ? "mobile" : isTablet ? "tablet" : "default";
+  const type = isMobile ? "mobile" : "default";
 
   {
     return type === "default" ? (
-      <Sheet open={open} onOpenChange={(v) => !v && !preventAutoClose && onClose()} modal={modal}>
+      <Sheet
+        open={open}
+        onOpenChange={(v) => !v && !preventAutoClose && onClose()}
+        modal={modal}
+      >
         <SheetContent
           side={side}
           className={cn(sizes[size], className, "overflow-y-auto gap-0!")}
@@ -97,17 +100,21 @@ const GeneralSheet: React.FC<GeneralSheetProps> = ({
         </SheetContent>
       </Sheet>
     ) : (
-      <Drawer open={open} onOpenChange={(v) => !v && !preventAutoClose && onClose()} modal={modal}>
+      <Drawer
+        open={open}
+        onOpenChange={(v) => !v && !preventAutoClose && onClose()}
+        modal={modal}
+      >
         <DrawerContent
           className={cn(
             sizes[size],
             className,
-            "px-4 pb-4 flex flex-col max-h-[96vh]"
+            "px-4 pb-4 flex flex-col max-h-[96vh]",
           )}
           onInteractOutside={(e) => preventAutoClose && e.preventDefault()}
           onEscapeKeyDown={(e) => preventAutoClose && e.preventDefault()}
         >
-          <DrawerHeader className="flex-shrink-0 p-2">
+          <DrawerHeader className="shrink-0 p-2">
             <div className="flex items-center gap-2">
               {icon && IconComponent && (
                 <div className="mr-2 bg-primary text-primary-foreground rounded-md p-2">

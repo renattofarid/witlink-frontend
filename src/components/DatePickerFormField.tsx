@@ -21,12 +21,11 @@ import {
 } from "@/components/ui/drawer";
 import { Calendar } from "@/components/ui/calendar";
 import {
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormDescription,
-  FormMessage,
-} from "@/components/ui/form";
+  Field,
+  FieldLabel,
+  FieldDescription,
+  FieldError,
+} from "@/components/ui/field";
 import { cn } from "@/lib/utils";
 import type { Matcher } from "react-day-picker";
 
@@ -69,7 +68,7 @@ export function DatePickerFormField<T extends FieldValues>({
   endMonth,
 }: DatePickerFormFieldProps<T>) {
   const isMobile = useIsMobile();
-  const { field, fieldState } = useController({ control, name });
+  const { field } = useController({ control, name });
 
   const parsedDate = useMemo(() => {
     if ((field.value as unknown) instanceof Date) return field.value;
@@ -107,22 +106,20 @@ export function DatePickerFormField<T extends FieldValues>({
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   return (
-    <FormItem className="flex flex-col">
-      {label && <FormLabel>{label}</FormLabel>}
+    <Field className="flex flex-col">
+      {label && <FieldLabel>{label}</FieldLabel>}
 
       {isMobile ? (
         <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
           <DrawerTrigger asChild>
-            <FormControl>
-              <Button
-                variant="outline"
-                className="w-full justify-between font-normal truncate"
-                disabled={disabled}
-              >
-                {displayValue}
-                <CalendarPlusIcon />
-              </Button>
-            </FormControl>
+            <Button
+              variant="outline"
+              className="w-full justify-between font-normal truncate"
+              disabled={disabled}
+            >
+              {displayValue}
+              <CalendarPlusIcon />
+            </Button>
           </DrawerTrigger>
           <DrawerContent className="w-auto p-0 overflow-hidden">
             <DrawerHeader>
@@ -144,19 +141,17 @@ export function DatePickerFormField<T extends FieldValues>({
       ) : (
         <Popover>
           <PopoverTrigger asChild>
-            <FormControl>
-              <Button
-                variant="outline"
-                className={cn(
-                  "w-full justify-start text-left font-normal truncate",
-                  !parsedDate && "text-muted-foreground"
-                )}
-                disabled={disabled}
-              >
-                {displayValue}
-                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-              </Button>
-            </FormControl>
+            <Button
+              variant="outline"
+              className={cn(
+                "w-full justify-start text-left font-normal truncate",
+                !parsedDate && "text-muted-foreground"
+              )}
+              disabled={disabled}
+            >
+              {displayValue}
+              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+            </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
             <Calendar
@@ -175,8 +170,8 @@ export function DatePickerFormField<T extends FieldValues>({
         </Popover>
       )}
 
-      {description && <FormDescription>{description}</FormDescription>}
-      <FormMessage>{fieldState.error?.message}</FormMessage>
-    </FormItem>
+      {description && <FieldDescription>{description}</FieldDescription>}
+      <FieldError />
+    </Field>
   );
 }

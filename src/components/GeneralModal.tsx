@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useIsMobile, useIsTablet } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { DialogDescription } from "@radix-ui/react-dialog";
 import type { ReactNode } from "react";
 
@@ -70,9 +70,8 @@ export function GeneralModal({
     : null;
 
   const isMobile = useIsMobile();
-  const isTablet = useIsTablet();
 
-  const type = isMobile ? "mobile" : isTablet ? "tablet" : "default";
+  const type = isMobile ? "mobile" : "default";
   {
     return type === "default" ? (
       <Dialog
@@ -115,7 +114,7 @@ export function GeneralModal({
         <DrawerContent
           className={cn(className, "pb-0 flex flex-col max-h-[96vh]")}
         >
-          <DrawerHeader className="flex-shrink-0 p-2">
+          <DrawerHeader className="shrink-0 p-2">
             <div className="flex items-start gap-2">
               {icon && IconComponent && (
                 <div className="mr-2 bg-primary text-primary-foreground rounded-md p-2">

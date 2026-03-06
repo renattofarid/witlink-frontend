@@ -1,12 +1,5 @@
 import * as LucideReact from "lucide-react";
 
-export interface ModelInterface {
-  name: string;
-  description?: string;
-  plural?: string;
-  gender: boolean; // true for FEMALE and false for MALE
-}
-
 export interface TitleInterface {
   title: string;
   subtitle: string;
@@ -18,17 +11,51 @@ export interface TitlesInterface {
   delete: TitleInterface;
 }
 
+export interface ModelInterface {
+  name: string;
+  plural?: string;
+  /**
+   * true for feminine (e.g., "la", "una") and false for masculine (e.g., "el", "un").
+   * Indicates the grammatical gender of the model name for correct article usage in Spanish.
+   */
+  gender: boolean;
+  message?: string;
+}
+
 export interface ModelComplete<T = undefined> {
   MODEL: ModelInterface;
-  TITLES: TitlesInterface;
   ICON: keyof typeof LucideReact;
-  ICON_REACT: LucideReact.LucideIcon;
   ENDPOINT: string;
   QUERY_KEY: string;
   ROUTE: string;
+  ABSOLUTE_ROUTE: string;
   ROUTE_ADD: string;
   ROUTE_UPDATE: string;
-  EMPTY: T;
+  ROUTE_DASHBOARD?: string;
+  EMPTY?: T;
+}
+
+export interface PaginationLink {
+  url: string | null;
+  label: string;
+  page: number | null;
+  active: boolean;
+}
+
+export interface PaginatedResponse<T> {
+  current_page: number;
+  data: T[];
+  first_page_url: string;
+  from: number;
+  last_page: number;
+  last_page_url: string;
+  links: PaginationLink[];
+  next_page_url: string | null;
+  path: string;
+  per_page: number;
+  prev_page_url: string | null;
+  to: number;
+  total: number;
 }
 
 export interface Option {

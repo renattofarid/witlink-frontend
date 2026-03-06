@@ -4,7 +4,7 @@ interface Props {
 
 export default function ActionsWrapper({ children }: Props) {
   return (
-    <div className="flex flex-wrap items-center md:justify-end gap-2 w-full">
+    <div className="flex flex-wrap items-center md:justify-end gap-2">
       {children}
     </div>
   );

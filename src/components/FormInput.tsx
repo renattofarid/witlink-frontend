@@ -1,13 +1,11 @@
 import {
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-  FormDescription,
-} from "@/components/ui/form";
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import type { Control } from "react-hook-form";
+import { Controller, type Control } from "react-hook-form";
 import React from "react";
 import {
   Tooltip,
@@ -144,7 +142,7 @@ export function FormInput({
 
   // Si hay control, funcionar como FormField (comportamiento original)
   return (
-    <FormField
+    <Controller
       control={control}
       name={name}
       render={({ field }) => {
@@ -162,8 +160,8 @@ export function FormInput({
         };
 
         return (
-          <FormItem className="flex flex-col justify-between">
-            <FormLabel className="flex justify-start items-center text-xs md:text-sm leading-none h-fit dark:text-muted-foreground">
+          <Field className="flex flex-col justify-between">
+            <FieldLabel className="flex justify-start items-center text-xs md:text-sm leading-none h-fit dark:text-muted-foreground">
               {label}
               {required && <RequiredField />}
               {tooltip && (
@@ -179,7 +177,7 @@ export function FormInput({
                   <TooltipContent>{tooltip}</TooltipContent>
                 </Tooltip>
               )}
-            </FormLabel>
+            </FieldLabel>
             <div className="flex flex-col gap-2 items-center">
               <div className="relative w-full">
                 {addonStart && (
@@ -187,20 +185,18 @@ export function FormInput({
                     {addonStart}
                   </div>
                 )}
-                <FormControl>
-                  <Input
-                    className={cn(
-                      "text-xs md:text-sm",
-                      addonStart && "pl-10",
-                      addonEnd && "pr-10",
-                      className,
-                    )}
-                    {...field}
-                    {...inputProps}
-                    onChange={handleChange}
-                    value={field.value ?? ""}
-                  />
-                </FormControl>
+                <Input
+                  className={cn(
+                    "text-xs md:text-sm",
+                    addonStart && "pl-10",
+                    addonEnd && "pr-10",
+                    className,
+                  )}
+                  {...field}
+                  {...inputProps}
+                  onChange={handleChange}
+                  value={field.value ?? ""}
+                />
                 {addonEnd && (
                   <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center text-muted-foreground z-10">
                     {addonEnd}
@@ -211,12 +207,12 @@ export function FormInput({
             </div>
 
             {description && (
-              <FormDescription className="text-xs text-muted-foreground mb-0!">
+              <FieldDescription className="text-xs text-muted-foreground mb-0!">
                 {description}
-              </FormDescription>
+              </FieldDescription>
             )}
-            <FormMessage />
-          </FormItem>
+            <FieldError />
+          </Field>
         );
       }}
     />

@@ -1,12 +1,10 @@
-import type { Control, FieldValues, Path } from "react-hook-form";
+import { Controller, type Control, type FieldValues, type Path } from "react-hook-form";
 import {
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+} from "@/components/ui/field";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
@@ -44,13 +42,13 @@ export function FormSwitch<T extends FieldValues>({
   };
 
   return (
-    <FormField
+    <Controller
       control={control}
       name={name}
       render={({ field }) => (
-        <FormItem>
-          {label && <FormLabel className="h-fit flex">{label}</FormLabel>}
-          <FormLabel
+        <Field>
+          {label && <FieldLabel className="h-fit flex">{label}</FieldLabel>}
+          <label
             className={cn(
               "flex flex-row items-center justify-between rounded-lg border shadow-xs bg-background hover:bg-muted hover:cursor-pointer",
               sizeClasses[size],
@@ -67,24 +65,22 @@ export function FormSwitch<T extends FieldValues>({
               )}
             </div>
 
-            <FormControl>
-              <Switch
-                checked={negate ? !field.value : field.value}
-                onCheckedChange={(checked) =>
-                  field.onChange(negate ? !checked : checked)
-                }
-                disabled={disabled}
-                className="shrink-0"
-              />
-            </FormControl>
-          </FormLabel>
-          <FormMessage />
+            <Switch
+              checked={negate ? !field.value : field.value}
+              onCheckedChange={(checked) =>
+                field.onChange(negate ? !checked : checked)
+              }
+              disabled={disabled}
+              className="shrink-0"
+            />
+          </label>
+          <FieldError />
           {description && (
-            <FormDescription className="text-xs font-normal">
+            <FieldDescription className="text-xs font-normal">
               {description}
-            </FormDescription>
+            </FieldDescription>
           )}
-        </FormItem>
+        </Field>
       )}
     />
   );

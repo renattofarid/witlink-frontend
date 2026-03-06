@@ -1,11 +1,9 @@
 import {
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-  FormDescription,
-} from "@/components/ui/form";
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+} from "@/components/ui/field";
 import {
   Popover,
   PopoverTrigger,
@@ -21,7 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { Control } from "react-hook-form";
+import { Controller, type Control } from "react-hook-form";
 import { useState, useEffect, useRef, useCallback } from "react";
 import React from "react";
 import {
@@ -221,7 +219,7 @@ export function FormSelectAsync({
   };
 
   return (
-    <FormField
+    <Controller
       control={control}
       name={name}
       render={({ field }) => {
@@ -233,18 +231,18 @@ export function FormSelectAsync({
             : null);
 
         return (
-          <FormItem className="flex flex-col justify-between">
+          <Field className="flex flex-col justify-between">
             {label && typeof label === "function"
               ? label()
               : label && (
-                  <FormLabel className="flex justify-start items-center">
+                  <FieldLabel className="flex justify-start items-center text-xs md:text-sm leading-none h-fit dark:text-muted-foreground">
                     {label}
                     {required && <RequiredField />}
                     {tooltip && (
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Badge
-                            variant="tertiary"
+                            color="tertiary"
                             className="ml-2 p-0 aspect-square w-4 h-4 text-center justify-center"
                           >
                             ?
@@ -253,13 +251,12 @@ export function FormSelectAsync({
                         <TooltipContent>{tooltip}</TooltipContent>
                       </Tooltip>
                     )}
-                  </FormLabel>
+                  </FieldLabel>
                 )}
 
             <div className="flex gap-2 items-center">
               <Popover open={open} onOpenChange={handleOpenChange}>
                 <PopoverTrigger asChild>
-                  <FormControl>
                     <Button
                       variant="outline"
                       role="combobox"
@@ -279,7 +276,6 @@ export function FormSelectAsync({
                       </span>
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
-                  </FormControl>
                 </PopoverTrigger>
 
                 <PopoverContent
@@ -379,12 +375,12 @@ export function FormSelectAsync({
               {children}
             </div>
             {description && (
-              <FormDescription className="text-xs text-muted-foreground mb-0!">
+              <FieldDescription className="text-xs text-muted-foreground mb-0!">
                 {description}
-              </FormDescription>
+              </FieldDescription>
             )}
-            <FormMessage />
-          </FormItem>
+            <FieldError />
+          </Field>
         );
       }}
     />

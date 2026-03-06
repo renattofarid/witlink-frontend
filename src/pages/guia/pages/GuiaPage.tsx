@@ -7,7 +7,7 @@ import ActionsWrapper from "@/components/ActionsWrapper";
 import { DataTable } from "@/components/DataTable";
 import DataTablePagination from "@/components/DataTablePagination";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
-import { successToast, errorToast } from "@/lib/core.function";
+import { successToast, errorToast, ERROR_MESSAGE } from "@/lib/core.function";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import { useGuiaQuery } from "../lib/guia.hook";
 import { deleteGuia, restoreGuia } from "../lib/guia.actions";
@@ -37,8 +37,10 @@ export default function GuiaPage() {
       queryClient.invalidateQueries({ queryKey: [GuiaComplete.QUERY_KEY] });
       successToast("Guía eliminada correctamente.");
     },
-    onError: () => {
-      errorToast("Error al eliminar la guía.");
+    onError: (error: any) => {
+      errorToast(
+        error.response.data.message ?? ERROR_MESSAGE(GuiaComplete.MODEL, "delete"),
+      );
     },
   });
 
@@ -48,8 +50,10 @@ export default function GuiaPage() {
       queryClient.invalidateQueries({ queryKey: [GuiaComplete.QUERY_KEY] });
       successToast("Guía restaurada correctamente.");
     },
-    onError: () => {
-      errorToast("Error al restaurar la guía.");
+    onError: (error: any) => {
+      errorToast(
+        error.response.data.message ?? ERROR_MESSAGE(GuiaComplete.MODEL, "restore"),
+      );
     },
   });
 

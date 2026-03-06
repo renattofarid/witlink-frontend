@@ -6,7 +6,7 @@ import ActionsWrapper from "@/components/ActionsWrapper";
 import { DataTable } from "@/components/DataTable";
 import DataTablePagination from "@/components/DataTablePagination";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
-import { successToast, errorToast } from "@/lib/core.function";
+import { successToast, errorToast, ERROR_MESSAGE } from "@/lib/core.function";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import { useTipoUsuarioQuery } from "../lib/tipo-usuario.hook";
 import {
@@ -50,8 +50,11 @@ export default function TipoUsuarioPage() {
       });
       successToast("Tipo de usuario eliminado correctamente.");
     },
-    onError: () => {
-      errorToast("Error al eliminar el tipo de usuario.");
+    onError: (error: any) => {
+      errorToast(
+        error.response.data.message ??
+          ERROR_MESSAGE(TipoUsuarioComplete.MODEL, "delete"),
+      );
     },
   });
 
@@ -63,8 +66,11 @@ export default function TipoUsuarioPage() {
       });
       successToast("Tipo de usuario restaurado correctamente.");
     },
-    onError: () => {
-      errorToast("Error al restaurar el tipo de usuario.");
+    onError: (error: any) => {
+      errorToast(
+        error.response.data.message ??
+          ERROR_MESSAGE(TipoUsuarioComplete.MODEL, "restore"),
+      );
     },
   });
 
@@ -98,7 +104,11 @@ export default function TipoUsuarioPage() {
     setParams((prev) => ({ ...prev, pagina: String(page) }));
 
   const handlePerPageChange = (perPage: number) =>
-    setParams((prev) => ({ ...prev, por_pagina: String(perPage), pagina: "1" }));
+    setParams((prev) => ({
+      ...prev,
+      por_pagina: String(perPage),
+      pagina: "1",
+    }));
 
   const handleSearchChange = (value: string) =>
     setParams((prev) => ({ ...prev, search: value, pagina: "1" }));
@@ -113,7 +123,9 @@ export default function TipoUsuarioPage() {
   return (
     <PageWrapper>
       <TitleComponent
-        title={TipoUsuarioComplete.MODEL.plural ?? TipoUsuarioComplete.MODEL.name}
+        title={
+          TipoUsuarioComplete.MODEL.plural ?? TipoUsuarioComplete.MODEL.name
+        }
         subtitle="Gestión de tipos de usuario del sistema"
         icon="PersonStanding"
       >

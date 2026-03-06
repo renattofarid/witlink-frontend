@@ -65,18 +65,18 @@ export interface GuiaSerieBody {
   serie: string;
   mac: string;
   ua: string;
-  observaciones: string;
+  observaciones: string | null;
 }
 
 export interface GuiaProductoBody {
-  producto_id: number;
-  categoria_id: number;
-  sap: string;
-  nombre: string;
-  tipo: string;
+  producto_id: number | null;
+  categoria_id: number | null;
+  sap: string | null;
+  nombre: string | null;
+  tipo: "consumible" | "equipo" | null;
   cantidad: number;
-  observaciones: string;
-  series: GuiaSerieBody[];
+  observaciones: string | null;
+  series: GuiaSerieBody[] | null;
 }
 
 export interface GuiaCreateBody {

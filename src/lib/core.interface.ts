@@ -65,4 +65,4 @@ export interface Option {
   searchCode?: string; // Campo adicional para búsqueda por código
 }
 
-export type Action = "create" | "edit" | "delete";
+export type Action = "create" | "edit" | "delete" | "restore";

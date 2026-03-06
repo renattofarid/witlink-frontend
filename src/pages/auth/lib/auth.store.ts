@@ -7,12 +7,16 @@ interface AuthState {
   isAuthenticated: boolean;
   user: AuthUsuario | null;
   message: string | null;
+  allowedRoutes: string[];
   setToken: (token: string) => void;
   setUser: (user: AuthUsuario) => void;
   setMessage: (message: string) => void;
+  setAllowedRoutes: (routes: string[]) => void;
   authenticate: () => void;
   logout: () => void;
 }
+
+const storedRoutes = localStorage.getItem("allowedRoutes");
 
 export const useAuthStore = create<AuthState>((set) => ({
   token: localStorage.getItem("token"),
@@ -21,6 +25,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     ? JSON.parse(localStorage.getItem("user")!)
     : null,
   message: localStorage.getItem("message"),
+  allowedRoutes: storedRoutes ? JSON.parse(storedRoutes) : [],
   person: null,
 
   setToken: (token) => {
@@ -38,6 +43,11 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ message });
   },
 
+  setAllowedRoutes: (routes) => {
+    localStorage.setItem("allowedRoutes", JSON.stringify(routes));
+    set({ allowedRoutes: routes });
+  },
+
   authenticate: async () => {
     const { data } = await authenticate();
     if (data) {
@@ -50,10 +60,12 @@ export const useAuthStore = create<AuthState>((set) => ({
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       localStorage.removeItem("access");
+      localStorage.removeItem("allowedRoutes");
       set({
         user: undefined,
         token: undefined,
         isAuthenticated: false,
+        allowedRoutes: [],
       });
     }
   },
@@ -64,6 +76,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     localStorage.removeItem("user");
     localStorage.removeItem("message");
     localStorage.removeItem("access");
-    set({ token: null, user: null, message: null });
+    localStorage.removeItem("allowedRoutes");
+    set({ token: null, user: null, message: null, allowedRoutes: [] });
   },
 }));

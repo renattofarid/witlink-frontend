@@ -4,7 +4,7 @@ import { CategoriaComplete } from "./categoria.constants";
 
 export const useCategoriaQuery = (params: Record<string, string>) => {
   return useQuery({
-    queryKey: [CategoriaComplete.queryKey, params],
+    queryKey: [CategoriaComplete.QUERY_KEY, params],
     queryFn: () => getCategorias(params),
     refetchOnWindowFocus: true,
   });

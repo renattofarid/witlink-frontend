@@ -40,4 +40,5 @@ export interface ProductoUpdateBody {
   categoria_id: number;
   sap: string;
   nombre: string;
+  tipo: string;
 }

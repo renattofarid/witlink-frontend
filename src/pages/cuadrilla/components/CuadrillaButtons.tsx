@@ -7,7 +7,7 @@ interface CuadrillaButtonsProps {
 
 export default function CuadrillaButtons({ onAdd }: CuadrillaButtonsProps) {
   return (
-    <Button size="sm" onClick={onAdd}>
+    <Button onClick={onAdd}>
       <Plus className="size-4 mr-1" />
       Agregar
     </Button>

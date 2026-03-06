@@ -7,7 +7,7 @@ import ActionsWrapper from "@/components/ActionsWrapper";
 import { DataTable } from "@/components/DataTable";
 import DataTablePagination from "@/components/DataTablePagination";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
-import { successToast, errorToast } from "@/lib/core.function";
+import { successToast, errorToast, ERROR_MESSAGE } from "@/lib/core.function";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import { usePersonasQuery } from "../lib/persona.hook";
 import { deletePersona, restorePersona } from "../lib/persona.actions";
@@ -37,8 +37,11 @@ export default function PersonaPage() {
       queryClient.invalidateQueries({ queryKey: [PersonaComplete.QUERY_KEY] });
       successToast("Persona eliminada correctamente.");
     },
-    onError: () => {
-      errorToast("Error al eliminar la persona.");
+    onError: (error: any) => {
+      errorToast(
+        error.response.data.message ??
+          ERROR_MESSAGE(PersonaComplete.MODEL, "delete"),
+      );
     },
   });
 
@@ -48,8 +51,11 @@ export default function PersonaPage() {
       queryClient.invalidateQueries({ queryKey: [PersonaComplete.QUERY_KEY] });
       successToast("Persona restaurada correctamente.");
     },
-    onError: () => {
-      errorToast("Error al restaurar la persona.");
+    onError: (error: any) => {
+      errorToast(
+        error.response.data.message ??
+          ERROR_MESSAGE(PersonaComplete.MODEL, "restore"),
+      );
     },
   });
 

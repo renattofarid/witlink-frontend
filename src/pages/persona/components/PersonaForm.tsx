@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { FormInput } from "@/components/FormInput";
 import FormWrapper from "@/components/FormWrapper";
-import { successToast, errorToast } from "@/lib/core.function";
+import { successToast, errorToast, ERROR_MESSAGE } from "@/lib/core.function";
 import { personaSchema, type PersonaFormValues } from "../lib/persona.schema";
 import { createPersona, updatePersona } from "../lib/persona.actions";
 import { PersonaComplete } from "../lib/persona.constants";
@@ -16,7 +16,11 @@ interface PersonaFormProps {
   onSuccess?: () => void;
 }
 
-export default function PersonaForm({ mode, defaultValues, onSuccess }: PersonaFormProps) {
+export default function PersonaForm({
+  mode,
+  defaultValues,
+  onSuccess,
+}: PersonaFormProps) {
   const queryClient = useQueryClient();
 
   const form = useForm<PersonaFormValues>({
@@ -48,11 +52,10 @@ export default function PersonaForm({ mode, defaultValues, onSuccess }: PersonaF
       );
       onSuccess?.();
     },
-    onError: () => {
+    onError: (error: any) => {
       errorToast(
-        mode === "create"
-          ? "Error al crear la persona."
-          : "Error al actualizar la persona.",
+        error.response.data.message ??
+          ERROR_MESSAGE(PersonaComplete.MODEL, mode),
       );
     },
   });

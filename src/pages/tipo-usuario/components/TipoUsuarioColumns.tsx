@@ -43,13 +43,11 @@ export const getTipoUsuarioColumns = ({
           />
           <ButtonAction
             icon={Trash2}
-            color="danger"
             canRender={!isDeleted}
             onClick={() => onDelete(item)}
           />
           <ButtonAction
             icon={RotateCcw}
-            color="warning"
             canRender={isDeleted}
             onClick={() => onRestore(item)}
           />

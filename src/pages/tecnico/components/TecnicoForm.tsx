@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import FormWrapper from "@/components/FormWrapper";
-import { successToast, errorToast } from "@/lib/core.function";
+import { successToast, errorToast, ERROR_MESSAGE } from "@/lib/core.function";
 import {
   tecnicoCreateSchema,
   tecnicoEditSchema,
@@ -12,7 +12,10 @@ import {
 } from "../lib/tecnico.schema";
 import { createTecnico, updateTecnico } from "../lib/tecnico.actions";
 import { TecnicoComplete } from "../lib/tecnico.constants";
-import { useCuadrillaSelectQuery, usePersonaSelectQuery } from "../lib/tecnico.hook";
+import {
+  useCuadrillaSelectQuery,
+  usePersonaSelectQuery,
+} from "../lib/tecnico.hook";
 import type { TecnicoResource } from "../lib/tecnico.interface";
 
 interface TecnicoFormProps {
@@ -29,10 +32,16 @@ export default function TecnicoForm({
   const queryClient = useQueryClient();
 
   const form = useForm<TecnicoFormValues>({
-    resolver: zodResolver(mode === "create" ? tecnicoCreateSchema : tecnicoEditSchema),
+    resolver: zodResolver(
+      mode === "create" ? tecnicoCreateSchema : tecnicoEditSchema,
+    ) as any,
     defaultValues: {
-      cuadrilla_id: defaultValues?.cuadrilla_id ? String(defaultValues.cuadrilla_id) : "",
-      persona_id: "",
+      cuadrilla_id: defaultValues?.cuadrilla_id
+        ? String(defaultValues.cuadrilla_id)
+        : "",
+      persona_id: defaultValues?.persona_id
+        ? String(defaultValues.persona_id)
+        : "",
     },
   });
 
@@ -57,11 +66,10 @@ export default function TecnicoForm({
       );
       onSuccess?.();
     },
-    onError: () => {
+    onError: (error: any) => {
       errorToast(
-        mode === "create"
-          ? "Error al crear el técnico."
-          : "Error al actualizar el técnico.",
+        error.response.data.message ??
+          ERROR_MESSAGE(TecnicoComplete.MODEL, mode),
       );
     },
   });

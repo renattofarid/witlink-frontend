@@ -5,7 +5,7 @@ import TitleComponent from "@/components/TitleComponent";
 import ActionsWrapper from "@/components/ActionsWrapper";
 import { DataTable } from "@/components/DataTable";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
-import { successToast, errorToast } from "@/lib/core.function";
+import { successToast, errorToast, ERROR_MESSAGE } from "@/lib/core.function";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import { useUsuariosQuery } from "../lib/usuarios.hook";
 import { deleteUsuario, restoreUsuario } from "../lib/usuarios.actions";
@@ -40,8 +40,11 @@ export default function UsuariosPage() {
       queryClient.invalidateQueries({ queryKey: [UsuariosComplete.QUERY_KEY] });
       successToast("Usuario eliminado correctamente.");
     },
-    onError: () => {
-      errorToast("Error al eliminar el usuario.");
+    onError: (error: any) => {
+      errorToast(
+        error.response.data.message ??
+          ERROR_MESSAGE(UsuariosComplete.MODEL, mode),
+      );
     },
   });
 
@@ -51,8 +54,11 @@ export default function UsuariosPage() {
       queryClient.invalidateQueries({ queryKey: [UsuariosComplete.QUERY_KEY] });
       successToast("Usuario restaurado correctamente.");
     },
-    onError: () => {
-      errorToast("Error al restaurar el usuario.");
+    onError: (error: any) => {
+      errorToast(
+        error.response.data.message ??
+          ERROR_MESSAGE(UsuariosComplete.MODEL, mode),
+      );
     },
   });
 
@@ -81,7 +87,11 @@ export default function UsuariosPage() {
     setParams((prev) => ({ ...prev, pagina: String(page) }));
 
   const handlePerPageChange = (perPage: number) =>
-    setParams((prev) => ({ ...prev, por_pagina: String(perPage), pagina: "1" }));
+    setParams((prev) => ({
+      ...prev,
+      por_pagina: String(perPage),
+      pagina: "1",
+    }));
 
   const handleSearchChange = (value: string) =>
     setParams((prev) => ({ ...prev, search: value, pagina: "1" }));

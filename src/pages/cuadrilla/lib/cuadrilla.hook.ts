@@ -4,7 +4,7 @@ import { CuadrillaComplete } from "./cuadrilla.constants";
 
 export const useCuadrillaQuery = (params: Record<string, string>) => {
   return useQuery({
-    queryKey: [CuadrillaComplete.queryKey, params],
+    queryKey: [CuadrillaComplete.QUERY_KEY, params],
     queryFn: () => getCuadrillas(params),
     refetchOnWindowFocus: true,
   });

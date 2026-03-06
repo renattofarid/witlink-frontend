@@ -6,7 +6,7 @@ import ActionsWrapper from "@/components/ActionsWrapper";
 import { DataTable } from "@/components/DataTable";
 import DataTablePagination from "@/components/DataTablePagination";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
-import { successToast, errorToast } from "@/lib/core.function";
+import { successToast, errorToast, ERROR_MESSAGE } from "@/lib/core.function";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import { useCategoriaQuery } from "../lib/categoria.hook";
 import { deleteCategoria, restoreCategoria } from "../lib/categoria.actions";
@@ -42,8 +42,11 @@ export default function CategoriaPage() {
       });
       successToast("Categoría eliminada correctamente.");
     },
-    onError: () => {
-      errorToast("Error al eliminar la categoría.");
+    onError: (error: any) => {
+      errorToast(
+        error.response.data.message ??
+          ERROR_MESSAGE(CategoriaComplete.MODEL, "delete"),
+      );
     },
   });
 
@@ -55,8 +58,11 @@ export default function CategoriaPage() {
       });
       successToast("Categoría restaurada correctamente.");
     },
-    onError: () => {
-      errorToast("Error al restaurar la categoría.");
+    onError: (error: any) => {
+      errorToast(
+        error.response.data.message ??
+          ERROR_MESSAGE(CategoriaComplete.MODEL, "restore"),
+      );
     },
   });
 
@@ -85,7 +91,11 @@ export default function CategoriaPage() {
     setParams((prev) => ({ ...prev, pagina: String(page) }));
 
   const handlePerPageChange = (perPage: number) =>
-    setParams((prev) => ({ ...prev, por_pagina: String(perPage), pagina: "1" }));
+    setParams((prev) => ({
+      ...prev,
+      por_pagina: String(perPage),
+      pagina: "1",
+    }));
 
   const handleSearchChange = (value: string) =>
     setParams((prev) => ({ ...prev, search: value, pagina: "1" }));

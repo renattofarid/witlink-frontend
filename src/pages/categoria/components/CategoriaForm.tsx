@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { FormInput } from "@/components/FormInput";
 import FormWrapper from "@/components/FormWrapper";
-import { successToast, errorToast } from "@/lib/core.function";
+import { successToast, errorToast, ERROR_MESSAGE } from "@/lib/core.function";
 import {
   categoriaSchema,
   type CategoriaFormValues,
@@ -41,19 +41,20 @@ export default function CategoriaForm({
       return updateCategoria(defaultValues!.id, values);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [CategoriaComplete.queryKey] });
+      queryClient.invalidateQueries({
+        queryKey: [CategoriaComplete.QUERY_KEY],
+      });
       successToast(
         mode === "create"
           ? "Categoría creada correctamente."
-          : "Categoría actualizada correctamente."
+          : "Categoría actualizada correctamente.",
       );
       onSuccess?.();
     },
-    onError: () => {
+    onError: (error: any) => {
       errorToast(
-        mode === "create"
-          ? "Error al crear la categoría."
-          : "Error al actualizar la categoría."
+        error.response.data.message ??
+          ERROR_MESSAGE(CategoriaComplete.MODEL, mode),
       );
     },
   });

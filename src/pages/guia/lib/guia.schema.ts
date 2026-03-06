@@ -4,18 +4,18 @@ const serieSchema = z.object({
   serie: z.string().min(1, "Requerido"),
   mac: z.string().min(1, "Requerido"),
   ua: z.string().min(1, "Requerido"),
-  observaciones: z.string(),
+  observaciones: z.string().optional().nullable(),
 });
 
 const productoSchema = z.object({
-  producto_id: z.string().min(1, "Requerido"),
-  categoria_id: z.string().min(1, "Requerido"),
-  sap: z.string().min(1, "Requerido"),
-  nombre: z.string().min(1, "Requerido"),
-  tipo: z.string().min(1, "Requerido"),
+  producto_id: z.string().optional().nullable(),
+  categoria_id: z.string().optional().nullable(),
+  sap: z.string().optional().nullable(),
+  nombre: z.string().optional().nullable(),
+  tipo: z.enum(["consumible", "equipo"]).optional().nullable(),
   cantidad: z.number().min(1, "Mínimo 1"),
-  observaciones: z.string(),
-  series: z.array(serieSchema),
+  observaciones: z.string().optional().nullable(),
+  series: z.array(serieSchema).optional().nullable(),
 });
 
 export const guiaCreateSchema = z.object({

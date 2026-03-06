@@ -7,7 +7,7 @@ interface ProductoButtonsProps {
 
 export default function ProductoButtons({ onAdd }: ProductoButtonsProps) {
   return (
-    <Button size="sm" onClick={onAdd}>
+    <Button onClick={onAdd}>
       <Plus className="size-4 mr-1" />
       Agregar
     </Button>

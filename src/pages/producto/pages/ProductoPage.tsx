@@ -6,7 +6,7 @@ import ActionsWrapper from "@/components/ActionsWrapper";
 import { DataTable } from "@/components/DataTable";
 import DataTablePagination from "@/components/DataTablePagination";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
-import { successToast, errorToast } from "@/lib/core.function";
+import { successToast, errorToast, ERROR_MESSAGE } from "@/lib/core.function";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import { useProductoQuery } from "../lib/producto.hook";
 import { deleteProducto, restoreProducto } from "../lib/producto.actions";
@@ -40,8 +40,11 @@ export default function ProductoPage() {
       queryClient.invalidateQueries({ queryKey: [ProductoComplete.QUERY_KEY] });
       successToast("Producto eliminado correctamente.");
     },
-    onError: () => {
-      errorToast("Error al eliminar el producto.");
+    onError: (error: any) => {
+      errorToast(
+        error.response.data.message ??
+          ERROR_MESSAGE(ProductoComplete.MODEL, "delete"),
+      );
     },
   });
 
@@ -51,8 +54,11 @@ export default function ProductoPage() {
       queryClient.invalidateQueries({ queryKey: [ProductoComplete.QUERY_KEY] });
       successToast("Producto restaurado correctamente.");
     },
-    onError: () => {
-      errorToast("Error al restaurar el producto.");
+    onError: (error: any) => {
+      errorToast(
+        error.response.data.message ??
+          ERROR_MESSAGE(ProductoComplete.MODEL, "restore"),
+      );
     },
   });
 
@@ -81,7 +87,11 @@ export default function ProductoPage() {
     setParams((prev) => ({ ...prev, pagina: String(page) }));
 
   const handlePerPageChange = (perPage: number) =>
-    setParams((prev) => ({ ...prev, por_pagina: String(perPage), pagina: "1" }));
+    setParams((prev) => ({
+      ...prev,
+      por_pagina: String(perPage),
+      pagina: "1",
+    }));
 
   const handleSearchChange = (value: string) =>
     setParams((prev) => ({ ...prev, search: value, pagina: "1" }));

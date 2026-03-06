@@ -94,11 +94,7 @@ export function SimpleDeleteDialog({
           >
             Cancelar
           </Button>
-          <Button
-            variant={"destructive"}
-            onClick={handleConfirm}
-            disabled={loading}
-          >
+          <Button color="red" onClick={handleConfirm} disabled={loading}>
             {loading ? "Eliminando..." : confirmText}
           </Button>
         </div>

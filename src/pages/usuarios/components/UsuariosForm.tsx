@@ -3,8 +3,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { FormInput } from "@/components/FormInput";
+import { FormSelectAsync } from "@/components/FormSelectAsync";
 import FormWrapper from "@/components/FormWrapper";
-import { successToast, errorToast } from "@/lib/core.function";
+import { successToast, errorToast, ERROR_MESSAGE } from "@/lib/core.function";
 import {
   usuariosSchema,
   type UsuariosFormValues,
@@ -12,6 +13,9 @@ import {
 import { createUsuario, updateUsuario } from "../lib/usuarios.actions";
 import { UsuariosComplete } from "../lib/usuarios.constants";
 import type { UsuariosResource } from "../lib/usuarios.interface";
+import { usePersonaSelectQuery } from "@/pages/tecnico/lib/tecnico.hook";
+import { useTipoUsuarioSelectQuery } from "@/pages/tipo-usuario/lib/tipo-usuario.hook";
+import { useOficinaSelectQuery } from "@/pages/oficina/lib/oficina.hook";
 
 interface UsuariosFormProps {
   mode: "create" | "edit";
@@ -29,9 +33,15 @@ export default function UsuariosForm({
   const form = useForm<UsuariosFormValues>({
     resolver: zodResolver(usuariosSchema),
     defaultValues: {
-      persona_id: defaultValues?.persona_id ?? undefined,
-      tipo_usuario_id: defaultValues?.tipo_usuario_id ?? undefined,
-      oficina_id: defaultValues?.oficina_id ?? undefined,
+      persona_id: defaultValues?.persona_id
+        ? String(defaultValues.persona_id)
+        : undefined,
+      tipo_usuario_id: defaultValues?.tipo_usuario_id
+        ? String(defaultValues.tipo_usuario_id)
+        : "",
+      oficina_id: defaultValues?.oficina_id
+        ? String(defaultValues.oficina_id)
+        : "",
       nombre_usuario: defaultValues?.nombre_usuario ?? "",
       contraseña: "",
     },
@@ -41,16 +51,16 @@ export default function UsuariosForm({
     mutationFn: (values: UsuariosFormValues) => {
       if (mode === "create") {
         return createUsuario({
-          persona_id: values.persona_id!,
-          tipo_usuario_id: values.tipo_usuario_id,
-          oficina_id: values.oficina_id,
+          persona_id: Number(values.persona_id),
+          tipo_usuario_id: Number(values.tipo_usuario_id),
+          oficina_id: Number(values.oficina_id),
           nombre_usuario: values.nombre_usuario,
           contraseña: values.contraseña,
         });
       }
       return updateUsuario(defaultValues!.id, {
-        tipo_usuario_id: values.tipo_usuario_id,
-        oficina_id: values.oficina_id,
+        tipo_usuario_id: Number(values.tipo_usuario_id),
+        oficina_id: Number(values.oficina_id),
         nombre_usuario: values.nombre_usuario,
         contraseña: values.contraseña,
       });
@@ -64,47 +74,68 @@ export default function UsuariosForm({
       );
       onSuccess?.();
     },
-    onError: () => {
+    onError: (error: any) => {
       errorToast(
-        mode === "create"
-          ? "Error al crear el usuario."
-          : "Error al actualizar el usuario.",
+        error.response.data.message ??
+          ERROR_MESSAGE(UsuariosComplete.MODEL, mode),
       );
     },
   });
 
-  const onSubmit = (values: UsuariosFormValues) => {
-    mutation.mutate(values);
-  };
-
   return (
     <FormWrapper>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form
+        onSubmit={form.handleSubmit((v) => mutation.mutate(v))}
+        className="space-y-4"
+      >
         {mode === "create" && (
-          <FormInput
+          <FormSelectAsync
             name="persona_id"
-            label="Persona ID"
+            label="Persona"
             control={form.control}
-            type="number"
-            placeholder="ID de persona"
+            placeholder="Seleccione una persona"
             required
+            useQueryHook={usePersonaSelectQuery}
+            mapOptionFn={(item) => ({
+              value: String(item.id),
+              label: `${item.nombre} ${item.apellido_paterno} ${item.apellido_materno}`,
+              description: item.dni,
+            })}
           />
         )}
-        <FormInput
+        <FormSelectAsync
           name="tipo_usuario_id"
-          label="Tipo de Usuario ID"
+          label="Tipo de Usuario"
           control={form.control}
-          type="number"
-          placeholder="ID de tipo de usuario"
+          placeholder="Seleccione un tipo de usuario"
           required
+          useQueryHook={useTipoUsuarioSelectQuery}
+          mapOptionFn={(item) => ({
+            value: String(item.id),
+            label: item.nombre,
+          })}
+          preloadItemId={
+            defaultValues?.tipo_usuario_id
+              ? String(defaultValues.tipo_usuario_id)
+              : undefined
+          }
         />
-        <FormInput
+        <FormSelectAsync
           name="oficina_id"
-          label="Oficina ID"
+          label="Oficina"
           control={form.control}
-          type="number"
-          placeholder="ID de oficina"
+          placeholder="Seleccione una oficina"
           required
+          useQueryHook={useOficinaSelectQuery}
+          mapOptionFn={(item) => ({
+            value: String(item.id),
+            label: item.nombre,
+          })}
+          preloadItemId={
+            defaultValues?.oficina_id
+              ? String(defaultValues.oficina_id)
+              : undefined
+          }
         />
         <FormInput
           name="nombre_usuario"

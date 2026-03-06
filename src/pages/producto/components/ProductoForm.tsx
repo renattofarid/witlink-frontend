@@ -7,7 +7,10 @@ import { FormSelect } from "@/components/FormSelect";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import FormWrapper from "@/components/FormWrapper";
 import { successToast, errorToast } from "@/lib/core.function";
-import { productoSchema, type ProductoFormValues } from "../lib/producto.schema";
+import {
+  productoSchema,
+  type ProductoFormValues,
+} from "../lib/producto.schema";
 import { createProducto, updateProducto } from "../lib/producto.actions";
 import { ProductoComplete } from "../lib/producto.constants";
 import { useCategoriasAsyncQuery } from "../lib/producto.hook";
@@ -58,15 +61,16 @@ export default function ProductoForm({
       successToast(
         mode === "create"
           ? "Producto creado correctamente."
-          : "Producto actualizado correctamente."
+          : "Producto actualizado correctamente.",
       );
       onSuccess?.();
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error(error);
       errorToast(
         mode === "create"
           ? "Error al crear el producto."
-          : "Error al actualizar el producto."
+          : "Error al actualizar el producto.",
       );
     },
   });
@@ -112,15 +116,16 @@ export default function ProductoForm({
           placeholder="Nombre del producto"
           required
         />
-        {mode === "create" && (
-          <FormInput
-            name="tipo"
-            label="Tipo"
-            control={form.control}
-            placeholder="Ej: consumible, serializado"
-            required
-          />
-        )}
+        <FormSelect
+          name="tipo"
+          label="Tipo"
+          control={form.control}
+          placeholder="Seleccione un tipo"
+          options={[
+            { value: "consumible", label: "Consumible" },
+            { value: "equipo", label: "Equipo" },
+          ]}
+        />
         <div className="flex justify-end pt-2">
           <Button type="submit" disabled={mutation.isPending}>
             {mutation.isPending

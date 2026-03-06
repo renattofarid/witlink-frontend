@@ -4,12 +4,15 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { FormInput } from "@/components/FormInput";
 import FormWrapper from "@/components/FormWrapper";
-import { successToast, errorToast } from "@/lib/core.function";
+import { successToast, errorToast, ERROR_MESSAGE } from "@/lib/core.function";
 import {
   tipoUsuarioSchema,
   type TipoUsuarioFormValues,
 } from "../lib/tipo-usuario.schema";
-import { createTipoUsuario, updateTipoUsuario } from "../lib/tipo-usuario.actions";
+import {
+  createTipoUsuario,
+  updateTipoUsuario,
+} from "../lib/tipo-usuario.actions";
 import { TipoUsuarioComplete } from "../lib/tipo-usuario.constants";
 import type { TipoUsuarioResource } from "../lib/tipo-usuario.interface";
 
@@ -41,19 +44,20 @@ export default function TipoUsuarioForm({
       return updateTipoUsuario(defaultValues!.id, values);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [TipoUsuarioComplete.QUERY_KEY] });
+      queryClient.invalidateQueries({
+        queryKey: [TipoUsuarioComplete.QUERY_KEY],
+      });
       successToast(
         mode === "create"
           ? "Tipo de usuario creado correctamente."
-          : "Tipo de usuario actualizado correctamente."
+          : "Tipo de usuario actualizado correctamente.",
       );
       onSuccess?.();
     },
-    onError: () => {
+    onError: (error: any) => {
       errorToast(
-        mode === "create"
-          ? "Error al crear el tipo de usuario."
-          : "Error al actualizar el tipo de usuario."
+        error.response.data.message ??
+          ERROR_MESSAGE(TipoUsuarioComplete.MODEL, mode),
       );
     },
   });

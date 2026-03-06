@@ -6,7 +6,7 @@ import ActionsWrapper from "@/components/ActionsWrapper";
 import { DataTable } from "@/components/DataTable";
 import DataTablePagination from "@/components/DataTablePagination";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
-import { successToast, errorToast } from "@/lib/core.function";
+import { successToast, errorToast, ERROR_MESSAGE } from "@/lib/core.function";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import { useCuadrillaQuery } from "../lib/cuadrilla.hook";
 import { deleteCuadrilla, restoreCuadrilla } from "../lib/cuadrilla.actions";
@@ -42,8 +42,11 @@ export default function CuadrillaPage() {
       });
       successToast("Cuadrilla eliminada correctamente.");
     },
-    onError: () => {
-      errorToast("Error al eliminar la cuadrilla.");
+    onError: (error: any) => {
+      errorToast(
+        error.response.data.message ??
+          ERROR_MESSAGE(CuadrillaComplete.MODEL, "delete"),
+      );
     },
   });
 
@@ -55,8 +58,11 @@ export default function CuadrillaPage() {
       });
       successToast("Cuadrilla restaurada correctamente.");
     },
-    onError: () => {
-      errorToast("Error al restaurar la cuadrilla.");
+    onError: (error: any) => {
+      errorToast(
+        error.response.data.message ??
+          ERROR_MESSAGE(CuadrillaComplete.MODEL, "restore"),
+      );
     },
   });
 

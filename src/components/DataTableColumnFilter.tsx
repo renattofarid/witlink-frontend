@@ -80,7 +80,7 @@ export default function DataTableColumnFilter<TData>({
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm">
+        <Button variant="outline">
           <Columns />
           <span className="hidden lg:inline">Mostrar columnas</span>
           <span className="lg:hidden">Columnas</span>
@@ -107,7 +107,7 @@ export default function DataTableColumnFilter<TData>({
                 key={column.id}
                 className="flex items-center gap-2 px-2 py-1.5 rounded-sm mx-1 hover:bg-accent cursor-default"
               >
-                <button
+                <Button
                   title={
                     column.getIsVisible()
                       ? "Ocultar columna"
@@ -116,12 +116,13 @@ export default function DataTableColumnFilter<TData>({
                   onClick={() =>
                     column.toggleVisibility(!column.getIsVisible())
                   }
+                  variant="ghost"
                   className="h-4 w-4 shrink-0 flex items-center justify-center"
                 >
                   <Check
                     className={`h-4 w-4 transition-opacity ${column.getIsVisible() ? "opacity-100 text-primary" : "opacity-20"}`}
                   />
-                </button>
+                </Button>
                 <button
                   className="flex-1 text-sm capitalize truncate text-left"
                   onClick={() =>
@@ -132,8 +133,7 @@ export default function DataTableColumnFilter<TData>({
                 </button>
                 <Button
                   variant="ghost"
-                  size="icon"
-                  className="h-6 w-6 shrink-0"
+                  size="icon-xs"
                   title="Ir a columna"
                   onClick={(e) => {
                     e.stopPropagation();

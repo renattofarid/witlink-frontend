@@ -7,7 +7,7 @@ import FormWrapper from "@/components/FormWrapper";
 import TitleFormComponent from "@/components/TitleFormComponent";
 import { FormInput } from "@/components/FormInput";
 import { Button } from "@/components/ui/button";
-import { successToast, errorToast } from "@/lib/core.function";
+import { successToast, errorToast, ERROR_MESSAGE } from "@/lib/core.function";
 import { GuiaComplete } from "../lib/guia.constants";
 import { getGuia, updateGuia } from "../lib/guia.actions";
 import { guiaEditSchema, type GuiaEditFormValues } from "../lib/guia.schema";
@@ -41,8 +41,11 @@ export default function GuiaEditPage() {
       successToast("Guía actualizada correctamente.");
       navigate(GuiaComplete.ABSOLUTE_ROUTE);
     },
-    onError: () => {
-      errorToast("Error al actualizar la guía.");
+    onError: (error: any) => {
+      errorToast(
+        error.response.data.message ??
+          ERROR_MESSAGE(GuiaComplete.MODEL, "edit"),
+      );
     },
   });
 

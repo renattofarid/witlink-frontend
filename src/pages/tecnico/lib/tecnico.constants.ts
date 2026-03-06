@@ -12,4 +12,6 @@ export const TecnicoComplete: ModelComplete = {
   QUERY_KEY: "tecnicos",
   ROUTE: "/tecnicos",
   ABSOLUTE_ROUTE: "/tecnicos",
+  ROUTE_ADD: "/tecnicos/agregar",
+  ROUTE_UPDATE: "/tecnicos/editar/:id",
 };

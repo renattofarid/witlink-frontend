@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { FormInput } from "@/components/FormInput";
 import FormWrapper from "@/components/FormWrapper";
-import { successToast, errorToast } from "@/lib/core.function";
+import { successToast, errorToast, ERROR_MESSAGE } from "@/lib/core.function";
 import { oficinaSchema, type OficinaFormValues } from "../lib/oficina.schema";
 import { createOficina, updateOficina } from "../lib/oficina.actions";
 import { OficinaComplete } from "../lib/oficina.constants";
@@ -44,15 +44,13 @@ export default function OficinaForm({
       successToast(
         mode === "create"
           ? "Oficina creada correctamente."
-          : "Oficina actualizada correctamente."
+          : "Oficina actualizada correctamente.",
       );
       onSuccess?.();
     },
-    onError: () => {
+    onError: (error: any) => {
       errorToast(
-        mode === "create"
-          ? "Error al crear la oficina."
-          : "Error al actualizar la oficina."
+        error.response.data.message ?? ERROR_MESSAGE(OficinaComplete.MODEL, mode),
       );
     },
   });

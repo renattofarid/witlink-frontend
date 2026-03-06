@@ -9,3 +9,11 @@ export const useOficinaQuery = (params: Record<string, string>) => {
     refetchOnWindowFocus: true,
   });
 };
+
+export const useOficinaSelectQuery = (params: Record<string, any> = {}) => {
+  return useQuery({
+    queryKey: ["oficinas-select", params],
+    queryFn: () => getOficinas(params as Record<string, string>),
+    refetchOnWindowFocus: false,
+  });
+};

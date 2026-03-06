@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react";
 import {
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@/components/ui/form";
+  Field,
+  FieldLabel,
+  FieldError,
+} from "@/components/ui/field";
 import {
   Popover,
   PopoverTrigger,
@@ -21,7 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { Control } from "react-hook-form";
+import { Controller, type Control } from "react-hook-form";
 
 interface SelectSearchFormProps<T> {
   name: string;
@@ -80,7 +78,7 @@ export function SelectSearchForm<T>({
   }, [open, items.length, isSearching, onSearch]);
 
   return (
-    <FormField
+    <Controller
       control={control}
       name={name}
       render={({ field }) => {
@@ -89,29 +87,30 @@ export function SelectSearchForm<T>({
         );
 
         return (
-          <FormItem className="flex flex-col justify-start">
-            <FormLabel>{label}</FormLabel>
+          <Field className="flex flex-col justify-start">
+            <FieldLabel className="text-xs md:text-sm leading-none h-fit dark:text-muted-foreground">
+              {label}
+            </FieldLabel>
             <Popover open={open} onOpenChange={setOpen}>
               <PopoverTrigger asChild>
-                <FormControl>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    disabled={disabled}
-                    className={cn(
-                      "w-full justify-between min-h-7 flex",
-                      !field.value && "text-muted-foreground"
-                    )}
-                  >
-                    <span className="!text-nowrap line-clamp-1">
-                      {selected ? formatLabel(selected) : placeholder}
-                    </span>
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </FormControl>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  disabled={disabled}
+                  className={cn(
+                    "w-full justify-between min-h-7 flex",
+                    !field.value && "text-muted-foreground",
+                    field.value && "bg-muted"
+                  )}
+                >
+                  <span className="text-nowrap! line-clamp-1">
+                    {selected ? formatLabel(selected) : placeholder}
+                  </span>
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
               </PopoverTrigger>
 
-              <PopoverContent className="p-0 !w-(--radix-popover-trigger-width)">
+              <PopoverContent className="p-0 w-(--radix-popover-trigger-width)!">
                 <Command shouldFilter={false}>
                   <CommandInput
                     placeholder={searchPlaceholder}
@@ -163,8 +162,8 @@ export function SelectSearchForm<T>({
                 </Command>
               </PopoverContent>
             </Popover>
-            <FormMessage />
-          </FormItem>
+            <FieldError />
+          </Field>
         );
       }}
     />

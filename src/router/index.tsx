@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import type { JSX } from "react";
 import LayoutComponent from "../components/layout";
 import { useAuthStore } from "../pages/auth/lib/auth.store";
@@ -28,24 +28,22 @@ import { ProductoComplete } from "../pages/producto/lib/producto.constants";
 import TecnicoPage from "../pages/tecnico/pages/TecnicoPage";
 import { TecnicoComplete } from "../pages/tecnico/lib/tecnico.constants";
 
-export const hasAccessToRoute = (): boolean => {
-  return true;
-};
+function ProtectedRoute({ children }: { children: JSX.Element }) {
+  const { token, allowedRoutes } = useAuthStore();
+  const location = useLocation();
 
-function ProtectedRoute({
-  children,
-  path,
-}: {
-  children: JSX.Element;
-  path?: string;
-}) {
-  const { token } = useAuthStore();
   if (!token) {
     return <Navigate to="/login" replace />;
   }
 
-  if (path && ENABLE_PERMISSION_VALIDATION) {
-    const hasAccess = hasAccessToRoute();
+  if (ENABLE_PERMISSION_VALIDATION) {
+    const publicPaths = ["/inicio", "/"];
+    const isPublic = publicPaths.includes(location.pathname);
+    const hasAccess =
+      isPublic ||
+      allowedRoutes.some(
+        (r) => location.pathname === r || location.pathname.startsWith(r + "/")
+      );
     if (!hasAccess) {
       return <Navigate to="/inicio" replace />;
     }

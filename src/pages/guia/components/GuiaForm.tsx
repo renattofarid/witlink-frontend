@@ -3,15 +3,28 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { FormInput } from "@/components/FormInput";
+import { FormSelect } from "@/components/FormSelect";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { successToast, errorToast } from "@/lib/core.function";
-import { guiaCreateSchema, type GuiaCreateFormValues } from "../lib/guia.schema";
+import {
+  guiaCreateSchema,
+  type GuiaCreateFormValues,
+} from "../lib/guia.schema";
 import { createGuia } from "../lib/guia.actions";
-import { useProveedoresQuery, useProductosQuery, useCategoriasQuery } from "../lib/guia.hook";
+import {
+  useProveedoresQuery,
+  useProductosQuery,
+  useCategoriasQuery,
+} from "../lib/guia.hook";
 import { GuiaComplete } from "../lib/guia.constants";
 import type { GuiaCreateBody } from "../lib/guia.interface";
 import { Trash2, Plus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+const TIPO_OPTIONS = [
+  { value: "consumible", label: "Consumible" },
+  { value: "equipo", label: "Equipo" },
+];
 
 interface GuiaFormProps {
   onSuccess?: () => void;
@@ -19,13 +32,13 @@ interface GuiaFormProps {
 
 const DEFAULT_SERIE = { serie: "", mac: "", ua: "", observaciones: "" };
 const DEFAULT_PRODUCTO = {
-  producto_id: "",
-  categoria_id: "",
-  sap: "",
-  nombre: "",
-  tipo: "",
+  producto_id: null,
+  categoria_id: null,
+  sap: null,
+  nombre: null,
+  tipo: null as "consumible" | "equipo" | null,
   cantidad: 1,
-  observaciones: "",
+  observaciones: null,
   series: [],
 };
 
@@ -36,7 +49,12 @@ interface SerieItemProps {
   onRemove: () => void;
 }
 
-function SerieItem({ form, productoIndex, serieIndex, onRemove }: SerieItemProps) {
+function SerieItem({
+  form,
+  productoIndex,
+  serieIndex,
+  onRemove,
+}: SerieItemProps) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-3 border rounded-md">
       <FormInput
@@ -67,7 +85,12 @@ function SerieItem({ form, productoIndex, serieIndex, onRemove }: SerieItemProps
         placeholder="Observaciones"
       />
       <div className="md:col-span-4 flex justify-end">
-        <Button type="button" variant="destructive" size="sm" onClick={onRemove}>
+        <Button
+          type="button"
+          variant="destructive"
+          size="sm"
+          onClick={onRemove}
+        >
           <Trash2 className="size-3 mr-1" />
           Eliminar serie
         </Button>
@@ -83,7 +106,11 @@ interface ProductoItemProps {
 }
 
 function ProductoItem({ form, index, onRemove }: ProductoItemProps) {
-  const { fields: serieFields, append: appendSerie, remove: removeSerie } = useFieldArray({
+  const {
+    fields: serieFields,
+    append: appendSerie,
+    remove: removeSerie,
+  } = useFieldArray({
     control: form.control,
     name: `productos.${index}.series`,
   });
@@ -92,8 +119,15 @@ function ProductoItem({ form, index, onRemove }: ProductoItemProps) {
     <Card className="border-dashed">
       <CardHeader className="pb-3">
         <div className="flex justify-between items-center">
-          <CardTitle className="text-sm font-semibold">Producto {index + 1}</CardTitle>
-          <Button type="button" variant="destructive" size="sm" onClick={onRemove}>
+          <CardTitle className="text-sm font-semibold">
+            Producto {index + 1}
+          </CardTitle>
+          <Button
+            type="button"
+            variant="destructive"
+            size="sm"
+            onClick={onRemove}
+          >
             <Trash2 className="size-3 mr-1" />
             Eliminar
           </Button>
@@ -106,7 +140,6 @@ function ProductoItem({ form, index, onRemove }: ProductoItemProps) {
             label="Producto"
             control={form.control}
             placeholder="Seleccione un producto"
-            required
             useQueryHook={useProductosQuery}
             mapOptionFn={(item) => ({
               value: String(item.id),
@@ -115,10 +148,16 @@ function ProductoItem({ form, index, onRemove }: ProductoItemProps) {
             })}
             onValueChange={(_, item) => {
               if (item) {
-                form.setValue(`productos.${index}.categoria_id`, String(item.categoria_id));
+                form.setValue(
+                  `productos.${index}.categoria_id`,
+                  String(item.categoria_id),
+                );
                 form.setValue(`productos.${index}.sap`, item.sap ?? "");
                 form.setValue(`productos.${index}.nombre`, item.nombre ?? "");
-                form.setValue(`productos.${index}.tipo`, item.tipo ?? "");
+                form.setValue(
+                  `productos.${index}.tipo`,
+                  (item.tipo as "consumible" | "equipo") ?? null,
+                );
               }
             }}
           />
@@ -127,7 +166,6 @@ function ProductoItem({ form, index, onRemove }: ProductoItemProps) {
             label="Categoría"
             control={form.control}
             placeholder="Seleccione una categoría"
-            required
             useQueryHook={useCategoriasQuery}
             mapOptionFn={(item) => ({
               value: String(item.id),
@@ -139,21 +177,19 @@ function ProductoItem({ form, index, onRemove }: ProductoItemProps) {
             label="SAP"
             control={form.control}
             placeholder="Código SAP"
-            required
           />
           <FormInput
             name={`productos.${index}.nombre`}
             label="Nombre"
             control={form.control}
             placeholder="Nombre del producto"
-            required
           />
-          <FormInput
+          <FormSelect
             name={`productos.${index}.tipo`}
             label="Tipo"
             control={form.control}
-            placeholder="Ej: consumible"
-            required
+            placeholder="Seleccione un tipo"
+            options={TIPO_OPTIONS}
           />
           <FormInput
             name={`productos.${index}.cantidad`}
@@ -217,7 +253,11 @@ export default function GuiaForm({ onSuccess }: GuiaFormProps) {
     },
   });
 
-  const { fields: productoFields, append: appendProducto, remove: removeProducto } = useFieldArray({
+  const {
+    fields: productoFields,
+    append: appendProducto,
+    remove: removeProducto,
+  } = useFieldArray({
     control: form.control,
     name: "productos",
   });
@@ -229,14 +269,18 @@ export default function GuiaForm({ onSuccess }: GuiaFormProps) {
         fecha: values.fecha,
         proveedor_id: Number(values.proveedor_id),
         productos: values.productos.map((p) => ({
-          producto_id: Number(p.producto_id),
-          categoria_id: Number(p.categoria_id),
-          sap: p.sap,
-          nombre: p.nombre,
-          tipo: p.tipo,
+          producto_id: p.producto_id ? Number(p.producto_id) : null,
+          categoria_id: p.categoria_id ? Number(p.categoria_id) : null,
+          sap: p.sap ?? null,
+          nombre: p.nombre ?? null,
+          tipo: p.tipo ?? null,
           cantidad: p.cantidad,
-          observaciones: p.observaciones,
-          series: p.series,
+          observaciones: p.observaciones ?? null,
+          series:
+            p.series?.map((s) => ({
+              ...s,
+              observaciones: s.observaciones ?? null,
+            })) ?? null,
         })),
       };
       return createGuia(body);
@@ -246,13 +290,16 @@ export default function GuiaForm({ onSuccess }: GuiaFormProps) {
       successToast("Guía creada correctamente.");
       onSuccess?.();
     },
-    onError: () => {
-      errorToast("Error al crear la guía.");
+    onError: (error: any) => {
+      errorToast(error.response.data.message);
     },
   });
 
   return (
-    <form onSubmit={form.handleSubmit((v) => mutation.mutate(v))} className="space-y-6">
+    <form
+      onSubmit={form.handleSubmit((v) => mutation.mutate(v))}
+      className="space-y-6"
+    >
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <FormInput
           name="numero"
@@ -297,11 +344,12 @@ export default function GuiaForm({ onSuccess }: GuiaFormProps) {
           </Button>
         </div>
 
-        {form.formState.errors.productos && !Array.isArray(form.formState.errors.productos) && (
-          <p className="text-sm text-destructive mb-3">
-            {form.formState.errors.productos.message}
-          </p>
-        )}
+        {form.formState.errors.productos &&
+          !Array.isArray(form.formState.errors.productos) && (
+            <p className="text-sm text-destructive mb-3">
+              {form.formState.errors.productos.message}
+            </p>
+          )}
 
         <div className="space-y-4">
           {productoFields.map((field, index) => (

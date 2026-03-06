@@ -7,7 +7,7 @@ interface OficinaButtonsProps {
 
 export default function OficinaButtons({ onAdd }: OficinaButtonsProps) {
   return (
-    <Button size="sm" onClick={onAdd}>
+    <Button onClick={onAdd}>
       <Plus className="size-4 mr-1" />
       Agregar
     </Button>

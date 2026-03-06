@@ -14,6 +14,13 @@ export interface TipoUsuarioBody {
   nombre: string;
 }
 
+export interface GrupoMenuResource {
+  id: number;
+  nombre: string;
+  icono: string;
+  orden: string;
+}
+
 export interface OpcionMenuResource {
   id: number;
   nombre: string;
@@ -24,4 +31,13 @@ export interface OpcionMenuResource {
   created_at: string;
   updated_at: string;
   deleted_at: null;
+}
+
+export interface OpcionMenuWithGrupo extends OpcionMenuResource {
+  grupo_menu: GrupoMenuResource;
+}
+
+export interface PermisoBody {
+  role_id: number;
+  menu_option_id: number;
 }

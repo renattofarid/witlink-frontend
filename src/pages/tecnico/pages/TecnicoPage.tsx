@@ -6,7 +6,7 @@ import ActionsWrapper from "@/components/ActionsWrapper";
 import { DataTable } from "@/components/DataTable";
 import DataTablePagination from "@/components/DataTablePagination";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
-import { successToast, errorToast } from "@/lib/core.function";
+import { successToast, errorToast, ERROR_MESSAGE } from "@/lib/core.function";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import { useTecnicoQuery } from "../lib/tecnico.hook";
 import { deleteTecnico, restoreTecnico } from "../lib/tecnico.actions";
@@ -40,8 +40,10 @@ export default function TecnicoPage() {
       queryClient.invalidateQueries({ queryKey: [TecnicoComplete.QUERY_KEY] });
       successToast("Técnico eliminado correctamente.");
     },
-    onError: () => {
-      errorToast("Error al eliminar el técnico.");
+    onError: (error: any) => {
+      errorToast(
+        error.response.data.message ?? ERROR_MESSAGE(TecnicoComplete.MODEL, "delete"),
+      );
     },
   });
 
@@ -51,8 +53,10 @@ export default function TecnicoPage() {
       queryClient.invalidateQueries({ queryKey: [TecnicoComplete.QUERY_KEY] });
       successToast("Técnico restaurado correctamente.");
     },
-    onError: () => {
-      errorToast("Error al restaurar el técnico.");
+    onError: (error: any) => {
+      errorToast(
+        error.response.data.message ?? ERROR_MESSAGE(TecnicoComplete.MODEL, "restore"),
+      );
     },
   });
 
@@ -81,7 +85,11 @@ export default function TecnicoPage() {
     setParams((prev) => ({ ...prev, pagina: String(page) }));
 
   const handlePerPageChange = (perPage: number) =>
-    setParams((prev) => ({ ...prev, por_pagina: String(perPage), pagina: "1" }));
+    setParams((prev) => ({
+      ...prev,
+      por_pagina: String(perPage),
+      pagina: "1",
+    }));
 
   const handleSearchChange = (value: string) =>
     setParams((prev) => ({ ...prev, search: value, pagina: "1" }));
@@ -104,7 +112,11 @@ export default function TecnicoPage() {
         </ActionsWrapper>
       </TitleComponent>
 
-      <DataTable columns={columns} data={data?.data ?? []} isLoading={isLoading}>
+      <DataTable
+        columns={columns}
+        data={data?.data ?? []}
+        isLoading={isLoading}
+      >
         <TecnicoFilters
           search={params.search ?? ""}
           onSearchChange={handleSearchChange}

@@ -5,6 +5,8 @@ import type {
   TipoUsuarioResource,
   TipoUsuarioBody,
   OpcionMenuResource,
+  OpcionMenuWithGrupo,
+  PermisoBody,
 } from "./tipo-usuario.interface";
 
 export const getTiposUsuario = async (
@@ -41,5 +43,20 @@ export const restoreTipoUsuario = async (id: number) => {
 
 export const getTipoUsuarioOpcionesMenu = async (id: number): Promise<OpcionMenuResource[]> => {
   const { data } = await api.get(`${TipoUsuarioComplete.ENDPOINT}/${id}/opciones-menu`);
+  return data;
+};
+
+export const getAllOpcionesMenu = async (): Promise<OpcionMenuWithGrupo[]> => {
+  const { data } = await api.get("/opciones-menu");
+  return data;
+};
+
+export const addPermiso = async (body: PermisoBody) => {
+  const { data } = await api.post("/permisos-tipo-usuario", body);
+  return data;
+};
+
+export const deletePermiso = async (body: PermisoBody) => {
+  const { data } = await api.delete("/permisos-tipo-usuario", { data: body });
   return data;
 };

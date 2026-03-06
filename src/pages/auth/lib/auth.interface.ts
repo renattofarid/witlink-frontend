@@ -18,3 +18,7 @@ export interface AuthUsuario {
   updated_at: string;
   deleted_at: null;
 }
+
+export interface AuthenticateResponse {
+  data: AuthUsuario;
+}

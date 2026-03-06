@@ -11,7 +11,7 @@ interface AuthState {
   setUser: (user: AuthUsuario) => void;
   setMessage: (message: string) => void;
   authenticate: () => void;
-  clearAuth: () => void;
+  logout: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -39,11 +39,11 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   authenticate: async () => {
-    const user = await authenticate();
-    if (user) {
-      localStorage.setItem("user", JSON.stringify(user));
+    const { data } = await authenticate();
+    if (data) {
+      localStorage.setItem("user", JSON.stringify(data));
       set({
-        user,
+        user: data,
         isAuthenticated: true,
       });
     } else {
@@ -58,7 +58,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  clearAuth: () => {
+  logout: () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     localStorage.removeItem("message");

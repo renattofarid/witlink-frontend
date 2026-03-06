@@ -23,9 +23,9 @@ import {
 } from "@/components/ui/sidebar";
 import { useTheme } from "./theme-provider";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
-import type { User } from "@/pages/auth/lib/auth.interface";
+import type { AuthUsuario } from "@/pages/auth/lib/auth.interface";
 
-export function NavUser({ user }: { user: User }) {
+export function NavUser({ user }: { user: AuthUsuario }) {
   const { setTheme } = useTheme();
   const { clearAuth } = useAuthStore();
 
@@ -44,8 +44,8 @@ export function NavUser({ user }: { user: User }) {
             >
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarFallback className="rounded-lg bg-primary text-primary-foreground">
-                  {user.name &&
-                    user.name
+                  {user.nombre_usuario &&
+                    user.nombre_usuario
                       .split(" ")
                       .slice(0, 2)
                       .map((n) => n[0])
@@ -54,8 +54,8 @@ export function NavUser({ user }: { user: User }) {
                 </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{`${user.name}`}</span>
-                <span className="truncate text-xs">{user.username}</span>
+                <span className="truncate font-medium">{`${user.nombre_usuario}`}</span>
+                <span className="truncate text-xs">{user.nombre_usuario}</span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
@@ -70,8 +70,8 @@ export function NavUser({ user }: { user: User }) {
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarFallback className="rounded-lg">
-                    {user.name &&
-                      user.name
+                    {user.nombre_usuario &&
+                      user.nombre_usuario
                         .split(" ")
                         .map((n) => n[0])
                         .join("")
@@ -79,8 +79,10 @@ export function NavUser({ user }: { user: User }) {
                   </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{`${user.name}`}</span>
-                  <span className="truncate text-xs">{user.username}</span>
+                  <span className="truncate font-medium">{`${user.nombre_usuario}`}</span>
+                  <span className="truncate text-xs">
+                    {user.nombre_usuario}
+                  </span>
                 </div>
               </div>
             </DropdownMenuLabel>

@@ -1,5 +1,5 @@
 import { useAuthStore } from "./auth.store";
-import type { AuthResponse, AuthUsuario } from "./auth.interface";
+import type { AuthenticateResponse, AuthResponse } from "./auth.interface";
 import { api } from "@/lib/config";
 
 // Define el tipo para los datos de inicio de sesión
@@ -24,12 +24,12 @@ export async function login(body: LoginBody): Promise<AuthResponse> {
   }
 }
 
-export async function authenticate(): Promise<AuthUsuario> {
+export async function authenticate(): Promise<AuthenticateResponse> {
   try {
-    const { data } = await api.get<AuthUsuario>("/auth/me");
+    const { data } = await api.get<AuthenticateResponse>("/auth/me");
     const { setUser } = useAuthStore.getState();
 
-    setUser(data);
+    setUser(data.data);
 
     return data;
   } catch (error) {

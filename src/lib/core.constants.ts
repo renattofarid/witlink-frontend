@@ -11,3 +11,5 @@ export const ACTIONS: Record<string, string> = {
   update: "actualizar",
   delete: "eliminar",
 };
+
+export const LOGO = "/logo.jpg";

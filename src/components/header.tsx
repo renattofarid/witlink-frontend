@@ -22,7 +22,7 @@ export default function HeaderComponent() {
         </div>
         <div className="flex flex-col items-start">
           <p className="font-medium text-sm tracking-wider uppercase">
-            Bienvenido <span className="font-bold">{user.name}</span>
+            Bienvenido <span className="font-bold">{user.nombre_usuario}</span>
           </p>
           <p className="capitalize text-xs text-muted-foreground">
             {new Date().toLocaleDateString("es-ES", {

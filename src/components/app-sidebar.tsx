@@ -1,8 +1,6 @@
 "use client";
 
-import {
-  LayoutGrid,
-} from "lucide-react";
+import { LayoutGrid } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -14,14 +12,13 @@ import { TeamSwitcher } from "./team-switcher";
 import { NavMain } from "./nav-main";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
 import { NavUser } from "./nav-user";
-import { hasAccessToRoute } from "@/App";
 import { useEffect, useState } from "react";
 import { ENABLE_PERMISSION_VALIDATION } from "@/lib/permissions.config";
 
 const data = {
   navMain: [
     {
-      title: "Dashboard",
+      title: "Inicio",
       url: "/inicio",
       icon: LayoutGrid,
     },
@@ -29,7 +26,7 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { user, access } = useAuthStore();
+  const { user } = useAuthStore();
   const [filteredNav, setFilteredNav] = useState<any[]>([]);
 
   useEffect(() => {
@@ -39,19 +36,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       return;
     }
 
-    if (!access) return;
-
     const filterNav = (items: any[]) =>
       items.filter((item) => {
         if (item.url === "#" && item.items) {
           item.items = filterNav(item.items);
           return item.items.length > 0;
         }
-        return hasAccessToRoute(access, item.url);
       });
 
     setFilteredNav(filterNav(data.navMain));
-  }, [access]);
+  }, []);
 
   if (!user) {
     return null; // o spinner

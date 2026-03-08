@@ -4,7 +4,7 @@ import { ACTIONS, ACTIONS_NAMES } from "./core.constants";
 
 export const successToast = (
   body: string,
-  description: string = new Date().toLocaleString()
+  description: string = new Date().toLocaleString(),
 ) => {
   return toast.success(body, {
     description,
@@ -17,7 +17,7 @@ export const successToast = (
 
 export const errorToast = (
   body: string = "Error",
-  description: string = new Date().toLocaleString()
+  description: string = new Date().toLocaleString(),
 ) => {
   return toast.error(body, {
     description,
@@ -30,7 +30,7 @@ export const errorToast = (
 
 export const warningToast = (
   body: string,
-  description: string = new Date().toLocaleString()
+  description: string = new Date().toLocaleString(),
 ) => {
   return toast.warning(body, {
     description,
@@ -43,7 +43,7 @@ export const warningToast = (
 
 export const infoToast = (
   body: string,
-  description: string = new Date().toLocaleString()
+  description: string = new Date().toLocaleString(),
 ) => {
   return toast.info(body, {
     description,
@@ -64,7 +64,7 @@ export const promiseToast = <T>(
     loading?: string;
     success?: string | ((data: T) => string);
     error?: string | ((error: unknown) => string);
-  } = {}
+  } = {},
 ) => {
   return toast.promise(promise, {
     loading: messages.loading ?? "Procesando...",
@@ -91,24 +91,18 @@ export const objectToFormData = (obj: any) => {
 
 export const SUCCESS_MESSAGE: (
   { name, gender }: ModelInterface,
-  action: Action
+  action: Action,
 ) => string = ({ name, gender = true }, action) =>
   `${name} ${ACTIONS_NAMES[action]}${gender ? "a" : "o"} correctamente.`;
 
 export const ERROR_MESSAGE: (
   { name, gender }: ModelInterface,
-  action: Action
+  action: Action,
 ) => string = ({ name, gender = true }, action) =>
   `Error al ${ACTIONS[action]} ${gender ? "la" : "el"} ${name}.`;
 
-export const matchCurrency = (currencyCode: string): string => {
-  const currency =
-    currencyCode === "PEN"
-      ? "S/"
-      : currencyCode === "USD"
-      ? "$"
-      : currencyCode === "EUR"
-      ? "€"
-      : currencyCode;
-  return currency;
-};
+export const  SUBTITLE: ({ name }: ModelInterface, action: Action) => string = (
+  { name },
+  action,
+) =>
+  `${ACTIONS[action].charAt(0).toUpperCase() + ACTIONS[action].slice(1)} ${name.toLowerCase()}.`;

@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import PageWrapper from "@/components/PageWrapper";
 import TitleComponent from "@/components/TitleComponent";
@@ -15,16 +14,20 @@ import { PersonaComplete } from "../lib/persona.constants";
 import { getPersonaColumns } from "../components/PersonaColumns";
 import PersonaFilters from "../components/PersonaFilters";
 import PersonaButtons from "../components/PersonaButtons";
+import PersonaModal from "../components/PersonaModal";
 import type { PersonaResource } from "../lib/persona.interface";
 
 export default function PersonaPage() {
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
 
   const [params, setParams] = useState<Record<string, string>>({
     pagina: "1",
     por_pagina: String(DEFAULT_PER_PAGE),
   });
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<"create" | "edit">("create");
+  const [selected, setSelected] = useState<PersonaResource | null>(null);
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [toDelete, setToDelete] = useState<PersonaResource | null>(null);
@@ -59,10 +62,17 @@ export default function PersonaPage() {
     },
   });
 
-  const handleAdd = () => navigate(PersonaComplete.ROUTE_ADD);
+  const handleAdd = () => {
+    setSelected(null);
+    setModalMode("create");
+    setModalOpen(true);
+  };
 
-  const handleEdit = (row: PersonaResource) =>
-    navigate(`${PersonaComplete.ROUTE_UPDATE}/${row.id}`);
+  const handleEdit = (row: PersonaResource) => {
+    setSelected(row);
+    setModalMode("edit");
+    setModalOpen(true);
+  };
 
   const handleDelete = (row: PersonaResource) => {
     setToDelete(row);
@@ -122,6 +132,13 @@ export default function PersonaPage() {
         totalData={data?.total ?? 0}
         onPageChange={handlePageChange}
         setPerPage={handlePerPageChange}
+      />
+
+      <PersonaModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        mode={modalMode}
+        selected={selected}
       />
 
       <SimpleDeleteDialog

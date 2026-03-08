@@ -23,6 +23,7 @@ import { GuiaComplete } from "@/pages/guia/lib/guia.constants";
 import { OficinaComplete } from "@/pages/oficina/lib/oficina.constants";
 import { ProductoComplete } from "@/pages/producto/lib/producto.constants";
 import { TecnicoComplete } from "@/pages/tecnico/lib/tecnico.constants";
+import { MenuComplete } from "@/pages/menu/lib/menu.constants";
 
 const allNavItems = [
   {
@@ -45,6 +46,7 @@ const allNavItems = [
     title: TipoUsuarioComplete.MODEL.plural ?? TipoUsuarioComplete.MODEL.name,
     url: TipoUsuarioComplete.ABSOLUTE_ROUTE,
     icon: TipoUsuarioComplete.ICON,
+    public: true,
   },
   {
     title: OficinaComplete.MODEL.plural ?? OficinaComplete.MODEL.name,
@@ -76,6 +78,16 @@ const allNavItems = [
     url: GuiaComplete.ABSOLUTE_ROUTE,
     icon: GuiaComplete.ICON,
   },
+  ...(import.meta.env.DEV
+    ? [
+        {
+          title: MenuComplete.MODEL.plural ?? MenuComplete.MODEL.name,
+          url: MenuComplete.ABSOLUTE_ROUTE,
+          icon: MenuComplete.ICON,
+          public: true,
+        },
+      ]
+    : []),
 ];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -83,9 +95,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   const filteredNav = useMemo(() => {
     if (!ENABLE_PERMISSION_VALIDATION) return allNavItems;
-    return allNavItems.filter(
-      (item) => item.public || allowedRoutes.includes(item.url)
-    );
+    return allNavItems.filter((item) => {
+      return item.public || allowedRoutes.includes(item.url);
+    });
   }, [allowedRoutes]);
 
   if (!user) {

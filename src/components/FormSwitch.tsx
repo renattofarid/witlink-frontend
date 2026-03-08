@@ -45,7 +45,7 @@ export function FormSwitch<T extends FieldValues>({
     <Controller
       control={control}
       name={name}
-      render={({ field }) => (
+      render={({ field, fieldState }) => (
         <Field>
           {label && <FieldLabel className="h-fit flex">{label}</FieldLabel>}
           <label
@@ -74,7 +74,7 @@ export function FormSwitch<T extends FieldValues>({
               className="shrink-0"
             />
           </label>
-          <FieldError />
+          <FieldError errors={fieldState.error ? [fieldState.error] : []} />
           {description && (
             <FieldDescription className="text-xs font-normal">
               {description}

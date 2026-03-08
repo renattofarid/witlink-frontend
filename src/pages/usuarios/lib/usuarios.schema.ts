@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const usuariosSchema = z.object({
-  persona_id: z.string().min(1, "Requerido").optional(),
+  persona_id: z.string().min(1, "Requerido"),
   tipo_usuario_id: z.string().min(1, "Requerido"),
   oficina_id: z.string().min(1, "Requerido"),
   nombre_usuario: z.string().min(1, "Requerido"),

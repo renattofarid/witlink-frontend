@@ -6,7 +6,7 @@ import { GuiaComplete } from "../lib/guia.constants";
 export default function GuiaButtons() {
   const navigate = useNavigate();
   return (
-    <Button size="sm" onClick={() => navigate(GuiaComplete.ROUTE_ADD)}>
+    <Button onClick={() => navigate(GuiaComplete.ROUTE_ADD)}>
       <Plus className="size-4 mr-1" />
       Agregar
     </Button>

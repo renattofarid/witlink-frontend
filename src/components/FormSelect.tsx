@@ -68,7 +68,7 @@ export function FormSelect({
     <Controller
       control={control}
       name={name}
-      render={({ field }) => {
+      render={({ field, fieldState }) => {
         const selected = options.find((opt) => opt.value === field.value);
 
         return (
@@ -360,7 +360,7 @@ export function FormSelect({
               </PopoverContent>
             </Popover>
 
-            <FieldError />
+            <FieldError errors={fieldState.error ? [fieldState.error] : []} />
           </Field>
         );
       }}

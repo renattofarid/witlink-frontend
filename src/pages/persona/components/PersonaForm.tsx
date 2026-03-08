@@ -13,7 +13,7 @@ import type { PersonaResource } from "../lib/persona.interface";
 interface PersonaFormProps {
   mode: "create" | "edit";
   defaultValues?: PersonaResource;
-  onSuccess?: () => void;
+  onSuccess?: (persona?: PersonaResource) => void;
 }
 
 export default function PersonaForm({
@@ -43,14 +43,14 @@ export default function PersonaForm({
       }
       return updatePersona(defaultValues!.id, values);
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: [PersonaComplete.QUERY_KEY] });
       successToast(
         mode === "create"
           ? "Persona creada correctamente."
           : "Persona actualizada correctamente.",
       );
-      onSuccess?.();
+      onSuccess?.(data);
     },
     onError: (error: any) => {
       errorToast(

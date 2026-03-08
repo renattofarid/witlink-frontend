@@ -1,44 +1,36 @@
 import { ButtonAction } from "@/components/ButtonAction";
-import { Pencil, Trash2, RotateCcw } from "lucide-react";
+import { Pencil, Trash2, RotateCcw, List } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
-import type { ProductoResource } from "../lib/producto.interface";
-import { Badge } from "@/components/ui/badge";
+import type { MenuResource } from "../lib/menu.interface";
 
 interface ColumnActions {
-  onEdit: (row: ProductoResource) => void;
-  onDelete: (row: ProductoResource) => void;
-  onRestore: (row: ProductoResource) => void;
+  onEdit: (row: MenuResource) => void;
+  onDelete: (row: MenuResource) => void;
+  onRestore: (row: MenuResource) => void;
+  onViewOpciones: (row: MenuResource) => void;
 }
 
-export const getProductoColumns = ({
+export const getMenuColumns = ({
   onEdit,
   onDelete,
   onRestore,
-}: ColumnActions): ColumnDef<ProductoResource>[] => [
+  onViewOpciones,
+}: ColumnActions): ColumnDef<MenuResource>[] => [
   {
     accessorKey: "id",
     header: "ID",
-  },
-  {
-    accessorKey: "sap",
-    header: "SAP",
   },
   {
     accessorKey: "nombre",
     header: "Nombre",
   },
   {
-    accessorKey: "tipo",
-    header: "Tipo",
-    cell: ({ getValue }) => {
-      const tipo = getValue() as string;
-      return <Badge className="uppercase">{tipo}</Badge>;
-    },
+    accessorKey: "icono",
+    header: "Ícono",
   },
   {
-    id: "categoria",
-    header: "Categoría",
-    cell: ({ row }) => row.original.categoria?.nombre ?? "-",
+    accessorKey: "orden",
+    header: "Orden",
   },
   {
     id: "acciones",
@@ -49,17 +41,25 @@ export const getProductoColumns = ({
       return (
         <div className="flex gap-1">
           <ButtonAction
+            icon={List}
+            canRender={!isDeleted}
+            onClick={() => onViewOpciones(item)}
+            tooltip="Ver opciones"
+          />
+          <ButtonAction
             icon={Pencil}
             canRender={!isDeleted}
             onClick={() => onEdit(item)}
           />
           <ButtonAction
             icon={Trash2}
+            color="danger"
             canRender={!isDeleted}
             onClick={() => onDelete(item)}
           />
           <ButtonAction
             icon={RotateCcw}
+            color="warning"
             canRender={isDeleted}
             onClick={() => onRestore(item)}
           />

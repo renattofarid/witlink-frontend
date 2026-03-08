@@ -1,45 +1,128 @@
-import * as React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
-import { Slot } from "radix-ui"
+import * as React from "react";
+import { cva, type VariantProps } from "class-variance-authority";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
 
 const badgeVariants = cva(
-  "h-5 gap-1 rounded-full border border-transparent px-2 py-0.5 text-[0.625rem] font-medium transition-all has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&>svg]:size-2.5! inline-flex items-center justify-center w-fit whitespace-nowrap shrink-0 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive overflow-hidden group/badge",
+  "inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground [a]:hover:bg-primary/80",
-        secondary: "bg-secondary text-secondary-foreground [a]:hover:bg-secondary/80",
-        destructive: "bg-destructive/10 [a]:hover:bg-destructive/20 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 text-destructive dark:bg-destructive/20",
-        outline: "border-border text-foreground [a]:hover:bg-muted [a]:hover:text-muted-foreground bg-input/20 dark:bg-input/30",
-        ghost: "hover:bg-muted hover:text-muted-foreground dark:hover:bg-muted/50",
-        link: "text-primary underline-offset-4 hover:underline",
+        default:
+          "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
+        secondary:
+          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        tertiary:
+          "border-transparent-foreground bg-tertiary text-tertiary-foreground hover:bg-tertiary/80",
+        destructive:
+          "border-transparent bg-destructive text-white hover:bg-destructive/80",
+        outline: "text-foreground",
+        ghost:
+          "border-transparent bg-ghost text-ghost-foreground hover:bg-ghost/80",
+        orange:
+          "bg-orange-100 text-orange-700 border-orange-300 dark:bg-orange-950 dark:text-orange-200 dark:border-orange-800",
+        "orange-outline":
+          "bg-transparent text-orange-600 border-orange-600 dark:text-orange-300 dark:border-orange-300",
+        green:
+          "bg-green-100 text-green-700 border-green-300 dark:bg-green-950 dark:text-green-200 dark:border-green-800",
+        "green-outline":
+          "bg-transparent text-green-600 border-green-600 dark:text-green-300 dark:border-green-300",
+        blue: "bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-950 dark:text-blue-200 dark:border-blue-800",
+        "blue-outline":
+          "bg-transparent text-blue-600 border-blue-600 dark:text-blue-300 dark:border-blue-300",
+        red: "bg-red-100 text-red-700 border-red-300 dark:bg-red-950 dark:text-red-200 dark:border-red-800",
+        "red-outline":
+          "bg-transparent text-red-600 border-red-600 dark:text-red-300 dark:border-red-300",
+        yellow:
+          "bg-yellow-100 text-yellow-700 border-yellow-300 dark:bg-yellow-950 dark:text-yellow-200 dark:border-yellow-800",
+        "yellow-outline":
+          "bg-transparent text-yellow-600 border-yellow-600 dark:text-yellow-300 dark:border-yellow-300",
+        purple:
+          "bg-purple-100 text-purple-700 border-purple-300 dark:bg-purple-950 dark:text-purple-200 dark:border-purple-800",
+        "purple-outline":
+          "bg-transparent text-purple-600 border-purple-600 dark:text-purple-300 dark:border-purple-300",
+        pink: "bg-pink-100 text-pink-700 border-pink-300 dark:bg-pink-950 dark:text-pink-200 dark:border-pink-800",
+        "pink-outline":
+          "bg-transparent text-pink-600 border-pink-600 dark:text-pink-300 dark:border-pink-300",
+        indigo:
+          "bg-indigo-100 text-indigo-700 border-indigo-300 dark:bg-indigo-950 dark:text-indigo-200 dark:border-indigo-800",
+        "indigo-outline":
+          "bg-transparent text-indigo-600 border-indigo-600 dark:text-indigo-300 dark:border-indigo-300",
+        teal: "bg-teal-100 text-teal-700 border-teal-300 dark:bg-teal-950 dark:text-teal-200 dark:border-teal-800",
+        "teal-outline":
+          "bg-transparent text-teal-600 border-teal-600 dark:text-teal-300 dark:border-teal-300",
+        cyan: "bg-cyan-100 text-cyan-700 border-cyan-300 dark:bg-cyan-950 dark:text-cyan-200 dark:border-cyan-800",
+        "cyan-outline":
+          "bg-transparent text-cyan-600 border-cyan-600 dark:text-cyan-300 dark:border-cyan-300",
+        gray: "bg-gray-100 text-gray-700 border-gray-300 dark:bg-gray-950 dark:text-gray-200 dark:border-gray-800",
+        "gray-outline":
+          "bg-transparent text-gray-600 border-gray-600 dark:text-gray-300 dark:border-gray-300",
+        amber:
+          "bg-amber-100 text-amber-700 border-amber-300 dark:bg-amber-950 dark:text-amber-200 dark:border-amber-800",
+        "amber-outline":
+          "bg-transparent text-amber-600 border-amber-600 dark:text-amber-300 dark:border-amber-300",
+      },
+      size: {
+        default: "px-2.5 py-0.5 text-xs",
+        sm: "h-fit py-0.25 px-2 text-xs",
+        lg: "px-3 py-1 text-sm",
       },
     },
     defaultVariants: {
       variant: "default",
+      size: "default",
     },
+  },
+);
+
+export interface BadgeProps
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
+    VariantProps<typeof badgeVariants> {}
+
+export type BadgeCustomProps = BadgeProps & {
+  tooltip?: React.ReactNode;
+  tooltipVariant?: "default" | "secondary" | "tertiary";
+};
+
+function getTooltipVariant(variant: BadgeCustomProps["tooltipVariant"]) {
+  switch (variant) {
+    case "secondary":
+      return "!bg-secondary !text-secondary-foreground !fill-secondary";
+    case "tertiary":
+      return "!bg-tertiary !text-tertiary-foreground !fill-tertiary";
+    default:
+      return "!bg-primary !text-primary-foreground !fill-primary";
   }
-)
+}
 
 function Badge({
   className,
-  variant = "default",
-  asChild = false,
+  variant,
+  size,
+  tooltipVariant,
+  tooltip,
   ...props
-}: React.ComponentProps<"span"> &
-  VariantProps<typeof badgeVariants> & { asChild?: boolean }) {
-  const Comp = asChild ? Slot.Root : "span"
-
-  return (
-    <Comp
-      data-slot="badge"
-      data-variant={variant}
-      className={cn(badgeVariants({ variant }), className)}
+}: BadgeCustomProps) {
+  return tooltip ? (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <div
+          className={cn(badgeVariants({ variant, size }), className)}
+          {...props}
+        />
+      </TooltipTrigger>
+      <TooltipContent className={cn(getTooltipVariant(tooltipVariant))}>
+        {tooltip}
+      </TooltipContent>
+    </Tooltip>
+  ) : (
+    <div
+      className={cn(badgeVariants({ variant, size }), className)}
       {...props}
     />
-  )
+  );
 }
 
-export { Badge, badgeVariants }
+export { Badge, badgeVariants };

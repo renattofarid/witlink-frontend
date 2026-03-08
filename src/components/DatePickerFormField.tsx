@@ -68,7 +68,7 @@ export function DatePickerFormField<T extends FieldValues>({
   endMonth,
 }: DatePickerFormFieldProps<T>) {
   const isMobile = useIsMobile();
-  const { field } = useController({ control, name });
+  const { field, fieldState } = useController({ control, name });
 
   const parsedDate = useMemo(() => {
     if ((field.value as unknown) instanceof Date) return field.value;
@@ -171,7 +171,7 @@ export function DatePickerFormField<T extends FieldValues>({
       )}
 
       {description && <FieldDescription>{description}</FieldDescription>}
-      <FieldError />
+      <FieldError errors={fieldState.error ? [fieldState.error] : []} />
     </Field>
   );
 }

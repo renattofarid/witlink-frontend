@@ -15,7 +15,7 @@ export default function GuiaAddPage() {
         icon="ClipboardList"
         backRoute={GuiaComplete.ABSOLUTE_ROUTE}
       />
-      <GuiaForm onSuccess={() => navigate(GuiaComplete.ABSOLUTE_ROUTE)} />
+      <GuiaForm mode="create" onSuccess={() => navigate(GuiaComplete.ABSOLUTE_ROUTE)} />
     </FormWrapper>
   );
 }

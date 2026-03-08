@@ -86,6 +86,4 @@ export interface GuiaCreateBody {
   productos: GuiaProductoBody[];
 }
 
-export interface GuiaEditBody {
-  nombre: string;
-}
+export type GuiaEditBody = GuiaCreateBody;

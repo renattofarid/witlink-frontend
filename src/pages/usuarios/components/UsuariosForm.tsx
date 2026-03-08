@@ -1,10 +1,13 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FormInput } from "@/components/FormInput";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import FormWrapper from "@/components/FormWrapper";
+import { GeneralModal } from "@/components/GeneralModal";
 import { successToast, errorToast, ERROR_MESSAGE } from "@/lib/core.function";
 import {
   usuariosSchema,
@@ -16,6 +19,9 @@ import type { UsuariosResource } from "../lib/usuarios.interface";
 import { usePersonaSelectQuery } from "@/pages/tecnico/lib/tecnico.hook";
 import { useTipoUsuarioSelectQuery } from "@/pages/tipo-usuario/lib/tipo-usuario.hook";
 import { useOficinaSelectQuery } from "@/pages/oficina/lib/oficina.hook";
+import PersonaForm from "@/pages/persona/components/PersonaForm";
+import type { PersonaResource } from "@/pages/persona/lib/persona.interface";
+import type { Option } from "@/lib/core.interface";
 
 interface UsuariosFormProps {
   mode: "create" | "edit";
@@ -29,13 +35,18 @@ export default function UsuariosForm({
   onSuccess,
 }: UsuariosFormProps) {
   const queryClient = useQueryClient();
+  const [personaModalOpen, setPersonaModalOpen] = useState(false);
+  const [personaKey, setPersonaKey] = useState(0);
+  const [personaDefaultOption, setPersonaDefaultOption] = useState<
+    Option | undefined
+  >(undefined);
 
   const form = useForm<UsuariosFormValues>({
     resolver: zodResolver(usuariosSchema),
     defaultValues: {
       persona_id: defaultValues?.persona_id
         ? String(defaultValues.persona_id)
-        : undefined,
+        : "",
       tipo_usuario_id: defaultValues?.tipo_usuario_id
         ? String(defaultValues.tipo_usuario_id)
         : "",
@@ -82,6 +93,19 @@ export default function UsuariosForm({
     },
   });
 
+  const handlePersonaCreated = (persona?: PersonaResource) => {
+    if (!persona) return;
+    const option: Option = {
+      value: String(persona.id),
+      label: `${persona.nombre} ${persona.apellido_paterno} ${persona.apellido_materno}`,
+      description: persona.dni,
+    };
+    setPersonaDefaultOption(option);
+    setPersonaKey((prev) => prev + 1);
+    form.setValue("persona_id", String(persona.id));
+    setPersonaModalOpen(false);
+  };
+
   return (
     <FormWrapper>
       <form
@@ -90,6 +114,7 @@ export default function UsuariosForm({
       >
         {mode === "create" && (
           <FormSelectAsync
+            key={personaKey}
             name="persona_id"
             label="Persona"
             control={form.control}
@@ -101,7 +126,18 @@ export default function UsuariosForm({
               label: `${item.nombre} ${item.apellido_paterno} ${item.apellido_materno}`,
               description: item.dni,
             })}
-          />
+            defaultOption={personaDefaultOption}
+          >
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="shrink-0"
+              onClick={() => setPersonaModalOpen(true)}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </FormSelectAsync>
         )}
         <FormSelectAsync
           name="tipo_usuario_id"
@@ -142,6 +178,7 @@ export default function UsuariosForm({
           label="Nombre de Usuario"
           control={form.control}
           placeholder="Ingrese el nombre de usuario"
+          autoComplete="off"
           required
         />
         <FormInput
@@ -150,6 +187,7 @@ export default function UsuariosForm({
           control={form.control}
           type="password"
           placeholder="Ingrese la contraseña"
+          autoComplete="new-password"
           required
         />
         <div className="flex justify-end pt-2">
@@ -162,6 +200,17 @@ export default function UsuariosForm({
           </Button>
         </div>
       </form>
+
+      <GeneralModal
+        open={personaModalOpen}
+        onClose={() => setPersonaModalOpen(false)}
+        title="Nueva Persona"
+        mode="create"
+        icon="Users"
+        size="lg"
+      >
+        <PersonaForm mode="create" onSuccess={handlePersonaCreated} />
+      </GeneralModal>
     </FormWrapper>
   );
 }

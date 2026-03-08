@@ -222,7 +222,7 @@ export function FormSelectAsync({
     <Controller
       control={control}
       name={name}
-      render={({ field }) => {
+      render={({ field, fieldState }) => {
         // Buscar la opción seleccionada en las opciones cargadas o usar la cache
         const selected =
           allOptions.find((opt) => opt.value === field.value) ||
@@ -379,7 +379,7 @@ export function FormSelectAsync({
                 {description}
               </FieldDescription>
             )}
-            <FieldError />
+            <FieldError errors={fieldState.error ? [fieldState.error] : []} />
           </Field>
         );
       }}

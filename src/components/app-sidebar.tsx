@@ -46,7 +46,6 @@ const allNavItems = [
     title: TipoUsuarioComplete.MODEL.plural ?? TipoUsuarioComplete.MODEL.name,
     url: TipoUsuarioComplete.ABSOLUTE_ROUTE,
     icon: TipoUsuarioComplete.ICON,
-    public: true,
   },
   {
     title: OficinaComplete.MODEL.plural ?? OficinaComplete.MODEL.name,

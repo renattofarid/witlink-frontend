@@ -73,6 +73,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
   const form = useForm<GuiaCreateFormValues>({
     resolver: zodResolver(guiaCreateSchema),
     defaultValues: { numero: "", fecha: "", proveedor_id: "", productos: [] },
+    mode: "onChange",
   });
 
   const {

@@ -1,4 +1,4 @@
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -24,12 +24,13 @@ export default function MenuForm({
   const queryClient = useQueryClient();
 
   const form = useForm<MenuFormValues>({
-    resolver: zodResolver(menuSchema),
+    resolver: zodResolver(menuSchema) as Resolver<MenuFormValues>,
     defaultValues: {
       nombre: defaultValues?.nombre ?? "",
       icono: defaultValues?.icono ?? "",
       orden: defaultValues?.orden ? Number(defaultValues.orden) : 0,
     },
+    mode: "onChange",
   });
 
   const mutation = useMutation({
@@ -42,14 +43,14 @@ export default function MenuForm({
       successToast(
         mode === "create"
           ? "Menú creado correctamente."
-          : "Menú actualizado correctamente."
+          : "Menú actualizado correctamente.",
       );
       onSuccess?.();
     },
     onError: (error: any) => {
       errorToast(
         error.response?.data?.message ??
-          ERROR_MESSAGE(MenuComplete.MODEL, mode)
+          ERROR_MESSAGE(MenuComplete.MODEL, mode),
       );
     },
   });

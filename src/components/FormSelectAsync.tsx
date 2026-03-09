@@ -96,6 +96,7 @@ export function FormSelectAsync({
   const [selectedOption, setSelectedOption] = useState<Option | null>(
     defaultOption || null,
   );
+  const prevDefaultOptionRef = useRef<Option | undefined>(defaultOption);
   const scrollRef = useRef<HTMLDivElement>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
@@ -109,6 +110,18 @@ export function FormSelectAsync({
     por_pagina: perPage,
     ...additionalParams,
   });
+
+  // Sincronizar cuando defaultOption cambia externamente (ej: se crea un nuevo item)
+  useEffect(() => {
+    if (defaultOption && defaultOption !== prevDefaultOptionRef.current) {
+      prevDefaultOptionRef.current = defaultOption;
+      setSelectedOption(defaultOption);
+      setAllOptions((prev) => {
+        const exists = prev.some((opt) => opt.value === defaultOption.value);
+        return exists ? prev : [defaultOption, ...prev];
+      });
+    }
+  }, [defaultOption]);
 
   // Debounce para el search
   useEffect(() => {

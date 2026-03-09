@@ -31,6 +31,7 @@ export default function CuadrillaForm({
     defaultValues: {
       nombre: defaultValues?.nombre ?? "",
     },
+    mode: "onChange",
   });
 
   const mutation = useMutation({

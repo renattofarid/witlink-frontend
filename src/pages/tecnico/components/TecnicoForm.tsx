@@ -43,6 +43,7 @@ export default function TecnicoForm({
         ? String(defaultValues.persona_id)
         : "",
     },
+    mode: "onChange",
   });
 
   const mutation = useMutation({

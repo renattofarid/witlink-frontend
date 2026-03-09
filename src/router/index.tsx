@@ -37,12 +37,16 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
   }
 
   if (ENABLE_PERMISSION_VALIDATION) {
-    const publicPaths = ["/inicio", "/", TipoUsuarioComplete.ROUTE, ...(import.meta.env.DEV ? [MenuComplete.ABSOLUTE_ROUTE] : [])];
+    const publicPaths = [
+      "/inicio",
+      "/",
+      ...(import.meta.env.DEV ? [MenuComplete.ABSOLUTE_ROUTE] : []),
+    ];
     const isPublic = publicPaths.includes(location.pathname);
     const hasAccess =
       isPublic ||
       allowedRoutes.some(
-        (r) => location.pathname === r || location.pathname.startsWith(r + "/")
+        (r) => location.pathname === r || location.pathname.startsWith(r + "/"),
       );
     if (!hasAccess) {
       return <Navigate to="/inicio" replace />;

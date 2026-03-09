@@ -37,6 +37,7 @@ export default function ProductoForm({
       nombre: defaultValues?.nombre ?? "",
       tipo: (defaultValues?.tipo as "consumible" | "equipo") ?? undefined,
     },
+    mode: "onChange",
   });
 
   const mutation = useMutation({

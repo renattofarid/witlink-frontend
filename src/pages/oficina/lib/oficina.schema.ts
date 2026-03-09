@@ -8,7 +8,8 @@ export const oficinaSchema = z.object({
   ubigeo: z
     .string()
     .min(1, "Requerido")
-    .regex(/[a-zA-Z]/, "Debe contener al menos un carácter"),
+    .max(6, "Debe contener como máximo 6 caracteres")
+    .regex(/[0-9]/, "Debe contener al menos un número"),
   direccion: z
     .string()
     .min(1, "Requerido")

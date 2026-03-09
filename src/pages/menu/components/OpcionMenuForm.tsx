@@ -8,7 +8,10 @@ import { successToast, errorToast } from "@/lib/core.function";
 import { Plus, Trash2 } from "lucide-react";
 import { createOpcionMenu, updateOpcionMenu } from "../lib/menu.actions";
 import { OPCION_MENU_QUERY_KEY } from "../lib/menu.constants";
-import { opcionMenuSchema, type OpcionMenuFormValues } from "../lib/menu.schema";
+import {
+  opcionMenuSchema,
+  type OpcionMenuFormValues,
+} from "../lib/menu.schema";
 import type { OpcionMenuResource } from "../lib/menu.interface";
 
 // Schema para bulk create (array de opciones)
@@ -49,6 +52,7 @@ function EditForm({
       orden: defaultValues.orden,
       grupo_menu_id: defaultValues.grupo_menu_id,
     },
+    mode: "onChange",
   });
 
   const mutation = useMutation({
@@ -63,7 +67,8 @@ function EditForm({
     },
     onError: (error: any) => {
       errorToast(
-        error.response?.data?.message ?? "Error al actualizar la opción de menú."
+        error.response?.data?.message ??
+          "Error al actualizar la opción de menú.",
       );
     },
   });
@@ -74,10 +79,34 @@ function EditForm({
       className="space-y-4"
     >
       <div className="grid grid-cols-2 gap-3">
-        <FormInput name="nombre" label="Nombre" control={form.control} placeholder="Nombre" required />
-        <FormInput name="ruta" label="Ruta" control={form.control} placeholder="/ruta" required />
-        <FormInput name="icono" label="Ícono" control={form.control} placeholder="Ej: dashboard" required />
-        <FormInput name="orden" label="Orden" control={form.control} placeholder="1" required />
+        <FormInput
+          name="nombre"
+          label="Nombre"
+          control={form.control}
+          placeholder="Nombre"
+          required
+        />
+        <FormInput
+          name="ruta"
+          label="Ruta"
+          control={form.control}
+          placeholder="/ruta"
+          required
+        />
+        <FormInput
+          name="icono"
+          label="Ícono"
+          control={form.control}
+          placeholder="Ej: dashboard"
+          required
+        />
+        <FormInput
+          name="orden"
+          label="Orden"
+          control={form.control}
+          placeholder="1"
+          required
+        />
       </div>
       <div className="flex justify-end pt-2">
         <Button type="submit" disabled={mutation.isPending}>
@@ -101,9 +130,16 @@ function BulkCreateForm({
     resolver: zodResolver(bulkOpcionMenuSchema),
     defaultValues: {
       opciones: [
-        { nombre: "", ruta: "", icono: "", orden: "", grupo_menu_id: grupoMenuId },
+        {
+          nombre: "",
+          ruta: "",
+          icono: "",
+          orden: "",
+          grupo_menu_id: grupoMenuId,
+        },
       ],
     },
+    mode: "onChange",
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -125,19 +161,25 @@ function BulkCreateForm({
       successToast(
         count === 1
           ? "Opción de menú creada correctamente."
-          : `${count} opciones de menú creadas correctamente.`
+          : `${count} opciones de menú creadas correctamente.`,
       );
       onSuccess?.();
     },
     onError: (error: any) => {
       errorToast(
-        error.response?.data?.message ?? "Error al crear las opciones de menú."
+        error.response?.data?.message ?? "Error al crear las opciones de menú.",
       );
     },
   });
 
   const addRow = () => {
-    append({ nombre: "", ruta: "", icono: "", orden: "", grupo_menu_id: grupoMenuId });
+    append({
+      nombre: "",
+      ruta: "",
+      icono: "",
+      orden: "",
+      grupo_menu_id: grupoMenuId,
+    });
   };
 
   return (
@@ -211,10 +253,16 @@ function BulkCreateForm({
 export default function OpcionMenuForm(props: OpcionMenuFormProps) {
   if (props.mode === "edit") {
     return (
-      <EditForm defaultValues={props.defaultValues} onSuccess={props.onSuccess} />
+      <EditForm
+        defaultValues={props.defaultValues}
+        onSuccess={props.onSuccess}
+      />
     );
   }
   return (
-    <BulkCreateForm grupoMenuId={props.grupoMenuId} onSuccess={props.onSuccess} />
+    <BulkCreateForm
+      grupoMenuId={props.grupoMenuId}
+      onSuccess={props.onSuccess}
+    />
   );
 }

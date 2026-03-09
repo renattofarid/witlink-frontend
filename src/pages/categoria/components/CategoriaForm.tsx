@@ -31,6 +31,7 @@ export default function CategoriaForm({
     defaultValues: {
       nombre: defaultValues?.nombre ?? "",
     },
+    mode: "onChange",
   });
 
   const mutation = useMutation({

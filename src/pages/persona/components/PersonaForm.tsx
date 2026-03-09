@@ -34,6 +34,7 @@ export default function PersonaForm({
       telefono: defaultValues?.telefono ?? "",
       correo: defaultValues?.correo ?? "",
     },
+    mode: "onChange",
   });
 
   const mutation = useMutation({
@@ -107,6 +108,7 @@ export default function PersonaForm({
           label="Teléfono"
           control={form.control}
           placeholder="Ingrese el teléfono"
+          maxLength={9}
           required
         />
         <FormInput

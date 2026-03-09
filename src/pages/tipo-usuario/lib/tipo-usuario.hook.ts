@@ -10,7 +10,6 @@ export const useTipoUsuarioQuery = (params: Record<string, string>) => {
   return useQuery({
     queryKey: [TipoUsuarioComplete.QUERY_KEY, params],
     queryFn: () => getTiposUsuario(params),
-    refetchOnWindowFocus: true,
   });
 };
 
@@ -18,7 +17,6 @@ export const useTipoUsuarioSelectQuery = (params: Record<string, any> = {}) => {
   return useQuery({
     queryKey: ["tipo-usuario-select", params],
     queryFn: () => getTiposUsuario(params as Record<string, string>),
-    refetchOnWindowFocus: false,
   });
 };
 

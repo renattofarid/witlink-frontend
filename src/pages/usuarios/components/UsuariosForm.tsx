@@ -18,9 +18,15 @@ import { UsuariosComplete } from "../lib/usuarios.constants";
 import type { UsuariosResource } from "../lib/usuarios.interface";
 import { usePersonaSelectQuery } from "@/pages/tecnico/lib/tecnico.hook";
 import { useTipoUsuarioSelectQuery } from "@/pages/tipo-usuario/lib/tipo-usuario.hook";
+import { TipoUsuarioComplete } from "@/pages/tipo-usuario/lib/tipo-usuario.constants";
 import { useOficinaSelectQuery } from "@/pages/oficina/lib/oficina.hook";
+import { OficinaComplete } from "@/pages/oficina/lib/oficina.constants";
 import PersonaForm from "@/pages/persona/components/PersonaForm";
 import type { PersonaResource } from "@/pages/persona/lib/persona.interface";
+import TipoUsuarioForm from "@/pages/tipo-usuario/components/TipoUsuarioForm";
+import type { TipoUsuarioResource } from "@/pages/tipo-usuario/lib/tipo-usuario.interface";
+import OficinaForm from "@/pages/oficina/components/OficinaForm";
+import type { OficinaResource } from "@/pages/oficina/lib/oficina.interface";
 import type { Option } from "@/lib/core.interface";
 
 interface UsuariosFormProps {
@@ -37,9 +43,13 @@ export default function UsuariosForm({
   const queryClient = useQueryClient();
   const [personaModalOpen, setPersonaModalOpen] = useState(false);
   const [personaKey, setPersonaKey] = useState(0);
-  const [personaDefaultOption, setPersonaDefaultOption] = useState<
-    Option | undefined
-  >(undefined);
+  const [personaDefaultOption, setPersonaDefaultOption] = useState<Option | undefined>(undefined);
+
+  const [tipoUsuarioModalOpen, setTipoUsuarioModalOpen] = useState(false);
+  const [tipoUsuarioDefaultOption, setTipoUsuarioDefaultOption] = useState<Option | undefined>(undefined);
+
+  const [oficinaModalOpen, setOficinaModalOpen] = useState(false);
+  const [oficinaDefaultOption, setOficinaDefaultOption] = useState<Option | undefined>(undefined);
 
   const form = useForm<UsuariosFormValues>({
     resolver: zodResolver(usuariosSchema),
@@ -56,6 +66,7 @@ export default function UsuariosForm({
       nombre_usuario: defaultValues?.nombre_usuario ?? "",
       contraseña: "",
     },
+    mode: "onChange",
   });
 
   const mutation = useMutation({
@@ -104,6 +115,26 @@ export default function UsuariosForm({
     setPersonaKey((prev) => prev + 1);
     form.setValue("persona_id", String(persona.id));
     setPersonaModalOpen(false);
+  };
+
+  const handleTipoUsuarioCreated = (tipoUsuario?: TipoUsuarioResource) => {
+    if (!tipoUsuario) return;
+    const option: Option = { value: String(tipoUsuario.id), label: tipoUsuario.nombre };
+    setTipoUsuarioDefaultOption(option);
+    form.setValue("tipo_usuario_id", String(tipoUsuario.id), { shouldValidate: true });
+    queryClient.invalidateQueries({ queryKey: [TipoUsuarioComplete.QUERY_KEY] });
+    queryClient.invalidateQueries({ queryKey: ["tipo-usuario-select"] });
+    setTipoUsuarioModalOpen(false);
+  };
+
+  const handleOficinaCreated = (oficina?: OficinaResource) => {
+    if (!oficina) return;
+    const option: Option = { value: String(oficina.id), label: oficina.nombre };
+    setOficinaDefaultOption(option);
+    form.setValue("oficina_id", String(oficina.id), { shouldValidate: true });
+    queryClient.invalidateQueries({ queryKey: [OficinaComplete.QUERY_KEY] });
+    queryClient.invalidateQueries({ queryKey: ["oficinas-select"] });
+    setOficinaModalOpen(false);
   };
 
   return (
@@ -155,7 +186,18 @@ export default function UsuariosForm({
               ? String(defaultValues.tipo_usuario_id)
               : undefined
           }
-        />
+          defaultOption={tipoUsuarioDefaultOption}
+        >
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="shrink-0"
+            onClick={() => setTipoUsuarioModalOpen(true)}
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        </FormSelectAsync>
         <FormSelectAsync
           name="oficina_id"
           label="Oficina"
@@ -172,7 +214,18 @@ export default function UsuariosForm({
               ? String(defaultValues.oficina_id)
               : undefined
           }
-        />
+          defaultOption={oficinaDefaultOption}
+        >
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="shrink-0"
+            onClick={() => setOficinaModalOpen(true)}
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        </FormSelectAsync>
         <FormInput
           name="nombre_usuario"
           label="Nombre de Usuario"
@@ -210,6 +263,28 @@ export default function UsuariosForm({
         size="lg"
       >
         <PersonaForm mode="create" onSuccess={handlePersonaCreated} />
+      </GeneralModal>
+
+      <GeneralModal
+        open={tipoUsuarioModalOpen}
+        onClose={() => setTipoUsuarioModalOpen(false)}
+        title="Nuevo Tipo de Usuario"
+        mode="create"
+        icon="Shield"
+        size="md"
+      >
+        <TipoUsuarioForm mode="create" onSuccess={handleTipoUsuarioCreated} />
+      </GeneralModal>
+
+      <GeneralModal
+        open={oficinaModalOpen}
+        onClose={() => setOficinaModalOpen(false)}
+        title="Nueva Oficina"
+        mode="create"
+        icon="Building2"
+        size="md"
+      >
+        <OficinaForm mode="create" onSuccess={handleOficinaCreated} />
       </GeneralModal>
     </FormWrapper>
   );

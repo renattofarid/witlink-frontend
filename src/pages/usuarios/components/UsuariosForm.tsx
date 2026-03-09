@@ -43,13 +43,19 @@ export default function UsuariosForm({
   const queryClient = useQueryClient();
   const [personaModalOpen, setPersonaModalOpen] = useState(false);
   const [personaKey, setPersonaKey] = useState(0);
-  const [personaDefaultOption, setPersonaDefaultOption] = useState<Option | undefined>(undefined);
+  const [personaDefaultOption, setPersonaDefaultOption] = useState<
+    Option | undefined
+  >(undefined);
 
   const [tipoUsuarioModalOpen, setTipoUsuarioModalOpen] = useState(false);
-  const [tipoUsuarioDefaultOption, setTipoUsuarioDefaultOption] = useState<Option | undefined>(undefined);
+  const [tipoUsuarioDefaultOption, setTipoUsuarioDefaultOption] = useState<
+    Option | undefined
+  >(undefined);
 
   const [oficinaModalOpen, setOficinaModalOpen] = useState(false);
-  const [oficinaDefaultOption, setOficinaDefaultOption] = useState<Option | undefined>(undefined);
+  const [oficinaDefaultOption, setOficinaDefaultOption] = useState<
+    Option | undefined
+  >(undefined);
 
   const form = useForm<UsuariosFormValues>({
     resolver: zodResolver(usuariosSchema),
@@ -119,10 +125,17 @@ export default function UsuariosForm({
 
   const handleTipoUsuarioCreated = (tipoUsuario?: TipoUsuarioResource) => {
     if (!tipoUsuario) return;
-    const option: Option = { value: String(tipoUsuario.id), label: tipoUsuario.nombre };
+    const option: Option = {
+      value: String(tipoUsuario.id),
+      label: tipoUsuario.nombre,
+    };
     setTipoUsuarioDefaultOption(option);
-    form.setValue("tipo_usuario_id", String(tipoUsuario.id), { shouldValidate: true });
-    queryClient.invalidateQueries({ queryKey: [TipoUsuarioComplete.QUERY_KEY] });
+    form.setValue("tipo_usuario_id", String(tipoUsuario.id), {
+      shouldValidate: true,
+    });
+    queryClient.invalidateQueries({
+      queryKey: [TipoUsuarioComplete.QUERY_KEY],
+    });
     queryClient.invalidateQueries({ queryKey: ["tipo-usuario-select"] });
     setTipoUsuarioModalOpen(false);
   };
@@ -152,6 +165,7 @@ export default function UsuariosForm({
             placeholder="Seleccione una persona"
             required
             useQueryHook={usePersonaSelectQuery}
+            legacyPagination={false}
             mapOptionFn={(item) => ({
               value: String(item.id),
               label: `${item.nombre} ${item.apellido_paterno} ${item.apellido_materno}`,

@@ -2,8 +2,8 @@ import { z } from "zod";
 
 export const serieSchema = z.object({
   serie: z.string().min(1, "Requerido"),
-  mac: z.string().min(1, "Requerido"),
-  ua: z.string().min(1, "Requerido"),
+  mac: z.string().length(17, "Debe tener 17 caracteres"),
+  ua: z.string().length(17, "Debe tener 17 caracteres"),
   observaciones: z.string().optional().nullable(),
 });
 

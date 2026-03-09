@@ -2,16 +2,21 @@ import { useState, useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { FormInput } from "@/components/FormInput";
 import { FormSelect } from "@/components/FormSelect";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
+import { DatePickerFormField } from "@/components/DatePickerFormField";
+import { DataTable } from "@/components/DataTable";
 import { successToast, errorToast } from "@/lib/core.function";
 import {
   guiaCreateSchema,
   productoSchema,
+  serieSchema,
   type GuiaCreateFormValues,
   type ProductoFormValues,
+  type SerieFormValues,
 } from "../lib/guia.schema";
 import { createGuia, updateGuia } from "../lib/guia.actions";
 import {
@@ -23,20 +28,14 @@ import { GuiaComplete } from "../lib/guia.constants";
 import type { GuiaCreateBody, GuiaResource } from "../lib/guia.interface";
 import {
   Trash2,
-  Plus,
   Pencil,
   X,
   Check,
   PackagePlus,
+  ChevronDown,
+  ChevronUp,
+  Hash,
 } from "lucide-react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 
 const TIPO_OPTIONS = [
@@ -44,7 +43,12 @@ const TIPO_OPTIONS = [
   { value: "equipo", label: "Equipo" },
 ];
 
-const EMPTY_SERIE = { serie: "", mac: "", ua: "", observaciones: null };
+const EMPTY_SERIE: SerieFormValues = {
+  serie: "",
+  mac: "",
+  ua: "",
+  observaciones: null,
+};
 
 const EMPTY_PRODUCTO: ProductoFormValues = {
   producto_id: null,
@@ -68,6 +72,10 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
   const [editingProductoIndex, setEditingProductoIndex] = useState<
     number | null
   >(null);
+  const [editingSerieIndex, setEditingSerieIndex] = useState<number | null>(
+    null,
+  );
+  const [showMoreFields, setShowMoreFields] = useState(false);
 
   // ── Main form ──────────────────────────────────────────────────────────────
   const form = useForm<GuiaCreateFormValues>({
@@ -77,7 +85,6 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
   });
 
   const {
-    fields: productoFields,
     append: appendProducto,
     remove: removeProducto,
     update: updateProductoField,
@@ -117,10 +124,12 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
   });
 
   const {
-    fields: serieFields,
     append: appendSerie,
     remove: removeSerie,
+    update: updateSerieField,
   } = useFieldArray({ control: productSubForm.control, name: "series" });
+
+  const watchedSeries = productSubForm.watch("series") ?? [];
 
   const handleAddOrUpdateProducto = productSubForm.handleSubmit((values) => {
     if (editingProductoIndex === null) {
@@ -130,17 +139,54 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
       setEditingProductoIndex(null);
     }
     productSubForm.reset(EMPTY_PRODUCTO);
+    serieSubForm.reset(EMPTY_SERIE);
+    setEditingSerieIndex(null);
+    setShowMoreFields(false);
   });
 
   const handleEditProducto = (index: number) => {
     const producto = form.getValues(`productos.${index}`);
     setEditingProductoIndex(index);
     productSubForm.reset(producto);
+    serieSubForm.reset(EMPTY_SERIE);
+    setEditingSerieIndex(null);
+    setShowMoreFields(true);
   };
 
   const handleCancelEdit = () => {
     setEditingProductoIndex(null);
     productSubForm.reset(EMPTY_PRODUCTO);
+    serieSubForm.reset(EMPTY_SERIE);
+    setEditingSerieIndex(null);
+    setShowMoreFields(false);
+  };
+
+  // ── Serie sub-form ─────────────────────────────────────────────────────────
+  const serieSubForm = useForm<SerieFormValues>({
+    resolver: zodResolver(serieSchema),
+    defaultValues: EMPTY_SERIE,
+    mode: "onChange",
+  });
+
+  const handleAddOrUpdateSerie = serieSubForm.handleSubmit((values) => {
+    if (editingSerieIndex === null) {
+      appendSerie(values);
+    } else {
+      updateSerieField(editingSerieIndex, values);
+      setEditingSerieIndex(null);
+    }
+    serieSubForm.reset(EMPTY_SERIE);
+  });
+
+  const handleEditSerie = (index: number) => {
+    const serie = productSubForm.getValues(`series.${index}`);
+    setEditingSerieIndex(index);
+    serieSubForm.reset(serie as SerieFormValues);
+  };
+
+  const handleCancelEditSerie = () => {
+    setEditingSerieIndex(null);
+    serieSubForm.reset(EMPTY_SERIE);
   };
 
   // ── Mutation ───────────────────────────────────────────────────────────────
@@ -183,7 +229,168 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
     },
   });
 
+  // ── Columns for productos DataTable ────────────────────────────────────────
   const watchedProductos = form.watch("productos");
+
+  const productoColumns: ColumnDef<ProductoFormValues>[] = [
+    {
+      id: "index",
+      header: "#",
+      cell: ({ row }) => (
+        <span className="text-muted-foreground text-xs">{row.index + 1}</span>
+      ),
+    },
+    {
+      id: "producto",
+      header: "Producto",
+      cell: ({ row }) => (
+        <span className="font-medium">
+          {row.original.nombre || row.original.sap || "—"}
+        </span>
+      ),
+    },
+    {
+      id: "sap",
+      header: "SAP",
+      cell: ({ row }) => (
+        <span className="text-xs text-muted-foreground">
+          {row.original.sap || "—"}
+        </span>
+      ),
+    },
+    {
+      id: "tipo",
+      header: "Tipo",
+      cell: ({ row }) =>
+        row.original.tipo ? (
+          <Badge variant="outline" className="text-xs capitalize">
+            {row.original.tipo}
+          </Badge>
+        ) : (
+          <span className="text-muted-foreground">—</span>
+        ),
+    },
+    {
+      id: "cantidad",
+      header: "Cantidad",
+      cell: ({ row }) => row.original.cantidad,
+    },
+    {
+      id: "series",
+      header: "Series",
+      cell: ({ row }) => {
+        const series = row.original.series ?? [];
+        if (!series.length)
+          return <span className="text-muted-foreground text-xs">—</span>;
+        return (
+          <Badge variant="secondary" className="text-xs">
+            {series.length} serie{series.length !== 1 ? "s" : ""}
+          </Badge>
+        );
+      },
+    },
+    {
+      id: "acciones",
+      cell: ({ row }) => (
+        <div className="flex gap-1">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="size-7"
+            onClick={() => handleEditProducto(row.index)}
+          >
+            <Pencil className="size-3" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="size-7 text-destructive hover:text-destructive"
+            onClick={() => {
+              removeProducto(row.index);
+              if (editingProductoIndex === row.index) handleCancelEdit();
+            }}
+          >
+            <Trash2 className="size-3" />
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
+  // ── Columns for series DataTable ───────────────────────────────────────────
+  const serieColumns: ColumnDef<SerieFormValues>[] = [
+    {
+      id: "index",
+      header: "#",
+      cell: ({ row }) => (
+        <span className="text-muted-foreground text-xs">{row.index + 1}</span>
+      ),
+    },
+    {
+      id: "serie",
+      header: "Serie",
+      cell: ({ row }) => (
+        <span className="font-medium text-xs">{row.original.serie || "—"}</span>
+      ),
+    },
+    {
+      id: "mac",
+      header: "MAC",
+      cell: ({ row }) => (
+        <span className="text-xs text-muted-foreground font-mono">
+          {row.original.mac || "—"}
+        </span>
+      ),
+    },
+    {
+      id: "ua",
+      header: "UA",
+      cell: ({ row }) => (
+        <span className="text-xs text-muted-foreground font-mono">
+          {row.original.ua || "—"}
+        </span>
+      ),
+    },
+    {
+      id: "observaciones",
+      header: "Observaciones",
+      cell: ({ row }) => (
+        <span className="text-xs text-muted-foreground max-w-40 truncate block">
+          {row.original.observaciones || "—"}
+        </span>
+      ),
+    },
+    {
+      id: "acciones",
+      cell: ({ row }) => (
+        <div className="flex gap-1">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="size-7"
+            onClick={() => handleEditSerie(row.index)}
+          >
+            <Pencil className="size-3" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="size-7 text-destructive hover:text-destructive"
+            onClick={() => {
+              removeSerie(row.index);
+              if (editingSerieIndex === row.index) handleCancelEditSerie();
+            }}
+          >
+            <Trash2 className="size-3" />
+          </Button>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <form
@@ -199,12 +406,10 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
           placeholder="Número de guía"
           required
         />
-        <FormInput
+        <DatePickerFormField
           name="fecha"
           label="Fecha"
           control={form.control}
-          type="date"
-          required
         />
         <FormSelectAsync
           name="proveedor_id"
@@ -234,13 +439,18 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
               : "Nuevo producto"}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {/* Campos principales */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
             <FormSelectAsync
               name="producto_id"
               label="Producto"
               control={productSubForm.control}
               placeholder="Seleccione un producto"
               useQueryHook={useProductosQuery}
+              additionalParams={{
+                tipo: "equipo",
+              }}
+              className="md:col-span-2"
               mapOptionFn={(item) => ({
                 value: String(item.id),
                 label: item.nombre,
@@ -261,36 +471,6 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
                 }
               }}
             />
-            <FormSelectAsync
-              name="categoria_id"
-              label="Categoría"
-              control={productSubForm.control}
-              placeholder="Seleccione una categoría"
-              useQueryHook={useCategoriasQuery}
-              mapOptionFn={(item) => ({
-                value: String(item.id),
-                label: item.nombre,
-              })}
-            />
-            <FormInput
-              name="sap"
-              label="SAP"
-              control={productSubForm.control}
-              placeholder="Código SAP"
-            />
-            <FormInput
-              name="nombre"
-              label="Nombre"
-              control={productSubForm.control}
-              placeholder="Nombre del producto"
-            />
-            <FormSelect
-              name="tipo"
-              label="Tipo"
-              control={productSubForm.control}
-              placeholder="Seleccione un tipo"
-              options={TIPO_OPTIONS}
-            />
             <FormInput
               name="cantidad"
               label="Cantidad"
@@ -304,90 +484,143 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
               label="Observaciones"
               control={productSubForm.control}
               placeholder="Observaciones"
-              className="md:col-span-2 lg:col-span-3"
             />
           </div>
 
-          {/* Series */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-muted-foreground font-medium">
-                Series ({serieFields.length})
-              </span>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => appendSerie(EMPTY_SERIE)}
-              >
-                <Plus className="size-3 mr-1" />
-                Agregar serie
-              </Button>
+          {/* Toggle campos adicionales */}
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="text-xs text-muted-foreground -mt-1"
+            onClick={() => setShowMoreFields((prev) => !prev)}
+          >
+            {showMoreFields ? (
+              <>
+                <ChevronUp className="size-3 mr-1" />
+                Ocultar campos
+              </>
+            ) : (
+              <>
+                <ChevronDown className="size-3 mr-1" />
+                Mostrar más campos
+              </>
+            )}
+          </Button>
+
+          {showMoreFields && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+              <FormSelectAsync
+                name="categoria_id"
+                label="Categoría"
+                control={productSubForm.control}
+                placeholder="Seleccione una categoría"
+                useQueryHook={useCategoriasQuery}
+                mapOptionFn={(item) => ({
+                  value: String(item.id),
+                  label: item.nombre,
+                })}
+              />
+              <FormInput
+                name="sap"
+                label="SAP"
+                control={productSubForm.control}
+                placeholder="Código SAP"
+              />
+              <FormInput
+                name="nombre"
+                label="Nombre"
+                control={productSubForm.control}
+                placeholder="Nombre del producto"
+              />
+              <FormSelect
+                name="tipo"
+                label="Tipo"
+                control={productSubForm.control}
+                placeholder="Seleccione un tipo"
+                options={TIPO_OPTIONS}
+              />
+            </div>
+          )}
+
+          {/* ── Series sub-form ──────────────────────────────────────────── */}
+          <div className="space-y-3">
+            <div className="border rounded-lg p-3 bg-background space-y-3">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <Hash className="size-3.5 text-primary" />
+                {editingSerieIndex !== null
+                  ? `Editando serie #${editingSerieIndex + 1}`
+                  : "Nueva serie"}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
+                <FormInput
+                  name="serie"
+                  label="Serie"
+                  control={serieSubForm.control}
+                  placeholder="N° serie"
+                  required
+                />
+                <FormInput
+                  name="mac"
+                  label="MAC"
+                  control={serieSubForm.control}
+                  placeholder="XX:XX:XX:XX:XX:XX"
+                  maxLength={17}
+                  required
+                />
+                <FormInput
+                  name="ua"
+                  label="UA"
+                  control={serieSubForm.control}
+                  placeholder="XX:XX:XX:XX:XX:XX"
+                  maxLength={17}
+                  required
+                />
+                <FormInput
+                  name="observaciones"
+                  label="Observaciones"
+                  control={serieSubForm.control}
+                  placeholder="—"
+                />
+                <div className="flex gap-2">
+                  {editingSerieIndex !== null && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={handleCancelEditSerie}
+                    >
+                      <X className="size-3 mr-1" />
+                      Cancelar
+                    </Button>
+                  )}
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    className="flex-1"
+                    onClick={handleAddOrUpdateSerie}
+                  >
+                    <Check className="size-3 mr-1" />
+                    {editingSerieIndex !== null ? "Actualizar" : "Agregar"}
+                  </Button>
+                </div>
+              </div>
             </div>
 
-            {serieFields.length > 0 && (
-              <div className="border rounded-md overflow-hidden">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="text-xs">Serie</TableHead>
-                      <TableHead className="text-xs">MAC</TableHead>
-                      <TableHead className="text-xs">UA</TableHead>
-                      <TableHead className="text-xs">Observaciones</TableHead>
-                      <TableHead className="w-8" />
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {serieFields.map((serie, idx) => (
-                      <TableRow key={serie.id}>
-                        <TableCell className="py-1">
-                          <FormInput
-                            name={`series.${idx}.serie`}
-                            control={productSubForm.control}
-                            placeholder="N° serie"
-                          />
-                        </TableCell>
-                        <TableCell className="py-1">
-                          <FormInput
-                            name={`series.${idx}.mac`}
-                            control={productSubForm.control}
-                            placeholder="MAC"
-                          />
-                        </TableCell>
-                        <TableCell className="py-1">
-                          <FormInput
-                            name={`series.${idx}.ua`}
-                            control={productSubForm.control}
-                            placeholder="UA"
-                          />
-                        </TableCell>
-                        <TableCell className="py-1">
-                          <FormInput
-                            name={`series.${idx}.observaciones`}
-                            control={productSubForm.control}
-                            placeholder="—"
-                          />
-                        </TableCell>
-                        <TableCell className="py-1">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="size-7 text-destructive hover:text-destructive"
-                            onClick={() => removeSerie(idx)}
-                          >
-                            <Trash2 className="size-3" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+            {watchedSeries.length > 0 && (
+              <DataTable
+                columns={serieColumns}
+                data={watchedSeries as SerieFormValues[]}
+                variant="outline"
+                isVisibleColumnFilter={false}
+              />
             )}
           </div>
 
-          {/* Acciones del mini-form */}
+          {/* Acciones del mini-form de producto */}
           <div className="flex gap-2 justify-end">
             {editingProductoIndex !== null && (
               <Button
@@ -400,11 +633,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
                 Cancelar
               </Button>
             )}
-            <Button
-              type="button"
-              size="sm"
-              onClick={handleAddOrUpdateProducto}
-            >
+            <Button type="button" size="sm" onClick={handleAddOrUpdateProducto}>
               <Check className="size-3 mr-1" />
               {editingProductoIndex !== null
                 ? "Actualizar producto"
@@ -415,86 +644,12 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
 
         {/* Tabla de productos agregados */}
         {watchedProductos.length > 0 && (
-          <div className="border rounded-lg overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-8">#</TableHead>
-                  <TableHead>Producto</TableHead>
-                  <TableHead>SAP</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Cantidad</TableHead>
-                  <TableHead>Series</TableHead>
-                  <TableHead>Observaciones</TableHead>
-                  <TableHead className="w-16" />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {watchedProductos.map((p, index) => (
-                  <TableRow
-                    key={productoFields[index]?.id ?? index}
-                    className={
-                      editingProductoIndex === index ? "bg-primary/5" : ""
-                    }
-                  >
-                    <TableCell className="text-muted-foreground text-xs">
-                      {index + 1}
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {p.nombre || p.sap || "—"}
-                    </TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
-                      {p.sap || "—"}
-                    </TableCell>
-                    <TableCell>
-                      {p.tipo ? (
-                        <Badge variant="outline" className="text-xs capitalize">
-                          {p.tipo}
-                        </Badge>
-                      ) : (
-                        "—"
-                      )}
-                    </TableCell>
-                    <TableCell>{p.cantidad}</TableCell>
-                    <TableCell>
-                      <Badge variant="secondary" className="text-xs">
-                        {p.series?.length ?? 0}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="max-w-40 truncate text-xs text-muted-foreground">
-                      {p.observaciones || "—"}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-1">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="size-7"
-                          onClick={() => handleEditProducto(index)}
-                        >
-                          <Pencil className="size-3" />
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="size-7 text-destructive hover:text-destructive"
-                          onClick={() => {
-                            removeProducto(index);
-                            if (editingProductoIndex === index)
-                              handleCancelEdit();
-                          }}
-                        >
-                          <Trash2 className="size-3" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <DataTable
+            columns={productoColumns}
+            data={watchedProductos}
+            variant="outline"
+            isVisibleColumnFilter={false}
+          />
         )}
 
         {/* Error global de productos */}

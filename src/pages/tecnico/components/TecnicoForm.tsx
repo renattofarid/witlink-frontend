@@ -1,10 +1,18 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import FormWrapper from "@/components/FormWrapper";
-import { successToast, errorToast, ERROR_MESSAGE } from "@/lib/core.function";
+import { GeneralModal } from "@/components/GeneralModal";
+import {
+  successToast,
+  errorToast,
+  ERROR_MESSAGE,
+  SUBTITLE,
+} from "@/lib/core.function";
 import {
   tecnicoCreateSchema,
   tecnicoEditSchema,
@@ -17,6 +25,13 @@ import {
   usePersonaSelectQuery,
 } from "../lib/tecnico.hook";
 import type { TecnicoResource } from "../lib/tecnico.interface";
+import PersonaForm from "@/pages/persona/components/PersonaForm";
+import CuadrillaForm from "@/pages/cuadrilla/components/CuadrillaForm";
+import { PersonaComplete } from "@/pages/persona/lib/persona.constants";
+import { CuadrillaComplete } from "@/pages/cuadrilla/lib/cuadrilla.constants";
+import type { PersonaResource } from "@/pages/persona/lib/persona.interface";
+import type { CuadrillaResource } from "@/pages/cuadrilla/lib/cuadrilla.interface";
+import type { Option } from "@/lib/core.interface";
 
 interface TecnicoFormProps {
   mode: "create" | "edit";
@@ -30,6 +45,24 @@ export default function TecnicoForm({
   onSuccess,
 }: TecnicoFormProps) {
   const queryClient = useQueryClient();
+
+  const [personaModal, setPersonaModal] = useState(false);
+  const [cuadrillaModal, setCuadrillaModal] = useState(false);
+
+  const [defaultPersonaOption, setDefaultPersonaOption] = useState<
+    Option | undefined
+  >(undefined);
+
+  const [defaultCuadrillaOption, setDefaultCuadrillaOption] = useState<
+    Option | undefined
+  >(
+    defaultValues?.cuadrilla
+      ? {
+          value: String(defaultValues.cuadrilla.id),
+          label: defaultValues.cuadrilla.nombre,
+        }
+      : undefined,
+  );
 
   const form = useForm<TecnicoFormValues>({
     resolver: zodResolver(
@@ -75,6 +108,33 @@ export default function TecnicoForm({
     },
   });
 
+  const handlePersonaCreated = (persona?: PersonaResource) => {
+    if (!persona) return;
+    const option: Option = {
+      value: String(persona.id),
+      label: `${persona.nombre} ${persona.apellido_paterno} ${persona.apellido_materno}`,
+      description: persona.dni,
+    };
+    setDefaultPersonaOption(option);
+    form.setValue("persona_id", String(persona.id), { shouldValidate: true });
+    queryClient.invalidateQueries({ queryKey: ["personas"] });
+    setPersonaModal(false);
+  };
+
+  const handleCuadrillaCreated = (cuadrilla?: CuadrillaResource) => {
+    if (!cuadrilla) return;
+    const option: Option = {
+      value: String(cuadrilla.id),
+      label: cuadrilla.nombre,
+    };
+    setDefaultCuadrillaOption(option);
+    form.setValue("cuadrilla_id", String(cuadrilla.id), {
+      shouldValidate: true,
+    });
+    queryClient.invalidateQueries({ queryKey: ["cuadrillas"] });
+    setCuadrillaModal(false);
+  };
+
   return (
     <FormWrapper>
       <form
@@ -92,15 +152,18 @@ export default function TecnicoForm({
             value: String(item.id),
             label: item.nombre,
           })}
-          defaultOption={
-            defaultValues?.cuadrilla
-              ? {
-                  value: String(defaultValues.cuadrilla.id),
-                  label: defaultValues.cuadrilla.nombre,
-                }
-              : undefined
-          }
-        />
+          defaultOption={defaultCuadrillaOption}
+        >
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="shrink-0"
+            onClick={() => setCuadrillaModal(true)}
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        </FormSelectAsync>
 
         {mode === "create" && (
           <FormSelectAsync
@@ -115,7 +178,18 @@ export default function TecnicoForm({
               label: `${item.nombre} ${item.apellido_paterno} ${item.apellido_materno}`,
               description: item.dni,
             })}
-          />
+            defaultOption={defaultPersonaOption}
+          >
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="shrink-0"
+              onClick={() => setPersonaModal(true)}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </FormSelectAsync>
         )}
 
         <div className="flex justify-end pt-2">
@@ -128,6 +202,30 @@ export default function TecnicoForm({
           </Button>
         </div>
       </form>
+
+      <GeneralModal
+        open={personaModal}
+        onClose={() => setPersonaModal(false)}
+        title="Crear Persona"
+        subtitle={SUBTITLE(PersonaComplete.MODEL, "create")}
+        icon="User2"
+        mode="create"
+        size="lg"
+      >
+        <PersonaForm mode="create" onSuccess={handlePersonaCreated} />
+      </GeneralModal>
+
+      <GeneralModal
+        open={cuadrillaModal}
+        onClose={() => setCuadrillaModal(false)}
+        title="Crear Cuadrilla"
+        subtitle={SUBTITLE(CuadrillaComplete.MODEL, "create")}
+        icon="CirclePile"
+        mode="create"
+        size="md"
+      >
+        <CuadrillaForm mode="create" onSuccess={handleCuadrillaCreated} />
+      </GeneralModal>
     </FormWrapper>
   );
 }

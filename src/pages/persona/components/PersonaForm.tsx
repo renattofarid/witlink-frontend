@@ -94,6 +94,7 @@ export default function PersonaForm({
           label="DNI"
           control={form.control}
           placeholder="Ingrese el DNI"
+          maxLength={8}
           required
         />
         <FormInput

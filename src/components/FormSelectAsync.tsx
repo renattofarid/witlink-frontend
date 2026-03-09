@@ -62,6 +62,7 @@ interface FormSelectAsyncProps {
   additionalParams?: Record<string, any>; // Parámetros adicionales para el hook
   onValueChange?: (value: string, item?: any) => void; // Callback cuando cambia el valor
   preloadItemId?: string; // ID del item a precargar buscando en todas las páginas
+  legacyPagination?: boolean; // true = pagina/por_pagina | false = page/per_page (default: true)
 }
 
 export function FormSelectAsync({
@@ -85,6 +86,7 @@ export function FormSelectAsync({
   additionalParams = {},
   onValueChange,
   preloadItemId,
+  legacyPagination = true,
 }: FormSelectAsyncProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -106,8 +108,9 @@ export function FormSelectAsync({
   // Hook de consulta con parámetros dinámicos
   const { data, isLoading, isFetching } = useQueryHook({
     search: debouncedSearch,
-    pagina: page,
-    por_pagina: perPage,
+    ...(legacyPagination
+      ? { pagina: page, por_pagina: perPage }
+      : { page, per_page: perPage }),
     ...additionalParams,
   });
 

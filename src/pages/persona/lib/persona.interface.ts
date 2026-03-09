@@ -1,4 +1,4 @@
-import type { PaginatedResponse } from "@/lib/core.interface";
+import type {  PaginationResponse } from "@/lib/core.interface";
 
 export interface PersonaResource {
   id: number;
@@ -14,7 +14,7 @@ export interface PersonaResource {
   deleted_at: string | null;
 }
 
-export type PersonaResponse = PaginatedResponse<PersonaResource>;
+export type PersonaResponse = PaginationResponse<PersonaResource>;
 
 export interface PersonaBody {
   nombre: string;

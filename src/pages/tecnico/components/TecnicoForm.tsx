@@ -173,6 +173,7 @@ export default function TecnicoForm({
             placeholder="Seleccione una persona"
             required
             useQueryHook={usePersonaSelectQuery}
+            legacyPagination={false}
             mapOptionFn={(item) => ({
               value: String(item.id),
               label: `${item.nombre} ${item.apellido_paterno} ${item.apellido_materno}`,

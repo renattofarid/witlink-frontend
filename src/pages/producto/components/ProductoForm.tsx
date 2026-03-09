@@ -6,7 +6,7 @@ import { FormInput } from "@/components/FormInput";
 import { FormSelect } from "@/components/FormSelect";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import FormWrapper from "@/components/FormWrapper";
-import { successToast, errorToast } from "@/lib/core.function";
+import { successToast, errorToast, ERROR_MESSAGE } from "@/lib/core.function";
 import {
   productoSchema,
   type ProductoFormValues,
@@ -69,9 +69,8 @@ export default function ProductoForm({
     onError: (error: any) => {
       console.error(error);
       errorToast(
-        mode === "create"
-          ? "Error al crear el producto."
-          : "Error al actualizar el producto.",
+        error.response?.data?.message ??
+          ERROR_MESSAGE(ProductoComplete.MODEL, mode),
       );
     },
   });

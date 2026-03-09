@@ -8,8 +8,6 @@ import { ENABLE_PERMISSION_VALIDATION } from "../lib/permissions.config";
 import UsuariosPage from "../pages/usuarios/pages/UsuariosPage";
 import { UsuariosComplete } from "../pages/usuarios/lib/usuarios.constants";
 import PersonaPage from "../pages/persona/pages/PersonaPage";
-import PersonaAddPage from "../pages/persona/pages/PersonaAddPage";
-import PersonaEditPage from "../pages/persona/pages/PersonaEditPage";
 import { PersonaComplete } from "../pages/persona/lib/persona.constants";
 import TipoUsuarioPage from "../pages/tipo-usuario/pages/TipoUsuarioPage";
 import { TipoUsuarioComplete } from "../pages/tipo-usuario/lib/tipo-usuario.constants";
@@ -27,6 +25,8 @@ import ProductoPage from "../pages/producto/pages/ProductoPage";
 import { ProductoComplete } from "../pages/producto/lib/producto.constants";
 import TecnicoPage from "../pages/tecnico/pages/TecnicoPage";
 import { TecnicoComplete } from "../pages/tecnico/lib/tecnico.constants";
+import MenuPage from "../pages/menu/pages/MenuPage";
+import { MenuComplete } from "../pages/menu/lib/menu.constants";
 
 function ProtectedRoute({ children }: { children: JSX.Element }) {
   const { token, allowedRoutes } = useAuthStore();
@@ -37,12 +37,16 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
   }
 
   if (ENABLE_PERMISSION_VALIDATION) {
-    const publicPaths = ["/inicio", "/"];
+    const publicPaths = [
+      "/inicio",
+      "/",
+      ...(import.meta.env.DEV ? [MenuComplete.ABSOLUTE_ROUTE] : []),
+    ];
     const isPublic = publicPaths.includes(location.pathname);
     const hasAccess =
       isPublic ||
       allowedRoutes.some(
-        (r) => location.pathname === r || location.pathname.startsWith(r + "/")
+        (r) => location.pathname === r || location.pathname.startsWith(r + "/"),
       );
     if (!hasAccess) {
       return <Navigate to="/inicio" replace />;
@@ -91,23 +95,6 @@ export default function AppRoutes() {
           </ProtectedRoute>
         }
       />
-      <Route
-        path={`${PersonaComplete.ROUTE}/agregar`}
-        element={
-          <ProtectedRoute>
-            <PersonaAddPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path={`${PersonaComplete.ROUTE}/editar/:id`}
-        element={
-          <ProtectedRoute>
-            <PersonaEditPage />
-          </ProtectedRoute>
-        }
-      />
-
       <Route
         path={TipoUsuarioComplete.ROUTE}
         element={
@@ -186,6 +173,17 @@ export default function AppRoutes() {
           </ProtectedRoute>
         }
       />
+
+      {import.meta.env.DEV && (
+        <Route
+          path={MenuComplete.ROUTE}
+          element={
+            <ProtectedRoute>
+              <MenuPage />
+            </ProtectedRoute>
+          }
+        />
+      )}
 
       {/* 404 */}
       <Route path="*" element={<Navigate to="/inicio" />} />

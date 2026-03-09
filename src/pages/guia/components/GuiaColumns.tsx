@@ -2,6 +2,7 @@ import { ButtonAction } from "@/components/ButtonAction";
 import { Pencil, Trash2, RotateCcw } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { GuiaResource } from "../lib/guia.interface";
+import { DeleteButton } from "@/components/SimpleDeleteDialog";
 
 interface ColumnActions {
   onEdit: (row: GuiaResource) => void;
@@ -54,7 +55,7 @@ export const getGuiaColumns = ({
             canRender={!isDeleted}
             onClick={() => onDelete(item)}
           />
-          <ButtonAction
+          <DeleteButton
             icon={RotateCcw}
             canRender={isDeleted}
             onClick={() => onRestore(item)}

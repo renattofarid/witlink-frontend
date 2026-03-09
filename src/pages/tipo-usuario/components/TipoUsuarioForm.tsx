@@ -19,7 +19,7 @@ import type { TipoUsuarioResource } from "../lib/tipo-usuario.interface";
 interface TipoUsuarioFormProps {
   mode: "create" | "edit";
   defaultValues?: TipoUsuarioResource;
-  onSuccess?: () => void;
+  onSuccess?: (data?: TipoUsuarioResource) => void;
 }
 
 export default function TipoUsuarioForm({
@@ -34,6 +34,7 @@ export default function TipoUsuarioForm({
     defaultValues: {
       nombre: defaultValues?.nombre ?? "",
     },
+    mode: "onChange",
   });
 
   const mutation = useMutation({
@@ -43,16 +44,15 @@ export default function TipoUsuarioForm({
       }
       return updateTipoUsuario(defaultValues!.id, values);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: [TipoUsuarioComplete.QUERY_KEY],
-      });
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: [TipoUsuarioComplete.QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: ["tipo-usuario-select"] });
       successToast(
         mode === "create"
           ? "Tipo de usuario creado correctamente."
           : "Tipo de usuario actualizado correctamente.",
       );
-      onSuccess?.();
+      onSuccess?.(data);
     },
     onError: (error: any) => {
       errorToast(

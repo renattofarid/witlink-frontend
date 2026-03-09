@@ -1,8 +1,14 @@
 import { api } from "@/lib/config";
 import { PersonaComplete } from "./persona.constants";
-import type { PersonaResponse, PersonaResource, PersonaBody } from "./persona.interface";
+import type {
+  PersonaResponse,
+  PersonaResource,
+  PersonaBody,
+} from "./persona.interface";
 
-export const getPersonas = async (params: Record<string, string>): Promise<PersonaResponse> => {
+export const getPersonas = async (
+  params: Record<string, string | undefined>,
+): Promise<PersonaResponse> => {
   const { data } = await api.get(PersonaComplete.ENDPOINT, { params });
   return data;
 };
@@ -28,6 +34,8 @@ export const deletePersona = async (id: number) => {
 };
 
 export const restorePersona = async (id: number) => {
-  const { data } = await api.post(`${PersonaComplete.ENDPOINT}/${id}/restaurar`);
+  const { data } = await api.post(
+    `${PersonaComplete.ENDPOINT}/${id}/restaurar`,
+  );
   return data;
 };

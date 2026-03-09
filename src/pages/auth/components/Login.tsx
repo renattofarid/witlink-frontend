@@ -41,6 +41,7 @@ export default function LoginPage({
       nombre_usuario: "",
       contraseña: "",
     },
+    mode: "onChange",
   });
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {

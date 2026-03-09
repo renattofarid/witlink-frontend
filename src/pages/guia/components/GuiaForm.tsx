@@ -1,267 +1,195 @@
-import { useForm, useFieldArray, type UseFormReturn } from "react-hook-form";
+import { useState, useEffect } from "react";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { FormInput } from "@/components/FormInput";
 import { FormSelect } from "@/components/FormSelect";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
+import { DatePickerFormField } from "@/components/DatePickerFormField";
+import { DataTable } from "@/components/DataTable";
 import { successToast, errorToast } from "@/lib/core.function";
 import {
   guiaCreateSchema,
+  productoSchema,
+  serieSchema,
   type GuiaCreateFormValues,
+  type ProductoFormValues,
+  type SerieFormValues,
 } from "../lib/guia.schema";
-import { createGuia } from "../lib/guia.actions";
+import { createGuia, updateGuia } from "../lib/guia.actions";
 import {
   useProveedoresQuery,
   useProductosQuery,
   useCategoriasQuery,
 } from "../lib/guia.hook";
 import { GuiaComplete } from "../lib/guia.constants";
-import type { GuiaCreateBody } from "../lib/guia.interface";
-import { Trash2, Plus } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { GuiaCreateBody, GuiaResource } from "../lib/guia.interface";
+import {
+  Trash2,
+  Pencil,
+  X,
+  Check,
+  PackagePlus,
+  ChevronDown,
+  ChevronUp,
+  Hash,
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 const TIPO_OPTIONS = [
   { value: "consumible", label: "Consumible" },
   { value: "equipo", label: "Equipo" },
 ];
 
-interface GuiaFormProps {
-  onSuccess?: () => void;
-}
+const EMPTY_SERIE: SerieFormValues = {
+  serie: "",
+  mac: "",
+  ua: "",
+  observaciones: null,
+};
 
-const DEFAULT_SERIE = { serie: "", mac: "", ua: "", observaciones: "" };
-const DEFAULT_PRODUCTO = {
+const EMPTY_PRODUCTO: ProductoFormValues = {
   producto_id: null,
   categoria_id: null,
   sap: null,
   nombre: null,
-  tipo: null as "consumible" | "equipo" | null,
+  tipo: null,
   cantidad: 1,
   observaciones: null,
   series: [],
 };
 
-interface SerieItemProps {
-  form: UseFormReturn<GuiaCreateFormValues>;
-  productoIndex: number;
-  serieIndex: number;
-  onRemove: () => void;
+interface GuiaFormProps {
+  mode: "create" | "edit";
+  guia?: GuiaResource;
+  onSuccess?: () => void;
 }
 
-function SerieItem({
-  form,
-  productoIndex,
-  serieIndex,
-  onRemove,
-}: SerieItemProps) {
-  return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-3 border rounded-md">
-      <FormInput
-        name={`productos.${productoIndex}.series.${serieIndex}.serie`}
-        label="Serie"
-        control={form.control}
-        placeholder="N° de serie"
-        required
-      />
-      <FormInput
-        name={`productos.${productoIndex}.series.${serieIndex}.mac`}
-        label="MAC"
-        control={form.control}
-        placeholder="Dirección MAC"
-        required
-      />
-      <FormInput
-        name={`productos.${productoIndex}.series.${serieIndex}.ua`}
-        label="UA"
-        control={form.control}
-        placeholder="UA"
-        required
-      />
-      <FormInput
-        name={`productos.${productoIndex}.series.${serieIndex}.observaciones`}
-        label="Observaciones"
-        control={form.control}
-        placeholder="Observaciones"
-      />
-      <div className="md:col-span-4 flex justify-end">
-        <Button
-          type="button"
-          variant="destructive"
-          size="sm"
-          onClick={onRemove}
-        >
-          <Trash2 className="size-3 mr-1" />
-          Eliminar serie
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-interface ProductoItemProps {
-  form: UseFormReturn<GuiaCreateFormValues>;
-  index: number;
-  onRemove: () => void;
-}
-
-function ProductoItem({ form, index, onRemove }: ProductoItemProps) {
-  const {
-    fields: serieFields,
-    append: appendSerie,
-    remove: removeSerie,
-  } = useFieldArray({
-    control: form.control,
-    name: `productos.${index}.series`,
-  });
-
-  return (
-    <Card className="border-dashed">
-      <CardHeader className="pb-3">
-        <div className="flex justify-between items-center">
-          <CardTitle className="text-sm font-semibold">
-            Producto {index + 1}
-          </CardTitle>
-          <Button
-            type="button"
-            variant="destructive"
-            size="sm"
-            onClick={onRemove}
-          >
-            <Trash2 className="size-3 mr-1" />
-            Eliminar
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormSelectAsync
-            name={`productos.${index}.producto_id`}
-            label="Producto"
-            control={form.control}
-            placeholder="Seleccione un producto"
-            useQueryHook={useProductosQuery}
-            mapOptionFn={(item) => ({
-              value: String(item.id),
-              label: item.nombre,
-              description: item.sap,
-            })}
-            onValueChange={(_, item) => {
-              if (item) {
-                form.setValue(
-                  `productos.${index}.categoria_id`,
-                  String(item.categoria_id),
-                );
-                form.setValue(`productos.${index}.sap`, item.sap ?? "");
-                form.setValue(`productos.${index}.nombre`, item.nombre ?? "");
-                form.setValue(
-                  `productos.${index}.tipo`,
-                  (item.tipo as "consumible" | "equipo") ?? null,
-                );
-              }
-            }}
-          />
-          <FormSelectAsync
-            name={`productos.${index}.categoria_id`}
-            label="Categoría"
-            control={form.control}
-            placeholder="Seleccione una categoría"
-            useQueryHook={useCategoriasQuery}
-            mapOptionFn={(item) => ({
-              value: String(item.id),
-              label: item.nombre,
-            })}
-          />
-          <FormInput
-            name={`productos.${index}.sap`}
-            label="SAP"
-            control={form.control}
-            placeholder="Código SAP"
-          />
-          <FormInput
-            name={`productos.${index}.nombre`}
-            label="Nombre"
-            control={form.control}
-            placeholder="Nombre del producto"
-          />
-          <FormSelect
-            name={`productos.${index}.tipo`}
-            label="Tipo"
-            control={form.control}
-            placeholder="Seleccione un tipo"
-            options={TIPO_OPTIONS}
-          />
-          <FormInput
-            name={`productos.${index}.cantidad`}
-            label="Cantidad"
-            control={form.control}
-            type="number"
-            placeholder="1"
-            required
-          />
-          <FormInput
-            name={`productos.${index}.observaciones`}
-            label="Observaciones"
-            control={form.control}
-            placeholder="Observaciones del producto"
-            className="md:col-span-2"
-          />
-        </div>
-
-        <div>
-          <div className="flex justify-between items-center mb-3">
-            <h4 className="text-sm font-medium text-muted-foreground">
-              Series ({serieFields.length})
-            </h4>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => appendSerie(DEFAULT_SERIE)}
-            >
-              <Plus className="size-3 mr-1" />
-              Agregar serie
-            </Button>
-          </div>
-          <div className="space-y-2">
-            {serieFields.map((serie, sIdx) => (
-              <SerieItem
-                key={serie.id}
-                form={form}
-                productoIndex={index}
-                serieIndex={sIdx}
-                onRemove={() => removeSerie(sIdx)}
-              />
-            ))}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-export default function GuiaForm({ onSuccess }: GuiaFormProps) {
+export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
   const queryClient = useQueryClient();
+  const [editingProductoIndex, setEditingProductoIndex] = useState<
+    number | null
+  >(null);
+  const [editingSerieIndex, setEditingSerieIndex] = useState<number | null>(
+    null,
+  );
+  const [showMoreFields, setShowMoreFields] = useState(false);
 
+  // ── Main form ──────────────────────────────────────────────────────────────
   const form = useForm<GuiaCreateFormValues>({
     resolver: zodResolver(guiaCreateSchema),
-    defaultValues: {
-      numero: "",
-      fecha: "",
-      proveedor_id: "",
-      productos: [],
-    },
+    defaultValues: { numero: "", fecha: "", proveedor_id: "", productos: [] },
+    mode: "onChange",
   });
 
   const {
-    fields: productoFields,
     append: appendProducto,
     remove: removeProducto,
-  } = useFieldArray({
-    control: form.control,
-    name: "productos",
+    update: updateProductoField,
+  } = useFieldArray({ control: form.control, name: "productos" });
+
+  // Populate form in edit mode when guia loads
+  useEffect(() => {
+    if (mode === "edit" && guia) {
+      form.reset({
+        numero: guia.numero,
+        fecha: guia.fecha?.split("T")[0] ?? "",
+        proveedor_id: String(guia.proveedor.id),
+        productos: guia.productos.map((p) => ({
+          producto_id: String(p.producto.id),
+          categoria_id: String(p.producto.categoria_id),
+          sap: p.producto.sap ?? null,
+          nombre: p.producto.nombre ?? null,
+          tipo: (p.producto.tipo as "consumible" | "equipo") ?? null,
+          cantidad: Number(p.cantidad),
+          observaciones: p.observaciones ?? null,
+          series:
+            p.series?.map((s) => ({
+              serie: s.serie.serie,
+              mac: s.serie.mac,
+              ua: s.serie.ua,
+              observaciones: null,
+            })) ?? [],
+        })),
+      });
+    }
+  }, [guia, mode, form]);
+
+  // ── Product sub-form ───────────────────────────────────────────────────────
+  const productSubForm = useForm<ProductoFormValues>({
+    resolver: zodResolver(productoSchema),
+    defaultValues: EMPTY_PRODUCTO,
   });
 
+  const {
+    append: appendSerie,
+    remove: removeSerie,
+    update: updateSerieField,
+  } = useFieldArray({ control: productSubForm.control, name: "series" });
+
+  const watchedSeries = productSubForm.watch("series") ?? [];
+
+  const handleAddOrUpdateProducto = productSubForm.handleSubmit((values) => {
+    if (editingProductoIndex === null) {
+      appendProducto(values);
+    } else {
+      updateProductoField(editingProductoIndex, values);
+      setEditingProductoIndex(null);
+    }
+    productSubForm.reset(EMPTY_PRODUCTO);
+    serieSubForm.reset(EMPTY_SERIE);
+    setEditingSerieIndex(null);
+    setShowMoreFields(false);
+  });
+
+  const handleEditProducto = (index: number) => {
+    const producto = form.getValues(`productos.${index}`);
+    setEditingProductoIndex(index);
+    productSubForm.reset(producto);
+    serieSubForm.reset(EMPTY_SERIE);
+    setEditingSerieIndex(null);
+    setShowMoreFields(true);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingProductoIndex(null);
+    productSubForm.reset(EMPTY_PRODUCTO);
+    serieSubForm.reset(EMPTY_SERIE);
+    setEditingSerieIndex(null);
+    setShowMoreFields(false);
+  };
+
+  // ── Serie sub-form ─────────────────────────────────────────────────────────
+  const serieSubForm = useForm<SerieFormValues>({
+    resolver: zodResolver(serieSchema),
+    defaultValues: EMPTY_SERIE,
+    mode: "onChange",
+  });
+
+  const handleAddOrUpdateSerie = serieSubForm.handleSubmit((values) => {
+    if (editingSerieIndex === null) {
+      appendSerie(values);
+    } else {
+      updateSerieField(editingSerieIndex, values);
+      setEditingSerieIndex(null);
+    }
+    serieSubForm.reset(EMPTY_SERIE);
+  });
+
+  const handleEditSerie = (index: number) => {
+    const serie = productSubForm.getValues(`series.${index}`);
+    setEditingSerieIndex(index);
+    serieSubForm.reset(serie as SerieFormValues);
+  };
+
+  const handleCancelEditSerie = () => {
+    setEditingSerieIndex(null);
+    serieSubForm.reset(EMPTY_SERIE);
+  };
+
+  // ── Mutation ───────────────────────────────────────────────────────────────
   const mutation = useMutation({
     mutationFn: (values: GuiaCreateFormValues) => {
       const body: GuiaCreateBody = {
@@ -283,23 +211,193 @@ export default function GuiaForm({ onSuccess }: GuiaFormProps) {
             })) ?? null,
         })),
       };
-      return createGuia(body);
+      return mode === "edit" && guia
+        ? updateGuia(guia.id, body)
+        : createGuia(body);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [GuiaComplete.QUERY_KEY] });
-      successToast("Guía creada correctamente.");
+      successToast(
+        mode === "edit"
+          ? "Guía actualizada correctamente."
+          : "Guía creada correctamente.",
+      );
       onSuccess?.();
     },
     onError: (error: any) => {
-      errorToast(error.response.data.message);
+      errorToast(error.response?.data?.message ?? "Error al guardar la guía.");
     },
   });
+
+  // ── Columns for productos DataTable ────────────────────────────────────────
+  const watchedProductos = form.watch("productos");
+
+  const productoColumns: ColumnDef<ProductoFormValues>[] = [
+    {
+      id: "index",
+      header: "#",
+      cell: ({ row }) => (
+        <span className="text-muted-foreground text-xs">{row.index + 1}</span>
+      ),
+    },
+    {
+      id: "producto",
+      header: "Producto",
+      cell: ({ row }) => (
+        <span className="font-medium">
+          {row.original.nombre || row.original.sap || "—"}
+        </span>
+      ),
+    },
+    {
+      id: "sap",
+      header: "SAP",
+      cell: ({ row }) => (
+        <span className="text-xs text-muted-foreground">
+          {row.original.sap || "—"}
+        </span>
+      ),
+    },
+    {
+      id: "tipo",
+      header: "Tipo",
+      cell: ({ row }) =>
+        row.original.tipo ? (
+          <Badge variant="outline" className="text-xs capitalize">
+            {row.original.tipo}
+          </Badge>
+        ) : (
+          <span className="text-muted-foreground">—</span>
+        ),
+    },
+    {
+      id: "cantidad",
+      header: "Cantidad",
+      cell: ({ row }) => row.original.cantidad,
+    },
+    {
+      id: "series",
+      header: "Series",
+      cell: ({ row }) => {
+        const series = row.original.series ?? [];
+        if (!series.length)
+          return <span className="text-muted-foreground text-xs">—</span>;
+        return (
+          <Badge variant="secondary" className="text-xs">
+            {series.length} serie{series.length !== 1 ? "s" : ""}
+          </Badge>
+        );
+      },
+    },
+    {
+      id: "acciones",
+      cell: ({ row }) => (
+        <div className="flex gap-1">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="size-7"
+            onClick={() => handleEditProducto(row.index)}
+          >
+            <Pencil className="size-3" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="size-7 text-destructive hover:text-destructive"
+            onClick={() => {
+              removeProducto(row.index);
+              if (editingProductoIndex === row.index) handleCancelEdit();
+            }}
+          >
+            <Trash2 className="size-3" />
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
+  // ── Columns for series DataTable ───────────────────────────────────────────
+  const serieColumns: ColumnDef<SerieFormValues>[] = [
+    {
+      id: "index",
+      header: "#",
+      cell: ({ row }) => (
+        <span className="text-muted-foreground text-xs">{row.index + 1}</span>
+      ),
+    },
+    {
+      id: "serie",
+      header: "Serie",
+      cell: ({ row }) => (
+        <span className="font-medium text-xs">{row.original.serie || "—"}</span>
+      ),
+    },
+    {
+      id: "mac",
+      header: "MAC",
+      cell: ({ row }) => (
+        <span className="text-xs text-muted-foreground font-mono">
+          {row.original.mac || "—"}
+        </span>
+      ),
+    },
+    {
+      id: "ua",
+      header: "UA",
+      cell: ({ row }) => (
+        <span className="text-xs text-muted-foreground font-mono">
+          {row.original.ua || "—"}
+        </span>
+      ),
+    },
+    {
+      id: "observaciones",
+      header: "Observaciones",
+      cell: ({ row }) => (
+        <span className="text-xs text-muted-foreground max-w-40 truncate block">
+          {row.original.observaciones || "—"}
+        </span>
+      ),
+    },
+    {
+      id: "acciones",
+      cell: ({ row }) => (
+        <div className="flex gap-1">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="size-7"
+            onClick={() => handleEditSerie(row.index)}
+          >
+            <Pencil className="size-3" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="size-7 text-destructive hover:text-destructive"
+            onClick={() => {
+              removeSerie(row.index);
+              if (editingSerieIndex === row.index) handleCancelEditSerie();
+            }}
+          >
+            <Trash2 className="size-3" />
+          </Button>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <form
       onSubmit={form.handleSubmit((v) => mutation.mutate(v))}
       className="space-y-6"
     >
+      {/* ── Encabezado ─────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <FormInput
           name="numero"
@@ -308,12 +406,10 @@ export default function GuiaForm({ onSuccess }: GuiaFormProps) {
           placeholder="Número de guía"
           required
         />
-        <FormInput
+        <DatePickerFormField
           name="fecha"
           label="Fecha"
           control={form.control}
-          type="date"
-          required
         />
         <FormSelectAsync
           name="proveedor_id"
@@ -330,42 +426,249 @@ export default function GuiaForm({ onSuccess }: GuiaFormProps) {
         />
       </div>
 
-      <div>
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="font-semibold">Productos</h3>
+      {/* ── Sección productos ──────────────────────────────────────────────── */}
+      <div className="space-y-4">
+        <h3 className="font-semibold">Productos</h3>
+
+        {/* Mini-form para agregar / editar un producto */}
+        <div className="border rounded-lg p-4 bg-muted/30 space-y-4">
+          <div className="flex items-center gap-2 text-sm font-medium">
+            <PackagePlus className="size-4 text-primary" />
+            {editingProductoIndex !== null
+              ? `Editando producto #${editingProductoIndex + 1}`
+              : "Nuevo producto"}
+          </div>
+
+          {/* Campos principales */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+            <FormSelectAsync
+              name="producto_id"
+              label="Producto"
+              control={productSubForm.control}
+              placeholder="Seleccione un producto"
+              useQueryHook={useProductosQuery}
+              additionalParams={{
+                tipo: "equipo",
+              }}
+              className="md:col-span-2"
+              mapOptionFn={(item) => ({
+                value: String(item.id),
+                label: item.nombre,
+                description: item.sap,
+              })}
+              onValueChange={(_, item) => {
+                if (item) {
+                  productSubForm.setValue(
+                    "categoria_id",
+                    String(item.categoria_id),
+                  );
+                  productSubForm.setValue("sap", item.sap ?? "");
+                  productSubForm.setValue("nombre", item.nombre ?? "");
+                  productSubForm.setValue(
+                    "tipo",
+                    (item.tipo as "consumible" | "equipo") ?? null,
+                  );
+                }
+              }}
+            />
+            <FormInput
+              name="cantidad"
+              label="Cantidad"
+              control={productSubForm.control}
+              type="number"
+              placeholder="1"
+              required
+            />
+            <FormInput
+              name="observaciones"
+              label="Observaciones"
+              control={productSubForm.control}
+              placeholder="Observaciones"
+            />
+          </div>
+
+          {/* Toggle campos adicionales */}
           <Button
             type="button"
-            variant="outline"
+            variant="ghost"
             size="sm"
-            onClick={() => appendProducto(DEFAULT_PRODUCTO)}
+            className="text-xs text-muted-foreground -mt-1"
+            onClick={() => setShowMoreFields((prev) => !prev)}
           >
-            <Plus className="size-3 mr-1" />
-            Agregar producto
+            {showMoreFields ? (
+              <>
+                <ChevronUp className="size-3 mr-1" />
+                Ocultar campos
+              </>
+            ) : (
+              <>
+                <ChevronDown className="size-3 mr-1" />
+                Mostrar más campos
+              </>
+            )}
           </Button>
+
+          {showMoreFields && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+              <FormSelectAsync
+                name="categoria_id"
+                label="Categoría"
+                control={productSubForm.control}
+                placeholder="Seleccione una categoría"
+                useQueryHook={useCategoriasQuery}
+                mapOptionFn={(item) => ({
+                  value: String(item.id),
+                  label: item.nombre,
+                })}
+              />
+              <FormInput
+                name="sap"
+                label="SAP"
+                control={productSubForm.control}
+                placeholder="Código SAP"
+              />
+              <FormInput
+                name="nombre"
+                label="Nombre"
+                control={productSubForm.control}
+                placeholder="Nombre del producto"
+              />
+              <FormSelect
+                name="tipo"
+                label="Tipo"
+                control={productSubForm.control}
+                placeholder="Seleccione un tipo"
+                options={TIPO_OPTIONS}
+              />
+            </div>
+          )}
+
+          {/* ── Series sub-form ──────────────────────────────────────────── */}
+          <div className="space-y-3">
+            <div className="border rounded-lg p-3 bg-background space-y-3">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <Hash className="size-3.5 text-primary" />
+                {editingSerieIndex !== null
+                  ? `Editando serie #${editingSerieIndex + 1}`
+                  : "Nueva serie"}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
+                <FormInput
+                  name="serie"
+                  label="Serie"
+                  control={serieSubForm.control}
+                  placeholder="N° serie"
+                  required
+                />
+                <FormInput
+                  name="mac"
+                  label="MAC"
+                  control={serieSubForm.control}
+                  placeholder="XX:XX:XX:XX:XX:XX"
+                  maxLength={17}
+                  required
+                />
+                <FormInput
+                  name="ua"
+                  label="UA"
+                  control={serieSubForm.control}
+                  placeholder="XX:XX:XX:XX:XX:XX"
+                  maxLength={17}
+                  required
+                />
+                <FormInput
+                  name="observaciones"
+                  label="Observaciones"
+                  control={serieSubForm.control}
+                  placeholder="—"
+                />
+                <div className="flex gap-2">
+                  {editingSerieIndex !== null && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={handleCancelEditSerie}
+                    >
+                      <X className="size-3 mr-1" />
+                      Cancelar
+                    </Button>
+                  )}
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    className="flex-1"
+                    onClick={handleAddOrUpdateSerie}
+                  >
+                    <Check className="size-3 mr-1" />
+                    {editingSerieIndex !== null ? "Actualizar" : "Agregar"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {watchedSeries.length > 0 && (
+              <DataTable
+                columns={serieColumns}
+                data={watchedSeries as SerieFormValues[]}
+                variant="outline"
+                isVisibleColumnFilter={false}
+              />
+            )}
+          </div>
+
+          {/* Acciones del mini-form de producto */}
+          <div className="flex gap-2 justify-end">
+            {editingProductoIndex !== null && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleCancelEdit}
+              >
+                <X className="size-3 mr-1" />
+                Cancelar
+              </Button>
+            )}
+            <Button type="button" size="sm" onClick={handleAddOrUpdateProducto}>
+              <Check className="size-3 mr-1" />
+              {editingProductoIndex !== null
+                ? "Actualizar producto"
+                : "Agregar producto"}
+            </Button>
+          </div>
         </div>
 
+        {/* Tabla de productos agregados */}
+        {watchedProductos.length > 0 && (
+          <DataTable
+            columns={productoColumns}
+            data={watchedProductos}
+            variant="outline"
+            isVisibleColumnFilter={false}
+          />
+        )}
+
+        {/* Error global de productos */}
         {form.formState.errors.productos &&
           !Array.isArray(form.formState.errors.productos) && (
-            <p className="text-sm text-destructive mb-3">
+            <p className="text-sm text-destructive">
               {form.formState.errors.productos.message}
             </p>
           )}
-
-        <div className="space-y-4">
-          {productoFields.map((field, index) => (
-            <ProductoItem
-              key={field.id}
-              form={form}
-              index={index}
-              onRemove={() => removeProducto(index)}
-            />
-          ))}
-        </div>
       </div>
 
+      {/* ── Submit ─────────────────────────────────────────────────────────── */}
       <div className="flex justify-end">
         <Button type="submit" disabled={mutation.isPending}>
-          {mutation.isPending ? "Guardando..." : "Crear Guía"}
+          {mutation.isPending
+            ? "Guardando..."
+            : mode === "edit"
+              ? "Actualizar Guía"
+              : "Crear Guía"}
         </Button>
       </div>
     </form>

@@ -2,6 +2,7 @@ import { ButtonAction } from "@/components/ButtonAction";
 import { Pencil, Trash2, RotateCcw } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { ProductoResource } from "../lib/producto.interface";
+import { Badge } from "@/components/ui/badge";
 
 interface ColumnActions {
   onEdit: (row: ProductoResource) => void;
@@ -29,6 +30,10 @@ export const getProductoColumns = ({
   {
     accessorKey: "tipo",
     header: "Tipo",
+    cell: ({ getValue }) => {
+      const tipo = getValue() as string;
+      return <Badge className="uppercase">{tipo}</Badge>;
+    },
   },
   {
     id: "categoria",

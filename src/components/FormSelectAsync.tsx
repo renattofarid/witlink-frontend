@@ -62,6 +62,7 @@ interface FormSelectAsyncProps {
   additionalParams?: Record<string, any>; // Parámetros adicionales para el hook
   onValueChange?: (value: string, item?: any) => void; // Callback cuando cambia el valor
   preloadItemId?: string; // ID del item a precargar buscando en todas las páginas
+  legacyPagination?: boolean; // true = pagina/por_pagina | false = page/per_page (default: true)
 }
 
 export function FormSelectAsync({
@@ -85,6 +86,7 @@ export function FormSelectAsync({
   additionalParams = {},
   onValueChange,
   preloadItemId,
+  legacyPagination = true,
 }: FormSelectAsyncProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -96,6 +98,7 @@ export function FormSelectAsync({
   const [selectedOption, setSelectedOption] = useState<Option | null>(
     defaultOption || null,
   );
+  const prevDefaultOptionRef = useRef<Option | undefined>(defaultOption);
   const scrollRef = useRef<HTMLDivElement>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
@@ -105,10 +108,23 @@ export function FormSelectAsync({
   // Hook de consulta con parámetros dinámicos
   const { data, isLoading, isFetching } = useQueryHook({
     search: debouncedSearch,
-    pagina: page,
-    por_pagina: perPage,
+    ...(legacyPagination
+      ? { pagina: page, por_pagina: perPage }
+      : { page, per_page: perPage }),
     ...additionalParams,
   });
+
+  // Sincronizar cuando defaultOption cambia externamente (ej: se crea un nuevo item)
+  useEffect(() => {
+    if (defaultOption && defaultOption !== prevDefaultOptionRef.current) {
+      prevDefaultOptionRef.current = defaultOption;
+      setSelectedOption(defaultOption);
+      setAllOptions((prev) => {
+        const exists = prev.some((opt) => opt.value === defaultOption.value);
+        return exists ? prev : [defaultOption, ...prev];
+      });
+    }
+  }, [defaultOption]);
 
   // Debounce para el search
   useEffect(() => {
@@ -222,7 +238,7 @@ export function FormSelectAsync({
     <Controller
       control={control}
       name={name}
-      render={({ field }) => {
+      render={({ field, fieldState }) => {
         // Buscar la opción seleccionada en las opciones cargadas o usar la cache
         const selected =
           allOptions.find((opt) => opt.value === field.value) ||
@@ -379,7 +395,7 @@ export function FormSelectAsync({
                 {description}
               </FieldDescription>
             )}
-            <FieldError />
+            <FieldError errors={fieldState.error ? [fieldState.error] : []} />
           </Field>
         );
       }}

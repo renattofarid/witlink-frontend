@@ -81,7 +81,7 @@ export function SelectSearchForm<T>({
     <Controller
       control={control}
       name={name}
-      render={({ field }) => {
+      render={({ field, fieldState }) => {
         const selected = items.find(
           (item) => getItemId(item).toString() === field.value
         );
@@ -162,7 +162,7 @@ export function SelectSearchForm<T>({
                 </Command>
               </PopoverContent>
             </Popover>
-            <FieldError />
+            <FieldError errors={fieldState.error ? [fieldState.error] : []} />
           </Field>
         );
       }}

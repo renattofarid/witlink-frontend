@@ -1,78 +1,38 @@
-Crea el módulo de Técnico siguiendo la arquitectura definida en ARCHITECTURE.md.
+Crea el módulo de Grupo de Menus y Opcion de Menu siguiendo la arquitectura definida en MEMORY.md.
 
 ## Módulo
 
-- Nombre singular: Técnico
-- Nombre plural: Técnicos
-- Ícono (Lucide): User
-- URL: /tecnicos
-- Endpoint base: https://develop.garzasoft.com:85/almacen-witlink/public/api/tecnicos
+- Nombre singular: Menu
+- Nombre plural: Menu
+- Ícono (Lucide): List
+- URL: /menu
+- Endpoint base: https://develop.garzasoft.com:85/almacen-witlink/public/api/grupo-menus y https://develop.garzasoft.com:85/almacen-witlink/public/api/opciones-menu
 
 ## Resource (respuesta de la API)
 
 ```json
-{
-      "id": 1,
-      "cuadrilla_id": 1,
-      "persona_id": 5,
-      "created_at": "2026-02-27T16:12:14.000000Z",
-      "updated_at": "2026-02-27T16:12:14.000000Z",
-      "deleted_at": null,
-      "cuadrilla": {
-        "id": 1,
-        "nombre": "Cuadrilla Zona Sur",
-        "created_at": "2026-02-27T16:12:14.000000Z",
-        "updated_at": "2026-02-27T16:12:14.000000Z",
-        "deleted_at": null
-      },
-      "persona": {
-        "id": 5,
-        "nombre": "Luis",
-        "apellido_paterno": "Quispe",
-        "apellido_materno": "Huamán",
-        "dni": "22334455",
-        "direccion": "Jr. Huancavelica 150, Huancayo",
-        "telefono": "944556677",
-        "correo": "luis.quispe@example.com",
-        "created_at": "2026-02-27T16:12:13.000000Z",
-        "updated_at": "2026-02-27T16:12:13.000000Z",
-        "deleted_at": null
-      }
-    }
+[
+  {
+    "id": 0,
+    "nombre": "string",
+    "icono": "string",
+    "orden": "string",
+    "created_at": "2019-08-24T14:15:22Z",
+    "updated_at": "2019-08-24T14:15:22Z",
+    "deleted_at": "2019-08-24T14:15:22Z"
+  }
+]
 ```
 
 ```ts
 interface RootObject {
   id: number;
-  cuadrilla_id: number;
-  persona_id: number;
-  created_at: string;
-  updated_at: string;
-  deleted_at: null;
-  cuadrilla: Cuadrilla;
-  persona: Persona;
-}
-
-interface Persona {
-  id: number;
   nombre: string;
-  apellido_paterno: string;
-  apellido_materno: string;
-  dni: string;
-  direccion: string;
-  telefono: string;
-  correo: string;
+  icono: string;
+  orden: string;
   created_at: string;
   updated_at: string;
-  deleted_at: null;
-}
-
-interface Cuadrilla {
-  id: number;
-  nombre: string;
-  created_at: string;
-  updated_at: string;
-  deleted_at: null;
+  deleted_at: string;
 }
 ```
 
@@ -82,15 +42,17 @@ interface Cuadrilla {
 
 ```json
 {
-  "cuadrilla_id": 0,
-  "persona_id": 0
+  "nombre": "string",
+  "icono": "string",
+  "orden": 0
 }
 ```
 
 ```ts
 interface RootObject {
-  cuadrilla_id: number;
-  persona_id: number;
+  nombre: string;
+  icono: string;
+  orden: number;
 }
 ```
 
@@ -98,12 +60,107 @@ interface RootObject {
 
 ```json
 {
-  "cuadrilla_id": 0
+  "nombre": "string",
+  "icono": "string",
+  "orden": 0
 }
 ```
 
 ```ts
 interface RootObject {
-  cuadrilla_id: number;
+  nombre: string;
+  icono: string;
+  orden: number;
+}
+```
+
+### Adicional
+La api que se usara para ver sus opciones
+https://develop.garzasoft.com:85/almacen-witlink/public/api/grupo-menus/{id}/opciones-menu
+
+```json
+[
+  {
+    "id": 1,
+    "nombre": "Dashboard",
+    "ruta": "/dashboard",
+    "orden": "1",
+    "icono": "dashboard",
+    "grupo_menu_id": 1,
+    "created_at": "2026-03-08T20:28:27.000000Z",
+    "updated_at": "2026-03-08T20:28:27.000000Z",
+    "deleted_at": null
+  },
+  {
+    "id": 2,
+    "nombre": "Usuarios",
+    "ruta": "/usuarios",
+    "orden": "2",
+    "icono": "people",
+    "grupo_menu_id": 1,
+    "created_at": "2026-03-08T20:28:28.000000Z",
+    "updated_at": "2026-03-08T20:28:28.000000Z",
+    "deleted_at": null
+  }
+]
+```
+
+```ts
+interface RootObject {
+  id: number;
+  nombre: string;
+  ruta: string;
+  orden: string;
+  icono: string;
+  grupo_menu_id: number;
+  created_at: string;
+  updated_at: string;
+  deleted_at: null;
+}
+```
+
+La idea es que en el modulo podamos listar los menu y ademas podamos crear las opciones de menu que es con las siguientes apis
+
+### Crear
+
+```json
+{
+  "nombre": "string",
+  "ruta": "string",
+  "icono": "string",
+  "orden": "string",
+  "grupo_menu_id": 0
+}
+```
+
+```ts
+interface RootObject {
+  nombre: string;
+  ruta: string;
+  icono: string;
+  orden: string;
+  grupo_menu_id: number;
+}
+```
+
+### Editar
+
+```json
+{
+  "nombre": "string",
+  "ruta": "string",
+  "icono": "string",
+  "orden": "string",
+  "grupo_menu_id": 0
+}
+```
+
+```ts
+interface RootObject {
+  nombre: string;
+  ruta: string;
+  icono: string;
+  orden: string;
+  grupo_menu_id: number;
 }
 ```

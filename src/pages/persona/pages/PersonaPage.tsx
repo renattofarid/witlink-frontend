@@ -1,11 +1,9 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import PageWrapper from "@/components/PageWrapper";
 import TitleComponent from "@/components/TitleComponent";
 import ActionsWrapper from "@/components/ActionsWrapper";
 import { DataTable } from "@/components/DataTable";
-import DataTablePagination from "@/components/DataTablePagination";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
 import { successToast, errorToast, ERROR_MESSAGE } from "@/lib/core.function";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
@@ -15,16 +13,22 @@ import { PersonaComplete } from "../lib/persona.constants";
 import { getPersonaColumns } from "../components/PersonaColumns";
 import PersonaFilters from "../components/PersonaFilters";
 import PersonaButtons from "../components/PersonaButtons";
+import PersonaModal from "../components/PersonaModal";
 import type { PersonaResource } from "../lib/persona.interface";
+import DataTablePagination from "@/components/DataTablePagination";
 
 export default function PersonaPage() {
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
 
   const [params, setParams] = useState<Record<string, string>>({
-    pagina: "1",
-    por_pagina: String(DEFAULT_PER_PAGE),
+    page: "1",
+    per_page: String(DEFAULT_PER_PAGE),
+    search: "",
   });
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<"create" | "edit">("create");
+  const [selected, setSelected] = useState<PersonaResource | null>(null);
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [toDelete, setToDelete] = useState<PersonaResource | null>(null);
@@ -59,10 +63,17 @@ export default function PersonaPage() {
     },
   });
 
-  const handleAdd = () => navigate(PersonaComplete.ROUTE_ADD);
+  const handleAdd = () => {
+    setSelected(null);
+    setModalMode("create");
+    setModalOpen(true);
+  };
 
-  const handleEdit = (row: PersonaResource) =>
-    navigate(`${PersonaComplete.ROUTE_UPDATE}/${row.id}`);
+  const handleEdit = (row: PersonaResource) => {
+    setSelected(row);
+    setModalMode("edit");
+    setModalOpen(true);
+  };
 
   const handleDelete = (row: PersonaResource) => {
     setToDelete(row);
@@ -74,17 +85,17 @@ export default function PersonaPage() {
   };
 
   const handlePageChange = (page: number) =>
-    setParams((prev) => ({ ...prev, pagina: String(page) }));
+    setParams((prev) => ({ ...prev, page: String(page) }));
 
   const handlePerPageChange = (perPage: number) =>
     setParams((prev) => ({
       ...prev,
-      por_pagina: String(perPage),
-      pagina: "1",
+      per_page: String(perPage),
+      page: "1",
     }));
 
   const handleSearchChange = (value: string) =>
-    setParams((prev) => ({ ...prev, search: value, pagina: "1" }));
+    setParams((prev) => ({ ...prev, search: value, page: "1" }));
 
   const columns = getPersonaColumns({
     onEdit: handleEdit,
@@ -116,12 +127,19 @@ export default function PersonaPage() {
       </DataTable>
 
       <DataTablePagination
-        page={Number(params.pagina)}
-        per_page={Number(params.por_pagina)}
-        totalPages={data?.last_page ?? 1}
-        totalData={data?.total ?? 0}
+        page={Number(params.page)}
+        per_page={Number(params.per_page)}
+        totalPages={data?.meta.last_page ?? 1}
+        totalData={data?.meta.total ?? 0}
         onPageChange={handlePageChange}
         setPerPage={handlePerPageChange}
+      />
+
+      <PersonaModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        mode={modalMode}
+        selected={selected}
       />
 
       <SimpleDeleteDialog

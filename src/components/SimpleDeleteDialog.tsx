@@ -26,13 +26,16 @@ export const DeleteButton = ({
   variant = "outline",
   tooltip = "Eliminar",
   disabled = false,
+  canRender = true,
 }: {
   onClick: () => void;
   icon?: LucideIcon;
   variant?: "ghost" | "outline" | "default" | "destructive";
   tooltip?: string;
   disabled?: boolean;
+  canRender?: boolean;
 }) => {
+  if (!canRender) return null;
   return (
     <Button
       type="button"

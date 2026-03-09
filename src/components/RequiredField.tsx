@@ -1,3 +1,3 @@
 export default function RequiredField() {
-  return <span className="text-secondary">*</span>;
+  return <span className="text-destructive">*</span>;
 }

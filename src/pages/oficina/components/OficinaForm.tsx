@@ -13,7 +13,7 @@ import type { OficinaResource } from "../lib/oficina.interface";
 interface OficinaFormProps {
   mode: "create" | "edit";
   defaultValues?: OficinaResource;
-  onSuccess?: () => void;
+  onSuccess?: (data?: OficinaResource) => void;
 }
 
 export default function OficinaForm({
@@ -30,6 +30,7 @@ export default function OficinaForm({
       ubigeo: defaultValues?.ubigeo ?? "",
       direccion: defaultValues?.direccion ?? "",
     },
+    mode: "onChange",
   });
 
   const mutation = useMutation({
@@ -39,18 +40,20 @@ export default function OficinaForm({
       }
       return updateOficina(defaultValues!.id, values);
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: [OficinaComplete.QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: ["oficinas-select"] });
       successToast(
         mode === "create"
           ? "Oficina creada correctamente."
           : "Oficina actualizada correctamente.",
       );
-      onSuccess?.();
+      onSuccess?.(data);
     },
     onError: (error: any) => {
       errorToast(
-        error.response.data.message ?? ERROR_MESSAGE(OficinaComplete.MODEL, mode),
+        error.response.data.message ??
+          ERROR_MESSAGE(OficinaComplete.MODEL, mode),
       );
     },
   });

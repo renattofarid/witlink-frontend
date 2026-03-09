@@ -16,7 +16,7 @@ import type { CuadrillaResource } from "../lib/cuadrilla.interface";
 interface CuadrillaFormProps {
   mode: "create" | "edit";
   defaultValues?: CuadrillaResource;
-  onSuccess?: () => void;
+  onSuccess?: (cuadrilla?: CuadrillaResource) => void;
 }
 
 export default function CuadrillaForm({
@@ -31,6 +31,7 @@ export default function CuadrillaForm({
     defaultValues: {
       nombre: defaultValues?.nombre ?? "",
     },
+    mode: "onChange",
   });
 
   const mutation = useMutation({
@@ -40,7 +41,7 @@ export default function CuadrillaForm({
       }
       return updateCuadrilla(defaultValues!.id, values);
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({
         queryKey: [CuadrillaComplete.QUERY_KEY],
       });
@@ -49,7 +50,7 @@ export default function CuadrillaForm({
           ? "Cuadrilla creada correctamente."
           : "Cuadrilla actualizada correctamente.",
       );
-      onSuccess?.();
+      onSuccess?.(data);
     },
     onError: (error: any) => {
       errorToast(

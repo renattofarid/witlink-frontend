@@ -8,7 +8,7 @@ export const CategoriaComplete: ModelComplete = {
     gender: true,
   },
   ICON: Boxes,
-  ROUTE: "/categoria",
+  ROUTE: "/categorias",
   QUERY_KEY: "categoria",
   ABSOLUTE_ROUTE: "/categoria",
   ENDPOINT: "/categorias",

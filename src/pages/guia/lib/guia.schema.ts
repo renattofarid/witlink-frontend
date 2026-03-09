@@ -1,13 +1,13 @@
 import { z } from "zod";
 
-const serieSchema = z.object({
+export const serieSchema = z.object({
   serie: z.string().min(1, "Requerido"),
-  mac: z.string().min(1, "Requerido"),
-  ua: z.string().min(1, "Requerido"),
+  mac: z.string().length(17, "Debe tener 17 caracteres"),
+  ua: z.string().length(17, "Debe tener 17 caracteres"),
   observaciones: z.string().optional().nullable(),
 });
 
-const productoSchema = z.object({
+export const productoSchema = z.object({
   producto_id: z.string().optional().nullable(),
   categoria_id: z.string().optional().nullable(),
   sap: z.string().optional().nullable(),
@@ -25,9 +25,9 @@ export const guiaCreateSchema = z.object({
   productos: z.array(productoSchema).min(1, "Debe agregar al menos un producto"),
 });
 
-export const guiaEditSchema = z.object({
-  nombre: z.string().min(1, "Requerido"),
-});
+export const guiaEditSchema = guiaCreateSchema;
 
+export type SerieFormValues = z.infer<typeof serieSchema>;
+export type ProductoFormValues = z.infer<typeof productoSchema>;
 export type GuiaCreateFormValues = z.infer<typeof guiaCreateSchema>;
-export type GuiaEditFormValues = z.infer<typeof guiaEditSchema>;
+export type GuiaEditFormValues = GuiaCreateFormValues;

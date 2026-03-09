@@ -13,7 +13,7 @@ import type { PersonaResource } from "../lib/persona.interface";
 interface PersonaFormProps {
   mode: "create" | "edit";
   defaultValues?: PersonaResource;
-  onSuccess?: () => void;
+  onSuccess?: (persona?: PersonaResource) => void;
 }
 
 export default function PersonaForm({
@@ -34,6 +34,7 @@ export default function PersonaForm({
       telefono: defaultValues?.telefono ?? "",
       correo: defaultValues?.correo ?? "",
     },
+    mode: "onChange",
   });
 
   const mutation = useMutation({
@@ -43,14 +44,14 @@ export default function PersonaForm({
       }
       return updatePersona(defaultValues!.id, values);
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: [PersonaComplete.QUERY_KEY] });
       successToast(
         mode === "create"
           ? "Persona creada correctamente."
           : "Persona actualizada correctamente.",
       );
-      onSuccess?.();
+      onSuccess?.(data);
     },
     onError: (error: any) => {
       errorToast(
@@ -93,6 +94,7 @@ export default function PersonaForm({
           label="DNI"
           control={form.control}
           placeholder="Ingrese el DNI"
+          maxLength={8}
           required
         />
         <FormInput
@@ -107,6 +109,7 @@ export default function PersonaForm({
           label="Teléfono"
           control={form.control}
           placeholder="Ingrese el teléfono"
+          maxLength={9}
           required
         />
         <FormInput

@@ -1,6 +1,6 @@
 export const ACTIONS_NAMES: Record<string, string> = {
   create: "cread",
-  update: "actualizad",
+  edit: "actualizad",
   delete: "eliminad",
   restore: "restaurad",
 };
@@ -9,7 +9,7 @@ export const DEFAULT_PER_PAGE = 10;
 
 export const ACTIONS: Record<string, string> = {
   create: "crear",
-  update: "actualizar",
+  edit: "actualizar",
   delete: "eliminar",
   restore: "restaurar",
 };

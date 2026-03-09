@@ -2,7 +2,9 @@ import { useQuery } from "@tanstack/react-query";
 import { getPersona, getPersonas } from "./persona.actions";
 import { PersonaComplete } from "./persona.constants";
 
-export const usePersonasQuery = (params: Record<string, string>) => {
+export const usePersonasQuery = (
+  params: Record<string, string | undefined>,
+) => {
   return useQuery({
     queryKey: [PersonaComplete.QUERY_KEY, params],
     queryFn: () => getPersonas(params),

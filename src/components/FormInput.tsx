@@ -144,7 +144,7 @@ export function FormInput({
     <Controller
       control={control}
       name={name}
-      render={({ field }) => {
+      render={({ field, fieldState }) => {
         const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
           if (isNumberType) {
             const val = e.target.value;
@@ -209,7 +209,7 @@ export function FormInput({
                 {description}
               </FieldDescription>
             )}
-            <FieldError />
+            <FieldError errors={fieldState.error ? [fieldState.error] : []} />
           </Field>
         );
       }}

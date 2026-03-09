@@ -12,6 +12,4 @@ export const PersonaComplete: ModelComplete = {
   QUERY_KEY: "personas",
   ROUTE: "/persona",
   ABSOLUTE_ROUTE: "/persona",
-  ROUTE_ADD: "/persona/agregar",
-  ROUTE_UPDATE: "/persona/editar",
 };

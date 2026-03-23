@@ -76,6 +76,11 @@ export const restoreGuia = async (id: number) => {
   return data;
 };
 
+export const getSeries = async (params: Record<string, any>) => {
+  const { data } = await api.get("/series", { params });
+  return data;
+};
+
 export const getProveedores = async (params: Record<string, any>) => {
   const { data } = await api.get("/proveedores", { params });
   return data;

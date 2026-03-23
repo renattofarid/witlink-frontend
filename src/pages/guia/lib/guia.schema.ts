@@ -1,9 +1,16 @@
 import { z } from "zod";
 
 export const serieSchema = z.object({
-  serie_id: z.string().optional().nullable(),
+  serie_id: z.union([z.string(), z.number()]).optional().nullable(),
   serie: z.string().optional().nullable(),
-  mac: z.string().optional().nullable(),
+  mac: z
+    .string()
+    .optional()
+    .nullable()
+    .refine(
+      (v) => !v || /^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$/.test(v),
+      "Formato inválido (ej. 00:1A:2B:3C:4D:5E)",
+    ),
   ua: z
     .string()
     .optional()
@@ -23,22 +30,24 @@ export const productoSchema = z
     observaciones: z.string().optional().nullable(),
     series: z.array(serieSchema).optional().nullable(),
   })
-  .refine(
-    (p) => {
-      if (p.tipo !== "equipo") return true;
-      return (p.series?.length ?? 0) === p.cantidad;
-    },
-    (p) => ({
-      message: `Este producto es un equipo y debe tener ${p.cantidad} serie(s) asociada(s).`,
-      path: ["series"],
-    }),
-  );
+  .superRefine((p, ctx) => {
+    if (p.tipo !== "equipo") return;
+    if ((p.series?.length ?? 0) !== p.cantidad) {
+      ctx.addIssue({
+        code: "custom",
+        message: `Este producto es un equipo y debe tener ${p.cantidad} serie(s) asociada(s).`,
+        path: ["series"],
+      });
+    }
+  });
 
 export const guiaCreateSchema = z.object({
   numero: z.string().min(1, "Requerido"),
   fecha: z.string().min(1, "Requerido"),
   proveedor_id: z.string().min(1, "Requerido"),
-  productos: z.array(productoSchema).min(1, "Debe agregar al menos un producto"),
+  productos: z
+    .array(productoSchema)
+    .min(1, "Debe agregar al menos un producto"),
 });
 
 export const guiaEditSchema = guiaCreateSchema;

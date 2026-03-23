@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { FormInput } from "@/components/FormInput";
+import { MacInput } from "@/components/MacInput";
 import { FormSelect } from "@/components/FormSelect";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
@@ -23,6 +24,7 @@ import {
   useProveedoresQuery,
   useProductosQuery,
   useCategoriasQuery,
+  useSeriesQuery,
 } from "../lib/guia.hook";
 import { GuiaComplete } from "../lib/guia.constants";
 import type { GuiaCreateBody, GuiaResource } from "../lib/guia.interface";
@@ -123,6 +125,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
   const productSubForm = useForm<ProductoFormValues>({
     resolver: zodResolver(productoSchema),
     defaultValues: EMPTY_PRODUCTO,
+    mode: "onChange",
   });
 
   const {
@@ -454,7 +457,6 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
           <label className="text-sm font-medium">Archivo</label>
           <input
             type="file"
-
             className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm file:border-0 file:bg-transparent file:text-sm file:font-medium cursor-pointer"
             onChange={(e) => setArchivo(e.target.files?.[0] ?? null)}
           />
@@ -588,13 +590,26 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
                   : "Nueva serie"}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3 items-end">
-                <FormInput
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 items-end">
+                <FormSelectAsync
                   name="serie_id"
-                  label="ID Serie (reingreso)"
+                  label="Serie (reingreso)"
                   control={serieSubForm.control}
-                  placeholder="ID de serie retirada"
-                  type="number"
+                  placeholder="Buscar serie existente..."
+                  useQueryHook={useSeriesQuery}
+                  legacyPagination={false}
+                  mapOptionFn={(item) => ({
+                    value: String(item.id),
+                    label: item.serie,
+                    description: item.mac,
+                  })}
+                  onValueChange={(_, item) => {
+                    if (item) {
+                      serieSubForm.setValue("serie", item.serie);
+                      serieSubForm.setValue("mac", item.mac);
+                      serieSubForm.setValue("ua", item.ua);
+                    }
+                  }}
                 />
                 <FormInput
                   name="serie"
@@ -603,32 +618,31 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
                   placeholder="N° serie"
                 />
                 <FormInput
-                  name="mac"
-                  label="MAC"
-                  control={serieSubForm.control}
-                  placeholder="XX:XX:XX:XX:XX:XX"
-                  maxLength={17}
-                />
-                <FormInput
                   name="ua"
                   label="UA"
                   control={serieSubForm.control}
                   placeholder="XX:XX:XX:XX:XX:XX"
                   maxLength={17}
                 />
+                <div className="lg:col-span-2">
+                  <MacInput
+                    name="mac"
+                    label="MAC"
+                    control={serieSubForm.control}
+                  />
+                </div>
                 <FormInput
                   name="observaciones"
                   label="Observaciones"
                   control={serieSubForm.control}
                   placeholder="—"
                 />
-                <div className="flex gap-2">
+                <div className="flex gap-2 lg:col-span-3 justify-end">
                   {editingSerieIndex !== null && (
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
-                      className="flex-1"
                       onClick={handleCancelEditSerie}
                     >
                       <X className="size-3 mr-1" />
@@ -639,7 +653,6 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
                     type="button"
                     size="sm"
                     variant="secondary"
-                    className="flex-1"
                     onClick={handleAddOrUpdateSerie}
                   >
                     <Check className="size-3 mr-1" />
@@ -656,6 +669,12 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
                 variant="outline"
                 isVisibleColumnFilter={false}
               />
+            )}
+
+            {productSubForm.formState.errors.series?.message && (
+              <p className="text-sm text-destructive">
+                {productSubForm.formState.errors.series.message}
+              </p>
             )}
           </div>
 

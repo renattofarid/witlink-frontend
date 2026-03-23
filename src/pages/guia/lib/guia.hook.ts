@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getGuias, getProveedores, getProductos, getCategorias } from "./guia.actions";
+import { getGuias, getProveedores, getProductos, getCategorias, getSeries } from "./guia.actions";
 import { GuiaComplete } from "./guia.constants";
 
 export const useGuiaQuery = (params: Record<string, string>) => {
@@ -30,6 +30,14 @@ export const useCategoriasQuery = (params: Record<string, any> = {}) => {
   return useQuery({
     queryKey: ["categorias", params],
     queryFn: () => getCategorias(params),
+    refetchOnWindowFocus: false,
+  });
+};
+
+export const useSeriesQuery = (params: Record<string, any> = {}) => {
+  return useQuery({
+    queryKey: ["series", params],
+    queryFn: () => getSeries(params),
     refetchOnWindowFocus: false,
   });
 };

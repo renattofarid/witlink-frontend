@@ -3,6 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { FormInput } from "@/components/FormInput";
+import { MacInput } from "@/components/MacInput";
 import { FormSelect } from "@/components/FormSelect";
 import FormWrapper from "@/components/FormWrapper";
 import { successToast, errorToast, ERROR_MESSAGE } from "@/lib/core.function";
@@ -79,12 +80,10 @@ export default function SerieForm({ onSuccess }: SerieFormProps) {
           placeholder="Ingrese la situación"
           required
         />
-        <FormInput
+        <MacInput
           name="mac"
           label="MAC"
           control={form.control}
-          placeholder="Ingrese la dirección MAC"
-          required
         />
         <FormInput
           name="ua"

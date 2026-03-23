@@ -109,7 +109,7 @@ export function FormSelectAsync({
   const { data, isLoading, isFetching } = useQueryHook({
     search: debouncedSearch,
     ...(legacyPagination
-      ? { pagina: page, por_pagina: perPage }
+      ? { page: page, per_page: perPage }
       : { page, per_page: perPage }),
     ...additionalParams,
   });

@@ -1,4 +1,4 @@
-import type { PaginatedResponse } from "@/lib/core.interface";
+import type { PaginationResponse } from "@/lib/core.interface";
 
 export interface ProductoResource {
   id: number;
@@ -27,7 +27,7 @@ export interface ProductoResource {
   series: any[];
 }
 
-export type ProductoResponse = PaginatedResponse<ProductoResource>;
+export type ProductoResponse = PaginationResponse<ProductoResource>;
 
 export interface ProductoCreateBody {
   categoria_id: number;

@@ -1,22 +1,38 @@
 import { z } from "zod";
 
 export const serieSchema = z.object({
-  serie: z.string().min(1, "Requerido"),
-  mac: z.string().length(17, "Debe tener 17 caracteres"),
-  ua: z.string().length(17, "Debe tener 17 caracteres"),
+  serie_id: z.string().optional().nullable(),
+  serie: z.string().optional().nullable(),
+  mac: z.string().optional().nullable(),
+  ua: z
+    .string()
+    .optional()
+    .nullable()
+    .refine((v) => !v || v.length === 17, "Debe tener 17 caracteres"),
   observaciones: z.string().optional().nullable(),
 });
 
-export const productoSchema = z.object({
-  producto_id: z.string().optional().nullable(),
-  categoria_id: z.string().optional().nullable(),
-  sap: z.string().optional().nullable(),
-  nombre: z.string().optional().nullable(),
-  tipo: z.enum(["consumible", "equipo"]).optional().nullable(),
-  cantidad: z.number().min(1, "Mínimo 1"),
-  observaciones: z.string().optional().nullable(),
-  series: z.array(serieSchema).optional().nullable(),
-});
+export const productoSchema = z
+  .object({
+    producto_id: z.string().optional().nullable(),
+    categoria_id: z.string().optional().nullable(),
+    sap: z.string().optional().nullable(),
+    nombre: z.string().optional().nullable(),
+    tipo: z.enum(["material", "equipo"]).optional().nullable(),
+    cantidad: z.number().min(1, "Mínimo 1"),
+    observaciones: z.string().optional().nullable(),
+    series: z.array(serieSchema).optional().nullable(),
+  })
+  .refine(
+    (p) => {
+      if (p.tipo !== "equipo") return true;
+      return (p.series?.length ?? 0) === p.cantidad;
+    },
+    (p) => ({
+      message: `Este producto es un equipo y debe tener ${p.cantidad} serie(s) asociada(s).`,
+      path: ["series"],
+    }),
+  );
 
 export const guiaCreateSchema = z.object({
   numero: z.string().min(1, "Requerido"),

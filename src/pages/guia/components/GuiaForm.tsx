@@ -39,11 +39,12 @@ import {
 import { Badge } from "@/components/ui/badge";
 
 const TIPO_OPTIONS = [
-  { value: "consumible", label: "Consumible" },
+  { value: "material", label: "Material" },
   { value: "equipo", label: "Equipo" },
 ];
 
 const EMPTY_SERIE: SerieFormValues = {
+  serie_id: null,
   serie: "",
   mac: "",
   ua: "",
@@ -76,6 +77,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
     null,
   );
   const [showMoreFields, setShowMoreFields] = useState(false);
+  const [archivo, setArchivo] = useState<File | null>(null);
 
   // ── Main form ──────────────────────────────────────────────────────────────
   const form = useForm<GuiaCreateFormValues>({
@@ -102,7 +104,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
           categoria_id: String(p.producto.categoria_id),
           sap: p.producto.sap ?? null,
           nombre: p.producto.nombre ?? null,
-          tipo: (p.producto.tipo as "consumible" | "equipo") ?? null,
+          tipo: (p.producto.tipo as "material" | "equipo") ?? null,
           cantidad: Number(p.cantidad),
           observaciones: p.observaciones ?? null,
           series:
@@ -196,20 +198,34 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
         numero: values.numero,
         fecha: values.fecha,
         proveedor_id: Number(values.proveedor_id),
-        productos: values.productos.map((p) => ({
-          producto_id: p.producto_id ? Number(p.producto_id) : null,
-          categoria_id: p.categoria_id ? Number(p.categoria_id) : null,
-          sap: p.sap ?? null,
-          nombre: p.nombre ?? null,
-          tipo: p.tipo ?? null,
-          cantidad: p.cantidad,
-          observaciones: p.observaciones ?? null,
-          series:
+        archivo: archivo ?? undefined,
+        productos: values.productos.map((p) => {
+          const series =
             p.series?.map((s) => ({
-              ...s,
+              serie_id: s.serie_id ? Number(s.serie_id) : undefined,
+              serie: s.serie ?? null,
+              mac: s.mac ?? null,
+              ua: s.ua ?? null,
               observaciones: s.observaciones ?? null,
-            })) ?? null,
-        })),
+            })) ?? null;
+          if (p.producto_id) {
+            return {
+              producto_id: Number(p.producto_id),
+              cantidad: p.cantidad,
+              observaciones: p.observaciones ?? null,
+              series,
+            };
+          }
+          return {
+            categoria_id: p.categoria_id ? Number(p.categoria_id) : null,
+            sap: p.sap ?? null,
+            nombre: p.nombre ?? null,
+            tipo: p.tipo ?? null,
+            cantidad: p.cantidad,
+            observaciones: p.observaciones ?? null,
+            series,
+          };
+        }),
       };
       return mode === "edit" && guia
         ? updateGuia(guia.id, body)
@@ -329,6 +345,15 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
       ),
     },
     {
+      id: "serie_id",
+      header: "ID",
+      cell: ({ row }) => (
+        <span className="text-xs text-muted-foreground">
+          {row.original.serie_id || "—"}
+        </span>
+      ),
+    },
+    {
       id: "serie",
       header: "Serie",
       cell: ({ row }) => (
@@ -398,13 +423,14 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
       className="space-y-6"
     >
       {/* ── Encabezado ─────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <FormInput
           name="numero"
           label="Número"
           control={form.control}
           placeholder="Número de guía"
           required
+          uppercase
         />
         <DatePickerFormField
           name="fecha"
@@ -424,6 +450,15 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
             description: item.ruc,
           })}
         />
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-medium">Archivo</label>
+          <input
+            type="file"
+
+            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm file:border-0 file:bg-transparent file:text-sm file:font-medium cursor-pointer"
+            onChange={(e) => setArchivo(e.target.files?.[0] ?? null)}
+          />
+        </div>
       </div>
 
       {/* ── Sección productos ──────────────────────────────────────────────── */}
@@ -466,7 +501,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
                   productSubForm.setValue("nombre", item.nombre ?? "");
                   productSubForm.setValue(
                     "tipo",
-                    (item.tipo as "consumible" | "equipo") ?? null,
+                    (item.tipo as "material" | "equipo") ?? null,
                   );
                 }
               }}
@@ -553,13 +588,19 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
                   : "Nueva serie"}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3 items-end">
+                <FormInput
+                  name="serie_id"
+                  label="ID Serie (reingreso)"
+                  control={serieSubForm.control}
+                  placeholder="ID de serie retirada"
+                  type="number"
+                />
                 <FormInput
                   name="serie"
                   label="Serie"
                   control={serieSubForm.control}
                   placeholder="N° serie"
-                  required
                 />
                 <FormInput
                   name="mac"
@@ -567,7 +608,6 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
                   control={serieSubForm.control}
                   placeholder="XX:XX:XX:XX:XX:XX"
                   maxLength={17}
-                  required
                 />
                 <FormInput
                   name="ua"
@@ -575,7 +615,6 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
                   control={serieSubForm.control}
                   placeholder="XX:XX:XX:XX:XX:XX"
                   maxLength={17}
-                  required
                 />
                 <FormInput
                   name="observaciones"

@@ -1,38 +1,58 @@
-Crea el módulo de Grupo de Menus y Opcion de Menu siguiendo la arquitectura definida en MEMORY.md.
+Crea el módulo de Series siguiendo la arquitectura definida en MEMORY.md.
 
 ## Módulo
 
-- Nombre singular: Menu
-- Nombre plural: Menu
+- Nombre singular: Serie
+- Nombre plural: Series
 - Ícono (Lucide): List
-- URL: /menu
-- Endpoint base: https://develop.garzasoft.com:85/almacen-witlink/public/api/grupo-menus y https://develop.garzasoft.com:85/almacen-witlink/public/api/opciones-menu
+- URL: /serie
+- Endpoint base: https://develop.garzasoft.com:85/almacen-witlink/public/api/series
 
 ## Resource (respuesta de la API)
 
 ```json
-[
-  {
-    "id": 0,
-    "nombre": "string",
-    "icono": "string",
-    "orden": "string",
-    "created_at": "2019-08-24T14:15:22Z",
-    "updated_at": "2019-08-24T14:15:22Z",
-    "deleted_at": "2019-08-24T14:15:22Z"
-  }
-]
+{
+  "id": 40,
+  "serie": "121",
+  "situacion": "DI",
+  "mac": "11111111111111111",
+  "ua": "11111111111111111",
+  "producto": {
+    "id": 25,
+    "categoria_id": 1,
+    "sap": "RTR-ONT-GPON",
+    "nombre": "Ont Gpon Huawei Hg8546m",
+    "tipo": "equipo",
+    "created_at": "2026-03-08T20:28:28.000000Z",
+    "updated_at": "2026-03-08T20:28:28.000000Z",
+    "deleted_at": null
+  },
+  "created_at": "2026-03-09T06:18:44.000000Z",
+  "updated_at": "2026-03-09T06:18:44.000000Z"
+}
 ```
 
 ```ts
 interface RootObject {
   id: number;
-  nombre: string;
-  icono: string;
-  orden: string;
+  serie: string;
+  situacion: string;
+  mac: string;
+  ua: string;
+  producto: Producto;
   created_at: string;
   updated_at: string;
-  deleted_at: string;
+}
+
+interface Producto {
+  id: number;
+  categoria_id: number;
+  sap: string;
+  nombre: string;
+  tipo: string;
+  created_at: string;
+  updated_at: string;
+  deleted_at: null;
 }
 ```
 
@@ -75,6 +95,7 @@ interface RootObject {
 ```
 
 ### Adicional
+
 La api que se usara para ver sus opciones
 https://develop.garzasoft.com:85/almacen-witlink/public/api/grupo-menus/{id}/opciones-menu
 

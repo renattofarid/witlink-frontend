@@ -8,15 +8,18 @@ import type {
   OpcionMenuWithGrupo,
   PermisoBody,
 } from "./tipo-usuario.interface";
+import type { AxiosRequestConfig } from "axios";
 
 export const getTiposUsuario = async (
-  params: Record<string, string>
+  params: Record<string, string>,
 ): Promise<TipoUsuarioResponse> => {
   const { data } = await api.get(TipoUsuarioComplete.ENDPOINT, { params });
   return data;
 };
 
-export const getTipoUsuario = async (id: number): Promise<TipoUsuarioResource> => {
+export const getTipoUsuario = async (
+  id: number,
+): Promise<TipoUsuarioResource> => {
   const { data } = await api.get(`${TipoUsuarioComplete.ENDPOINT}/${id}`);
   return data;
 };
@@ -37,17 +40,28 @@ export const deleteTipoUsuario = async (id: number) => {
 };
 
 export const restoreTipoUsuario = async (id: number) => {
-  const { data } = await api.post(`${TipoUsuarioComplete.ENDPOINT}/${id}/restaurar`);
+  const { data } = await api.post(
+    `${TipoUsuarioComplete.ENDPOINT}/${id}/restaurar`,
+  );
   return data;
 };
 
-export const getTipoUsuarioOpcionesMenu = async (id: number): Promise<OpcionMenuResource[]> => {
-  const { data } = await api.get(`${TipoUsuarioComplete.ENDPOINT}/${id}/opciones-menu`);
+export const getTipoUsuarioOpcionesMenu = async (
+  id: number,
+): Promise<OpcionMenuResource[]> => {
+  const { data } = await api.get(
+    `${TipoUsuarioComplete.ENDPOINT}/${id}/opciones-menu`,
+  );
   return data;
 };
 
 export const getAllOpcionesMenu = async (): Promise<OpcionMenuWithGrupo[]> => {
-  const { data } = await api.get("/opciones-menu");
+  const config: AxiosRequestConfig = {
+    params: {
+      all: "true",
+    },
+  };
+  const { data } = await api.get("/opciones-menu", config);
   return data;
 };
 

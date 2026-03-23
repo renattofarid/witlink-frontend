@@ -22,8 +22,8 @@ export default function MenuPage() {
   const queryClient = useQueryClient();
 
   const [params, setParams] = useState<Record<string, string>>({
-    pagina: "1",
-    por_pagina: String(DEFAULT_PER_PAGE),
+    page: "1",
+    per_page: String(DEFAULT_PER_PAGE),
   });
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -93,13 +93,13 @@ export default function MenuPage() {
   };
 
   const handlePageChange = (page: number) =>
-    setParams((prev) => ({ ...prev, pagina: String(page) }));
+    setParams((prev) => ({ ...prev, page: String(page) }));
 
   const handlePerPageChange = (perPage: number) =>
-    setParams((prev) => ({ ...prev, por_pagina: String(perPage), pagina: "1" }));
+    setParams((prev) => ({ ...prev, per_page: String(perPage), page: "1" }));
 
   const handleSearchChange = (value: string) =>
-    setParams((prev) => ({ ...prev, search: value, pagina: "1" }));
+    setParams((prev) => ({ ...prev, search: value, page: "1" }));
 
   const columns = getMenuColumns({
     onEdit: handleEdit,
@@ -133,8 +133,8 @@ export default function MenuPage() {
       <DataTablePagination
         page={Number(params.pagina)}
         per_page={Number(params.por_pagina)}
-        totalPages={data?.last_page ?? 1}
-        totalData={data?.total ?? 0}
+        totalPages={data?.meta.last_page ?? 1}
+        totalData={data?.meta.total ?? 0}
         onPageChange={handlePageChange}
         setPerPage={handlePerPageChange}
       />

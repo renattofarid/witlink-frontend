@@ -1,4 +1,4 @@
-import type { PaginatedResponse } from "@/lib/core.interface";
+import type { PaginationResponse } from "@/lib/core.interface";
 
 export interface OficinaResource {
   id: number;
@@ -10,7 +10,7 @@ export interface OficinaResource {
   deleted_at: string | null;
 }
 
-export type OficinaResponse = PaginatedResponse<OficinaResource>;
+export type OficinaResponse = PaginationResponse<OficinaResource>;
 
 export interface OficinaBody {
   nombre: string;

@@ -24,6 +24,7 @@ import { OficinaComplete } from "@/pages/oficina/lib/oficina.constants";
 import { ProductoComplete } from "@/pages/producto/lib/producto.constants";
 import { TecnicoComplete } from "@/pages/tecnico/lib/tecnico.constants";
 import { MenuComplete } from "@/pages/menu/lib/menu.constants";
+import { SerieComplete } from "@/pages/serie/lib/serie.constants";
 
 const allNavItems = [
   {
@@ -76,6 +77,11 @@ const allNavItems = [
     title: GuiaComplete.MODEL.plural ?? GuiaComplete.MODEL.name,
     url: GuiaComplete.ABSOLUTE_ROUTE,
     icon: GuiaComplete.ICON,
+  },
+  {
+    title: SerieComplete.MODEL.plural ?? SerieComplete.MODEL.name,
+    url: SerieComplete.ABSOLUTE_ROUTE,
+    icon: SerieComplete.ICON,
   },
   ...(import.meta.env.DEV
     ? [

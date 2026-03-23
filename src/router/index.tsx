@@ -27,6 +27,8 @@ import TecnicoPage from "../pages/tecnico/pages/TecnicoPage";
 import { TecnicoComplete } from "../pages/tecnico/lib/tecnico.constants";
 import MenuPage from "../pages/menu/pages/MenuPage";
 import { MenuComplete } from "../pages/menu/lib/menu.constants";
+import SeriePage from "../pages/serie/pages/SeriePage";
+import { SerieComplete } from "../pages/serie/lib/serie.constants";
 
 function ProtectedRoute({ children }: { children: JSX.Element }) {
   const { token, allowedRoutes } = useAuthStore();
@@ -170,6 +172,15 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <TecnicoPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path={SerieComplete.ROUTE}
+        element={
+          <ProtectedRoute>
+            <SeriePage />
           </ProtectedRoute>
         }
       />

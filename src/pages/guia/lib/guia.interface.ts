@@ -1,4 +1,4 @@
-import type { PaginatedResponse } from "@/lib/core.interface";
+import type { PaginationResponse } from "@/lib/core.interface";
 
 export interface GuiaSerieResource {
   id: number;
@@ -59,21 +59,22 @@ export interface GuiaResource {
   deleted_at?: string | null;
 }
 
-export type GuiaResponse = PaginatedResponse<GuiaResource>;
+export type GuiaResponse = PaginationResponse<GuiaResource>;
 
 export interface GuiaSerieBody {
-  serie: string;
-  mac: string;
-  ua: string;
-  observaciones: string | null;
+  serie_id?: number | null;
+  serie?: string | null;
+  mac?: string | null;
+  ua?: string | null;
+  observaciones?: string | null;
 }
 
 export interface GuiaProductoBody {
-  producto_id: number | null;
-  categoria_id: number | null;
-  sap: string | null;
-  nombre: string | null;
-  tipo: "consumible" | "equipo" | null;
+  producto_id?: number;
+  categoria_id?: number | null;
+  sap?: string | null;
+  nombre?: string | null;
+  tipo?: "material" | "equipo" | null;
   cantidad: number;
   observaciones: string | null;
   series: GuiaSerieBody[] | null;
@@ -83,6 +84,7 @@ export interface GuiaCreateBody {
   numero: string;
   fecha: string;
   proveedor_id: number;
+  archivo?: File | null;
   productos: GuiaProductoBody[];
 }
 

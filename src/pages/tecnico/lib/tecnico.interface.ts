@@ -1,4 +1,4 @@
-import type { PaginatedResponse } from "@/lib/core.interface";
+import type { PaginationResponse } from "@/lib/core.interface";
 
 export interface TecnicoPersonaResource {
   id: number;
@@ -33,7 +33,7 @@ export interface TecnicoResource {
   persona: TecnicoPersonaResource;
 }
 
-export type TecnicoResponse = PaginatedResponse<TecnicoResource>;
+export type TecnicoResponse = PaginationResponse<TecnicoResource>;
 
 export interface TecnicoCreateBody {
   cuadrilla_id: number;

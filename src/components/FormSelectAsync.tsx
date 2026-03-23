@@ -34,7 +34,7 @@ import RequiredField from "./RequiredField";
 interface FormSelectAsyncProps {
   name: string;
   description?: string;
-  label?: string | (() => React.ReactNode);
+  label?: string;
   placeholder?: string;
   control: Control<any>;
   disabled?: boolean;
@@ -247,28 +247,26 @@ export function FormSelectAsync({
             : null);
 
         return (
-          <Field className="flex flex-col justify-between">
-            {label && typeof label === "function"
-              ? label()
-              : label && (
-                  <FieldLabel className="flex justify-start items-center text-xs md:text-sm leading-none h-fit dark:text-muted-foreground">
-                    {label}
-                    {required && <RequiredField />}
-                    {tooltip && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Badge
-                            color="tertiary"
-                            className="ml-2 p-0 aspect-square w-4 h-4 text-center justify-center"
-                          >
-                            ?
-                          </Badge>
-                        </TooltipTrigger>
-                        <TooltipContent>{tooltip}</TooltipContent>
-                      </Tooltip>
-                    )}
-                  </FieldLabel>
+          <Field className="flex flex-col justify-between gap-1">
+            {label && (
+              <FieldLabel className="flex justify-start items-center text-xs md:text-sm leading-none h-fit dark:text-muted-foreground">
+                {label}
+                {required && <RequiredField />}
+                {tooltip && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Badge
+                        color="tertiary"
+                        className="ml-2 p-0 aspect-square w-4 h-4 text-center justify-center"
+                      >
+                        ?
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent>{tooltip}</TooltipContent>
+                  </Tooltip>
                 )}
+              </FieldLabel>
+            )}
 
             <div className="flex gap-2 items-center">
               <Popover open={open} onOpenChange={handleOpenChange}>

@@ -6,6 +6,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { FormInput } from "@/components/FormInput";
 import { MacInput } from "@/components/MacInput";
+import { FileUploadWithCamera } from "@/components/FileUploadWithCamera";
 import { FormSelect } from "@/components/FormSelect";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
@@ -36,9 +37,17 @@ import {
   PackagePlus,
   ChevronDown,
   ChevronUp,
-  Hash,
+  Search,
+  Plus,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 const TIPO_OPTIONS = [
   { value: "material", label: "Material" },
@@ -80,6 +89,9 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
   );
   const [showMoreFields, setShowMoreFields] = useState(false);
   const [archivo, setArchivo] = useState<File | null>(null);
+  const [serieDialogMode, setSerieDialogMode] = useState<
+    null | "select" | "create"
+  >(null);
 
   // ── Main form ──────────────────────────────────────────────────────────────
   const form = useForm<GuiaCreateFormValues>({
@@ -181,15 +193,18 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
       setEditingSerieIndex(null);
     }
     serieSubForm.reset(EMPTY_SERIE);
+    setSerieDialogMode(null);
   });
 
   const handleEditSerie = (index: number) => {
     const serie = productSubForm.getValues(`series.${index}`);
     setEditingSerieIndex(index);
     serieSubForm.reset(serie as SerieFormValues);
+    setSerieDialogMode("create");
   };
 
-  const handleCancelEditSerie = () => {
+  const handleCloseSerieDialog = () => {
+    setSerieDialogMode(null);
     setEditingSerieIndex(null);
     serieSubForm.reset(EMPTY_SERIE);
   };
@@ -410,7 +425,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
             className="size-7 text-destructive hover:text-destructive"
             onClick={() => {
               removeSerie(row.index);
-              if (editingSerieIndex === row.index) handleCancelEditSerie();
+              if (editingSerieIndex === row.index) handleCloseSerieDialog();
             }}
           >
             <Trash2 className="size-3" />
@@ -426,7 +441,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
       className="space-y-6"
     >
       {/* ── Encabezado ─────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <FormInput
           name="numero"
           label="Número"
@@ -453,14 +468,6 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
             description: item.ruc,
           })}
         />
-        <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium">Archivo</label>
-          <input
-            type="file"
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm file:border-0 file:bg-transparent file:text-sm file:font-medium cursor-pointer"
-            onChange={(e) => setArchivo(e.target.files?.[0] ?? null)}
-          />
-        </div>
       </div>
 
       {/* ── Sección productos ──────────────────────────────────────────────── */}
@@ -580,86 +587,33 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
             </div>
           )}
 
-          {/* ── Series sub-form ──────────────────────────────────────────── */}
+          {/* ── Series ───────────────────────────────────────────────────── */}
           <div className="space-y-3">
-            <div className="border rounded-lg p-3 bg-background space-y-3">
-              <div className="flex items-center gap-2 text-sm font-medium">
-                <Hash className="size-3.5 text-primary" />
-                {editingSerieIndex !== null
-                  ? `Editando serie #${editingSerieIndex + 1}`
-                  : "Nueva serie"}
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 items-end">
-                <FormSelectAsync
-                  name="serie_id"
-                  label="Serie (reingreso)"
-                  control={serieSubForm.control}
-                  placeholder="Buscar serie existente..."
-                  useQueryHook={useSeriesQuery}
-                  legacyPagination={false}
-                  mapOptionFn={(item) => ({
-                    value: String(item.id),
-                    label: item.serie,
-                    description: item.mac,
-                  })}
-                  onValueChange={(_, item) => {
-                    if (item) {
-                      serieSubForm.setValue("serie", item.serie);
-                      serieSubForm.setValue("mac", item.mac);
-                      serieSubForm.setValue("ua", item.ua);
-                    }
-                  }}
-                />
-                <FormInput
-                  name="serie"
-                  label="Serie"
-                  control={serieSubForm.control}
-                  placeholder="N° serie"
-                />
-                <FormInput
-                  name="ua"
-                  label="UA"
-                  control={serieSubForm.control}
-                  placeholder="XX:XX:XX:XX:XX:XX"
-                  maxLength={17}
-                />
-                <div className="lg:col-span-2">
-                  <MacInput
-                    name="mac"
-                    label="MAC"
-                    control={serieSubForm.control}
-                  />
-                </div>
-                <FormInput
-                  name="observaciones"
-                  label="Observaciones"
-                  control={serieSubForm.control}
-                  placeholder="—"
-                />
-                <div className="flex gap-2 lg:col-span-3 justify-end">
-                  {editingSerieIndex !== null && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={handleCancelEditSerie}
-                    >
-                      <X className="size-3 mr-1" />
-                      Cancelar
-                    </Button>
-                  )}
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="secondary"
-                    onClick={handleAddOrUpdateSerie}
-                  >
-                    <Check className="size-3 mr-1" />
-                    {editingSerieIndex !== null ? "Actualizar" : "Agregar"}
-                  </Button>
-                </div>
-              </div>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  serieSubForm.reset(EMPTY_SERIE);
+                  setSerieDialogMode("select");
+                }}
+              >
+                <Search className="size-3 mr-1" />
+                Seleccionar serie
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  serieSubForm.reset(EMPTY_SERIE);
+                  setSerieDialogMode("create");
+                }}
+              >
+                <Plus className="size-3 mr-1" />
+                Nueva serie
+              </Button>
             </div>
 
             {watchedSeries.length > 0 && (
@@ -677,6 +631,116 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
               </p>
             )}
           </div>
+
+          {/* ── Dialog: seleccionar serie existente ───────────────────────── */}
+          <Dialog
+            open={serieDialogMode === "select"}
+            onOpenChange={(open) => !open && handleCloseSerieDialog()}
+          >
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Seleccionar serie existente</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-3">
+                <FormSelectAsync
+                  name="serie_id"
+                  label="Serie"
+                  control={serieSubForm.control}
+                  placeholder="Buscar serie..."
+                  useQueryHook={useSeriesQuery}
+                  legacyPagination={false}
+                  mapOptionFn={(item) => ({
+                    value: String(item.id),
+                    label: item.serie,
+                    description: item.mac,
+                  })}
+                  onValueChange={(_, item) => {
+                    if (item) {
+                      serieSubForm.setValue("serie", item.serie);
+                      serieSubForm.setValue("mac", item.mac);
+                      serieSubForm.setValue("ua", item.ua);
+                    }
+                  }}
+                />
+                <FormInput
+                  name="observaciones"
+                  label="Observaciones"
+                  control={serieSubForm.control}
+                  placeholder="—"
+                />
+              </div>
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleCloseSerieDialog}
+                >
+                  <X className="size-3 mr-1" />
+                  Cancelar
+                </Button>
+                <Button type="button" onClick={handleAddOrUpdateSerie}>
+                  <Check className="size-3 mr-1" />
+                  Agregar
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* ── Dialog: crear nueva serie ─────────────────────────────────── */}
+          <Dialog
+            open={serieDialogMode === "create"}
+            onOpenChange={(open) => !open && handleCloseSerieDialog()}
+          >
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>
+                  {editingSerieIndex !== null
+                    ? `Editando serie #${editingSerieIndex + 1}`
+                    : "Nueva serie"}
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-3">
+                <FormInput
+                  name="serie"
+                  label="Serie"
+                  control={serieSubForm.control}
+                  placeholder="N° serie"
+                />
+                <MacInput
+                  name="mac"
+                  label="MAC"
+                  control={serieSubForm.control}
+                />
+                <FormInput
+                  name="ua"
+                  label="UA"
+                  control={serieSubForm.control}
+                  placeholder="XX:XX:XX:XX:XX:XX"
+                  maxLength={17}
+                />
+                <FormInput
+                  name="observaciones"
+                  label="Observaciones"
+                  control={serieSubForm.control}
+                  placeholder="—"
+                />
+              </div>
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleCloseSerieDialog}
+                >
+                  <X className="size-3 mr-1" />
+                  Cancelar
+                </Button>
+                <Button type="button" onClick={handleAddOrUpdateSerie}>
+                  <Check className="size-3 mr-1" />
+                  {editingSerieIndex !== null ? "Actualizar" : "Agregar"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
           {/* Acciones del mini-form de producto */}
           <div className="flex gap-2 justify-end">
@@ -718,6 +782,20 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
             </p>
           )}
       </div>
+
+      <pre>
+        <code>
+          {/* Debug values */}
+          {JSON.stringify(serieSubForm.watch(), null, 2)}
+          {JSON.stringify(form.watch(), null, 2)}
+        </code>
+      </pre>
+
+      <FileUploadWithCamera
+        label="Archivo"
+        value={archivo}
+        onChange={(file) => setArchivo(file)}
+      />
 
       {/* ── Submit ─────────────────────────────────────────────────────────── */}
       <div className="flex justify-end">

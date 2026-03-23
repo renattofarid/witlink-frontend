@@ -1,23 +1,30 @@
 import { z } from "zod";
 
-export const serieSchema = z.object({
-  serie_id: z.union([z.string(), z.number()]).optional().nullable(),
-  serie: z.string().optional().nullable(),
-  mac: z
-    .string()
-    .optional()
-    .nullable()
-    .refine(
-      (v) => !v || /^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$/.test(v),
-      "Formato inválido (ej. 00:1A:2B:3C:4D:5E)",
-    ),
-  ua: z
-    .string()
-    .optional()
-    .nullable()
-    .refine((v) => !v || v.length === 17, "Debe tener 17 caracteres"),
-  observaciones: z.string().optional().nullable(),
-});
+export const serieSchema = z
+  .object({
+    serie_id: z.union([z.string(), z.number()]).optional().nullable(),
+    serie: z.string().optional().nullable(),
+    mac: z.string().optional().nullable(),
+    ua: z.string().optional().nullable(),
+    observaciones: z.string().optional().nullable(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.serie_id) return; // reingreso: skip format validation
+    if (data.mac && !/^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$/.test(data.mac)) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Formato inválido (ej. 00:1A:2B:3C:4D:5E)",
+        path: ["mac"],
+      });
+    }
+    if (data.ua && data.ua.length !== 17) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Debe tener 17 caracteres",
+        path: ["ua"],
+      });
+    }
+  });
 
 export const productoSchema = z
   .object({

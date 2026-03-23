@@ -80,7 +80,7 @@ export function DatePickerFormField<T extends FieldValues>({
   }, [field.value]);
 
   const [visibleMonth, setVisibleMonth] = useState<Date | undefined>(
-    parsedDate
+    parsedDate,
   );
 
   useEffect(() => {
@@ -106,8 +106,12 @@ export function DatePickerFormField<T extends FieldValues>({
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   return (
-    <Field className="flex flex-col">
-      {label && <FieldLabel>{label}</FieldLabel>}
+    <Field className="flex flex-col gap-1">
+      {label && (
+        <FieldLabel className="flex justify-start items-center text-xs md:text-sm leading-none h-fit dark:text-muted-foreground">
+          {label}
+        </FieldLabel>
+      )}
 
       {isMobile ? (
         <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
@@ -145,7 +149,7 @@ export function DatePickerFormField<T extends FieldValues>({
               variant="outline"
               className={cn(
                 "w-full justify-start text-left font-normal truncate",
-                !parsedDate && "text-muted-foreground"
+                !parsedDate && "text-muted-foreground",
               )}
               disabled={disabled}
             >

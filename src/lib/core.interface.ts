@@ -35,13 +35,6 @@ export interface ModelComplete<T = undefined> {
   EMPTY?: T;
 }
 
-export interface PaginationLink {
-  url: string | null;
-  label: string;
-  page: number | null;
-  active: boolean;
-}
-
 export interface PaginationResponse<T> {
   data: T[];
   links: Links;

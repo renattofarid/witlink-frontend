@@ -31,15 +31,7 @@ import {
 } from "../lib/guia.hook";
 import { GuiaComplete } from "../lib/guia.constants";
 import type { GuiaCreateBody, GuiaResource } from "../lib/guia.interface";
-import {
-  Trash2,
-  Pencil,
-  X,
-  Check,
-  PackagePlus,
-  ChevronDown,
-  ChevronUp,
-} from "lucide-react";
+import { Trash2, Pencil, X, Check, PackagePlus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
@@ -89,7 +81,10 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
   const [editingSerieIndex, setEditingSerieIndex] = useState<number | null>(
     null,
   );
-  const [showManualFields, setShowManualFields] = useState(false);
+  const [productoDialogOpen, setProductoDialogOpen] = useState(false);
+  const [productoDialogTab, setProductoDialogTab] = useState<
+    "catalogo" | "manual"
+  >("catalogo");
   const [archivo, setArchivo] = useState<File | null>(null);
   const [serieDialogOpen, setSerieDialogOpen] = useState(false);
   const [serieDialogTab, setSerieDialogTab] = useState<"select" | "create">(
@@ -149,7 +144,6 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
   } = useFieldArray({ control: productSubForm.control, name: "series" });
 
   const watchedSeries = productSubForm.watch("series") ?? [];
-  const watchedProductoId = productSubForm.watch("producto_id");
 
   const handleAddOrUpdateProducto = productSubForm.handleSubmit((values) => {
     if (editingProductoIndex === null) {
@@ -161,8 +155,16 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
     productSubForm.reset(EMPTY_PRODUCTO);
     serieSubForm.reset(EMPTY_SERIE);
     setEditingSerieIndex(null);
-    setShowManualFields(false);
+    setProductoDialogOpen(false);
   });
+
+  const handleOpenProductoDialog = () => {
+    productSubForm.reset(EMPTY_PRODUCTO);
+    serieSubForm.reset(EMPTY_SERIE);
+    setEditingProductoIndex(null);
+    setProductoDialogTab("catalogo");
+    setProductoDialogOpen(true);
+  };
 
   const handleEditProducto = (index: number) => {
     const producto = form.getValues(`productos.${index}`);
@@ -170,15 +172,16 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
     productSubForm.reset(producto);
     serieSubForm.reset(EMPTY_SERIE);
     setEditingSerieIndex(null);
-    setShowManualFields(true);
+    setProductoDialogTab(producto.producto_id ? "catalogo" : "manual");
+    setProductoDialogOpen(true);
   };
 
-  const handleCancelEdit = () => {
+  const handleCloseProductoDialog = () => {
+    setProductoDialogOpen(false);
     setEditingProductoIndex(null);
     productSubForm.reset(EMPTY_PRODUCTO);
     serieSubForm.reset(EMPTY_SERIE);
     setEditingSerieIndex(null);
-    setShowManualFields(false);
   };
 
   // ── Serie sub-form ─────────────────────────────────────────────────────────
@@ -355,7 +358,8 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
             className="size-7 text-destructive hover:text-destructive"
             onClick={() => {
               removeProducto(row.index);
-              if (editingProductoIndex === row.index) handleCancelEdit();
+              if (editingProductoIndex === row.index)
+                handleCloseProductoDialog();
             }}
           >
             <Trash2 className="size-3" />
@@ -497,172 +501,190 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
           <Separator className="mt-2" />
         </div>
 
-        {/* Panel agregar / editar producto */}
-        <div className="border rounded-lg p-4 bg-muted/30 space-y-4">
-          <p className="flex items-center gap-2 text-sm font-medium">
-            <PackagePlus className="size-4 text-primary" />
-            {editingProductoIndex !== null
-              ? `Editando producto #${editingProductoIndex + 1}`
-              : "Agregar producto"}
-          </p>
+        {/* Botón agregar producto */}
+        <div className="flex justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleOpenProductoDialog}
+          >
+            <PackagePlus className="size-3 mr-1" />
+            Agregar producto
+          </Button>
+        </div>
 
-          {/* Campos principales */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-            <FormSelectAsync
-              name="producto_id"
-              label="Producto del catálogo"
-              control={productSubForm.control}
-              placeholder="Buscar por nombre o SAP..."
-              useQueryHook={useProductoQuery}
-              additionalParams={{ tipo: "equipo" }}
-              className="md:col-span-2"
-              mapOptionFn={(item) => ({
-                value: String(item.id),
-                label: item.nombre,
-                description: item.sap,
-              })}
-              onValueChange={(_, item: ProductoResource) => {
-                if (item) {
-                  // Limpiar campos manuales — el backend los ignora cuando hay producto_id
+        {/* Dialog: agregar / editar producto */}
+        <Dialog
+          open={productoDialogOpen}
+          onOpenChange={(open) => !open && handleCloseProductoDialog()}
+        >
+          <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>
+                {editingProductoIndex !== null
+                  ? `Editando producto #${editingProductoIndex + 1}`
+                  : "Agregar producto"}
+              </DialogTitle>
+            </DialogHeader>
+
+            <Tabs
+              value={productoDialogTab}
+              onValueChange={(v) => {
+                const tab = v as "catalogo" | "manual";
+                setProductoDialogTab(tab);
+                if (tab === "catalogo") {
                   productSubForm.setValue("categoria_id", null);
                   productSubForm.setValue("sap", null);
                   productSubForm.setValue("nombre", null);
-                  // Guardar tipo silenciosamente para validar series (equipo requiere series)
-                  productSubForm.setValue("tipo", (item.tipo as "material" | "equipo") ?? null);
+                  productSubForm.setValue("tipo", null);
+                } else {
+                  productSubForm.setValue("producto_id", null);
+                  productSubForm.setValue("tipo", null);
                 }
               }}
-            />
-            <FormInput
-              name="cantidad"
-              label="Cantidad"
-              control={productSubForm.control}
-              type="number"
-              placeholder="1"
-              required
-            />
-            <FormInput
-              name="observaciones"
-              label="Observaciones"
-              control={productSubForm.control}
-              placeholder="Notas internas..."
-            />
-          </div>
-
-          {/* Campos manuales (solo si no hay producto del catálogo) */}
-          {!watchedProductoId && (
-          <div>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="text-xs text-muted-foreground -ml-1"
-              onClick={() => setShowManualFields((prev) => !prev)}
             >
-              {showManualFields ? (
-                <>
-                  <ChevronUp className="size-3 mr-1" />
-                  Ocultar datos manuales
-                </>
-              ) : (
-                <>
-                  <ChevronDown className="size-3 mr-1" />
-                  ¿No está en el catálogo? Completar manualmente
-                </>
-              )}
-            </Button>
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="catalogo">Del catálogo</TabsTrigger>
+                <TabsTrigger value="manual">Ingreso manual</TabsTrigger>
+              </TabsList>
 
-            {showManualFields && (
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mt-3">
+              <TabsContent value="catalogo" className="space-y-3 pt-2">
                 <FormSelectAsync
-                  name="categoria_id"
-                  label="Categoría"
+                  name="producto_id"
+                  label="Producto"
                   control={productSubForm.control}
-                  placeholder="Seleccione una categoría"
-                  useQueryHook={useCategoriasQuery}
-                  useQueryByIdHook={useCategoriasQueryById}
-                  disabled={!!watchedProductoId}
+                  placeholder="Buscar por nombre o SAP..."
+                  useQueryHook={useProductoQuery}
+                  additionalParams={{ tipo: "equipo" }}
                   mapOptionFn={(item) => ({
                     value: String(item.id),
                     label: item.nombre,
+                    description: item.sap,
                   })}
+                  onValueChange={(_, item: ProductoResource) => {
+                    if (item) {
+                      productSubForm.setValue("categoria_id", null);
+                      productSubForm.setValue("sap", null);
+                      productSubForm.setValue("nombre", null);
+                      // Guardar tipo para validar series (equipo requiere series)
+                      productSubForm.setValue(
+                        "tipo",
+                        (item.tipo as "material" | "equipo") ?? null,
+                      );
+                    }
+                  }}
                 />
-                <FormInput
-                  name="sap"
-                  label="Código SAP"
-                  control={productSubForm.control}
-                  placeholder="Ej. 100001"
-                />
-                <FormInput
-                  name="nombre"
-                  label="Nombre del producto"
-                  control={productSubForm.control}
-                  placeholder="Descripción del producto"
-                />
-                <FormSelect
-                  name="tipo"
-                  label="Tipo"
-                  control={productSubForm.control}
-                  placeholder="Seleccione un tipo"
-                  options={TIPO_OPTIONS}
-                />
-              </div>
-            )}
-          </div>
-          )}
+              </TabsContent>
 
-          {/* Series */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                Series
-              </p>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => handleOpenSerieDialog("select")}
-              >
-                + Agregar serie
-              </Button>
+              <TabsContent value="manual" className="space-y-3 pt-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <FormSelectAsync
+                    name="categoria_id"
+                    label="Categoría"
+                    control={productSubForm.control}
+                    placeholder="Seleccione una categoría"
+                    useQueryHook={useCategoriasQuery}
+                    useQueryByIdHook={useCategoriasQueryById}
+                    mapOptionFn={(item) => ({
+                      value: String(item.id),
+                      label: item.nombre,
+                    })}
+                  />
+                  <FormSelect
+                    name="tipo"
+                    label="Tipo"
+                    control={productSubForm.control}
+                    placeholder="Seleccione un tipo"
+                    options={TIPO_OPTIONS}
+                  />
+                  <FormInput
+                    name="sap"
+                    label="Código SAP"
+                    control={productSubForm.control}
+                    placeholder="Ej. 100001"
+                    uppercase
+                  />
+                  <FormInput
+                    name="nombre"
+                    label="Nombre del producto"
+                    control={productSubForm.control}
+                    placeholder="Descripción del producto"
+                    uppercase
+                  />
+                </div>
+              </TabsContent>
+            </Tabs>
+
+            {/* Campos compartidos */}
+            <div className="grid grid-cols-2 gap-3">
+              <FormInput
+                name="cantidad"
+                label="Cantidad"
+                control={productSubForm.control}
+                type="number"
+                placeholder="1"
+                required
+              />
+              <FormInput
+                name="observaciones"
+                label="Observaciones"
+                control={productSubForm.control}
+                placeholder="Notas internas..."
+                uppercase
+              />
             </div>
 
-            {watchedSeries.length > 0 && (
-              <DataTable
-                columns={serieColumns}
-                data={watchedSeries as SerieFormValues[]}
-                variant="outline"
-                isVisibleColumnFilter={false}
-              />
-            )}
+            {/* Series */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Series
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleOpenSerieDialog("select")}
+                >
+                  + Agregar serie
+                </Button>
+              </div>
 
-            {productSubForm.formState.errors.series?.message && (
-              <p className="text-sm text-destructive">
-                {productSubForm.formState.errors.series.message}
-              </p>
-            )}
-          </div>
+              {watchedSeries.length > 0 && (
+                <DataTable
+                  columns={serieColumns}
+                  data={watchedSeries as SerieFormValues[]}
+                  variant="outline"
+                  isVisibleColumnFilter={false}
+                />
+              )}
 
-          {/* Acciones del panel */}
-          <div className="flex gap-2 justify-end pt-1">
-            {editingProductoIndex !== null && (
+              {productSubForm.formState.errors.series?.message && (
+                <p className="text-sm text-destructive">
+                  {productSubForm.formState.errors.series.message}
+                </p>
+              )}
+            </div>
+
+            <DialogFooter>
               <Button
                 type="button"
                 variant="outline"
-                size="sm"
-                onClick={handleCancelEdit}
+                onClick={handleCloseProductoDialog}
               >
                 <X className="size-3 mr-1" />
                 Cancelar
               </Button>
-            )}
-            <Button type="button" size="sm" onClick={handleAddOrUpdateProducto}>
-              <Check className="size-3 mr-1" />
-              {editingProductoIndex !== null
-                ? "Actualizar producto"
-                : "Agregar producto"}
-            </Button>
-          </div>
-        </div>
+              <Button type="button" onClick={handleAddOrUpdateProducto}>
+                <Check className="size-3 mr-1" />
+                {editingProductoIndex !== null
+                  ? "Actualizar producto"
+                  : "Agregar producto"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Tabla de productos agregados */}
         {watchedProductos.length > 0 && (
@@ -726,7 +748,9 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
 
             <TabsContent value="select" className="space-y-3 pt-2">
               <p className="text-xs text-muted-foreground">
-                Solo se muestran series en situación <span className="font-medium">Retirado</span> — son las únicas que pueden reingresarse mediante una guía.
+                Solo se muestran series en situación{" "}
+                <span className="font-medium">Retirado</span> — son las únicas
+                que pueden reingresarse mediante una guía.
               </p>
               <FormSelectAsync
                 name="serie_id"

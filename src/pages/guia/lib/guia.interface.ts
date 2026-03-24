@@ -40,22 +40,34 @@ export interface GuiaProveedorResource {
   deleted_at: string;
 }
 
+export interface GuiaPersonaResource {
+  id: number;
+  nombre: string;
+  apellido_paterno: string;
+  apellido_materno: string;
+  dni: string;
+  direccion: string;
+  telefono: string;
+  correo: string;
+}
+
+export interface GuiaUsuarioResource {
+  id: number;
+  oficina_id: number;
+  nombre_usuario: string;
+  persona: GuiaPersonaResource;
+}
+
 export interface GuiaResource {
   id: number;
   numero: string;
   fecha: string;
+  ruta_pdf_guia: string | null;
   proveedor: GuiaProveedorResource;
-  usuario: {
-    id: number;
-    persona_id: number;
-    tipo_usuario_id: number;
-    oficina_id: number;
-    nombre_usuario: string;
-    created_at: string;
-    updated_at: string;
-    deleted_at: string;
-  };
-  productos: GuiaProductoResource[];
+  usuario: GuiaUsuarioResource;
+  productos?: GuiaProductoResource[];
+  created_at: string;
+  updated_at: string;
   deleted_at?: string | null;
 }
 

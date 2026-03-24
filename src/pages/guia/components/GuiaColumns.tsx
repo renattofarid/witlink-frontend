@@ -2,7 +2,6 @@ import { ButtonAction } from "@/components/ButtonAction";
 import { Pencil, Trash2, RotateCcw } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { GuiaResource } from "../lib/guia.interface";
-import { DeleteButton } from "@/components/SimpleDeleteDialog";
 
 interface ColumnActions {
   onEdit: (row: GuiaResource) => void;
@@ -15,10 +14,6 @@ export const getGuiaColumns = ({
   onDelete,
   onRestore,
 }: ColumnActions): ColumnDef<GuiaResource>[] => [
-  {
-    accessorKey: "id",
-    header: "ID",
-  },
   {
     accessorKey: "numero",
     header: "Número",
@@ -33,9 +28,15 @@ export const getGuiaColumns = ({
     cell: ({ row }) => row.original.proveedor?.razon_social ?? "-",
   },
   {
-    id: "productos_count",
-    header: "Productos",
-    cell: ({ row }) => row.original.productos?.length ?? 0,
+    id: "usuario",
+    header: "Usuario",
+    cell: ({ row }) => {
+      const { persona, nombre_usuario } = row.original.usuario;
+      if (persona) {
+        return `${persona.nombre} ${persona.apellido_paterno}`;
+      }
+      return nombre_usuario;
+    },
   },
   {
     id: "acciones",
@@ -55,7 +56,7 @@ export const getGuiaColumns = ({
             canRender={!isDeleted}
             onClick={() => onDelete(item)}
           />
-          <DeleteButton
+          <ButtonAction
             icon={RotateCcw}
             canRender={isDeleted}
             onClick={() => onRestore(item)}

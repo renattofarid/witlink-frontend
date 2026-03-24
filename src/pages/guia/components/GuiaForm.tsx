@@ -5,11 +5,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FormInput } from "@/components/FormInput";
-import { MacInput } from "@/components/MacInput";
 import { FileUploadWithCamera } from "@/components/FileUploadWithCamera";
-import { FormSelect } from "@/components/FormSelect";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import { DataTable } from "@/components/DataTable";
@@ -23,30 +20,14 @@ import {
   type SerieFormValues,
 } from "../lib/guia.schema";
 import { createGuia, updateGuia } from "../lib/guia.actions";
-import {
-  useProveedoresQuery,
-  useCategoriasQuery,
-  useCategoriasQueryById,
-  useSeriesQuery,
-} from "../lib/guia.hook";
+import { useProveedoresQuery } from "../lib/guia.hook";
 import { GuiaComplete } from "../lib/guia.constants";
 import type { GuiaCreateBody, GuiaResource } from "../lib/guia.interface";
-import { Trash2, Pencil, X, Check, PackagePlus } from "lucide-react";
+import { Trash2, Pencil, PackagePlus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { useProductoQuery } from "@/pages/producto/lib/producto.hook";
-import type { ProductoResource } from "@/pages/producto/lib/producto.interface";
+import { GuiaProductoDialog } from "./GuiaProductoDialog";
+import { GuiaSerieDialog } from "./GuiaSerieDialog";
 
-const TIPO_OPTIONS = [
-  { value: "material", label: "Material" },
-  { value: "equipo", label: "Equipo" },
-];
 
 const EMPTY_SERIE: SerieFormValues = {
   serie_id: null,
@@ -219,7 +200,8 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
   const handleOpenSerieDialog = (tab: "select" | "create") => {
     serieSubForm.reset(EMPTY_SERIE);
     setEditingSerieIndex(null);
-    setSerieDialogTab(tab);
+    // Producto manual → sus series no existen aún, solo se puede crear nueva
+    setSerieDialogTab(productoDialogTab === "manual" ? "create" : tab);
     setSerieDialogOpen(true);
   };
 
@@ -515,176 +497,18 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
         </div>
 
         {/* Dialog: agregar / editar producto */}
-        <Dialog
+        <GuiaProductoDialog
           open={productoDialogOpen}
-          onOpenChange={(open) => !open && handleCloseProductoDialog()}
-        >
-          <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>
-                {editingProductoIndex !== null
-                  ? `Editando producto #${editingProductoIndex + 1}`
-                  : "Agregar producto"}
-              </DialogTitle>
-            </DialogHeader>
-
-            <Tabs
-              value={productoDialogTab}
-              onValueChange={(v) => {
-                const tab = v as "catalogo" | "manual";
-                setProductoDialogTab(tab);
-                if (tab === "catalogo") {
-                  productSubForm.setValue("categoria_id", null);
-                  productSubForm.setValue("sap", null);
-                  productSubForm.setValue("nombre", null);
-                  productSubForm.setValue("tipo", null);
-                } else {
-                  productSubForm.setValue("producto_id", null);
-                  productSubForm.setValue("tipo", null);
-                }
-              }}
-            >
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="catalogo">Del catálogo</TabsTrigger>
-                <TabsTrigger value="manual">Ingreso manual</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="catalogo" className="space-y-3 pt-2">
-                <FormSelectAsync
-                  name="producto_id"
-                  label="Producto"
-                  control={productSubForm.control}
-                  placeholder="Buscar por nombre o SAP..."
-                  useQueryHook={useProductoQuery}
-                  additionalParams={{ tipo: "equipo" }}
-                  mapOptionFn={(item) => ({
-                    value: String(item.id),
-                    label: item.nombre,
-                    description: item.sap,
-                  })}
-                  onValueChange={(_, item: ProductoResource) => {
-                    if (item) {
-                      productSubForm.setValue("categoria_id", null);
-                      productSubForm.setValue("sap", null);
-                      productSubForm.setValue("nombre", null);
-                      // Guardar tipo para validar series (equipo requiere series)
-                      productSubForm.setValue(
-                        "tipo",
-                        (item.tipo as "material" | "equipo") ?? null,
-                      );
-                    }
-                  }}
-                />
-              </TabsContent>
-
-              <TabsContent value="manual" className="space-y-3 pt-2">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <FormSelectAsync
-                    name="categoria_id"
-                    label="Categoría"
-                    control={productSubForm.control}
-                    placeholder="Seleccione una categoría"
-                    useQueryHook={useCategoriasQuery}
-                    useQueryByIdHook={useCategoriasQueryById}
-                    mapOptionFn={(item) => ({
-                      value: String(item.id),
-                      label: item.nombre,
-                    })}
-                  />
-                  <FormSelect
-                    name="tipo"
-                    label="Tipo"
-                    control={productSubForm.control}
-                    placeholder="Seleccione un tipo"
-                    options={TIPO_OPTIONS}
-                  />
-                  <FormInput
-                    name="sap"
-                    label="Código SAP"
-                    control={productSubForm.control}
-                    placeholder="Ej. 100001"
-                    uppercase
-                  />
-                  <FormInput
-                    name="nombre"
-                    label="Nombre del producto"
-                    control={productSubForm.control}
-                    placeholder="Descripción del producto"
-                    uppercase
-                  />
-                </div>
-              </TabsContent>
-            </Tabs>
-
-            {/* Campos compartidos */}
-            <div className="grid grid-cols-2 gap-3">
-              <FormInput
-                name="cantidad"
-                label="Cantidad"
-                control={productSubForm.control}
-                type="number"
-                placeholder="1"
-                required
-              />
-              <FormInput
-                name="observaciones"
-                label="Observaciones"
-                control={productSubForm.control}
-                placeholder="Notas internas..."
-                uppercase
-              />
-            </div>
-
-            {/* Series */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  Series
-                </p>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleOpenSerieDialog("select")}
-                >
-                  + Agregar serie
-                </Button>
-              </div>
-
-              {watchedSeries.length > 0 && (
-                <DataTable
-                  columns={serieColumns}
-                  data={watchedSeries as SerieFormValues[]}
-                  variant="outline"
-                  isVisibleColumnFilter={false}
-                />
-              )}
-
-              {productSubForm.formState.errors.series?.message && (
-                <p className="text-sm text-destructive">
-                  {productSubForm.formState.errors.series.message}
-                </p>
-              )}
-            </div>
-
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCloseProductoDialog}
-              >
-                <X className="size-3 mr-1" />
-                Cancelar
-              </Button>
-              <Button type="button" onClick={handleAddOrUpdateProducto}>
-                <Check className="size-3 mr-1" />
-                {editingProductoIndex !== null
-                  ? "Actualizar producto"
-                  : "Agregar producto"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+          editingIndex={editingProductoIndex}
+          tab={productoDialogTab}
+          productSubForm={productSubForm}
+          watchedSeries={watchedSeries}
+          serieColumns={serieColumns}
+          onClose={handleCloseProductoDialog}
+          onSubmit={handleAddOrUpdateProducto}
+          onTabChange={setProductoDialogTab}
+          onOpenSerieDialog={handleOpenSerieDialog}
+        />
 
         {/* Tabla de productos agregados */}
         {watchedProductos.length > 0 && (
@@ -705,122 +529,16 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
       </div>
 
       {/* ── Dialog: agregar / editar serie ─────────────────────────────────── */}
-      <Dialog
+      <GuiaSerieDialog
         open={serieDialogOpen}
-        onOpenChange={(open) => !open && handleCloseSerieDialog()}
-      >
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>
-              {editingSerieIndex !== null
-                ? `Editando serie #${editingSerieIndex + 1}`
-                : "Agregar serie"}
-            </DialogTitle>
-          </DialogHeader>
-
-          <Tabs
-            value={serieDialogTab}
-            onValueChange={(v) => {
-              serieSubForm.reset(EMPTY_SERIE);
-              setSerieDialogTab(v as "select" | "create");
-            }}
-          >
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger
-                value="select"
-                disabled={
-                  editingSerieIndex !== null &&
-                  !serieSubForm.getValues("serie_id")
-                }
-              >
-                Buscar existente
-              </TabsTrigger>
-              <TabsTrigger
-                value="create"
-                disabled={
-                  editingSerieIndex !== null &&
-                  !!serieSubForm.getValues("serie_id")
-                }
-              >
-                {editingSerieIndex !== null ? "Editar" : "Nueva serie"}
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="select" className="space-y-3 pt-2">
-              <p className="text-xs text-muted-foreground">
-                Solo se muestran series en situación{" "}
-                <span className="font-medium">Retirado</span> — son las únicas
-                que pueden reingresarse mediante una guía.
-              </p>
-              <FormSelectAsync
-                name="serie_id"
-                label="Buscar serie"
-                control={serieSubForm.control}
-                placeholder="Ingrese número de serie o MAC..."
-                useQueryHook={useSeriesQuery}
-                additionalParams={{ situacion: "RE" }} // Solo series retiradas pueden reingresarse mediante guía
-                legacyPagination={false}
-                mapOptionFn={(item) => ({
-                  value: String(item.id),
-                  label: item.serie,
-                  description: item.mac,
-                })}
-                onValueChange={(_, item) => {
-                  if (item) {
-                    serieSubForm.setValue("serie", item.serie);
-                    serieSubForm.setValue("mac", item.mac);
-                    serieSubForm.setValue("ua", item.ua);
-                  }
-                }}
-              />
-              <FormInput
-                name="observaciones"
-                label="Observaciones"
-                control={serieSubForm.control}
-                placeholder="Notas sobre esta serie..."
-              />
-            </TabsContent>
-
-            <TabsContent value="create" className="space-y-3 pt-2">
-              <FormInput
-                name="serie"
-                label="Número de serie"
-                control={serieSubForm.control}
-                placeholder="Ej. SN123456"
-              />
-              <MacInput name="mac" label="MAC" control={serieSubForm.control} />
-              <FormInput
-                name="ua"
-                label="UA"
-                control={serieSubForm.control}
-                placeholder="XX:XX:XX:XX:XX:XX"
-                maxLength={17}
-              />
-              <FormInput
-                name="observaciones"
-                label="Observaciones"
-                control={serieSubForm.control}
-                placeholder="Notas sobre esta serie..."
-              />
-            </TabsContent>
-          </Tabs>
-
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleCloseSerieDialog}
-            >
-              <X className="size-3 mr-1" />
-              Cancelar
-            </Button>
-            <Button type="button" onClick={handleAddOrUpdateSerie}>
-              <Check className="size-3 mr-1" />
-              {editingSerieIndex !== null ? "Actualizar" : "Agregar"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        editingIndex={editingSerieIndex}
+        tab={serieDialogTab}
+        productoTab={productoDialogTab}
+        serieSubForm={serieSubForm}
+        onClose={handleCloseSerieDialog}
+        onSubmit={handleAddOrUpdateSerie}
+        onTabChange={setSerieDialogTab}
+      />
 
       {/* ── Submit ─────────────────────────────────────────────────────────── */}
       <div className="flex justify-end">

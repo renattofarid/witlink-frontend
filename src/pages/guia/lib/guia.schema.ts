@@ -38,6 +38,15 @@ export const productoSchema = z
     series: z.array(serieSchema).optional().nullable(),
   })
   .superRefine((p, ctx) => {
+    // Producto manual: requiere al menos nombre o SAP
+    if (!p.producto_id && !p.nombre && !p.sap) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Ingrese el nombre o código SAP del producto.",
+        path: ["nombre"],
+      });
+    }
+    // Equipo: series obligatorias y deben coincidir con la cantidad
     if (p.tipo !== "equipo") return;
     if ((p.series?.length ?? 0) !== p.cantidad) {
       ctx.addIssue({

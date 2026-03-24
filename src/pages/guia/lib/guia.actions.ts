@@ -95,3 +95,8 @@ export const getCategorias = async (params: Record<string, any>) => {
   const { data } = await api.get("/categorias", { params });
   return data;
 };
+
+export const getCategoriaById = async (id: number) => {
+  const { data } = await api.get(`/categorias/${id}`);
+  return data;
+};

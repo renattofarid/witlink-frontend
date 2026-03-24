@@ -25,8 +25,8 @@ import {
 import { createGuia, updateGuia } from "../lib/guia.actions";
 import {
   useProveedoresQuery,
-  useProductosQuery,
   useCategoriasQuery,
+  useCategoriasQueryById,
   useSeriesQuery,
 } from "../lib/guia.hook";
 import { GuiaComplete } from "../lib/guia.constants";
@@ -48,6 +48,8 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { useProductoQuery } from "@/pages/producto/lib/producto.hook";
+import type { ProductoResource } from "@/pages/producto/lib/producto.interface";
 
 const TIPO_OPTIONS = [
   { value: "material", label: "Material" },
@@ -81,12 +83,18 @@ interface GuiaFormProps {
 
 export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
   const queryClient = useQueryClient();
-  const [editingProductoIndex, setEditingProductoIndex] = useState<number | null>(null);
-  const [editingSerieIndex, setEditingSerieIndex] = useState<number | null>(null);
+  const [editingProductoIndex, setEditingProductoIndex] = useState<
+    number | null
+  >(null);
+  const [editingSerieIndex, setEditingSerieIndex] = useState<number | null>(
+    null,
+  );
   const [showManualFields, setShowManualFields] = useState(false);
   const [archivo, setArchivo] = useState<File | null>(null);
   const [serieDialogOpen, setSerieDialogOpen] = useState(false);
-  const [serieDialogTab, setSerieDialogTab] = useState<"select" | "create">("select");
+  const [serieDialogTab, setSerieDialogTab] = useState<"select" | "create">(
+    "select",
+  );
 
   // ── Main form ──────────────────────────────────────────────────────────────
   const form = useForm<GuiaCreateFormValues>({
@@ -141,6 +149,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
   } = useFieldArray({ control: productSubForm.control, name: "series" });
 
   const watchedSeries = productSubForm.watch("series") ?? [];
+  const watchedProductoId = productSubForm.watch("producto_id");
 
   const handleAddOrUpdateProducto = productSubForm.handleSubmit((values) => {
     if (editingProductoIndex === null) {
@@ -504,7 +513,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
               label="Producto del catálogo"
               control={productSubForm.control}
               placeholder="Buscar por nombre o SAP..."
-              useQueryHook={useProductosQuery}
+              useQueryHook={useProductoQuery}
               additionalParams={{ tipo: "equipo" }}
               className="md:col-span-2"
               mapOptionFn={(item) => ({
@@ -512,11 +521,13 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
                 label: item.nombre,
                 description: item.sap,
               })}
-              onValueChange={(_, item) => {
+              onValueChange={(_, item: ProductoResource) => {
                 if (item) {
-                  productSubForm.setValue("categoria_id", String(item.categoria_id));
-                  productSubForm.setValue("sap", item.sap ?? "");
-                  productSubForm.setValue("nombre", item.nombre ?? "");
+                  // Limpiar campos manuales — el backend los ignora cuando hay producto_id
+                  productSubForm.setValue("categoria_id", null);
+                  productSubForm.setValue("sap", null);
+                  productSubForm.setValue("nombre", null);
+                  // Guardar tipo silenciosamente para validar series (equipo requiere series)
                   productSubForm.setValue("tipo", (item.tipo as "material" | "equipo") ?? null);
                 }
               }}
@@ -537,7 +548,8 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
             />
           </div>
 
-          {/* Campos manuales (si el producto no está en el catálogo) */}
+          {/* Campos manuales (solo si no hay producto del catálogo) */}
+          {!watchedProductoId && (
           <div>
             <Button
               type="button"
@@ -567,6 +579,8 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
                   control={productSubForm.control}
                   placeholder="Seleccione una categoría"
                   useQueryHook={useCategoriasQuery}
+                  useQueryByIdHook={useCategoriasQueryById}
+                  disabled={!!watchedProductoId}
                   mapOptionFn={(item) => ({
                     value: String(item.id),
                     label: item.nombre,
@@ -594,6 +608,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
               </div>
             )}
           </div>
+          )}
 
           {/* Series */}
           <div className="space-y-3">
@@ -642,7 +657,9 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
             )}
             <Button type="button" size="sm" onClick={handleAddOrUpdateProducto}>
               <Check className="size-3 mr-1" />
-              {editingProductoIndex !== null ? "Actualizar producto" : "Agregar producto"}
+              {editingProductoIndex !== null
+                ? "Actualizar producto"
+                : "Agregar producto"}
             </Button>
           </div>
         </div>
@@ -666,7 +683,10 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
       </div>
 
       {/* ── Dialog: agregar / editar serie ─────────────────────────────────── */}
-      <Dialog open={serieDialogOpen} onOpenChange={(open) => !open && handleCloseSerieDialog()}>
+      <Dialog
+        open={serieDialogOpen}
+        onOpenChange={(open) => !open && handleCloseSerieDialog()}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
@@ -686,25 +706,35 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger
                 value="select"
-                disabled={editingSerieIndex !== null && !serieSubForm.getValues("serie_id")}
+                disabled={
+                  editingSerieIndex !== null &&
+                  !serieSubForm.getValues("serie_id")
+                }
               >
                 Buscar existente
               </TabsTrigger>
               <TabsTrigger
                 value="create"
-                disabled={editingSerieIndex !== null && !!serieSubForm.getValues("serie_id")}
+                disabled={
+                  editingSerieIndex !== null &&
+                  !!serieSubForm.getValues("serie_id")
+                }
               >
                 {editingSerieIndex !== null ? "Editar" : "Nueva serie"}
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="select" className="space-y-3 pt-2">
+              <p className="text-xs text-muted-foreground">
+                Solo se muestran series en situación <span className="font-medium">Retirado</span> — son las únicas que pueden reingresarse mediante una guía.
+              </p>
               <FormSelectAsync
                 name="serie_id"
                 label="Buscar serie"
                 control={serieSubForm.control}
                 placeholder="Ingrese número de serie o MAC..."
                 useQueryHook={useSeriesQuery}
+                additionalParams={{ situacion: "RE" }} // Solo series retiradas pueden reingresarse mediante guía
                 legacyPagination={false}
                 mapOptionFn={(item) => ({
                   value: String(item.id),
@@ -734,11 +764,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
                 control={serieSubForm.control}
                 placeholder="Ej. SN123456"
               />
-              <MacInput
-                name="mac"
-                label="MAC"
-                control={serieSubForm.control}
-              />
+              <MacInput name="mac" label="MAC" control={serieSubForm.control} />
               <FormInput
                 name="ua"
                 label="UA"
@@ -756,7 +782,11 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
           </Tabs>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={handleCloseSerieDialog}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleCloseSerieDialog}
+            >
               <X className="size-3 mr-1" />
               Cancelar
             </Button>

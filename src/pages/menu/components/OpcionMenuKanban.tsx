@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import {
   DndContext,
   DragOverlay,
   closestCorners,
   KeyboardSensor,
   PointerSensor,
+  MeasuringStrategy,
   useSensor,
   useSensors,
   useDroppable,
@@ -277,6 +279,7 @@ export default function OpcionMenuKanban({
     <DndContext
       sensors={sensors}
       collisionDetection={closestCorners}
+      measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
@@ -294,11 +297,14 @@ export default function OpcionMenuKanban({
           </p>
         )}
       </div>
-      <DragOverlay>
-        {activeOpcion && (
-          <KanbanCard opcion={activeOpcion} isDragOverlay />
-        )}
-      </DragOverlay>
+      {createPortal(
+        <DragOverlay>
+          {activeOpcion && (
+            <KanbanCard opcion={activeOpcion} isDragOverlay />
+          )}
+        </DragOverlay>,
+        document.body
+      )}
     </DndContext>
   );
 }

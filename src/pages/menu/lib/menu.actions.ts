@@ -80,3 +80,35 @@ export const restoreOpcionMenu = async (id: number) => {
   const { data } = await api.post(`${OPCION_MENU_ENDPOINT}/${id}/restaurar`);
   return data;
 };
+
+export const reorderOpcionesMenu = async (
+  updates: Array<{ id: number; body: OpcionMenuBody }>
+) => {
+  // Paso 1: desplazar a valores altos únicos para evitar colisiones
+  await Promise.all(
+    updates.map(({ id, body }, idx) =>
+      api.put(`${OPCION_MENU_ENDPOINT}/${id}`, { ...body, orden: String(1000 + idx) })
+    )
+  );
+  // Paso 2: setear el orden final
+  await Promise.all(
+    updates.map(({ id, body }) => api.put(`${OPCION_MENU_ENDPOINT}/${id}`, body))
+  );
+};
+
+export const setOrdenOpcionesMenu = async (
+  items: Array<{ id: number; body: OpcionMenuBody }>
+) => {
+  // Paso 1: desplazar todos a orden + 100 para evitar conflictos de unique
+  await Promise.all(
+    items.map(({ id, body }, idx) =>
+      api.put(`${OPCION_MENU_ENDPOINT}/${id}`, { ...body, orden: String(idx + 1 + 100) })
+    )
+  );
+  // Paso 2: setear el orden final real (1, 2, 3…)
+  await Promise.all(
+    items.map(({ id, body }) =>
+      api.put(`${OPCION_MENU_ENDPOINT}/${id}`, body)
+    )
+  );
+};

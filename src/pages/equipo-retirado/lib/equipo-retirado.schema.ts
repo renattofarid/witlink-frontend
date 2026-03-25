@@ -37,7 +37,7 @@ export const equipoRetiradoSchema = z.object({
   fecha: z.string().min(1, "Requerido"),
   sot: z.string().min(1, "Requerido"),
   tipo: z.enum(["P", "C", "O"], {
-    errorMap: () => ({ message: "Seleccione un tipo" }),
+    error: "Debe ser P, C, u O",
   }),
   productos: z
     .array(erProductoSchema)

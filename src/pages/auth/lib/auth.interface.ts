@@ -12,7 +12,7 @@ export interface AuthenticateResponse {
   data: AuthUsuario;
 }
 
-interface AuthUsuario {
+export interface AuthUsuario {
   id: number;
   nombre_usuario: string;
   persona_id: number;
@@ -21,7 +21,7 @@ interface AuthUsuario {
   grupos_menu: GruposMenu[];
 }
 
-interface GruposMenu {
+export interface GruposMenu {
   id: number;
   nombre: string;
   icono: string;
@@ -29,7 +29,7 @@ interface GruposMenu {
   opciones_menu: OpcionesMenu[];
 }
 
-interface OpcionesMenu {
+export interface OpcionesMenu {
   id: number;
   nombre: string;
   ruta: string;
@@ -37,7 +37,7 @@ interface OpcionesMenu {
   orden: string;
 }
 
-interface TipoUsuario {
+export interface TipoUsuario {
   id: number;
   nombre: string;
 }

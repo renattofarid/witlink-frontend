@@ -52,13 +52,13 @@ export const getMaterialesColumns = ({
           />
           <ButtonAction
             icon={Trash2}
-            color="danger"
+            color="red"
             canRender={!isDeleted}
             onClick={() => onDelete(item)}
           />
           <ButtonAction
             icon={RotateCcw}
-            color="warning"
+            color="amber"
             canRender={isDeleted}
             onClick={() => onRestore(item)}
           />

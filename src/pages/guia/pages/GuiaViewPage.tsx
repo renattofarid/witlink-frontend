@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { FileText } from "lucide-react";
 import { DataTable } from "@/components/DataTable";
 import type { ColumnDef } from "@tanstack/react-table";
-import { GuiaComplete, GUIA_ROUTE_VIEW } from "../lib/guia.constants";
+import { GuiaComplete } from "../lib/guia.constants";
 import { getGuia } from "../lib/guia.actions";
 import { api } from "@/lib/config";
 import { promiseToast } from "@/lib/core.function";
@@ -134,7 +134,7 @@ export default function GuiaViewPage() {
   const persona = guia.usuario?.persona;
   const nombreUsuario = persona
     ? `${persona.nombre} ${persona.apellido_paterno}`
-    : guia.usuario?.nombre_usuario ?? "—";
+    : (guia.usuario?.nombre_usuario ?? "—");
 
   const fecha = guia.fecha
     ? new Date(guia.fecha).toLocaleDateString("es-PE", {

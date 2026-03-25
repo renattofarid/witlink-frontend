@@ -21,7 +21,6 @@ export default function CuadrillaModal({
       onClose={onClose}
       title={mode === "create" ? "Crear Cuadrilla" : "Editar Cuadrilla"}
       icon="CirclePile"
-      mode={mode}
       size="md"
     >
       <CuadrillaForm

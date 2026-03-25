@@ -21,7 +21,6 @@ export default function ProductoModal({
       onClose={onClose}
       title={mode === "create" ? "Crear Producto" : "Editar Producto"}
       icon="Box"
-      mode={mode}
       size="md"
     >
       <ProductoForm

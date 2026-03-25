@@ -13,7 +13,6 @@ export default function SerieModal({ open, onClose }: SerieModalProps) {
       onClose={onClose}
       title="Crear Serie"
       icon="List"
-      mode="create"
       size="md"
     >
       <SerieForm onSuccess={onClose} />

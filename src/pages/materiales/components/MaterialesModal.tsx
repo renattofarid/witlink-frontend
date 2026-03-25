@@ -21,7 +21,6 @@ export default function MaterialesModal({
       onClose={onClose}
       title={mode === "create" ? "Crear Material" : "Editar Material"}
       icon="List"
-      mode={mode}
       size="md"
     >
       <MaterialesForm

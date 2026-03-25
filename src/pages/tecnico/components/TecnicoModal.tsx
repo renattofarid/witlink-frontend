@@ -21,7 +21,6 @@ export default function TecnicoModal({
       onClose={onClose}
       title={mode === "create" ? "Crear Técnico" : "Editar Técnico"}
       icon="User"
-      mode={mode}
       size="md"
     >
       <TecnicoForm

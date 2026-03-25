@@ -21,7 +21,6 @@ export default function MenuModal({
       onClose={onClose}
       title={mode === "create" ? "Crear Menú" : "Editar Menú"}
       icon="List"
-      mode={mode}
       size="md"
     >
       <MenuForm

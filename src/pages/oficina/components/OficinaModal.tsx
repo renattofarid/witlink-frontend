@@ -21,7 +21,6 @@ export default function OficinaModal({
       onClose={onClose}
       title={mode === "create" ? "Crear Oficina" : "Editar Oficina"}
       icon="Building"
-      mode={mode}
       size="md"
     >
       <OficinaForm

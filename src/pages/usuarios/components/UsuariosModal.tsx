@@ -21,7 +21,6 @@ export default function UsuariosModal({
       onClose={onClose}
       title={mode === "create" ? "Crear Usuario" : "Editar Usuario"}
       icon="Users"
-      mode={mode}
       size="md"
     >
       <UsuariosForm

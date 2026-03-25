@@ -210,7 +210,6 @@ export default function TecnicoForm({
         title="Crear Persona"
         subtitle={SUBTITLE(PersonaComplete.MODEL, "create")}
         icon="User2"
-        mode="create"
         size="lg"
       >
         <PersonaForm mode="create" onSuccess={handlePersonaCreated} />
@@ -222,7 +221,6 @@ export default function TecnicoForm({
         title="Crear Cuadrilla"
         subtitle={SUBTITLE(CuadrillaComplete.MODEL, "create")}
         icon="CirclePile"
-        mode="create"
         size="md"
       >
         <CuadrillaForm mode="create" onSuccess={handleCuadrillaCreated} />

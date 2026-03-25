@@ -26,7 +26,6 @@ export default function TipoUsuarioModal({
       }
       subtitle={SUBTITLE(TipoUsuarioComplete.MODEL, mode)}
       icon="PersonStanding"
-      mode={mode}
       size="md"
     >
       <TipoUsuarioForm

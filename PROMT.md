@@ -1,38 +1,68 @@
-Crea el módulo de Grupo de Menus y Opcion de Menu siguiendo la arquitectura definida en MEMORY.md.
+Crea el módulo de Materiales siguiendo la arquitectura definida en MEMORY.md.
 
 ## Módulo
 
-- Nombre singular: Menu
-- Nombre plural: Menu
+- Nombre singular: Material
+- Nombre plural: Materiales
 - Ícono (Lucide): List
-- URL: /menu
-- Endpoint base: https://develop.garzasoft.com:85/almacen-witlink/public/api/grupo-menus y https://develop.garzasoft.com:85/almacen-witlink/public/api/opciones-menu
+- URL: /materiales
+- Endpoint base: https://develop.garzasoft.com:85/almacen-witlink/public/api/materiales
 
 ## Resource (respuesta de la API)
 
 ```json
-[
-  {
-    "id": 0,
-    "nombre": "string",
-    "icono": "string",
-    "orden": "string",
-    "created_at": "2019-08-24T14:15:22Z",
-    "updated_at": "2019-08-24T14:15:22Z",
-    "deleted_at": "2019-08-24T14:15:22Z"
-  }
-]
+{
+  "id": 24,
+  "producto": {
+    "id": 24,
+    "categoria_id": 8,
+    "sap": "HER-SILICON",
+    "nombre": "Silicona Selladora",
+    "tipo": "consumible",
+    "created_at": "2026-03-08T20:28:28.000000Z",
+    "updated_at": "2026-03-08T20:28:28.000000Z",
+    "deleted_at": null,
+    "categoria": {
+      "id": 8,
+      "nombre": "Herramientas De Instalación",
+      "created_at": "2026-03-08T20:28:27.000000Z",
+      "updated_at": "2026-03-08T20:28:27.000000Z",
+      "deleted_at": null
+    }
+  },
+  "cantidad": "80.00",
+  "created_at": "2026-03-08T20:28:28.000000Z",
+  "updated_at": "2026-03-08T20:28:28.000000Z"
+}
 ```
 
 ```ts
 interface RootObject {
   id: number;
-  nombre: string;
-  icono: string;
-  orden: string;
+  producto: Producto;
+  cantidad: string;
   created_at: string;
   updated_at: string;
-  deleted_at: string;
+}
+
+interface Producto {
+  id: number;
+  categoria_id: number;
+  sap: string;
+  nombre: string;
+  tipo: string;
+  created_at: string;
+  updated_at: string;
+  deleted_at: null;
+  categoria: Categoria;
+}
+
+interface Categoria {
+  id: number;
+  nombre: string;
+  created_at: string;
+  updated_at: string;
+  deleted_at: null;
 }
 ```
 
@@ -42,17 +72,15 @@ interface RootObject {
 
 ```json
 {
-  "nombre": "string",
-  "icono": "string",
-  "orden": 0
+  "producto_id": 0,
+  "cantidad": 0.01
 }
 ```
 
 ```ts
 interface RootObject {
-  nombre: string;
-  icono: string;
-  orden: number;
+  producto_id: number;
+  cantidad: number;
 }
 ```
 
@@ -60,21 +88,20 @@ interface RootObject {
 
 ```json
 {
-  "nombre": "string",
-  "icono": "string",
-  "orden": 0
+  "producto_id": 0,
+  "cantidad": 0.01
 }
 ```
 
 ```ts
 interface RootObject {
-  nombre: string;
-  icono: string;
-  orden: number;
+  producto_id: number;
+  cantidad: number;
 }
 ```
 
 ### Adicional
+
 La api que se usara para ver sus opciones
 https://develop.garzasoft.com:85/almacen-witlink/public/api/grupo-menus/{id}/opciones-menu
 

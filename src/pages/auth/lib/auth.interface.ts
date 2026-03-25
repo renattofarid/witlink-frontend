@@ -8,17 +8,36 @@ export interface AuthResource {
   token: string;
 }
 
-export interface AuthUsuario {
-  id: number;
-  persona_id: number;
-  tipo_usuario_id: number;
-  oficina_id: number;
-  nombre_usuario: string;
-  created_at: string;
-  updated_at: string;
-  deleted_at: null;
-}
-
 export interface AuthenticateResponse {
   data: AuthUsuario;
+}
+
+export interface AuthUsuario {
+  id: number;
+  nombre_usuario: string;
+  persona_id: number;
+  oficina_id: number;
+  tipo_usuario: TipoUsuario;
+  grupos_menu: GruposMenu[];
+}
+
+export interface GruposMenu {
+  id: number;
+  nombre: string;
+  icono: string;
+  orden: string;
+  opciones_menu: OpcionesMenu[];
+}
+
+export interface OpcionesMenu {
+  id: number;
+  nombre: string;
+  ruta: string;
+  icono: string;
+  orden: string;
+}
+
+export interface TipoUsuario {
+  id: number;
+  nombre: string;
 }

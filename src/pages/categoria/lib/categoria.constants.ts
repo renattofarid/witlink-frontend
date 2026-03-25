@@ -10,7 +10,7 @@ export const CategoriaComplete: ModelComplete = {
   ICON: Boxes,
   ROUTE: "/categorias",
   QUERY_KEY: "categoria",
-  ABSOLUTE_ROUTE: "/categoria",
+  ABSOLUTE_ROUTE: "/categorias",
   ENDPOINT: "/categorias",
   ROUTE_ADD: "/categoria/agregar",
   ROUTE_UPDATE: "/categoria/editar",

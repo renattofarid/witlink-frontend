@@ -94,8 +94,8 @@ export default function [Modulo]Page() {
 
   // Estado de params (paginación + filtros)
   const [params, setParams] = useState<Record<string, string>>({
-    pagina: "1",
-    por_pagina: String(DEFAULT_PER_PAGE),
+    page: "1",
+    per_page: String(DEFAULT_PER_PAGE),
   });
 
   // Estado del modal (solo si ≤6 campos)
@@ -135,9 +135,9 @@ export default function [Modulo]Page() {
   const handleRestore = (row: [Modulo]Resource) => restoreMutation.mutate(row.id);
 
   const handlePageChange = (page: number) =>
-    setParams((prev) => ({ ...prev, pagina: String(page) }));
+    setParams((prev) => ({ ...prev, page: String(page) }));
   const handlePerPageChange = (perPage: number) =>
-    setParams((prev) => ({ ...prev, por_pagina: String(perPage), page: "1" }));
+    setParams((prev) => ({ ...prev, per_page: String(perPage), page: "1" }));
   // Filtros: setParams((prev) => ({ ...prev, search: value, page: "1" }))
 
   const columns = get[Modulo]Columns({ onEdit: handleEdit, onDelete: handleDelete, onRestore: handleRestore });
@@ -156,8 +156,8 @@ export default function [Modulo]Page() {
       <DataTablePagination
         page={Number(params.pagina)}
         per_page={Number(params.por_pagina)}
-        totalPages={data?.last_page ?? 1}
-        totalData={data?.total ?? 0}
+        totalPages={data?.meta.last_page ?? 1}
+        totalData={data?.meta.total ?? 0}
         onPageChange={handlePageChange}
         setPerPage={handlePerPageChange}
       />
@@ -349,20 +349,20 @@ export const restore[Modulo] = async (id: number) => {
 
 - Interfaces TypeScript usadas en todo el módulo
 - **`[Modulo]Resource`** — el objeto individual que devuelve la API (el `Datum`)
-- **`[Modulo]Response`** — alias de `PaginatedResponse<[Modulo]Resource>` para respuestas paginadas
+- **`[Modulo]Response`** — alias de `PaginationResponse<[Modulo]Resource>` para respuestas paginadas
 
 ```typescript
-import type { PaginatedResponse } from "@/lib/core.interface";
+import type { PaginationResponse } from "@/lib/core.interface";
 
 export interface [Modulo]Resource {
   id: number;
   // ...campos del modelo
 }
 
-export type [Modulo]Response = PaginatedResponse<[Modulo]Resource>;
+export type [Modulo]Response = PaginationResponse<[Modulo]Resource>;
 ```
 
-> La interfaz `PaginatedResponse<T>` y `PaginationLink` viven en `src/lib/core.interface.ts` y son reutilizadas por todos los módulos.
+> La interfaz `PaginationResponse<T>` y `PaginationLink` viven en `src/lib/core.interface.ts` y son reutilizadas por todos los módulos.
 
 ### `lib/[modulo].hook.ts`
 

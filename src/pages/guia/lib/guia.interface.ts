@@ -1,4 +1,4 @@
-import type { PaginatedResponse } from "@/lib/core.interface";
+import type { PaginationResponse } from "@/lib/core.interface";
 
 export interface GuiaSerieResource {
   id: number;
@@ -26,7 +26,7 @@ export interface GuiaProductoResource {
   };
   cantidad: string;
   observaciones: string;
-  series: Array<{ serie: GuiaSerieResource }>;
+  series: Array<{ serie?: GuiaSerieResource | null; observaciones?: string | null }>;
 }
 
 export interface GuiaProveedorResource {
@@ -40,40 +40,53 @@ export interface GuiaProveedorResource {
   deleted_at: string;
 }
 
+export interface GuiaPersonaResource {
+  id: number;
+  nombre: string;
+  apellido_paterno: string;
+  apellido_materno: string;
+  dni: string;
+  direccion: string;
+  telefono: string;
+  correo: string;
+}
+
+export interface GuiaUsuarioResource {
+  id: number;
+  oficina_id: number;
+  nombre_usuario: string;
+  persona: GuiaPersonaResource;
+}
+
 export interface GuiaResource {
   id: number;
   numero: string;
   fecha: string;
+  ruta_pdf_guia: string | null;
   proveedor: GuiaProveedorResource;
-  usuario: {
-    id: number;
-    persona_id: number;
-    tipo_usuario_id: number;
-    oficina_id: number;
-    nombre_usuario: string;
-    created_at: string;
-    updated_at: string;
-    deleted_at: string;
-  };
-  productos: GuiaProductoResource[];
+  usuario: GuiaUsuarioResource;
+  productos?: GuiaProductoResource[];
+  created_at: string;
+  updated_at: string;
   deleted_at?: string | null;
 }
 
-export type GuiaResponse = PaginatedResponse<GuiaResource>;
+export type GuiaResponse = PaginationResponse<GuiaResource>;
 
 export interface GuiaSerieBody {
-  serie: string;
-  mac: string;
-  ua: string;
-  observaciones: string | null;
+  serie_id?: number | null;
+  serie?: string | null;
+  mac?: string | null;
+  ua?: string | null;
+  observaciones?: string | null;
 }
 
 export interface GuiaProductoBody {
-  producto_id: number | null;
-  categoria_id: number | null;
-  sap: string | null;
-  nombre: string | null;
-  tipo: "consumible" | "equipo" | null;
+  producto_id?: number;
+  categoria_id?: number | null;
+  sap?: string | null;
+  nombre?: string | null;
+  tipo?: "material" | "equipo" | null;
   cantidad: number;
   observaciones: string | null;
   series: GuiaSerieBody[] | null;
@@ -83,7 +96,32 @@ export interface GuiaCreateBody {
   numero: string;
   fecha: string;
   proveedor_id: number;
+  archivo?: File | null;
   productos: GuiaProductoBody[];
 }
 
-export type GuiaEditBody = GuiaCreateBody;
+export interface GuiaSerieActualizarBody {
+  serie_id: number;
+  observaciones?: string | null;
+}
+
+export interface GuiaProductoActualizarBody {
+  id: number;
+  cantidad?: number | null;
+  observaciones?: string | null;
+  series?: {
+    actualizar?: GuiaSerieActualizarBody[] | null;
+    añadir?: GuiaSerieBody[] | null;
+  } | null;
+}
+
+export interface GuiaEditBody {
+  numero?: string | null;
+  fecha?: string | null;
+  proveedor_id?: number | null;
+  archivo?: File | null;
+  productos?: {
+    añadir?: GuiaProductoBody[] | null;
+    actualizar?: GuiaProductoActualizarBody[] | null;
+  } | null;
+}

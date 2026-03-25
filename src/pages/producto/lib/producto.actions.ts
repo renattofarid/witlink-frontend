@@ -16,7 +16,7 @@ export const getProductos = async (
 
 export const getProductosAll = async (): Promise<ProductoResource[]> => {
   const { data } = await api.get(ProductoComplete.ENDPOINT);
-  return data;
+  return data?.data ?? data;
 };
 
 export const getProducto = async (id: number): Promise<ProductoResource> => {

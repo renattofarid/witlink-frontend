@@ -4,8 +4,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { FormInput } from "@/components/FormInput";
-import { FormSelect } from "@/components/FormSelect";
+import { FileUploadWithCamera } from "@/components/FileUploadWithCamera";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import { DataTable } from "@/components/DataTable";
@@ -18,32 +19,19 @@ import {
   type ProductoFormValues,
   type SerieFormValues,
 } from "../lib/guia.schema";
-import { createGuia, updateGuia } from "../lib/guia.actions";
-import {
-  useProveedoresQuery,
-  useProductosQuery,
-  useCategoriasQuery,
-} from "../lib/guia.hook";
+import { createGuia, updateGuia, deleteProductoGuia } from "../lib/guia.actions";
+import { useProveedoresQuery } from "../lib/guia.hook";
 import { GuiaComplete } from "../lib/guia.constants";
-import type { GuiaCreateBody, GuiaResource } from "../lib/guia.interface";
-import {
-  Trash2,
-  Pencil,
-  X,
-  Check,
-  PackagePlus,
-  ChevronDown,
-  ChevronUp,
-  Hash,
-} from "lucide-react";
+import type { GuiaCreateBody, GuiaEditBody, GuiaResource } from "../lib/guia.interface";
+import { Trash2, Pencil, PackagePlus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { ConfirmationDialog } from "@/components/ConfirmationDialog";
+import { GuiaProductoDialog } from "./GuiaProductoDialog";
+import { GuiaSerieDialog } from "./GuiaSerieDialog";
 
-const TIPO_OPTIONS = [
-  { value: "consumible", label: "Consumible" },
-  { value: "equipo", label: "Equipo" },
-];
 
 const EMPTY_SERIE: SerieFormValues = {
+  serie_id: null,
   serie: "",
   mac: "",
   ua: "",
@@ -75,7 +63,20 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
   const [editingSerieIndex, setEditingSerieIndex] = useState<number | null>(
     null,
   );
-  const [showMoreFields, setShowMoreFields] = useState(false);
+  const [productoDialogOpen, setProductoDialogOpen] = useState(false);
+  const [productoDialogTab, setProductoDialogTab] = useState<
+    "catalogo" | "manual"
+  >("catalogo");
+  const [archivo, setArchivo] = useState<File | null>(null);
+  const [serieDialogOpen, setSerieDialogOpen] = useState(false);
+  const [serieDialogTab, setSerieDialogTab] = useState<"select" | "create">(
+    "select",
+  );
+  const [deleteConfirmInfo, setDeleteConfirmInfo] = useState<{
+    index: number;
+    id: number;
+    series: Array<{ serie?: string; mac?: string; ua?: string }>;
+  } | null>(null);
 
   // ── Main form ──────────────────────────────────────────────────────────────
   const form = useForm<GuiaCreateFormValues>({
@@ -90,27 +91,28 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
     update: updateProductoField,
   } = useFieldArray({ control: form.control, name: "productos" });
 
-  // Populate form in edit mode when guia loads
   useEffect(() => {
     if (mode === "edit" && guia) {
       form.reset({
         numero: guia.numero,
         fecha: guia.fecha?.split("T")[0] ?? "",
         proveedor_id: String(guia.proveedor.id),
-        productos: guia.productos.map((p) => ({
+        productos: (guia.productos ?? []).map((p) => ({
+          productos_guia_id: p.id,
           producto_id: String(p.producto.id),
           categoria_id: String(p.producto.categoria_id),
           sap: p.producto.sap ?? null,
           nombre: p.producto.nombre ?? null,
-          tipo: (p.producto.tipo as "consumible" | "equipo") ?? null,
+          tipo: (p.producto.tipo as "material" | "equipo") ?? null,
           cantidad: Number(p.cantidad),
           observaciones: p.observaciones ?? null,
           series:
             p.series?.map((s) => ({
-              serie: s.serie.serie,
-              mac: s.serie.mac,
-              ua: s.serie.ua,
-              observaciones: null,
+              serie_id: s.serie?.id ?? null,
+              serie: s.serie?.serie ?? null,
+              mac: s.serie?.mac ?? null,
+              ua: s.serie?.ua ?? null,
+              observaciones: s.observaciones ?? null,
             })) ?? [],
         })),
       });
@@ -121,6 +123,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
   const productSubForm = useForm<ProductoFormValues>({
     resolver: zodResolver(productoSchema),
     defaultValues: EMPTY_PRODUCTO,
+    mode: "onChange",
   });
 
   const {
@@ -141,8 +144,16 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
     productSubForm.reset(EMPTY_PRODUCTO);
     serieSubForm.reset(EMPTY_SERIE);
     setEditingSerieIndex(null);
-    setShowMoreFields(false);
+    setProductoDialogOpen(false);
   });
+
+  const handleOpenProductoDialog = () => {
+    productSubForm.reset(EMPTY_PRODUCTO);
+    serieSubForm.reset(EMPTY_SERIE);
+    setEditingProductoIndex(null);
+    setProductoDialogTab("catalogo");
+    setProductoDialogOpen(true);
+  };
 
   const handleEditProducto = (index: number) => {
     const producto = form.getValues(`productos.${index}`);
@@ -150,15 +161,16 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
     productSubForm.reset(producto);
     serieSubForm.reset(EMPTY_SERIE);
     setEditingSerieIndex(null);
-    setShowMoreFields(true);
+    setProductoDialogTab(producto.producto_id ? "catalogo" : "manual");
+    setProductoDialogOpen(true);
   };
 
-  const handleCancelEdit = () => {
+  const handleCloseProductoDialog = () => {
+    setProductoDialogOpen(false);
     setEditingProductoIndex(null);
     productSubForm.reset(EMPTY_PRODUCTO);
     serieSubForm.reset(EMPTY_SERIE);
     setEditingSerieIndex(null);
-    setShowMoreFields(false);
   };
 
   // ── Serie sub-form ─────────────────────────────────────────────────────────
@@ -176,44 +188,102 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
       setEditingSerieIndex(null);
     }
     serieSubForm.reset(EMPTY_SERIE);
+    setSerieDialogOpen(false);
   });
 
   const handleEditSerie = (index: number) => {
     const serie = productSubForm.getValues(`series.${index}`);
     setEditingSerieIndex(index);
     serieSubForm.reset(serie as SerieFormValues);
+    setSerieDialogTab(serie?.serie_id ? "select" : "create");
+    setSerieDialogOpen(true);
   };
 
-  const handleCancelEditSerie = () => {
+  const handleCloseSerieDialog = () => {
+    setSerieDialogOpen(false);
     setEditingSerieIndex(null);
     serieSubForm.reset(EMPTY_SERIE);
+  };
+
+  const handleOpenSerieDialog = (tab: "select" | "create") => {
+    serieSubForm.reset(EMPTY_SERIE);
+    setEditingSerieIndex(null);
+    // Producto manual → sus series no existen aún, solo se puede crear nueva
+    setSerieDialogTab(productoDialogTab === "manual" ? "create" : tab);
+    setSerieDialogOpen(true);
   };
 
   // ── Mutation ───────────────────────────────────────────────────────────────
   const mutation = useMutation({
     mutationFn: (values: GuiaCreateFormValues) => {
+      if (mode === "edit" && guia) {
+        const añadir = values.productos
+          .filter((p) => !p.productos_guia_id)
+          .map((p) => {
+            const series =
+              p.series?.map((s) => ({
+                serie_id: s.serie_id ? Number(s.serie_id) : undefined,
+                serie: s.serie ?? null,
+                mac: s.mac ?? null,
+                ua: s.ua ?? null,
+                observaciones: s.observaciones ?? null,
+              })) ?? null;
+            if (p.producto_id) {
+              return { producto_id: Number(p.producto_id), cantidad: p.cantidad, observaciones: p.observaciones ?? null, series };
+            }
+            return { categoria_id: p.categoria_id ? Number(p.categoria_id) : null, sap: p.sap ?? null, nombre: p.nombre ?? null, tipo: p.tipo ?? null, cantidad: p.cantidad, observaciones: p.observaciones ?? null, series };
+          });
+
+        const actualizar = values.productos
+          .filter((p) => !!p.productos_guia_id)
+          .map((p) => ({
+            id: p.productos_guia_id!,
+            cantidad: p.cantidad,
+            observaciones: p.observaciones ?? null,
+            series: {
+              actualizar: p.series
+                ?.filter((s) => !!s.serie_id)
+                .map((s) => ({ serie_id: Number(s.serie_id), observaciones: s.observaciones ?? null })) ?? null,
+              añadir: p.series
+                ?.filter((s) => !s.serie_id)
+                .map((s) => ({ serie_id: null, serie: s.serie ?? null, mac: s.mac ?? null, ua: s.ua ?? null, observaciones: s.observaciones ?? null })) ?? null,
+            },
+          }));
+
+        const body: GuiaEditBody = {
+          numero: values.numero,
+          fecha: values.fecha,
+          proveedor_id: Number(values.proveedor_id),
+          archivo: archivo ?? null,
+          productos: {
+            añadir: añadir.length ? añadir : null,
+            actualizar: actualizar.length ? actualizar : null,
+          },
+        };
+        return updateGuia(guia.id, body);
+      }
+
       const body: GuiaCreateBody = {
         numero: values.numero,
         fecha: values.fecha,
         proveedor_id: Number(values.proveedor_id),
-        productos: values.productos.map((p) => ({
-          producto_id: p.producto_id ? Number(p.producto_id) : null,
-          categoria_id: p.categoria_id ? Number(p.categoria_id) : null,
-          sap: p.sap ?? null,
-          nombre: p.nombre ?? null,
-          tipo: p.tipo ?? null,
-          cantidad: p.cantidad,
-          observaciones: p.observaciones ?? null,
-          series:
+        archivo: archivo ?? undefined,
+        productos: values.productos.map((p) => {
+          const series =
             p.series?.map((s) => ({
-              ...s,
+              serie_id: s.serie_id ? Number(s.serie_id) : undefined,
+              serie: s.serie ?? null,
+              mac: s.mac ?? null,
+              ua: s.ua ?? null,
               observaciones: s.observaciones ?? null,
-            })) ?? null,
-        })),
+            })) ?? null;
+          if (p.producto_id) {
+            return { producto_id: Number(p.producto_id), cantidad: p.cantidad, observaciones: p.observaciones ?? null, series };
+          }
+          return { categoria_id: p.categoria_id ? Number(p.categoria_id) : null, sap: p.sap ?? null, nombre: p.nombre ?? null, tipo: p.tipo ?? null, cantidad: p.cantidad, observaciones: p.observaciones ?? null, series };
+        }),
       };
-      return mode === "edit" && guia
-        ? updateGuia(guia.id, body)
-        : createGuia(body);
+      return createGuia(body);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [GuiaComplete.QUERY_KEY] });
@@ -229,7 +299,46 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
     },
   });
 
-  // ── Columns for productos DataTable ────────────────────────────────────────
+  // ── Delete producto ────────────────────────────────────────────────────────
+  const handleDeleteProducto = async (index: number) => {
+    const producto = form.getValues(`productos.${index}`);
+    if (!producto.productos_guia_id) {
+      removeProducto(index);
+      return;
+    }
+    try {
+      await deleteProductoGuia(producto.productos_guia_id);
+      removeProducto(index);
+      queryClient.invalidateQueries({ queryKey: [GuiaComplete.QUERY_KEY] });
+      successToast("Producto eliminado correctamente.");
+    } catch (error: any) {
+      const responseData = error.response?.data;
+      const series: Array<{ serie?: string; mac?: string; ua?: string }> =
+        responseData?.series ?? responseData?.data?.series ?? [];
+      if (series.length > 0) {
+        setDeleteConfirmInfo({ index, id: producto.productos_guia_id, series });
+      } else {
+        errorToast(responseData?.message ?? "Error al eliminar el producto.");
+      }
+    }
+  };
+
+  const handleForceDeleteProducto = async () => {
+    if (!deleteConfirmInfo) return;
+    try {
+      await deleteProductoGuia(deleteConfirmInfo.id, true);
+      removeProducto(deleteConfirmInfo.index);
+      setDeleteConfirmInfo(null);
+      queryClient.invalidateQueries({ queryKey: [GuiaComplete.QUERY_KEY] });
+      successToast("Producto eliminado correctamente.");
+    } catch (error: any) {
+      errorToast(
+        error.response?.data?.message ?? "Error al eliminar el producto.",
+      );
+    }
+  };
+
+  // ── Columns ────────────────────────────────────────────────────────────────
   const watchedProductos = form.watch("productos");
 
   const productoColumns: ColumnDef<ProductoFormValues>[] = [
@@ -272,7 +381,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
     },
     {
       id: "cantidad",
-      header: "Cantidad",
+      header: "Cant.",
       cell: ({ row }) => row.original.cantidad,
     },
     {
@@ -291,8 +400,9 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
     },
     {
       id: "acciones",
+      header: "",
       cell: ({ row }) => (
-        <div className="flex gap-1">
+        <div className="flex gap-1 justify-end">
           <Button
             type="button"
             variant="ghost"
@@ -308,8 +418,8 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
             size="icon"
             className="size-7 text-destructive hover:text-destructive"
             onClick={() => {
-              removeProducto(row.index);
-              if (editingProductoIndex === row.index) handleCancelEdit();
+              if (editingProductoIndex === row.index) handleCloseProductoDialog();
+              handleDeleteProducto(row.index);
             }}
           >
             <Trash2 className="size-3" />
@@ -319,7 +429,6 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
     },
   ];
 
-  // ── Columns for series DataTable ───────────────────────────────────────────
   const serieColumns: ColumnDef<SerieFormValues>[] = [
     {
       id: "index",
@@ -364,8 +473,9 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
     },
     {
       id: "acciones",
+      header: "",
       cell: ({ row }) => (
-        <div className="flex gap-1">
+        <div className="flex gap-1 justify-end">
           <Button
             type="button"
             variant="ghost"
@@ -382,7 +492,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
             className="size-7 text-destructive hover:text-destructive"
             onClick={() => {
               removeSerie(row.index);
-              if (editingSerieIndex === row.index) handleCancelEditSerie();
+              if (editingSerieIndex === row.index) handleCloseSerieDialog();
             }}
           >
             <Trash2 className="size-3" />
@@ -397,250 +507,86 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
       onSubmit={form.handleSubmit((v) => mutation.mutate(v))}
       className="space-y-6"
     >
-      {/* ── Encabezado ─────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <FormInput
-          name="numero"
-          label="Número"
-          control={form.control}
-          placeholder="Número de guía"
-          required
-        />
-        <DatePickerFormField
-          name="fecha"
-          label="Fecha"
-          control={form.control}
-        />
-        <FormSelectAsync
-          name="proveedor_id"
-          label="Proveedor"
-          control={form.control}
-          placeholder="Seleccione un proveedor"
-          required
-          useQueryHook={useProveedoresQuery}
-          mapOptionFn={(item) => ({
-            value: String(item.id),
-            label: item.razon_social,
-            description: item.ruc,
-          })}
+      {/* ── Sección 1: Datos de la guía ────────────────────────────────────── */}
+      <div className="space-y-4">
+        <div>
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            Datos de la guía
+          </h3>
+          <Separator className="mt-2" />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <FormInput
+            name="numero"
+            label="Número de guía"
+            control={form.control}
+            placeholder="Ej. GR-001"
+            required
+            uppercase
+          />
+          <DatePickerFormField
+            name="fecha"
+            label="Fecha"
+            control={form.control}
+          />
+          <FormSelectAsync
+            name="proveedor_id"
+            label="Proveedor"
+            control={form.control}
+            placeholder="Seleccione un proveedor"
+            required
+            useQueryHook={useProveedoresQuery}
+            mapOptionFn={(item) => ({
+              value: String(item.id),
+              label: item.razon_social,
+              description: item.ruc,
+            })}
+          />
+        </div>
+
+        <FileUploadWithCamera
+          label="Archivo adjunto (opcional)"
+          value={archivo}
+          onChange={(file) => setArchivo(file)}
         />
       </div>
 
-      {/* ── Sección productos ──────────────────────────────────────────────── */}
+      {/* ── Sección 2: Productos ────────────────────────────────────────────── */}
       <div className="space-y-4">
-        <h3 className="font-semibold">Productos</h3>
+        <div>
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            Productos
+          </h3>
+          <Separator className="mt-2" />
+        </div>
 
-        {/* Mini-form para agregar / editar un producto */}
-        <div className="border rounded-lg p-4 bg-muted/30 space-y-4">
-          <div className="flex items-center gap-2 text-sm font-medium">
-            <PackagePlus className="size-4 text-primary" />
-            {editingProductoIndex !== null
-              ? `Editando producto #${editingProductoIndex + 1}`
-              : "Nuevo producto"}
-          </div>
-
-          {/* Campos principales */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-            <FormSelectAsync
-              name="producto_id"
-              label="Producto"
-              control={productSubForm.control}
-              placeholder="Seleccione un producto"
-              useQueryHook={useProductosQuery}
-              additionalParams={{
-                tipo: "equipo",
-              }}
-              className="md:col-span-2"
-              mapOptionFn={(item) => ({
-                value: String(item.id),
-                label: item.nombre,
-                description: item.sap,
-              })}
-              onValueChange={(_, item) => {
-                if (item) {
-                  productSubForm.setValue(
-                    "categoria_id",
-                    String(item.categoria_id),
-                  );
-                  productSubForm.setValue("sap", item.sap ?? "");
-                  productSubForm.setValue("nombre", item.nombre ?? "");
-                  productSubForm.setValue(
-                    "tipo",
-                    (item.tipo as "consumible" | "equipo") ?? null,
-                  );
-                }
-              }}
-            />
-            <FormInput
-              name="cantidad"
-              label="Cantidad"
-              control={productSubForm.control}
-              type="number"
-              placeholder="1"
-              required
-            />
-            <FormInput
-              name="observaciones"
-              label="Observaciones"
-              control={productSubForm.control}
-              placeholder="Observaciones"
-            />
-          </div>
-
-          {/* Toggle campos adicionales */}
+        {/* Botón agregar producto */}
+        <div className="flex justify-end">
           <Button
             type="button"
-            variant="ghost"
+            variant="outline"
             size="sm"
-            className="text-xs text-muted-foreground -mt-1"
-            onClick={() => setShowMoreFields((prev) => !prev)}
+            onClick={handleOpenProductoDialog}
           >
-            {showMoreFields ? (
-              <>
-                <ChevronUp className="size-3 mr-1" />
-                Ocultar campos
-              </>
-            ) : (
-              <>
-                <ChevronDown className="size-3 mr-1" />
-                Mostrar más campos
-              </>
-            )}
+            <PackagePlus className="size-3 mr-1" />
+            Agregar producto
           </Button>
-
-          {showMoreFields && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-              <FormSelectAsync
-                name="categoria_id"
-                label="Categoría"
-                control={productSubForm.control}
-                placeholder="Seleccione una categoría"
-                useQueryHook={useCategoriasQuery}
-                mapOptionFn={(item) => ({
-                  value: String(item.id),
-                  label: item.nombre,
-                })}
-              />
-              <FormInput
-                name="sap"
-                label="SAP"
-                control={productSubForm.control}
-                placeholder="Código SAP"
-              />
-              <FormInput
-                name="nombre"
-                label="Nombre"
-                control={productSubForm.control}
-                placeholder="Nombre del producto"
-              />
-              <FormSelect
-                name="tipo"
-                label="Tipo"
-                control={productSubForm.control}
-                placeholder="Seleccione un tipo"
-                options={TIPO_OPTIONS}
-              />
-            </div>
-          )}
-
-          {/* ── Series sub-form ──────────────────────────────────────────── */}
-          <div className="space-y-3">
-            <div className="border rounded-lg p-3 bg-background space-y-3">
-              <div className="flex items-center gap-2 text-sm font-medium">
-                <Hash className="size-3.5 text-primary" />
-                {editingSerieIndex !== null
-                  ? `Editando serie #${editingSerieIndex + 1}`
-                  : "Nueva serie"}
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
-                <FormInput
-                  name="serie"
-                  label="Serie"
-                  control={serieSubForm.control}
-                  placeholder="N° serie"
-                  required
-                />
-                <FormInput
-                  name="mac"
-                  label="MAC"
-                  control={serieSubForm.control}
-                  placeholder="XX:XX:XX:XX:XX:XX"
-                  maxLength={17}
-                  required
-                />
-                <FormInput
-                  name="ua"
-                  label="UA"
-                  control={serieSubForm.control}
-                  placeholder="XX:XX:XX:XX:XX:XX"
-                  maxLength={17}
-                  required
-                />
-                <FormInput
-                  name="observaciones"
-                  label="Observaciones"
-                  control={serieSubForm.control}
-                  placeholder="—"
-                />
-                <div className="flex gap-2">
-                  {editingSerieIndex !== null && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="flex-1"
-                      onClick={handleCancelEditSerie}
-                    >
-                      <X className="size-3 mr-1" />
-                      Cancelar
-                    </Button>
-                  )}
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="secondary"
-                    className="flex-1"
-                    onClick={handleAddOrUpdateSerie}
-                  >
-                    <Check className="size-3 mr-1" />
-                    {editingSerieIndex !== null ? "Actualizar" : "Agregar"}
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            {watchedSeries.length > 0 && (
-              <DataTable
-                columns={serieColumns}
-                data={watchedSeries as SerieFormValues[]}
-                variant="outline"
-                isVisibleColumnFilter={false}
-              />
-            )}
-          </div>
-
-          {/* Acciones del mini-form de producto */}
-          <div className="flex gap-2 justify-end">
-            {editingProductoIndex !== null && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleCancelEdit}
-              >
-                <X className="size-3 mr-1" />
-                Cancelar
-              </Button>
-            )}
-            <Button type="button" size="sm" onClick={handleAddOrUpdateProducto}>
-              <Check className="size-3 mr-1" />
-              {editingProductoIndex !== null
-                ? "Actualizar producto"
-                : "Agregar producto"}
-            </Button>
-          </div>
         </div>
+
+        {/* Dialog: agregar / editar producto */}
+        <GuiaProductoDialog
+          open={productoDialogOpen}
+          editingIndex={editingProductoIndex}
+          tab={productoDialogTab}
+          productSubForm={productSubForm}
+          watchedSeries={watchedSeries}
+          serieColumns={serieColumns}
+          onClose={handleCloseProductoDialog}
+          onSubmit={handleAddOrUpdateProducto}
+          onTabChange={setProductoDialogTab}
+          onOpenSerieDialog={handleOpenSerieDialog}
+        />
 
         {/* Tabla de productos agregados */}
         {watchedProductos.length > 0 && (
@@ -652,7 +598,6 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
           />
         )}
 
-        {/* Error global de productos */}
         {form.formState.errors.productos &&
           !Array.isArray(form.formState.errors.productos) && (
             <p className="text-sm text-destructive">
@@ -661,14 +606,44 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
           )}
       </div>
 
+      {/* ── Dialog: agregar / editar serie ─────────────────────────────────── */}
+      <GuiaSerieDialog
+        open={serieDialogOpen}
+        editingIndex={editingSerieIndex}
+        tab={serieDialogTab}
+        productoTab={productoDialogTab}
+        serieSubForm={serieSubForm}
+        onClose={handleCloseSerieDialog}
+        onSubmit={handleAddOrUpdateSerie}
+        onTabChange={setSerieDialogTab}
+      />
+
+      {/* ── Confirmación forzar eliminación de producto ─────────────────────── */}
+      <ConfirmationDialog
+        open={!!deleteConfirmInfo}
+        onOpenChange={(open) => { if (!open) setDeleteConfirmInfo(null); }}
+        title="¿Eliminar producto con series asociadas?"
+        description="Este producto tiene las siguientes series asociadas que también serán eliminadas:"
+        confirmText="Forzar eliminación"
+        onConfirm={handleForceDeleteProducto}
+      >
+        <ul className="text-sm space-y-1 max-h-48 overflow-y-auto border rounded p-2">
+          {deleteConfirmInfo?.series.map((s, i) => (
+            <li key={i} className="font-mono text-xs">
+              {[s.serie, s.mac, s.ua].filter(Boolean).join(" · ")}
+            </li>
+          ))}
+        </ul>
+      </ConfirmationDialog>
+
       {/* ── Submit ─────────────────────────────────────────────────────────── */}
       <div className="flex justify-end">
         <Button type="submit" disabled={mutation.isPending}>
           {mutation.isPending
             ? "Guardando..."
             : mode === "edit"
-              ? "Actualizar Guía"
-              : "Crear Guía"}
+              ? "Actualizar guía"
+              : "Crear guía"}
         </Button>
       </div>
     </form>

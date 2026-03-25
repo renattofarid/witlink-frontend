@@ -19,7 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Controller, type Control } from "react-hook-form";
+import { Controller, useWatch, type Control } from "react-hook-form";
 import { useState, useEffect, useRef, useCallback } from "react";
 import React from "react";
 import {
@@ -31,10 +31,15 @@ import { Badge } from "@/components/ui/badge";
 import type { Option } from "@/lib/core.interface";
 import RequiredField from "./RequiredField";
 
+const _noopByIdHook = (_id: string | null): { data: any; isLoading: boolean } => ({
+  data: undefined,
+  isLoading: false,
+});
+
 interface FormSelectAsyncProps {
   name: string;
   description?: string;
-  label?: string | (() => React.ReactNode);
+  label?: string;
   placeholder?: string;
   control: Control<any>;
   disabled?: boolean;
@@ -63,6 +68,7 @@ interface FormSelectAsyncProps {
   onValueChange?: (value: string, item?: any) => void; // Callback cuando cambia el valor
   preloadItemId?: string; // ID del item a precargar buscando en todas las páginas
   legacyPagination?: boolean; // true = pagina/por_pagina | false = page/per_page (default: true)
+  useQueryByIdHook?: (id: string | null) => { data?: any; isLoading: boolean }; // Hook para precargar un item por ID
 }
 
 export function FormSelectAsync({
@@ -87,6 +93,7 @@ export function FormSelectAsync({
   onValueChange,
   preloadItemId,
   legacyPagination = true,
+  useQueryByIdHook,
 }: FormSelectAsyncProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -105,13 +112,32 @@ export function FormSelectAsync({
   );
   const rawItemsMap = useRef<Map<string, any>>(new Map());
 
+  // Hook por ID: precarga un item cuando el valor está seteado pero no está en allOptions
+  const currentValue = useWatch({ control, name }) as string | null;
+  const _byIdHook = useQueryByIdHook ?? _noopByIdHook;
+  const { data: byIdData } = _byIdHook(currentValue || null);
+
+  useEffect(() => {
+    if (!byIdData || !currentValue) return;
+    const opt = mapOptionFn(byIdData);
+    if (opt.value !== currentValue) return;
+    rawItemsMap.current.set(opt.value, byIdData);
+    setSelectedOption(opt);
+    setAllOptions((prev) => {
+      if (prev.some((o) => o.value === opt.value)) return prev;
+      return [opt, ...prev];
+    });
+  }, [byIdData, currentValue, mapOptionFn]);
+
   // Hook de consulta con parámetros dinámicos
+  // Si hay useQueryByIdHook, la lista solo se activa cuando el dropdown está abierto
   const { data, isLoading, isFetching } = useQueryHook({
     search: debouncedSearch,
     ...(legacyPagination
-      ? { pagina: page, por_pagina: perPage }
+      ? { page: page, per_page: perPage }
       : { page, per_page: perPage }),
     ...additionalParams,
+    ...(useQueryByIdHook ? { enabled: open } : {}),
   });
 
   // Sincronizar cuando defaultOption cambia externamente (ej: se crea un nuevo item)
@@ -247,28 +273,26 @@ export function FormSelectAsync({
             : null);
 
         return (
-          <Field className="flex flex-col justify-between">
-            {label && typeof label === "function"
-              ? label()
-              : label && (
-                  <FieldLabel className="flex justify-start items-center text-xs md:text-sm leading-none h-fit dark:text-muted-foreground">
-                    {label}
-                    {required && <RequiredField />}
-                    {tooltip && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Badge
-                            color="tertiary"
-                            className="ml-2 p-0 aspect-square w-4 h-4 text-center justify-center"
-                          >
-                            ?
-                          </Badge>
-                        </TooltipTrigger>
-                        <TooltipContent>{tooltip}</TooltipContent>
-                      </Tooltip>
-                    )}
-                  </FieldLabel>
+          <Field className="flex flex-col justify-between gap-1">
+            {label && (
+              <FieldLabel className="flex justify-start items-center text-xs md:text-sm leading-none h-fit dark:text-muted-foreground">
+                {label}
+                {required && <RequiredField />}
+                {tooltip && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Badge
+                        color="tertiary"
+                        className="ml-2 p-0 aspect-square w-4 h-4 text-center justify-center"
+                      >
+                        ?
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent>{tooltip}</TooltipContent>
+                  </Tooltip>
                 )}
+              </FieldLabel>
+            )}
 
             <div className="flex gap-2 items-center">
               <Popover open={open} onOpenChange={handleOpenChange}>

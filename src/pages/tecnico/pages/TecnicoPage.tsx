@@ -21,8 +21,8 @@ export default function TecnicoPage() {
   const queryClient = useQueryClient();
 
   const [params, setParams] = useState<Record<string, string>>({
-    pagina: "1",
-    por_pagina: String(DEFAULT_PER_PAGE),
+    page: "1",
+    per_page: String(DEFAULT_PER_PAGE),
   });
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -42,7 +42,8 @@ export default function TecnicoPage() {
     },
     onError: (error: any) => {
       errorToast(
-        error.response.data.message ?? ERROR_MESSAGE(TecnicoComplete.MODEL, "delete"),
+        error.response.data.message ??
+          ERROR_MESSAGE(TecnicoComplete.MODEL, "delete"),
       );
     },
   });
@@ -55,7 +56,8 @@ export default function TecnicoPage() {
     },
     onError: (error: any) => {
       errorToast(
-        error.response.data.message ?? ERROR_MESSAGE(TecnicoComplete.MODEL, "restore"),
+        error.response.data.message ??
+          ERROR_MESSAGE(TecnicoComplete.MODEL, "restore"),
       );
     },
   });
@@ -82,17 +84,17 @@ export default function TecnicoPage() {
   };
 
   const handlePageChange = (page: number) =>
-    setParams((prev) => ({ ...prev, pagina: String(page) }));
+    setParams((prev) => ({ ...prev, page: String(page) }));
 
   const handlePerPageChange = (perPage: number) =>
     setParams((prev) => ({
       ...prev,
-      por_pagina: String(perPage),
-      pagina: "1",
+      per_page: String(perPage),
+      page: "1",
     }));
 
   const handleSearchChange = (value: string) =>
-    setParams((prev) => ({ ...prev, search: value, pagina: "1" }));
+    setParams((prev) => ({ ...prev, search: value, page: "1" }));
 
   const columns = getTecnicoColumns({
     onEdit: handleEdit,
@@ -124,10 +126,10 @@ export default function TecnicoPage() {
       </DataTable>
 
       <DataTablePagination
-        page={Number(params.pagina)}
-        per_page={Number(params.por_pagina)}
-        totalPages={data?.last_page ?? 1}
-        totalData={data?.total ?? 0}
+        page={Number(params.page)}
+        per_page={Number(params.per_page)}
+        totalPages={data?.meta.last_page ?? 1}
+        totalData={data?.meta.total ?? 0}
         onPageChange={handlePageChange}
         setPerPage={handlePerPageChange}
       />

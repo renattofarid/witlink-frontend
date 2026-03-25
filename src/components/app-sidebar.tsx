@@ -1,6 +1,21 @@
 "use client";
 
-import { LayoutGrid } from "lucide-react";
+import {
+  LayoutGrid,
+  LayoutDashboard,
+  Users,
+  Users2,
+  List,
+  Settings,
+  User,
+  Building,
+  Box,
+  Boxes,
+  ClipboardList,
+  type LucideIcon,
+  Anvil,
+  FileDigit,
+} from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -13,103 +28,73 @@ import { NavMain } from "./nav-main";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
 import { NavUser } from "./nav-user";
 import { useMemo } from "react";
-import { ENABLE_PERMISSION_VALIDATION } from "@/lib/permissions.config";
-import { UsuariosComplete } from "@/pages/usuarios/lib/usuarios.constants";
-import { PersonaComplete } from "@/pages/persona/lib/persona.constants";
-import { TipoUsuarioComplete } from "@/pages/tipo-usuario/lib/tipo-usuario.constants";
-import { CuadrillaComplete } from "@/pages/cuadrilla/lib/cuadrilla.constants";
-import { CategoriaComplete } from "@/pages/categoria/lib/categoria.constants";
-import { GuiaComplete } from "@/pages/guia/lib/guia.constants";
-import { OficinaComplete } from "@/pages/oficina/lib/oficina.constants";
-import { ProductoComplete } from "@/pages/producto/lib/producto.constants";
-import { TecnicoComplete } from "@/pages/tecnico/lib/tecnico.constants";
 import { MenuComplete } from "@/pages/menu/lib/menu.constants";
 
-const allNavItems = [
-  {
-    title: "Inicio",
-    url: "/inicio",
-    icon: LayoutGrid,
-    public: true,
-  },
-  {
-    title: UsuariosComplete.MODEL.plural ?? UsuariosComplete.MODEL.name,
-    url: UsuariosComplete.ABSOLUTE_ROUTE,
-    icon: UsuariosComplete.ICON,
-  },
-  {
-    title: PersonaComplete.MODEL.plural ?? PersonaComplete.MODEL.name,
-    url: PersonaComplete.ABSOLUTE_ROUTE,
-    icon: PersonaComplete.ICON,
-  },
-  {
-    title: TipoUsuarioComplete.MODEL.plural ?? TipoUsuarioComplete.MODEL.name,
-    url: TipoUsuarioComplete.ABSOLUTE_ROUTE,
-    icon: TipoUsuarioComplete.ICON,
-  },
-  {
-    title: OficinaComplete.MODEL.plural ?? OficinaComplete.MODEL.name,
-    url: OficinaComplete.ABSOLUTE_ROUTE,
-    icon: OficinaComplete.ICON,
-  },
-  {
-    title: CuadrillaComplete.MODEL.plural ?? CuadrillaComplete.MODEL.name,
-    url: CuadrillaComplete.ABSOLUTE_ROUTE,
-    icon: CuadrillaComplete.ICON,
-  },
-  {
-    title: TecnicoComplete.MODEL.plural ?? TecnicoComplete.MODEL.name,
-    url: TecnicoComplete.ABSOLUTE_ROUTE,
-    icon: TecnicoComplete.ICON,
-  },
-  {
-    title: CategoriaComplete.MODEL.plural ?? CategoriaComplete.MODEL.name,
-    url: CategoriaComplete.ABSOLUTE_ROUTE,
-    icon: CategoriaComplete.ICON,
-  },
-  {
-    title: ProductoComplete.MODEL.plural ?? ProductoComplete.MODEL.name,
-    url: ProductoComplete.ABSOLUTE_ROUTE,
-    icon: ProductoComplete.ICON,
-  },
-  {
-    title: GuiaComplete.MODEL.plural ?? GuiaComplete.MODEL.name,
-    url: GuiaComplete.ABSOLUTE_ROUTE,
-    icon: GuiaComplete.ICON,
-  },
-  ...(import.meta.env.DEV
-    ? [
-        {
-          title: MenuComplete.MODEL.plural ?? MenuComplete.MODEL.name,
-          url: MenuComplete.ABSOLUTE_ROUTE,
-          icon: MenuComplete.ICON,
-          public: true,
-        },
-      ]
-    : []),
-];
+const iconMap: Record<string, LucideIcon> = {
+  Dashboard: LayoutDashboard,
+  dashboard: LayoutDashboard,
+  people: Users,
+  List: List,
+  settings: Settings,
+  Settings: Settings,
+  User: User,
+  Users: Users,
+  Users2: Users2,
+  Building: Building,
+  Box: Box,
+  Boxes: Boxes,
+  assessment: ClipboardList,
+  Anvil: Anvil,
+  FileDigit: FileDigit,
+};
+
+const getIcon = (name: string): LucideIcon => iconMap[name] ?? LayoutGrid;
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { user, allowedRoutes } = useAuthStore();
+  const { user } = useAuthStore();
 
-  const filteredNav = useMemo(() => {
-    if (!ENABLE_PERMISSION_VALIDATION) return allNavItems;
-    return allNavItems.filter((item) => {
-      return item.public || allowedRoutes.includes(item.url);
-    });
-  }, [allowedRoutes]);
+  const navItems = useMemo(() => {
+    if (!user) return [];
 
-  if (!user) {
-    return null;
-  }
+    const fixedItem = {
+      title: "Inicio",
+      url: "/inicio",
+      icon: LayoutGrid,
+    };
+
+    const groupItems = (user.grupos_menu ?? []).map((grupo) => ({
+      title: grupo.nombre,
+      url: "#",
+      icon: getIcon(grupo.icono),
+      items: grupo.opciones_menu.map((opcion) => ({
+        title: opcion.nombre,
+        url: opcion.ruta,
+        icon: getIcon(opcion.icono),
+      })),
+    }));
+
+    const devItems = import.meta.env.DEV
+      ? [
+          {
+            title: MenuComplete.MODEL.plural ?? MenuComplete.MODEL.name,
+            url: MenuComplete.ABSOLUTE_ROUTE,
+            icon: MenuComplete.ICON,
+          },
+        ]
+      : [];
+
+    return [fixedItem, ...groupItems, ...devItems];
+  }, [user]);
+
+  if (!user) return null;
 
   return (
-    <Sidebar collapsible="icon" {...props}>
+    <Sidebar collapsible="icon" variant="floating" {...props}>
       <SidebarHeader>
         <TeamSwitcher />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={filteredNav} />
+        <NavMain items={navItems} />
       </SidebarContent>
       <SidebarFooter className="flex md:hidden">
         <NavUser user={user} />

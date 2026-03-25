@@ -15,6 +15,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import RequiredField from "./RequiredField";
 import { cn } from "@/lib/utils";
+import { Label } from "./ui/label";
 
 interface FormInputProps extends Omit<
   React.InputHTMLAttributes<HTMLInputElement>,
@@ -22,7 +23,7 @@ interface FormInputProps extends Omit<
 > {
   name: string;
   description?: string;
-  label?: string | React.ReactNode;
+  label?: string;
   control?: Control<any>;
   tooltip?: string | React.ReactNode;
   children?: React.ReactNode;
@@ -82,10 +83,9 @@ export function FormInput({
     };
 
     return (
-      <div className="flex flex-col justify-between">
+      <div className="flex flex-col justify-between gap-1">
         {label && (
-          <label className="flex justify-start items-center text-xs md:text-sm mb-1 leading-none h-fit font-medium text-muted-foreground">
-            {label}
+          <Label className="flex justify-start items-center text-xs md:text-sm leading-none h-fit font-medium text-muted-foreground">
             {required && <RequiredField />}
             {tooltip && (
               <Tooltip>
@@ -100,7 +100,7 @@ export function FormInput({
                 <TooltipContent>{tooltip}</TooltipContent>
               </Tooltip>
             )}
-          </label>
+          </Label>
         )}
         <div className="flex flex-col gap-2 items-center">
           <div className="relative w-full">
@@ -159,7 +159,7 @@ export function FormInput({
         };
 
         return (
-          <Field className="flex flex-col justify-between">
+          <Field className="flex flex-col justify-between gap-1">
             <FieldLabel className="flex justify-start items-center text-xs md:text-sm leading-none h-fit dark:text-muted-foreground">
               {label}
               {required && <RequiredField />}

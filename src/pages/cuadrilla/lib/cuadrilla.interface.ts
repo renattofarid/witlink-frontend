@@ -1,4 +1,4 @@
-import type { PaginatedResponse } from "@/lib/core.interface";
+import type { PaginationResponse } from "@/lib/core.interface";
 
 export interface CuadrillaResource {
   id: number;
@@ -8,7 +8,7 @@ export interface CuadrillaResource {
   deleted_at: string | null;
 }
 
-export type CuadrillaResponse = PaginatedResponse<CuadrillaResource>;
+export type CuadrillaResponse = PaginationResponse<CuadrillaResource>;
 
 export interface CuadrillaBody {
   nombre: string;

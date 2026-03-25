@@ -24,7 +24,6 @@ export default function PersonaModal({
       title={mode === "create" ? "Crear Persona" : "Editar Persona"}
       subtitle={SUBTITLE(PersonaComplete.MODEL, mode)}
       icon="User2"
-      mode={mode}
       size="lg"
     >
       <PersonaForm

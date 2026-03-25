@@ -23,7 +23,6 @@ export default function PersonaPage() {
   const [params, setParams] = useState<Record<string, string>>({
     page: "1",
     per_page: String(DEFAULT_PER_PAGE),
-    search: "",
   });
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -94,9 +93,10 @@ export default function PersonaPage() {
       page: "1",
     }));
 
-  const handleSearchChange = (value: string) =>
-    setParams((prev) => ({ ...prev, search: value, page: "1" }));
-
+  const handleSearchChange = (value: string) => {
+    console.log("Search value:", value);
+    setParams((prev) => ({ ...prev, page: "1" }));
+  };
   const columns = getPersonaColumns({
     onEdit: handleEdit,
     onDelete: handleDelete,

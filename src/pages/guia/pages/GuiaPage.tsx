@@ -11,7 +11,7 @@ import { successToast, errorToast, ERROR_MESSAGE } from "@/lib/core.function";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import { useGuiaQuery } from "../lib/guia.hook";
 import { deleteGuia, restoreGuia } from "../lib/guia.actions";
-import { GuiaComplete } from "../lib/guia.constants";
+import { GuiaComplete, GUIA_ROUTE_VIEW } from "../lib/guia.constants";
 import { getGuiaColumns } from "../components/GuiaColumns";
 import GuiaFilters from "../components/GuiaFilters";
 import GuiaButtons from "../components/GuiaButtons";
@@ -22,8 +22,8 @@ export default function GuiaPage() {
   const queryClient = useQueryClient();
 
   const [params, setParams] = useState<Record<string, string>>({
-    pagina: "1",
-    por_pagina: String(DEFAULT_PER_PAGE),
+    page: "1",
+    per_page: String(DEFAULT_PER_PAGE),
   });
 
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -39,7 +39,8 @@ export default function GuiaPage() {
     },
     onError: (error: any) => {
       errorToast(
-        error.response.data.message ?? ERROR_MESSAGE(GuiaComplete.MODEL, "delete"),
+        error.response.data.message ??
+          ERROR_MESSAGE(GuiaComplete.MODEL, "delete"),
       );
     },
   });
@@ -52,10 +53,15 @@ export default function GuiaPage() {
     },
     onError: (error: any) => {
       errorToast(
-        error.response.data.message ?? ERROR_MESSAGE(GuiaComplete.MODEL, "restore"),
+        error.response.data.message ??
+          ERROR_MESSAGE(GuiaComplete.MODEL, "restore"),
       );
     },
   });
+
+  const handleView = (row: GuiaResource) => {
+    navigate(`${GUIA_ROUTE_VIEW}/${row.id}`);
+  };
 
   const handleEdit = (row: GuiaResource) => {
     navigate(`${GuiaComplete.ROUTE_UPDATE}/${row.id}`);
@@ -71,19 +77,22 @@ export default function GuiaPage() {
   };
 
   const handlePageChange = (page: number) =>
-    setParams((prev) => ({ ...prev, pagina: String(page) }));
+    setParams((prev) => ({ ...prev, page: String(page) }));
 
   const handlePerPageChange = (perPage: number) =>
     setParams((prev) => ({
       ...prev,
-      por_pagina: String(perPage),
-      pagina: "1",
+      per_page: String(perPage),
+      page: "1",
     }));
 
-  const handleSearchChange = (value: string) =>
-    setParams((prev) => ({ ...prev, search: value, pagina: "1" }));
+  const handleSearchChange = (value: string) => {
+    console.log("Search value:", value);
+    setParams((prev) => ({ ...prev, page: "1" }));
+  };
 
   const columns = getGuiaColumns({
+    onView: handleView,
     onEdit: handleEdit,
     onDelete: handleDelete,
     onRestore: handleRestore,
@@ -115,8 +124,8 @@ export default function GuiaPage() {
       <DataTablePagination
         page={Number(params.pagina)}
         per_page={Number(params.por_pagina)}
-        totalPages={data?.last_page ?? 1}
-        totalData={data?.total ?? 0}
+        totalPages={data?.meta.last_page ?? 1}
+        totalData={data?.meta.total ?? 0}
         onPageChange={handlePageChange}
         setPerPage={handlePerPageChange}
       />

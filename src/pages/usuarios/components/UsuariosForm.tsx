@@ -272,7 +272,6 @@ export default function UsuariosForm({
         open={personaModalOpen}
         onClose={() => setPersonaModalOpen(false)}
         title="Nueva Persona"
-        mode="create"
         icon="Users"
         size="lg"
       >
@@ -283,7 +282,6 @@ export default function UsuariosForm({
         open={tipoUsuarioModalOpen}
         onClose={() => setTipoUsuarioModalOpen(false)}
         title="Nuevo Tipo de Usuario"
-        mode="create"
         icon="Shield"
         size="md"
       >
@@ -294,7 +292,6 @@ export default function UsuariosForm({
         open={oficinaModalOpen}
         onClose={() => setOficinaModalOpen(false)}
         title="Nueva Oficina"
-        mode="create"
         icon="Building2"
         size="md"
       >

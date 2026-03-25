@@ -32,7 +32,7 @@ export default function ProductoForm({
   const form = useForm<ProductoFormValues>({
     resolver: zodResolver(productoSchema),
     defaultValues: {
-      categoria_id: defaultValues ? String(defaultValues.categoria_id) : "",
+      categoria_id: defaultValues ? String(defaultValues.categoria.id) : "",
       sap: defaultValues?.sap ?? "",
       nombre: defaultValues?.nombre ?? "",
       tipo: (defaultValues?.tipo as "consumible" | "equipo") ?? undefined,

@@ -9,7 +9,9 @@ export interface LoginBody {
 
 async function loadAllowedRoutes(tipoUsuarioId: number): Promise<void> {
   try {
-    const { data } = await api.get(`/tipos-usuario/${tipoUsuarioId}/opciones-menu`);
+    const { data } = await api.get(
+      `/tipos-usuario/${tipoUsuarioId}/opciones-menu`,
+    );
     const routes: string[] = (data as { ruta: string }[]).map((o) => o.ruta);
     useAuthStore.getState().setAllowedRoutes(routes);
   } catch {
@@ -26,7 +28,7 @@ export async function login(body: LoginBody): Promise<AuthResponse> {
     setToken(data.data.token);
     setUser(data.data.usuario);
 
-    await loadAllowedRoutes(data.data.usuario.tipo_usuario_id);
+    await loadAllowedRoutes(data.data.usuario.tipo_usuario.id);
 
     return data;
   } catch (error) {
@@ -42,7 +44,7 @@ export async function authenticate(): Promise<AuthenticateResponse> {
 
     setUser(data.data);
 
-    await loadAllowedRoutes(data.data.tipo_usuario_id);
+    await loadAllowedRoutes(data.data.tipo_usuario.id);
 
     return data;
   } catch (error) {

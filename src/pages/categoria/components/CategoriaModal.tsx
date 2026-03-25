@@ -21,7 +21,6 @@ export default function CategoriaModal({
       onClose={onClose}
       title={mode === "create" ? "Crear Categoría" : "Editar Categoría"}
       icon="Boxes"
-      mode={mode}
       size="md"
     >
       <CategoriaForm

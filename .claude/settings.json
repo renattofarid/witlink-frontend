@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(curl -sk \"https://develop.garzasoft.com:85/almacen-witlink/public/api/grupo-menus\" -H \"Authorization: Bearer $TOKEN\")",
-      "Bash(curl -sk \"https://develop.garzasoft.com:85/almacen-witlink/public/api/opciones-menu\" -H \"Authorization: Bearer $TOKEN\")"
+      "Bash(curl -sk \"https://develop.garzasoft.com:85/almacen-witlink/public/api/opciones-menu\" -H \"Authorization: Bearer $TOKEN\")",
+      "Read(//e/front/witlink/witlink-frontend/src/lib/**)",
+      "Bash(npm install:*)"
     ]
   }
 }

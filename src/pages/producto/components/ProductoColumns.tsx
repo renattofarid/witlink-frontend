@@ -1,5 +1,5 @@
 import { ButtonAction } from "@/components/ButtonAction";
-import { Pencil, Trash2, RotateCcw } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { ProductoResource } from "../lib/producto.interface";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +13,7 @@ interface ColumnActions {
 export const getProductoColumns = ({
   onEdit,
   onDelete,
-  onRestore,
+  // onRestore,
 }: ColumnActions): ColumnDef<ProductoResource>[] => [
   {
     accessorKey: "id",
@@ -45,24 +45,24 @@ export const getProductoColumns = ({
     header: "Acciones",
     cell: ({ row }) => {
       const item = row.original;
-      const isDeleted = !!item.deleted_at;
+      // const isDeleted = !!item.deleted_at;
       return (
         <div className="flex gap-1">
           <ButtonAction
             icon={Pencil}
-            canRender={!isDeleted}
+            // canRender={!isDeleted}
             onClick={() => onEdit(item)}
           />
           <ButtonAction
             icon={Trash2}
-            canRender={!isDeleted}
+            // canRender={!isDeleted}
             onClick={() => onDelete(item)}
           />
-          <ButtonAction
+          {/* <ButtonAction
             icon={RotateCcw}
             canRender={isDeleted}
             onClick={() => onRestore(item)}
-          />
+          /> */}
         </div>
       );
     },

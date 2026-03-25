@@ -1,4 +1,4 @@
-import type { PaginatedResponse } from "@/lib/core.interface";
+import type { PaginationResponse } from "@/lib/core.interface";
 
 export interface MenuResource {
   id: number;
@@ -10,7 +10,7 @@ export interface MenuResource {
   deleted_at: string | null;
 }
 
-export type MenuResponse = PaginatedResponse<MenuResource>;
+export type MenuResponse = PaginationResponse<MenuResource>;
 
 export interface MenuBody {
   nombre: string;
@@ -25,6 +25,7 @@ export interface OpcionMenuResource {
   orden: string;
   icono: string;
   grupo_menu_id: number;
+  grupo_menu?: MenuResource;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;

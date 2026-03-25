@@ -41,6 +41,11 @@ export const restoreMenu = async (id: number) => {
   return data;
 };
 
+export const getMenusAll = async (): Promise<MenuResource[]> => {
+  const { data } = await api.get(MenuComplete.ENDPOINT, { params: { all: "true" } });
+  return Array.isArray(data) ? data : (data?.data ?? []);
+};
+
 // Opciones Menu
 export const getOpcionesMenu = async (
   grupoMenuId: number
@@ -49,6 +54,11 @@ export const getOpcionesMenu = async (
     `${MenuComplete.ENDPOINT}/${grupoMenuId}/opciones-menu`
   );
   return data;
+};
+
+export const getOpcionesMenuAll = async (): Promise<OpcionMenuResource[]> => {
+  const { data } = await api.get(OPCION_MENU_ENDPOINT, { params: { all: "true" } });
+  return Array.isArray(data) ? data : (data?.data ?? []);
 };
 
 export const createOpcionMenu = async (body: OpcionMenuBody) => {
@@ -69,4 +79,36 @@ export const deleteOpcionMenu = async (id: number) => {
 export const restoreOpcionMenu = async (id: number) => {
   const { data } = await api.post(`${OPCION_MENU_ENDPOINT}/${id}/restaurar`);
   return data;
+};
+
+export const reorderOpcionesMenu = async (
+  updates: Array<{ id: number; body: OpcionMenuBody }>
+) => {
+  // Paso 1: desplazar a valores altos únicos para evitar colisiones
+  await Promise.all(
+    updates.map(({ id, body }, idx) =>
+      api.put(`${OPCION_MENU_ENDPOINT}/${id}`, { ...body, orden: String(1000 + idx) })
+    )
+  );
+  // Paso 2: setear el orden final
+  await Promise.all(
+    updates.map(({ id, body }) => api.put(`${OPCION_MENU_ENDPOINT}/${id}`, body))
+  );
+};
+
+export const setOrdenOpcionesMenu = async (
+  items: Array<{ id: number; body: OpcionMenuBody }>
+) => {
+  // Paso 1: desplazar todos a orden + 100 para evitar conflictos de unique
+  await Promise.all(
+    items.map(({ id, body }, idx) =>
+      api.put(`${OPCION_MENU_ENDPOINT}/${id}`, { ...body, orden: String(idx + 1 + 100) })
+    )
+  );
+  // Paso 2: setear el orden final real (1, 2, 3…)
+  await Promise.all(
+    items.map(({ id, body }) =>
+      api.put(`${OPCION_MENU_ENDPOINT}/${id}`, body)
+    )
+  );
 };

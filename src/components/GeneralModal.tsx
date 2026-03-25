@@ -15,17 +15,19 @@ import {
   Drawer,
   DrawerClose,
   DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { cn } from "@/lib/utils";
 import * as LucideReact from "lucide-react";
-import TitleFormComponent from "./TitleFormComponent";
+import { SheetFooter } from "@/components/ui/sheet";
 
 interface GeneralModalProps {
   open: boolean;
   onClose: () => void;
-  title: string;
+  title?: string;
   subtitle?: string;
   children: ReactNode;
   size?: Size;
@@ -33,11 +35,20 @@ interface GeneralModalProps {
   className?: string;
   modal?: boolean;
   icon?: keyof typeof LucideReact;
-  titleComponent?: boolean;
-  mode?: "create" | "edit" | "detail";
+  childrenFooter?: React.ReactNode;
 }
 
-type Size = "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "full";
+type Size =
+  | "md"
+  | "lg"
+  | "xl"
+  | "2xl"
+  | "3xl"
+  | "4xl"
+  | "5xl"
+  | "6xl"
+  | "7xl"
+  | "full";
 interface SizeClasses {
   [key: string]: string;
 }
@@ -49,21 +60,24 @@ const sizes: SizeClasses = {
   "2xl": "max-w-2xl!",
   "3xl": "max-w-3xl!",
   "4xl": "max-w-4xl!",
-  full: "w-full!",
+  "5xl": "max-w-5xl!",
+  "6xl": "max-w-6xl!",
+  "7xl": "max-w-7xl!",
+  full: "w-full! max-w-[95vw]!",
 };
 
 export function GeneralModal({
   open,
   onClose,
-  titleComponent,
   title,
   subtitle,
   children,
+  maxWidth = "max-w-lg",
   size = "lg",
   className,
   modal,
   icon,
-  mode = "create",
+  childrenFooter,
 }: GeneralModalProps) {
   const IconComponent = icon
     ? (LucideReact[icon] as React.ComponentType<any>)
@@ -84,60 +98,69 @@ export function GeneralModal({
         }}
       >
         <DialogContent
-          className={cn(sizes[size], "w-[95vw] rounded-xl overflow-auto")}
+          className={cn(sizes[size], maxWidth, className)}
           onInteractOutside={(e) => e.preventDefault()}
         >
-          <DialogHeader>
-            {titleComponent ? (
-              <TitleFormComponent title={title} icon={icon} mode={mode} />
-            ) : (
-              <div className="flex items-start gap-2">
-                {icon && IconComponent && (
-                  <div className="mr-2 bg-primary text-primary-foreground rounded-md p-2">
-                    <IconComponent className="size-5" />
-                  </div>
-                )}
-                <div className="flex flex-col items-start">
-                  {title && <DialogTitle>{title}</DialogTitle>}
-                  <DialogDescription className="text-muted-foreground text-sm">
-                    {subtitle}
-                  </DialogDescription>
-                </div>
+          <div className="flex items-center gap-2">
+            {icon && IconComponent && (
+              <div className="mr-2 bg-primary text-primary-foreground rounded-md p-2">
+                <IconComponent className="size-5" />
               </div>
             )}
-          </DialogHeader>
-          <div>{children}</div>
+            <DialogHeader className="gap-1">
+              {title && <DialogTitle>{title}</DialogTitle>}
+              <DialogDescription className="text-muted-foreground text-sm">
+                {subtitle}
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+          <div className="no-scrollbar overflow-y-auto py-2 px-4">
+            {children}
+          </div>
+          <SheetFooter className={childrenFooter ? "block" : "hidden"}>
+            {childrenFooter}
+          </SheetFooter>
         </DialogContent>
       </Dialog>
     ) : (
       <Drawer open={open} onOpenChange={(v) => !v && onClose()} modal={modal}>
         <DrawerContent
-          className={cn(className, "pb-0 flex flex-col max-h-[96vh]")}
+          className={cn(
+            sizes[size],
+            className,
+            "pb-0 flex flex-col max-h-[96vh]",
+          )}
         >
           <DrawerHeader className="shrink-0 p-2">
-            <div className="flex items-start gap-2">
+            <div className="flex items-center gap-2">
               {icon && IconComponent && (
                 <div className="mr-2 bg-primary text-primary-foreground rounded-md p-2">
                   <IconComponent className="size-5" />
                 </div>
               )}
               <div className="flex flex-col items-start">
-                {title && <DrawerTitle>{title}</DrawerTitle>}
+                {title && (
+                  <DrawerTitle className="text-start">{title}</DrawerTitle>
+                )}
                 {subtitle && (
                   <p className="text-xs text-start text-muted-foreground">
                     {subtitle}
                   </p>
                 )}
               </div>
+              <DrawerDescription className="hidden" />
             </div>
             <DrawerClose onClick={onClose} />
           </DrawerHeader>
           <div
-            className="mt-4 overflow-y-auto flex-1 min-h-0 py-4 px-4"
+            className="no-scrollbar overflow-y-auto py-2 px-4"
             data-vaul-no-drag
           >
             {children}
           </div>
+          <DrawerFooter className={childrenFooter ? "block" : "hidden"}>
+            {childrenFooter}
+          </DrawerFooter>
         </DrawerContent>
       </Drawer>
     );

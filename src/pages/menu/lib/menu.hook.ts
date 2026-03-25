@@ -1,11 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
-import { getMenus, getOpcionesMenu, getOpcionesMenuAll } from "./menu.actions";
+import { getMenus, getMenusAll, getOpcionesMenu, getOpcionesMenuAll } from "./menu.actions";
 import { MenuComplete, OPCION_MENU_QUERY_KEY } from "./menu.constants";
 
 export const useMenuQuery = (params: Record<string, string>) =>
   useQuery({
     queryKey: [MenuComplete.QUERY_KEY, params],
     queryFn: () => getMenus(params),
+    refetchOnWindowFocus: true,
+  });
+
+export const useMenusAllQuery = () =>
+  useQuery({
+    queryKey: [MenuComplete.QUERY_KEY, "all"],
+    queryFn: getMenusAll,
     refetchOnWindowFocus: true,
   });
 

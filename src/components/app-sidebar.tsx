@@ -13,6 +13,8 @@ import {
   Boxes,
   ClipboardList,
   type LucideIcon,
+  Anvil,
+  FileDigit,
 } from "lucide-react";
 import {
   Sidebar,
@@ -42,6 +44,8 @@ const iconMap: Record<string, LucideIcon> = {
   Box: Box,
   Boxes: Boxes,
   assessment: ClipboardList,
+  Anvil: Anvil,
+  FileDigit: FileDigit,
 };
 
 const getIcon = (name: string): LucideIcon => iconMap[name] ?? LayoutGrid;

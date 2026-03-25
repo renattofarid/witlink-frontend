@@ -41,6 +41,11 @@ export const restoreMenu = async (id: number) => {
   return data;
 };
 
+export const getMenusAll = async (): Promise<MenuResource[]> => {
+  const { data } = await api.get(MenuComplete.ENDPOINT, { params: { all: "true" } });
+  return Array.isArray(data) ? data : (data?.data ?? []);
+};
+
 // Opciones Menu
 export const getOpcionesMenu = async (
   grupoMenuId: number

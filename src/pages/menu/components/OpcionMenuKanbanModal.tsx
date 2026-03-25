@@ -1,6 +1,5 @@
 import { GeneralModal } from "@/components/GeneralModal";
-import { useMenuQuery } from "../lib/menu.hook";
-import { useOpcionesMenuAllQuery } from "../lib/menu.hook";
+import { useMenusAllQuery, useOpcionesMenuAllQuery } from "../lib/menu.hook";
 import OpcionMenuKanban from "./OpcionMenuKanban";
 
 interface OpcionMenuKanbanModalProps {
@@ -12,13 +11,10 @@ export default function OpcionMenuKanbanModal({
   open,
   onClose,
 }: OpcionMenuKanbanModalProps) {
-  const { data: menusData, isLoading: isLoadingMenus } = useMenuQuery({
-    all: "true",
-  });
+  const { data: groups, isLoading: isLoadingMenus } = useMenusAllQuery();
   const { data: opciones, isLoading: isLoadingOpciones } =
     useOpcionesMenuAllQuery();
 
-  const groups = menusData?.data ?? [];
   const isLoading = isLoadingMenus || isLoadingOpciones;
 
   return (
@@ -31,7 +27,7 @@ export default function OpcionMenuKanbanModal({
       size="full"
     >
       <OpcionMenuKanban
-        groups={groups}
+        groups={groups ?? []}
         opciones={opciones ?? []}
         isLoading={isLoading}
       />

@@ -86,23 +86,17 @@ function KanbanCard({
     <div
       ref={setNodeRef}
       style={style}
+      {...attributes}
+      {...listeners}
       className={cn(
-        "bg-background border rounded-lg p-2.5 flex items-center gap-2 shadow-sm select-none",
+        "bg-background border rounded-lg p-2.5 flex items-center gap-2 shadow-sm select-none touch-none",
+        !opcion.deleted_at && !isDragOverlay && "cursor-grab active:cursor-grabbing",
         isDragging && !isDragOverlay && "opacity-40 border-dashed",
         isDragOverlay && "shadow-lg rotate-1 cursor-grabbing",
-        opcion.deleted_at && "opacity-50"
+        opcion.deleted_at && "opacity-50 cursor-not-allowed"
       )}
     >
-      <button
-        {...attributes}
-        {...listeners}
-        className={cn(
-          "cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground shrink-0 touch-none",
-          opcion.deleted_at && "cursor-not-allowed pointer-events-none"
-        )}
-      >
-        <GripVertical className="size-4" />
-      </button>
+      <GripVertical className="size-4 shrink-0 text-muted-foreground" />
       <div className="flex-1 min-w-0">
         <p className="font-medium text-sm truncate">{opcion.nombre}</p>
         <p className="text-xs text-muted-foreground truncate">{opcion.ruta}</p>

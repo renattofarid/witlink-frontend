@@ -25,6 +25,7 @@ export interface OpcionMenuResource {
   orden: string;
   icono: string;
   grupo_menu_id: number;
+  grupo_menu?: MenuResource;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;

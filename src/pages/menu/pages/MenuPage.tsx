@@ -16,6 +16,7 @@ import MenuFilters from "../components/MenuFilters";
 import MenuButtons from "../components/MenuButtons";
 import MenuModal from "../components/MenuModal";
 import OpcionMenuModal from "../components/OpcionMenuModal";
+import OpcionMenuKanbanModal from "../components/OpcionMenuKanbanModal";
 import type { MenuResource } from "../lib/menu.interface";
 
 export default function MenuPage() {
@@ -35,6 +36,8 @@ export default function MenuPage() {
 
   const [opcionMenuOpen, setOpcionMenuOpen] = useState(false);
   const [selectedGrupo, setSelectedGrupo] = useState<MenuResource | null>(null);
+
+  const [kanbanOpen, setKanbanOpen] = useState(false);
 
   const { data, isLoading } = useMenuQuery(params);
 
@@ -120,7 +123,7 @@ export default function MenuPage() {
             search={params.search ?? ""}
             onSearchChange={handleSearchChange}
           />
-          <MenuButtons onAdd={handleAdd} />
+          <MenuButtons onAdd={handleAdd} onReorganize={() => setKanbanOpen(true)} />
         </ActionsWrapper>
       </TitleComponent>
 
@@ -153,6 +156,11 @@ export default function MenuPage() {
           grupoMenu={selectedGrupo}
         />
       )}
+
+      <OpcionMenuKanbanModal
+        open={kanbanOpen}
+        onClose={() => setKanbanOpen(false)}
+      />
 
       <SimpleDeleteDialog
         open={deleteOpen}

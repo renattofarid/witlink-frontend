@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getMenus, getOpcionesMenu } from "./menu.actions";
+import { getMenus, getOpcionesMenu, getOpcionesMenuAll } from "./menu.actions";
 import { MenuComplete, OPCION_MENU_QUERY_KEY } from "./menu.constants";
 
 export const useMenuQuery = (params: Record<string, string>) =>
@@ -15,4 +15,11 @@ export const useOpcionMenuQuery = (grupoMenuId: number) =>
     queryFn: () => getOpcionesMenu(grupoMenuId),
     refetchOnWindowFocus: true,
     enabled: grupoMenuId > 0,
+  });
+
+export const useOpcionesMenuAllQuery = () =>
+  useQuery({
+    queryKey: [OPCION_MENU_QUERY_KEY],
+    queryFn: getOpcionesMenuAll,
+    refetchOnWindowFocus: true,
   });

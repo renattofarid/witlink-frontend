@@ -51,6 +51,11 @@ export const getOpcionesMenu = async (
   return data;
 };
 
+export const getOpcionesMenuAll = async (): Promise<OpcionMenuResource[]> => {
+  const { data } = await api.get(OPCION_MENU_ENDPOINT, { params: { all: "true" } });
+  return Array.isArray(data) ? data : (data?.data ?? []);
+};
+
 export const createOpcionMenu = async (body: OpcionMenuBody) => {
   const { data } = await api.post(OPCION_MENU_ENDPOINT, body);
   return data;

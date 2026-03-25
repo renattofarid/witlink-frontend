@@ -1,45 +1,46 @@
-Crea el módulo de Series siguiendo la arquitectura definida en MEMORY.md.
+Crea el módulo de Materiales siguiendo la arquitectura definida en MEMORY.md.
 
 ## Módulo
 
-- Nombre singular: Serie
-- Nombre plural: Series
+- Nombre singular: Material
+- Nombre plural: Materiales
 - Ícono (Lucide): List
-- URL: /serie
-- Endpoint base: https://develop.garzasoft.com:85/almacen-witlink/public/api/series
+- URL: /materiales
+- Endpoint base: https://develop.garzasoft.com:85/almacen-witlink/public/api/materiales
 
 ## Resource (respuesta de la API)
 
 ```json
 {
-  "id": 40,
-  "serie": "121",
-  "situacion": "DI",
-  "mac": "11111111111111111",
-  "ua": "11111111111111111",
+  "id": 24,
   "producto": {
-    "id": 25,
-    "categoria_id": 1,
-    "sap": "RTR-ONT-GPON",
-    "nombre": "Ont Gpon Huawei Hg8546m",
-    "tipo": "equipo",
+    "id": 24,
+    "categoria_id": 8,
+    "sap": "HER-SILICON",
+    "nombre": "Silicona Selladora",
+    "tipo": "consumible",
     "created_at": "2026-03-08T20:28:28.000000Z",
     "updated_at": "2026-03-08T20:28:28.000000Z",
-    "deleted_at": null
+    "deleted_at": null,
+    "categoria": {
+      "id": 8,
+      "nombre": "Herramientas De Instalación",
+      "created_at": "2026-03-08T20:28:27.000000Z",
+      "updated_at": "2026-03-08T20:28:27.000000Z",
+      "deleted_at": null
+    }
   },
-  "created_at": "2026-03-09T06:18:44.000000Z",
-  "updated_at": "2026-03-09T06:18:44.000000Z"
+  "cantidad": "80.00",
+  "created_at": "2026-03-08T20:28:28.000000Z",
+  "updated_at": "2026-03-08T20:28:28.000000Z"
 }
 ```
 
 ```ts
 interface RootObject {
   id: number;
-  serie: string;
-  situacion: string;
-  mac: string;
-  ua: string;
   producto: Producto;
+  cantidad: string;
   created_at: string;
   updated_at: string;
 }
@@ -53,6 +54,15 @@ interface Producto {
   created_at: string;
   updated_at: string;
   deleted_at: null;
+  categoria: Categoria;
+}
+
+interface Categoria {
+  id: number;
+  nombre: string;
+  created_at: string;
+  updated_at: string;
+  deleted_at: null;
 }
 ```
 
@@ -62,17 +72,15 @@ interface Producto {
 
 ```json
 {
-  "nombre": "string",
-  "icono": "string",
-  "orden": 0
+  "producto_id": 0,
+  "cantidad": 0.01
 }
 ```
 
 ```ts
 interface RootObject {
-  nombre: string;
-  icono: string;
-  orden: number;
+  producto_id: number;
+  cantidad: number;
 }
 ```
 
@@ -80,17 +88,15 @@ interface RootObject {
 
 ```json
 {
-  "nombre": "string",
-  "icono": "string",
-  "orden": 0
+  "producto_id": 0,
+  "cantidad": 0.01
 }
 ```
 
 ```ts
 interface RootObject {
-  nombre: string;
-  icono: string;
-  orden: number;
+  producto_id: number;
+  cantidad: number;
 }
 ```
 

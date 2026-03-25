@@ -11,7 +11,7 @@ import { successToast, errorToast, ERROR_MESSAGE } from "@/lib/core.function";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import { useGuiaQuery } from "../lib/guia.hook";
 import { deleteGuia, restoreGuia } from "../lib/guia.actions";
-import { GuiaComplete } from "../lib/guia.constants";
+import { GuiaComplete, GUIA_ROUTE_VIEW } from "../lib/guia.constants";
 import { getGuiaColumns } from "../components/GuiaColumns";
 import GuiaFilters from "../components/GuiaFilters";
 import GuiaButtons from "../components/GuiaButtons";
@@ -59,6 +59,10 @@ export default function GuiaPage() {
     },
   });
 
+  const handleView = (row: GuiaResource) => {
+    navigate(`${GUIA_ROUTE_VIEW}/${row.id}`);
+  };
+
   const handleEdit = (row: GuiaResource) => {
     navigate(`${GuiaComplete.ROUTE_UPDATE}/${row.id}`);
   };
@@ -88,6 +92,7 @@ export default function GuiaPage() {
   };
 
   const columns = getGuiaColumns({
+    onView: handleView,
     onEdit: handleEdit,
     onDelete: handleDelete,
     onRestore: handleRestore,

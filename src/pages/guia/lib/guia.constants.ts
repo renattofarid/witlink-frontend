@@ -15,3 +15,5 @@ export const GuiaComplete: ModelComplete = {
   ROUTE_ADD: "/guias/agregar",
   ROUTE_UPDATE: "/guias/editar",
 };
+
+export const GUIA_ROUTE_VIEW = "/guias/ver";

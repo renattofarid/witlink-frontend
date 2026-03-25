@@ -25,6 +25,7 @@ import { ProductoComplete } from "@/pages/producto/lib/producto.constants";
 import { TecnicoComplete } from "@/pages/tecnico/lib/tecnico.constants";
 import { MenuComplete } from "@/pages/menu/lib/menu.constants";
 import { SerieComplete } from "@/pages/serie/lib/serie.constants";
+import { MaterialesComplete } from "@/pages/materiales/lib/materiales.constants";
 
 const allNavItems = [
   {
@@ -83,6 +84,11 @@ const allNavItems = [
     url: SerieComplete.ABSOLUTE_ROUTE,
     icon: SerieComplete.ICON,
   },
+  {
+    title: MaterialesComplete.MODEL.plural ?? MaterialesComplete.MODEL.name,
+    url: MaterialesComplete.ABSOLUTE_ROUTE,
+    icon: MaterialesComplete.ICON,
+  },
   ...(import.meta.env.DEV
     ? [
         {
@@ -110,7 +116,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   }
 
   return (
-    <Sidebar collapsible="icon" {...props}>
+    <Sidebar collapsible="icon" variant="floating" {...props}>
       <SidebarHeader>
         <TeamSwitcher />
       </SidebarHeader>

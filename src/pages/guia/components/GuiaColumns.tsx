@@ -1,5 +1,5 @@
 import { ButtonAction } from "@/components/ButtonAction";
-import { Pencil, Trash2, RotateCcw, FileText } from "lucide-react";
+import { Pencil, Trash2, RotateCcw, FileText, Eye } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import type { GuiaResource } from "../lib/guia.interface";
@@ -27,12 +27,14 @@ async function openPdf(archivo: string) {
 }
 
 interface ColumnActions {
+  onView: (row: GuiaResource) => void;
   onEdit: (row: GuiaResource) => void;
   onDelete: (row: GuiaResource) => void;
   onRestore: (row: GuiaResource) => void;
 }
 
 export const getGuiaColumns = ({
+  onView,
   onEdit,
   onDelete,
   onRestore,
@@ -115,6 +117,11 @@ export const getGuiaColumns = ({
       const isDeleted = !!item.deleted_at;
       return (
         <div className="flex gap-1">
+          <ButtonAction
+            icon={Eye}
+            canRender={!isDeleted}
+            onClick={() => onView(item)}
+          />
           <ButtonAction
             icon={Pencil}
             canRender={!isDeleted}

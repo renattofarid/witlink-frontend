@@ -18,7 +18,8 @@ import { CategoriaComplete } from "../pages/categoria/lib/categoria.constants";
 import GuiaPage from "../pages/guia/pages/GuiaPage";
 import GuiaAddPage from "../pages/guia/pages/GuiaAddPage";
 import GuiaEditPage from "../pages/guia/pages/GuiaEditPage";
-import { GuiaComplete } from "../pages/guia/lib/guia.constants";
+import GuiaViewPage from "../pages/guia/pages/GuiaViewPage";
+import { GuiaComplete, GUIA_ROUTE_VIEW } from "../pages/guia/lib/guia.constants";
 import OficinaPage from "../pages/oficina/pages/OficinaPage";
 import { OficinaComplete } from "../pages/oficina/lib/oficina.constants";
 import ProductoPage from "../pages/producto/pages/ProductoPage";
@@ -29,6 +30,8 @@ import MenuPage from "../pages/menu/pages/MenuPage";
 import { MenuComplete } from "../pages/menu/lib/menu.constants";
 import SeriePage from "../pages/serie/pages/SeriePage";
 import { SerieComplete } from "../pages/serie/lib/serie.constants";
+import MaterialesPage from "../pages/materiales/pages/MaterialesPage";
+import { MaterialesComplete } from "../pages/materiales/lib/materiales.constants";
 
 function ProtectedRoute({ children }: { children: JSX.Element }) {
   const { token, allowedRoutes } = useAuthStore();
@@ -148,6 +151,14 @@ export default function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path={`${GUIA_ROUTE_VIEW}/:id`}
+        element={
+          <ProtectedRoute>
+            <GuiaViewPage />
+          </ProtectedRoute>
+        }
+      />
 
       <Route
         path={OficinaComplete.ROUTE}
@@ -181,6 +192,15 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <SeriePage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path={MaterialesComplete.ROUTE}
+        element={
+          <ProtectedRoute>
+            <MaterialesPage />
           </ProtectedRoute>
         }
       />

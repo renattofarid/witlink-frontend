@@ -25,16 +25,7 @@ import { GuiaComplete } from "../lib/guia.constants";
 import type { GuiaCreateBody, GuiaEditBody, GuiaResource } from "../lib/guia.interface";
 import { Trash2, Pencil, PackagePlus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 import { GuiaProductoDialog } from "./GuiaProductoDialog";
 import { GuiaSerieDialog } from "./GuiaSerieDialog";
 
@@ -628,37 +619,22 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
       />
 
       {/* ── Confirmación forzar eliminación de producto ─────────────────────── */}
-      <AlertDialog
+      <ConfirmationDialog
         open={!!deleteConfirmInfo}
         onOpenChange={(open) => { if (!open) setDeleteConfirmInfo(null); }}
+        title="¿Eliminar producto con series asociadas?"
+        description="Este producto tiene las siguientes series asociadas que también serán eliminadas:"
+        confirmText="Forzar eliminación"
+        onConfirm={handleForceDeleteProducto}
       >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar producto con series asociadas?</AlertDialogTitle>
-            <AlertDialogDescription asChild>
-              <div className="space-y-2">
-                <p>Este producto tiene las siguientes series asociadas que también serán eliminadas:</p>
-                <ul className="text-sm space-y-1 max-h-48 overflow-y-auto border rounded p-2">
-                  {deleteConfirmInfo?.series.map((s, i) => (
-                    <li key={i} className="font-mono text-xs">
-                      {[s.serie, s.mac, s.ua].filter(Boolean).join(" · ")}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={handleForceDeleteProducto}
-            >
-              Forzar eliminación
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        <ul className="text-sm space-y-1 max-h-48 overflow-y-auto border rounded p-2">
+          {deleteConfirmInfo?.series.map((s, i) => (
+            <li key={i} className="font-mono text-xs">
+              {[s.serie, s.mac, s.ua].filter(Boolean).join(" · ")}
+            </li>
+          ))}
+        </ul>
+      </ConfirmationDialog>
 
       {/* ── Submit ─────────────────────────────────────────────────────────── */}
       <div className="flex justify-end">

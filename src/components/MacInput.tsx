@@ -45,6 +45,7 @@ export function MacInput({ name, label, control }: MacInputProps) {
                 field.onChange(val ? toMacFormat(val.toUpperCase()) : null)
               }
               onBlur={field.onBlur}
+              className="w-full!"
             >
               {[0, 2, 4, 6, 8, 10].map((offset, i) => (
                 <>

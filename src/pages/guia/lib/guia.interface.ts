@@ -26,7 +26,7 @@ export interface GuiaProductoResource {
   };
   cantidad: string;
   observaciones: string;
-  series: Array<{ serie: GuiaSerieResource }>;
+  series: Array<{ serie?: GuiaSerieResource | null; observaciones?: string | null }>;
 }
 
 export interface GuiaProveedorResource {
@@ -100,4 +100,28 @@ export interface GuiaCreateBody {
   productos: GuiaProductoBody[];
 }
 
-export type GuiaEditBody = GuiaCreateBody;
+export interface GuiaSerieActualizarBody {
+  serie_id: number;
+  observaciones?: string | null;
+}
+
+export interface GuiaProductoActualizarBody {
+  id: number;
+  cantidad?: number | null;
+  observaciones?: string | null;
+  series?: {
+    actualizar?: GuiaSerieActualizarBody[] | null;
+    añadir?: GuiaSerieBody[] | null;
+  } | null;
+}
+
+export interface GuiaEditBody {
+  numero?: string | null;
+  fecha?: string | null;
+  proveedor_id?: number | null;
+  archivo?: File | null;
+  productos?: {
+    añadir?: GuiaProductoBody[] | null;
+    actualizar?: GuiaProductoActualizarBody[] | null;
+  } | null;
+}

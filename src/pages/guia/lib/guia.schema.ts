@@ -28,6 +28,7 @@ export const serieSchema = z
 
 export const productoSchema = z
   .object({
+    productos_guia_id: z.number().optional().nullable(),
     producto_id: z.string().optional().nullable(),
     categoria_id: z.string().optional().nullable(),
     sap: z.string().optional().nullable(),

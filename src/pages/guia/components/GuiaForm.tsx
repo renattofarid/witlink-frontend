@@ -19,12 +19,22 @@ import {
   type ProductoFormValues,
   type SerieFormValues,
 } from "../lib/guia.schema";
-import { createGuia, updateGuia } from "../lib/guia.actions";
+import { createGuia, updateGuia, deleteProductoGuia } from "../lib/guia.actions";
 import { useProveedoresQuery } from "../lib/guia.hook";
 import { GuiaComplete } from "../lib/guia.constants";
-import type { GuiaCreateBody, GuiaResource } from "../lib/guia.interface";
+import type { GuiaCreateBody, GuiaEditBody, GuiaResource } from "../lib/guia.interface";
 import { Trash2, Pencil, PackagePlus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { GuiaProductoDialog } from "./GuiaProductoDialog";
 import { GuiaSerieDialog } from "./GuiaSerieDialog";
 
@@ -71,6 +81,11 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
   const [serieDialogTab, setSerieDialogTab] = useState<"select" | "create">(
     "select",
   );
+  const [deleteConfirmInfo, setDeleteConfirmInfo] = useState<{
+    index: number;
+    id: number;
+    series: Array<{ serie?: string; mac?: string; ua?: string }>;
+  } | null>(null);
 
   // ── Main form ──────────────────────────────────────────────────────────────
   const form = useForm<GuiaCreateFormValues>({
@@ -91,7 +106,8 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
         numero: guia.numero,
         fecha: guia.fecha?.split("T")[0] ?? "",
         proveedor_id: String(guia.proveedor.id),
-        productos: guia.productos.map((p) => ({
+        productos: (guia.productos ?? []).map((p) => ({
+          productos_guia_id: p.id,
           producto_id: String(p.producto.id),
           categoria_id: String(p.producto.categoria_id),
           sap: p.producto.sap ?? null,
@@ -101,10 +117,11 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
           observaciones: p.observaciones ?? null,
           series:
             p.series?.map((s) => ({
-              serie: s.serie.serie,
-              mac: s.serie.mac,
-              ua: s.serie.ua,
-              observaciones: null,
+              serie_id: s.serie?.id ?? null,
+              serie: s.serie?.serie ?? null,
+              mac: s.serie?.mac ?? null,
+              ua: s.serie?.ua ?? null,
+              observaciones: s.observaciones ?? null,
             })) ?? [],
         })),
       });
@@ -208,6 +225,53 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
   // ── Mutation ───────────────────────────────────────────────────────────────
   const mutation = useMutation({
     mutationFn: (values: GuiaCreateFormValues) => {
+      if (mode === "edit" && guia) {
+        const añadir = values.productos
+          .filter((p) => !p.productos_guia_id)
+          .map((p) => {
+            const series =
+              p.series?.map((s) => ({
+                serie_id: s.serie_id ? Number(s.serie_id) : undefined,
+                serie: s.serie ?? null,
+                mac: s.mac ?? null,
+                ua: s.ua ?? null,
+                observaciones: s.observaciones ?? null,
+              })) ?? null;
+            if (p.producto_id) {
+              return { producto_id: Number(p.producto_id), cantidad: p.cantidad, observaciones: p.observaciones ?? null, series };
+            }
+            return { categoria_id: p.categoria_id ? Number(p.categoria_id) : null, sap: p.sap ?? null, nombre: p.nombre ?? null, tipo: p.tipo ?? null, cantidad: p.cantidad, observaciones: p.observaciones ?? null, series };
+          });
+
+        const actualizar = values.productos
+          .filter((p) => !!p.productos_guia_id)
+          .map((p) => ({
+            id: p.productos_guia_id!,
+            cantidad: p.cantidad,
+            observaciones: p.observaciones ?? null,
+            series: {
+              actualizar: p.series
+                ?.filter((s) => !!s.serie_id)
+                .map((s) => ({ serie_id: Number(s.serie_id), observaciones: s.observaciones ?? null })) ?? null,
+              añadir: p.series
+                ?.filter((s) => !s.serie_id)
+                .map((s) => ({ serie_id: null, serie: s.serie ?? null, mac: s.mac ?? null, ua: s.ua ?? null, observaciones: s.observaciones ?? null })) ?? null,
+            },
+          }));
+
+        const body: GuiaEditBody = {
+          numero: values.numero,
+          fecha: values.fecha,
+          proveedor_id: Number(values.proveedor_id),
+          archivo: archivo ?? null,
+          productos: {
+            añadir: añadir.length ? añadir : null,
+            actualizar: actualizar.length ? actualizar : null,
+          },
+        };
+        return updateGuia(guia.id, body);
+      }
+
       const body: GuiaCreateBody = {
         numero: values.numero,
         fecha: values.fecha,
@@ -223,27 +287,12 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
               observaciones: s.observaciones ?? null,
             })) ?? null;
           if (p.producto_id) {
-            return {
-              producto_id: Number(p.producto_id),
-              cantidad: p.cantidad,
-              observaciones: p.observaciones ?? null,
-              series,
-            };
+            return { producto_id: Number(p.producto_id), cantidad: p.cantidad, observaciones: p.observaciones ?? null, series };
           }
-          return {
-            categoria_id: p.categoria_id ? Number(p.categoria_id) : null,
-            sap: p.sap ?? null,
-            nombre: p.nombre ?? null,
-            tipo: p.tipo ?? null,
-            cantidad: p.cantidad,
-            observaciones: p.observaciones ?? null,
-            series,
-          };
+          return { categoria_id: p.categoria_id ? Number(p.categoria_id) : null, sap: p.sap ?? null, nombre: p.nombre ?? null, tipo: p.tipo ?? null, cantidad: p.cantidad, observaciones: p.observaciones ?? null, series };
         }),
       };
-      return mode === "edit" && guia
-        ? updateGuia(guia.id, body)
-        : createGuia(body);
+      return createGuia(body);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [GuiaComplete.QUERY_KEY] });
@@ -258,6 +307,45 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
       errorToast(error.response?.data?.message ?? "Error al guardar la guía.");
     },
   });
+
+  // ── Delete producto ────────────────────────────────────────────────────────
+  const handleDeleteProducto = async (index: number) => {
+    const producto = form.getValues(`productos.${index}`);
+    if (!producto.productos_guia_id) {
+      removeProducto(index);
+      return;
+    }
+    try {
+      await deleteProductoGuia(producto.productos_guia_id);
+      removeProducto(index);
+      queryClient.invalidateQueries({ queryKey: [GuiaComplete.QUERY_KEY] });
+      successToast("Producto eliminado correctamente.");
+    } catch (error: any) {
+      const responseData = error.response?.data;
+      const series: Array<{ serie?: string; mac?: string; ua?: string }> =
+        responseData?.series ?? responseData?.data?.series ?? [];
+      if (series.length > 0) {
+        setDeleteConfirmInfo({ index, id: producto.productos_guia_id, series });
+      } else {
+        errorToast(responseData?.message ?? "Error al eliminar el producto.");
+      }
+    }
+  };
+
+  const handleForceDeleteProducto = async () => {
+    if (!deleteConfirmInfo) return;
+    try {
+      await deleteProductoGuia(deleteConfirmInfo.id, true);
+      removeProducto(deleteConfirmInfo.index);
+      setDeleteConfirmInfo(null);
+      queryClient.invalidateQueries({ queryKey: [GuiaComplete.QUERY_KEY] });
+      successToast("Producto eliminado correctamente.");
+    } catch (error: any) {
+      errorToast(
+        error.response?.data?.message ?? "Error al eliminar el producto.",
+      );
+    }
+  };
 
   // ── Columns ────────────────────────────────────────────────────────────────
   const watchedProductos = form.watch("productos");
@@ -339,9 +427,8 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
             size="icon"
             className="size-7 text-destructive hover:text-destructive"
             onClick={() => {
-              removeProducto(row.index);
-              if (editingProductoIndex === row.index)
-                handleCloseProductoDialog();
+              if (editingProductoIndex === row.index) handleCloseProductoDialog();
+              handleDeleteProducto(row.index);
             }}
           >
             <Trash2 className="size-3" />
@@ -539,6 +626,39 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
         onSubmit={handleAddOrUpdateSerie}
         onTabChange={setSerieDialogTab}
       />
+
+      {/* ── Confirmación forzar eliminación de producto ─────────────────────── */}
+      <AlertDialog
+        open={!!deleteConfirmInfo}
+        onOpenChange={(open) => { if (!open) setDeleteConfirmInfo(null); }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar producto con series asociadas?</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2">
+                <p>Este producto tiene las siguientes series asociadas que también serán eliminadas:</p>
+                <ul className="text-sm space-y-1 max-h-48 overflow-y-auto border rounded p-2">
+                  {deleteConfirmInfo?.series.map((s, i) => (
+                    <li key={i} className="font-mono text-xs">
+                      {[s.serie, s.mac, s.ua].filter(Boolean).join(" · ")}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleForceDeleteProducto}
+            >
+              Forzar eliminación
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* ── Submit ─────────────────────────────────────────────────────────── */}
       <div className="flex justify-end">

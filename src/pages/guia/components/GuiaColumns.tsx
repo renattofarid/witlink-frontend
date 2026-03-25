@@ -1,7 +1,30 @@
 import { ButtonAction } from "@/components/ButtonAction";
-import { Pencil, Trash2, RotateCcw } from "lucide-react";
+import { Pencil, Trash2, RotateCcw, FileText } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
+import { Badge } from "@/components/ui/badge";
 import type { GuiaResource } from "../lib/guia.interface";
+import { api } from "@/lib/config";
+import { promiseToast } from "@/lib/core.function";
+
+async function openPdf(archivo: string) {
+  const promise = api.get(`/archivos/${archivo}`, { responseType: "blob" }).then((response) => {
+    const blob = response.data as Blob;
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = archivo;
+    a.click();
+
+    window.open(url);
+  });
+
+  promiseToast(promise, {
+    loading: "Descargando PDF...",
+    success: "PDF descargado",
+    error: "Error al descargar el PDF",
+  });
+}
 
 interface ColumnActions {
   onEdit: (row: GuiaResource) => void;
@@ -21,6 +44,15 @@ export const getGuiaColumns = ({
   {
     accessorKey: "fecha",
     header: "Fecha",
+    cell: ({ row }) => {
+      const fecha = row.original.fecha;
+      if (!fecha) return "-";
+      return new Date(fecha).toLocaleDateString("es-PE", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
+    },
   },
   {
     id: "proveedor",
@@ -37,6 +69,43 @@ export const getGuiaColumns = ({
       }
       return nombre_usuario;
     },
+  },
+  {
+    id: "productos",
+    header: "Productos",
+    cell: ({ row }) => {
+      const count = row.original.productos?.length ?? 0;
+      if (!count) return <span className="text-muted-foreground text-xs">—</span>;
+      return (
+        <Badge variant="secondary" className="text-xs">
+          {count} producto{count !== 1 ? "s" : ""}
+        </Badge>
+      );
+    },
+  },
+  {
+    id: "pdf",
+    header: "PDF",
+    cell: ({ row }) => {
+      const url = row.original.ruta_pdf_guia;
+      if (!url) return <span className="text-muted-foreground text-xs">—</span>;
+      return (
+        <button onClick={() => openPdf(url)} className="text-primary hover:underline flex items-center gap-1 cursor-pointer">
+          <FileText className="size-3.5" />
+          <span className="text-xs">Ver</span>
+        </button>
+      );
+    },
+  },
+  {
+    id: "estado",
+    header: "Estado",
+    cell: ({ row }) =>
+      row.original.deleted_at ? (
+        <Badge variant="destructive" className="text-xs">Eliminado</Badge>
+      ) : (
+        <Badge variant="outline" className="text-xs text-green-600 border-green-600">Activo</Badge>
+      ),
   },
   {
     id: "acciones",

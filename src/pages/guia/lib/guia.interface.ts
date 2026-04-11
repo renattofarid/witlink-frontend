@@ -101,7 +101,7 @@ export interface GuiaProductoBody {
 export interface GuiaCreateBody {
   numero: string;
   fecha: string;
-  proveedor_id: number;
+  // proveedor_id: number;
   archivo?: File | null;
   productos: GuiaProductoBody[];
 }

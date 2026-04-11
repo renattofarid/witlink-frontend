@@ -24,6 +24,8 @@ export default function ProductoPage() {
   const [params, setParams] = useState<Record<string, string>>({
     page: "1",
     per_page: String(DEFAULT_PER_PAGE),
+    tipo: "",
+    search: "",
   });
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -98,6 +100,9 @@ export default function ProductoPage() {
   const handleSearchChange = (value: string) =>
     setParams((prev) => ({ ...prev, search: value, page: "1" }));
 
+  const handleTypeChange = (value: string) =>
+    setParams((prev) => ({ ...prev, tipo: value, page: "1" }));
+
   const columns = getProductoColumns({
     onEdit: handleEdit,
     onDelete: handleDelete,
@@ -112,7 +117,10 @@ export default function ProductoPage() {
         icon="Box"
       >
         <ActionsWrapper>
-          <ProductoButtons onAdd={handleAdd} onRetiro={() => setRetiroOpen(true)} />
+          <ProductoButtons
+            onAdd={handleAdd}
+            onRetiro={() => setRetiroOpen(true)}
+          />
         </ActionsWrapper>
       </TitleComponent>
 
@@ -124,6 +132,8 @@ export default function ProductoPage() {
         <ProductoFilters
           search={params.search ?? ""}
           onSearchChange={handleSearchChange}
+          type={params.tipo ?? ""}
+          onTypeChange={handleTypeChange}
         />
       </DataTable>
 

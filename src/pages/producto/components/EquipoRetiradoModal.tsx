@@ -222,7 +222,7 @@ export default function EquipoRetiradoModal({
         const count = row.original.series?.length ?? 0;
         if (!count) return <span className="text-muted-foreground text-xs">—</span>;
         return (
-          <Badge variant="secondary" className="text-xs">
+          <Badge variant="default" className="text-xs">
             {count} serie{count !== 1 ? "s" : ""}
           </Badge>
         );

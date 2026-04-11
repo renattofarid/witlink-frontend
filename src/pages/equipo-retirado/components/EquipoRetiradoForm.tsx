@@ -537,7 +537,7 @@ export default function EquipoRetiradoForm({
             <span className="text-muted-foreground text-xs">—</span>
           );
         return (
-          <Badge variant="secondary" className="text-xs">
+          <Badge variant="default" className="text-xs">
             {series.length} serie{series.length !== 1 ? "s" : ""}
           </Badge>
         );

@@ -56,11 +56,11 @@ export const getGuiaColumns = ({
       });
     },
   },
-  {
-    id: "proveedor",
-    header: "Proveedor",
-    cell: ({ row }) => row.original.proveedor?.razon_social ?? "-",
-  },
+  // {
+  //   id: "proveedor",
+  //   header: "Proveedor",
+  //   cell: ({ row }) => row.original.proveedor?.razon_social ?? "-",
+  // },
   {
     id: "usuario",
     header: "Usuario",
@@ -79,7 +79,7 @@ export const getGuiaColumns = ({
       const count = row.original.productos?.length ?? 0;
       if (!count) return <span className="text-muted-foreground text-xs">—</span>;
       return (
-        <Badge variant="secondary" className="text-xs">
+        <Badge variant="default" className="text-xs">
           {count} producto{count !== 1 ? "s" : ""}
         </Badge>
       );
@@ -104,7 +104,7 @@ export const getGuiaColumns = ({
     header: "Estado",
     cell: ({ row }) =>
       row.original.deleted_at ? (
-        <Badge variant="destructive" className="text-xs">Eliminado</Badge>
+        <Badge color="destructive" className="text-xs">Eliminado</Badge>
       ) : (
         <Badge variant="outline" className="text-xs text-green-600 border-green-600">Activo</Badge>
       ),

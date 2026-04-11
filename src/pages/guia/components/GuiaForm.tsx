@@ -401,7 +401,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
       header: "Tipo",
       cell: ({ row }) =>
         row.original.tipo ? (
-          <Badge variant="secondary"  className="text-xs capitalize">
+          <Badge variant="default" className="text-xs capitalize">
             {row.original.tipo}
           </Badge>
         ) : (
@@ -419,10 +419,12 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
       cell: ({ row }) => {
         const series = row.original.series ?? [];
         if (!series.length)
-          return <span className="text-muted-foreground text-xs">Sin series</span>;
+          return (
+            <span className="text-muted-foreground text-xs">Sin series</span>
+          );
         return (
           <div className="flex items-center gap-1.5">
-            <Badge variant="secondary" className="text-xs">
+            <Badge variant="default" className="text-xs">
               {series.length} serie{series.length !== 1 ? "s" : ""}
             </Badge>
             <Button
@@ -606,9 +608,6 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
       </ConfirmationDialog>
 
       {/* ── Submit ─────────────────────────────────────────────────────────── */}
-      <pre className="text-xs text-muted-foreground">
-        {JSON.stringify(form.formState.errors, null, 2)}
-      </pre>
       <div className="flex justify-end">
         <Button type="submit" disabled={mutation.isPending}>
           {mutation.isPending

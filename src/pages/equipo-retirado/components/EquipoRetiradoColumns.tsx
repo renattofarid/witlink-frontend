@@ -61,7 +61,7 @@ export const getEquipoRetiradoColumns = ({
       if (!count)
         return <span className="text-muted-foreground text-xs">—</span>;
       return (
-        <Badge variant="secondary" className="text-xs">
+        <Badge variant="default" className="text-xs">
           {count} producto{count !== 1 ? "s" : ""}
         </Badge>
       );
@@ -72,7 +72,7 @@ export const getEquipoRetiradoColumns = ({
     header: "Estado",
     cell: ({ row }) =>
       row.original.deleted_at ? (
-        <Badge variant="destructive" className="text-xs">
+        <Badge color="destructive" className="text-xs">
           Eliminado
         </Badge>
       ) : (

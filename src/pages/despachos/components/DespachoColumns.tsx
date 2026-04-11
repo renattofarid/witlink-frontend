@@ -42,7 +42,7 @@ export const getDespachoColumns = ({
     header: "Estado",
     cell: ({ row }) =>
       row.original.deleted_at ? (
-        <Badge variant="destructive" className="text-xs">
+        <Badge color="destructive" className="text-xs">
           Eliminado
         </Badge>
       ) : (

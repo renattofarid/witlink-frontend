@@ -15,7 +15,7 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { cn } from "@/lib/utils";
-import { Waypoints } from "lucide-react";
+import { Eye, EyeOff, Waypoints } from "lucide-react";
 
 const formSchema = z.object({
   nombre_usuario: z
@@ -33,6 +33,7 @@ export default function LoginPage({
   ...props
 }: React.ComponentProps<"div">) {
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -52,7 +53,7 @@ export default function LoginPage({
         contraseña: data.contraseña,
       });
       successToast("Inicio de sesión exitoso");
-      navigate("/inicio");
+      navigate("/seleccionar-almacen", { replace: true });
     } catch (error: any) {
       const errorMessage =
         error.response?.data?.message ||
@@ -111,11 +112,26 @@ export default function LoginPage({
                     <div className="flex items-center">
                       <FieldLabel htmlFor="contraseña">Contraseña</FieldLabel>
                     </div>
-                    <Input
-                      id="contraseña"
-                      type="password"
-                      {...form.register("contraseña")}
-                    />
+                    <div className="relative">
+                      <Input
+                        id="contraseña"
+                        type={showPassword ? "text" : "password"}
+                        className="pr-10"
+                        {...form.register("contraseña")}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((v) => !v)}
+                        className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
+                        tabIndex={-1}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="size-4" />
+                        ) : (
+                          <Eye className="size-4" />
+                        )}
+                      </button>
+                    </div>
                     {form.formState.errors.contraseña && (
                       <p className="text-sm text-red-500">
                         {form.formState.errors.contraseña.message}

@@ -5,16 +5,25 @@ export const serieSchema = z
     serie_id: z.union([z.string(), z.number()]).optional().nullable(),
     serie: z.string().optional().nullable(),
     mac: z.string().optional().nullable(),
+    emta_mac: z.string().optional().nullable(),
     ua: z.string().optional().nullable(),
     observaciones: z.string().optional().nullable(),
   })
   .superRefine((data, ctx) => {
     if (data.serie_id) return; // reingreso: skip format validation
-    if (data.mac && !/^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$/.test(data.mac)) {
+    const macRegex = /^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$/;
+    if (data.mac && !macRegex.test(data.mac)) {
       ctx.addIssue({
         code: "custom",
         message: "Formato inválido (ej. 00:1A:2B:3C:4D:5E)",
         path: ["mac"],
+      });
+    }
+    if (data.emta_mac && !macRegex.test(data.emta_mac)) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Formato inválido (ej. 00:1A:2B:3C:4D:5E)",
+        path: ["emta_mac"],
       });
     }
     if (data.ua && data.ua.length !== 17) {
@@ -34,7 +43,12 @@ export const productoSchema = z
     sap: z.string().optional().nullable(),
     nombre: z.string().optional().nullable(),
     tipo: z.enum(["material", "equipo"]).optional().nullable(),
-    cantidad: z.number().min(1, "Mínimo 1"),
+    origen: z.string().optional().nullable(),
+    necesita_serie: z.boolean().nullable().optional(),
+    necesita_mac: z.boolean().nullable().optional(),
+    necesita_emta_mac: z.boolean().nullable().optional(),
+    necesita_ua: z.boolean().nullable().optional(),
+    cantidad: z.coerce.number().min(1, "Minimo 1 unidad"),
     observaciones: z.string().optional().nullable(),
     series: z.array(serieSchema).optional().nullable(),
   })
@@ -47,8 +61,16 @@ export const productoSchema = z
         path: ["nombre"],
       });
     }
-    // Equipo: series obligatorias y deben coincidir con la cantidad
-    if (p.tipo !== "equipo") return;
+    // SAP requerido si origen es claro y es producto manual
+    if (!p.producto_id && p.origen === "claro" && !p.sap) {
+      ctx.addIssue({
+        code: "custom",
+        message: "El código SAP es requerido cuando el origen es Claro.",
+        path: ["sap"],
+      });
+    }
+    // Series requeridas solo para equipos con necesita_serie = true
+    if (p.tipo !== "equipo" || !p.necesita_serie) return;
     if ((p.series?.length ?? 0) !== p.cantidad) {
       ctx.addIssue({
         code: "custom",
@@ -56,12 +78,32 @@ export const productoSchema = z
         path: ["series"],
       });
     }
+    // Validar unicidad de series
+    if (p.series && p.series.length > 1) {
+      const checkUnique = (
+        values: (string | null | undefined)[],
+        label: string
+      ) => {
+        const filled = values.filter(Boolean) as string[];
+        if (new Set(filled).size !== filled.length) {
+          ctx.addIssue({
+            code: "custom",
+            message: `Los valores de ${label} deben ser únicos.`,
+            path: ["series"],
+          });
+        }
+      };
+      checkUnique(p.series.map((s) => s.serie), "serie");
+      checkUnique(p.series.map((s) => s.mac), "MAC");
+      checkUnique(p.series.map((s) => s.emta_mac), "EMTA MAC");
+      checkUnique(p.series.map((s) => s.ua), "UA");
+    }
   });
 
 export const guiaCreateSchema = z.object({
   numero: z.string().min(1, "Requerido"),
   fecha: z.string().min(1, "Requerido"),
-  proveedor_id: z.string().min(1, "Requerido"),
+  // proveedor_id: z.string().min(1, "Requerido"),
   productos: z
     .array(productoSchema)
     .min(1, "Debe agregar al menos un producto"),

@@ -1,0 +1,313 @@
+import { useState } from "react";
+import { useForm, useFieldArray } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { ColumnDef } from "@tanstack/react-table";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { FormSelectAsync } from "@/components/FormSelectAsync";
+import { DataTable } from "@/components/DataTable";
+import { Badge } from "@/components/ui/badge";
+import { successToast, errorToast } from "@/lib/core.function";
+import { Trash2, Pencil, PackagePlus } from "lucide-react";
+import {
+  despachoCreateSchema,
+  type DespachoCreateFormValues,
+  type DespachoProductoFormValues,
+  type DespachoSerieFormValues,
+} from "../lib/despacho.schema";
+import { createDespacho } from "../lib/despacho.actions";
+import { DespachoComplete } from "../lib/despacho.constants";
+import { useTecnicoDespachoQuery } from "../lib/despacho.hook";
+import type { TecnicoResource } from "@/pages/tecnico/lib/tecnico.interface";
+import { DespachoProductoDialog } from "./DespachoProductoDialog";
+import { despachoProductoSchema } from "../lib/despacho.schema";
+
+void despachoProductoSchema;
+
+const EMPTY_PRODUCTO: DespachoProductoFormValues = {
+  producto_id: "",
+  nombre: null,
+  sap: null,
+  cantidad: 1,
+  series: [],
+};
+
+interface DespachoFormProps {
+  onSuccess?: () => void;
+}
+
+export default function DespachoForm({ onSuccess }: DespachoFormProps) {
+  const queryClient = useQueryClient();
+
+  const [editingProductoIndex, setEditingProductoIndex] = useState<
+    number | null
+  >(null);
+  const [productoDialogOpen, setProductoDialogOpen] = useState(false);
+
+  // ── Main form ──────────────────────────────────────────────────────────────
+  const form = useForm<DespachoCreateFormValues>({
+    resolver: zodResolver(despachoCreateSchema) as any,
+    defaultValues: { tecnico_id: "", productos: [] },
+    mode: "onChange",
+  });
+
+  const {
+    append: appendProducto,
+    remove: removeProducto,
+    update: updateProductoField,
+  } = useFieldArray({ control: form.control, name: "productos" });
+
+  // ── Product sub-form ───────────────────────────────────────────────────────
+  const productSubForm = useForm<DespachoProductoFormValues>({
+    resolver: zodResolver(despachoProductoSchema) as any,
+    defaultValues: EMPTY_PRODUCTO,
+    mode: "onChange",
+  });
+
+  const {
+    append: appendSerie,
+    remove: removeSerie,
+    update: updateSerieField,
+  } = useFieldArray({ control: productSubForm.control, name: "series" });
+
+  const watchedSeries = productSubForm.watch("series") ?? [];
+
+  const handleUpdateSerie = (index: number, value: string) => {
+    updateSerieField(index, { serie: value });
+  };
+
+  // ── Handlers: producto ─────────────────────────────────────────────────────
+  const handleAddOrUpdateProducto = productSubForm.handleSubmit((values) => {
+    if (editingProductoIndex === null) {
+      appendProducto(values);
+    } else {
+      updateProductoField(editingProductoIndex, values);
+      setEditingProductoIndex(null);
+    }
+    productSubForm.reset(EMPTY_PRODUCTO);
+    setProductoDialogOpen(false);
+  });
+
+  const handleOpenProductoDialog = () => {
+    productSubForm.reset(EMPTY_PRODUCTO);
+    setEditingProductoIndex(null);
+    setProductoDialogOpen(true);
+  };
+
+  const handleEditProducto = (index: number) => {
+    const producto = form.getValues(`productos.${index}`);
+    setEditingProductoIndex(index);
+    productSubForm.reset(producto);
+    setProductoDialogOpen(true);
+  };
+
+  const handleCloseProductoDialog = () => {
+    setProductoDialogOpen(false);
+    setEditingProductoIndex(null);
+    productSubForm.reset(EMPTY_PRODUCTO);
+  };
+
+  // ── Mutation ───────────────────────────────────────────────────────────────
+  const mutation = useMutation({
+    mutationFn: (values: DespachoCreateFormValues) => {
+      return createDespacho({
+        tecnico_id: Number(values.tecnico_id),
+        productos: values.productos.map((p) => ({
+          id: Number(p.producto_id),
+          cantidad: p.cantidad,
+          series: (p.series ?? [])
+            .filter((s) => s.serie.trim() !== "")
+            .map((s) => ({ serie: s.serie.trim().toUpperCase() })),
+        })),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [DespachoComplete.QUERY_KEY] });
+      successToast("Despacho creado correctamente.");
+      onSuccess?.();
+    },
+    onError: (error: any) => {
+      errorToast(
+        error.response?.data?.message ?? "Error al crear el despacho.",
+      );
+    },
+  });
+
+  // ── Columns: tabla resumen de productos ────────────────────────────────────
+  const watchedProductos = form.watch("productos");
+
+  const productoColumns: ColumnDef<DespachoProductoFormValues>[] = [
+    {
+      id: "index",
+      header: "#",
+      cell: ({ row }) => (
+        <span className="text-muted-foreground text-xs">{row.index + 1}</span>
+      ),
+    },
+    {
+      id: "producto",
+      header: "Producto",
+      cell: ({ row }) => (
+        <span className="font-medium text-sm">
+          {row.original.nombre || row.original.sap || "—"}
+        </span>
+      ),
+    },
+    {
+      id: "sap",
+      header: "SAP",
+      cell: ({ row }) => (
+        <span className="text-xs text-muted-foreground">
+          {row.original.sap || "—"}
+        </span>
+      ),
+    },
+    {
+      id: "cantidad",
+      header: "Cant.",
+      cell: ({ row }) => row.original.cantidad,
+    },
+    {
+      id: "series",
+      header: "Series",
+      cell: ({ row }) => {
+        const series = (row.original.series ?? []).filter(
+          (s) => s.serie.trim() !== "",
+        );
+        if (!series.length)
+          return (
+            <span className="text-muted-foreground text-xs">Sin series</span>
+          );
+        return (
+          <Badge variant="secondary" className="text-xs">
+            {series.length} serie{series.length !== 1 ? "s" : ""}
+          </Badge>
+        );
+      },
+    },
+    {
+      id: "acciones",
+      header: "",
+      cell: ({ row }) => (
+        <div className="flex gap-1 justify-end">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="size-7"
+            onClick={() => handleEditProducto(row.index)}
+          >
+            <Pencil className="size-3" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="size-7 text-destructive hover:text-destructive"
+            onClick={() => {
+              if (editingProductoIndex === row.index) handleCloseProductoDialog();
+              removeProducto(row.index);
+            }}
+          >
+            <Trash2 className="size-3" />
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <form
+      onSubmit={form.handleSubmit((v) => mutation.mutate(v))}
+      className="space-y-4"
+    >
+      {/* ── Sección 1: Técnico ─────────────────────────────────────────────── */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground whitespace-nowrap">
+            Datos del despacho
+          </h3>
+          <Separator className="flex-1" />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <FormSelectAsync
+            name="tecnico_id"
+            label="Técnico"
+            control={form.control}
+            placeholder="Seleccionar técnico..."
+            useQueryHook={useTecnicoDespachoQuery}
+            mapOptionFn={(item: TecnicoResource) => ({
+              value: String(item.id),
+              label: item.persona
+                ? `${item.persona.nombre} ${item.persona.apellido_paterno}`
+                : `Técnico #${item.id}`,
+            })}
+            perPage={20}
+            required
+          />
+        </div>
+      </div>
+
+      {/* ── Sección 2: Productos ────────────────────────────────────────────── */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 flex-1">
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground whitespace-nowrap">
+              Productos
+            </h3>
+            <Separator className="flex-1" />
+          </div>
+          {!productoDialogOpen && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="ml-2 h-6 text-xs px-2"
+              onClick={handleOpenProductoDialog}
+            >
+              <PackagePlus className="size-3 mr-1" />
+              Agregar
+            </Button>
+          )}
+        </div>
+
+        <DespachoProductoDialog
+          open={productoDialogOpen}
+          editingIndex={editingProductoIndex}
+          productSubForm={productSubForm}
+          watchedSeries={watchedSeries as DespachoSerieFormValues[]}
+          onClose={handleCloseProductoDialog}
+          onSubmit={handleAddOrUpdateProducto}
+          onAppendSerie={appendSerie}
+          onRemoveSerie={removeSerie}
+          onUpdateSerie={handleUpdateSerie}
+        />
+
+        {watchedProductos.length > 0 && (
+          <DataTable
+            columns={productoColumns}
+            data={watchedProductos}
+            variant="outline"
+            isVisibleColumnFilter={false}
+          />
+        )}
+
+        {form.formState.errors.productos &&
+          !Array.isArray(form.formState.errors.productos) && (
+            <p className="text-xs text-destructive">
+              {form.formState.errors.productos.message}
+            </p>
+          )}
+      </div>
+
+      {/* ── Submit ─────────────────────────────────────────────────────────── */}
+      <div className="flex justify-end">
+        <Button type="submit" disabled={mutation.isPending}>
+          {mutation.isPending ? "Guardando..." : "Crear despacho"}
+        </Button>
+      </div>
+    </form>
+  );
+}

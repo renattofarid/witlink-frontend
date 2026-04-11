@@ -1,5 +1,5 @@
 import { useAuthStore } from "./auth.store";
-import type { AuthenticateResponse, AuthResponse } from "./auth.interface";
+import type { AlmacenResource, AuthenticateResponse, AuthResponse } from "./auth.interface";
 import { api } from "@/lib/config";
 
 export interface LoginBody {
@@ -55,6 +55,21 @@ export async function authenticate(): Promise<AuthenticateResponse> {
 
 export async function logout(): Promise<void> {
   await api.post("/auth/logout");
+}
+
+export async function selectAlmacen(almacenId: number): Promise<string> {
+  const { data } = await api.get<{ token: string }>(
+    `/almacenes/seleccionar?almacen_id=${almacenId}`,
+  );
+  useAuthStore.getState().setToken(data.token);
+  return data.token;
+}
+
+export async function getAlmacenes(): Promise<AlmacenResource[]> {
+  const { data } = await api.get("/almacenes");
+  // La API puede devolver { data: [] } o un array directo
+  const list = Array.isArray(data) ? data : (data?.data ?? []);
+  return list as AlmacenResource[];
 }
 
 export async function updateEmail(newEmail: string): Promise<void> {

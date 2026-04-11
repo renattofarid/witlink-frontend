@@ -77,6 +77,7 @@ export interface GuiaSerieBody {
   serie_id?: number | null;
   serie?: string | null;
   mac?: string | null;
+  emta_mac?: string | null;
   ua?: string | null;
   observaciones?: string | null;
 }
@@ -87,6 +88,11 @@ export interface GuiaProductoBody {
   sap?: string | null;
   nombre?: string | null;
   tipo?: "material" | "equipo" | null;
+  origen?: string | null;
+  necesita_serie?: boolean | null;
+  necesita_mac?: boolean | null;
+  necesita_emta_mac?: boolean | null;
+  necesita_ua?: boolean | null;
   cantidad: number;
   observaciones: string | null;
   series: GuiaSerieBody[] | null;
@@ -95,7 +101,7 @@ export interface GuiaProductoBody {
 export interface GuiaCreateBody {
   numero: string;
   fecha: string;
-  proveedor_id: number;
+  // proveedor_id: number;
   archivo?: File | null;
   productos: GuiaProductoBody[];
 }

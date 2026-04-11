@@ -1,68 +1,48 @@
-Crea el módulo de Materiales siguiendo la arquitectura definida en MEMORY.md.
+Crea el módulo de Despachos siguiendo la arquitectura definida en MEMORY.md.
 
 ## Módulo
 
-- Nombre singular: Material
-- Nombre plural: Materiales
+- Nombre singular: Despacho
+- Nombre plural: Despachos
 - Ícono (Lucide): List
-- URL: /materiales
-- Endpoint base: https://develop.garzasoft.com:85/almacen-witlink/public/api/materiales
+- URL: /despachos
+- Endpoint base: https://develop.garzasoft.com:85/almacen-witlink/public/api/despachos
+
+## Filters
+
+```ts
+{
+  tecnico_id!: integer
+}
+```
 
 ## Resource (respuesta de la API)
 
 ```json
 {
-  "id": 24,
-  "producto": {
-    "id": 24,
-    "categoria_id": 8,
-    "sap": "HER-SILICON",
-    "nombre": "Silicona Selladora",
-    "tipo": "consumible",
-    "created_at": "2026-03-08T20:28:28.000000Z",
-    "updated_at": "2026-03-08T20:28:28.000000Z",
-    "deleted_at": null,
-    "categoria": {
-      "id": 8,
-      "nombre": "Herramientas De Instalación",
-      "created_at": "2026-03-08T20:28:27.000000Z",
-      "updated_at": "2026-03-08T20:28:27.000000Z",
-      "deleted_at": null
-    }
-  },
-  "cantidad": "80.00",
-  "created_at": "2026-03-08T20:28:28.000000Z",
-  "updated_at": "2026-03-08T20:28:28.000000Z"
+  "id": 1,
+  "usuario_id": 1,
+  "tecnico_id": 1,
+  "numero": "NUM-00001",
+  "fecha": "2026-04-11",
+  "created_at": "2026-04-11T04:19:41.000000Z",
+  "updated_at": "2026-04-11T04:19:41.000000Z",
+  "deleted_at": null,
+  "almacen_id": 2
 }
 ```
 
 ```ts
 interface RootObject {
   id: number;
-  producto: Producto;
-  cantidad: string;
-  created_at: string;
-  updated_at: string;
-}
-
-interface Producto {
-  id: number;
-  categoria_id: number;
-  sap: string;
-  nombre: string;
-  tipo: string;
+  usuario_id: number;
+  tecnico_id: number;
+  numero: string;
+  fecha: string;
   created_at: string;
   updated_at: string;
   deleted_at: null;
-  categoria: Categoria;
-}
-
-interface Categoria {
-  id: number;
-  nombre: string;
-  created_at: string;
-  updated_at: string;
-  deleted_at: null;
+  almacen_id: number;
 }
 ```
 
@@ -72,122 +52,55 @@ interface Categoria {
 
 ```json
 {
-  "producto_id": 0,
-  "cantidad": 0.01
+  "tecnico_id": 0,
+  "productos": [
+    {
+      "id": 0,
+      "cantidad": 1,
+      "series": [
+        {
+          "serie": "string"
+        }
+      ]
+    }
+  ]
 }
 ```
 
 ```ts
 interface RootObject {
-  producto_id: number;
-  cantidad: number;
+  tecnico_id: number;
+  productos: Producto[];
 }
-```
 
-### Editar
-
-```json
-{
-  "producto_id": 0,
-  "cantidad": 0.01
-}
-```
-
-```ts
-interface RootObject {
-  producto_id: number;
-  cantidad: number;
-}
-```
-
-### Adicional
-
-La api que se usara para ver sus opciones
-https://develop.garzasoft.com:85/almacen-witlink/public/api/grupo-menus/{id}/opciones-menu
-
-```json
-[
-  {
-    "id": 1,
-    "nombre": "Dashboard",
-    "ruta": "/dashboard",
-    "orden": "1",
-    "icono": "dashboard",
-    "grupo_menu_id": 1,
-    "created_at": "2026-03-08T20:28:27.000000Z",
-    "updated_at": "2026-03-08T20:28:27.000000Z",
-    "deleted_at": null
-  },
-  {
-    "id": 2,
-    "nombre": "Usuarios",
-    "ruta": "/usuarios",
-    "orden": "2",
-    "icono": "people",
-    "grupo_menu_id": 1,
-    "created_at": "2026-03-08T20:28:28.000000Z",
-    "updated_at": "2026-03-08T20:28:28.000000Z",
-    "deleted_at": null
-  }
-]
-```
-
-```ts
-interface RootObject {
+interface Producto {
   id: number;
-  nombre: string;
-  ruta: string;
-  orden: string;
-  icono: string;
-  grupo_menu_id: number;
-  created_at: string;
-  updated_at: string;
-  deleted_at: null;
+  cantidad: number;
+  series: Series[];
+}
+
+interface Series {
+  serie: string;
 }
 ```
 
-La idea es que en el modulo podamos listar los menu y ademas podamos crear las opciones de menu que es con las siguientes apis
 
-### Crear
+## Adicional
+
+https://develop.garzasoft.com:85/almacen-witlink/public/api/despachos/masivo-series
 
 ```json
 {
-  "nombre": "string",
-  "ruta": "string",
-  "icono": "string",
-  "orden": "string",
-  "grupo_menu_id": 0
+  "tecnico_id": 0,
+  "series": [
+    "string"
+  ]
 }
 ```
 
 ```ts
 interface RootObject {
-  nombre: string;
-  ruta: string;
-  icono: string;
-  orden: string;
-  grupo_menu_id: number;
-}
-```
-
-### Editar
-
-```json
-{
-  "nombre": "string",
-  "ruta": "string",
-  "icono": "string",
-  "orden": "string",
-  "grupo_menu_id": 0
-}
-```
-
-```ts
-interface RootObject {
-  nombre: string;
-  ruta: string;
-  icono: string;
-  orden: string;
-  grupo_menu_id: number;
+  tecnico_id: number;
+  series: string[];
 }
 ```

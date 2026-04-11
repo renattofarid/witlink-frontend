@@ -6,8 +6,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { FormInput } from "@/components/FormInput";
-import { FileUploadWithCamera } from "@/components/FileUploadWithCamera";
-import { FormSelectAsync } from "@/components/FormSelectAsync";
+// import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import { DataTable } from "@/components/DataTable";
 import { successToast, errorToast } from "@/lib/core.function";
@@ -19,24 +18,35 @@ import {
   type ProductoFormValues,
   type SerieFormValues,
 } from "../lib/guia.schema";
-import { createGuia, updateGuia, deleteProductoGuia } from "../lib/guia.actions";
-import { useProveedoresQuery } from "../lib/guia.hook";
+import {
+  createGuia,
+  updateGuia,
+  deleteProductoGuia,
+} from "../lib/guia.actions";
+// import { useProveedoresQuery } from "../lib/guia.hook";
 import { GuiaComplete } from "../lib/guia.constants";
-import type { GuiaCreateBody, GuiaEditBody, GuiaResource } from "../lib/guia.interface";
-import { Trash2, Pencil, PackagePlus } from "lucide-react";
+import type {
+  GuiaCreateBody,
+  GuiaEditBody,
+  GuiaResource,
+} from "../lib/guia.interface";
+import { Trash2, Pencil, PackagePlus, List } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 import { GuiaProductoDialog } from "./GuiaProductoDialog";
-import { GuiaSerieDialog } from "./GuiaSerieDialog";
+import { GuiaSeriesDetailModal } from "./GuiaSeriesDetailModal";
+// Evitar que TS se queje de imports no usados directamente
+void productoSchema;
+void serieSchema;
 
-
-const EMPTY_SERIE: SerieFormValues = {
-  serie_id: null,
-  serie: "",
-  mac: "",
-  ua: "",
-  observaciones: null,
-};
+// const EMPTY_SERIE: SerieFormValues = {
+//   serie_id: null,
+//   serie: "",
+//   mac: "",
+//   emta_mac: "",
+//   ua: "",
+//   observaciones: null,
+// };
 
 const EMPTY_PRODUCTO: ProductoFormValues = {
   producto_id: null,
@@ -44,6 +54,11 @@ const EMPTY_PRODUCTO: ProductoFormValues = {
   sap: null,
   nombre: null,
   tipo: null,
+  origen: null,
+  necesita_serie: null,
+  necesita_mac: null,
+  necesita_emta_mac: null,
+  necesita_ua: null,
   cantidad: 1,
   observaciones: null,
   series: [],
@@ -60,28 +75,29 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
   const [editingProductoIndex, setEditingProductoIndex] = useState<
     number | null
   >(null);
-  const [editingSerieIndex, setEditingSerieIndex] = useState<number | null>(
-    null,
-  );
   const [productoDialogOpen, setProductoDialogOpen] = useState(false);
   const [productoDialogTab, setProductoDialogTab] = useState<
     "catalogo" | "manual"
   >("catalogo");
-  const [archivo, setArchivo] = useState<File | null>(null);
-  const [serieDialogOpen, setSerieDialogOpen] = useState(false);
-  const [serieDialogTab, setSerieDialogTab] = useState<"select" | "create">(
-    "select",
-  );
+  const [archivo] = useState<File | null>(null);
   const [deleteConfirmInfo, setDeleteConfirmInfo] = useState<{
     index: number;
     id: number;
     series: Array<{ serie?: string; mac?: string; ua?: string }>;
   } | null>(null);
+  const [seriesDetail, setSeriesDetail] = useState<{
+    series: SerieFormValues[];
+    nombre: string | null;
+    necesitaSerie: boolean | null;
+    necesitaMac: boolean | null;
+    necesitaEmtaMac: boolean | null;
+    necesitaUa: boolean | null;
+  } | null>(null);
 
   // ── Main form ──────────────────────────────────────────────────────────────
   const form = useForm<GuiaCreateFormValues>({
-    resolver: zodResolver(guiaCreateSchema),
-    defaultValues: { numero: "", fecha: "", proveedor_id: "", productos: [] },
+    resolver: zodResolver(guiaCreateSchema) as any,
+    defaultValues: { numero: "", fecha: "", productos: [] },
     mode: "onChange",
   });
 
@@ -96,7 +112,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
       form.reset({
         numero: guia.numero,
         fecha: guia.fecha?.split("T")[0] ?? "",
-        proveedor_id: String(guia.proveedor.id),
+        // proveedor_id: String(guia.proveedor.id),
         productos: (guia.productos ?? []).map((p) => ({
           productos_guia_id: p.id,
           producto_id: String(p.producto.id),
@@ -104,6 +120,11 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
           sap: p.producto.sap ?? null,
           nombre: p.producto.nombre ?? null,
           tipo: (p.producto.tipo as "material" | "equipo") ?? null,
+          origen: null,
+          necesita_serie: null,
+          necesita_mac: null,
+          necesita_emta_mac: null,
+          necesita_ua: null,
           cantidad: Number(p.cantidad),
           observaciones: p.observaciones ?? null,
           series:
@@ -111,6 +132,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
               serie_id: s.serie?.id ?? null,
               serie: s.serie?.serie ?? null,
               mac: s.serie?.mac ?? null,
+              emta_mac: null,
               ua: s.serie?.ua ?? null,
               observaciones: s.observaciones ?? null,
             })) ?? [],
@@ -121,19 +143,19 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
 
   // ── Product sub-form ───────────────────────────────────────────────────────
   const productSubForm = useForm<ProductoFormValues>({
-    resolver: zodResolver(productoSchema),
+    resolver: zodResolver(productoSchema) as any,
     defaultValues: EMPTY_PRODUCTO,
     mode: "onChange",
   });
 
-  const {
-    append: appendSerie,
-    remove: removeSerie,
-    update: updateSerieField,
-  } = useFieldArray({ control: productSubForm.control, name: "series" });
+  const { append: appendSerie, remove: removeSerie } = useFieldArray({
+    control: productSubForm.control,
+    name: "series",
+  });
 
   const watchedSeries = productSubForm.watch("series") ?? [];
 
+  // ── Handlers: producto ─────────────────────────────────────────────────────
   const handleAddOrUpdateProducto = productSubForm.handleSubmit((values) => {
     if (editingProductoIndex === null) {
       appendProducto(values);
@@ -142,14 +164,11 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
       setEditingProductoIndex(null);
     }
     productSubForm.reset(EMPTY_PRODUCTO);
-    serieSubForm.reset(EMPTY_SERIE);
-    setEditingSerieIndex(null);
     setProductoDialogOpen(false);
   });
 
   const handleOpenProductoDialog = () => {
     productSubForm.reset(EMPTY_PRODUCTO);
-    serieSubForm.reset(EMPTY_SERIE);
     setEditingProductoIndex(null);
     setProductoDialogTab("catalogo");
     setProductoDialogOpen(true);
@@ -159,8 +178,6 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
     const producto = form.getValues(`productos.${index}`);
     setEditingProductoIndex(index);
     productSubForm.reset(producto);
-    serieSubForm.reset(EMPTY_SERIE);
-    setEditingSerieIndex(null);
     setProductoDialogTab(producto.producto_id ? "catalogo" : "manual");
     setProductoDialogOpen(true);
   };
@@ -169,48 +186,6 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
     setProductoDialogOpen(false);
     setEditingProductoIndex(null);
     productSubForm.reset(EMPTY_PRODUCTO);
-    serieSubForm.reset(EMPTY_SERIE);
-    setEditingSerieIndex(null);
-  };
-
-  // ── Serie sub-form ─────────────────────────────────────────────────────────
-  const serieSubForm = useForm<SerieFormValues>({
-    resolver: zodResolver(serieSchema),
-    defaultValues: EMPTY_SERIE,
-    mode: "onChange",
-  });
-
-  const handleAddOrUpdateSerie = serieSubForm.handleSubmit((values) => {
-    if (editingSerieIndex === null) {
-      appendSerie(values);
-    } else {
-      updateSerieField(editingSerieIndex, values);
-      setEditingSerieIndex(null);
-    }
-    serieSubForm.reset(EMPTY_SERIE);
-    setSerieDialogOpen(false);
-  });
-
-  const handleEditSerie = (index: number) => {
-    const serie = productSubForm.getValues(`series.${index}`);
-    setEditingSerieIndex(index);
-    serieSubForm.reset(serie as SerieFormValues);
-    setSerieDialogTab(serie?.serie_id ? "select" : "create");
-    setSerieDialogOpen(true);
-  };
-
-  const handleCloseSerieDialog = () => {
-    setSerieDialogOpen(false);
-    setEditingSerieIndex(null);
-    serieSubForm.reset(EMPTY_SERIE);
-  };
-
-  const handleOpenSerieDialog = (tab: "select" | "create") => {
-    serieSubForm.reset(EMPTY_SERIE);
-    setEditingSerieIndex(null);
-    // Producto manual → sus series no existen aún, solo se puede crear nueva
-    setSerieDialogTab(productoDialogTab === "manual" ? "create" : tab);
-    setSerieDialogOpen(true);
   };
 
   // ── Mutation ───────────────────────────────────────────────────────────────
@@ -220,18 +195,40 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
         const añadir = values.productos
           .filter((p) => !p.productos_guia_id)
           .map((p) => {
+            const isEquipo = p.tipo === "equipo";
             const series =
               p.series?.map((s) => ({
                 serie_id: s.serie_id ? Number(s.serie_id) : undefined,
                 serie: s.serie ?? null,
                 mac: s.mac ?? null,
+                emta_mac: s.emta_mac ?? null,
                 ua: s.ua ?? null,
                 observaciones: s.observaciones ?? null,
               })) ?? null;
             if (p.producto_id) {
-              return { producto_id: Number(p.producto_id), cantidad: p.cantidad, observaciones: p.observaciones ?? null, series };
+              return {
+                producto_id: Number(p.producto_id),
+                cantidad: p.cantidad,
+                observaciones: p.observaciones ?? null,
+                series,
+              };
             }
-            return { categoria_id: p.categoria_id ? Number(p.categoria_id) : null, sap: p.sap ?? null, nombre: p.nombre ?? null, tipo: p.tipo ?? null, cantidad: p.cantidad, observaciones: p.observaciones ?? null, series };
+            return {
+              categoria_id: p.categoria_id ? Number(p.categoria_id) : null,
+              sap: p.sap ?? null,
+              nombre: p.nombre ?? null,
+              tipo: p.tipo ?? null,
+              origen: p.origen ?? null,
+              necesita_serie: isEquipo ? (p.necesita_serie ?? null) : null,
+              necesita_mac: isEquipo ? (p.necesita_mac ?? null) : null,
+              necesita_emta_mac: isEquipo
+                ? (p.necesita_emta_mac ?? null)
+                : null,
+              necesita_ua: isEquipo ? (p.necesita_ua ?? null) : null,
+              cantidad: p.cantidad,
+              observaciones: p.observaciones ?? null,
+              series,
+            };
           });
 
         const actualizar = values.productos
@@ -241,19 +238,31 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
             cantidad: p.cantidad,
             observaciones: p.observaciones ?? null,
             series: {
-              actualizar: p.series
-                ?.filter((s) => !!s.serie_id)
-                .map((s) => ({ serie_id: Number(s.serie_id), observaciones: s.observaciones ?? null })) ?? null,
-              añadir: p.series
-                ?.filter((s) => !s.serie_id)
-                .map((s) => ({ serie_id: null, serie: s.serie ?? null, mac: s.mac ?? null, ua: s.ua ?? null, observaciones: s.observaciones ?? null })) ?? null,
+              actualizar:
+                p.series
+                  ?.filter((s) => !!s.serie_id)
+                  .map((s) => ({
+                    serie_id: Number(s.serie_id),
+                    observaciones: s.observaciones ?? null,
+                  })) ?? null,
+              añadir:
+                p.series
+                  ?.filter((s) => !s.serie_id)
+                  .map((s) => ({
+                    serie_id: null,
+                    serie: s.serie ?? null,
+                    mac: s.mac ?? null,
+                    emta_mac: s.emta_mac ?? null,
+                    ua: s.ua ?? null,
+                    observaciones: s.observaciones ?? null,
+                  })) ?? null,
             },
           }));
 
         const body: GuiaEditBody = {
           numero: values.numero,
           fecha: values.fecha,
-          proveedor_id: Number(values.proveedor_id),
+          // proveedor_id: Number(values.proveedor_id),
           archivo: archivo ?? null,
           productos: {
             añadir: añadir.length ? añadir : null,
@@ -266,21 +275,41 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
       const body: GuiaCreateBody = {
         numero: values.numero,
         fecha: values.fecha,
-        proveedor_id: Number(values.proveedor_id),
+        // proveedor_id: Number(values.proveedor_id),
         archivo: archivo ?? undefined,
         productos: values.productos.map((p) => {
+          const isEquipo = p.tipo === "equipo";
           const series =
             p.series?.map((s) => ({
               serie_id: s.serie_id ? Number(s.serie_id) : undefined,
               serie: s.serie ?? null,
               mac: s.mac ?? null,
+              emta_mac: s.emta_mac ?? null,
               ua: s.ua ?? null,
               observaciones: s.observaciones ?? null,
             })) ?? null;
           if (p.producto_id) {
-            return { producto_id: Number(p.producto_id), cantidad: p.cantidad, observaciones: p.observaciones ?? null, series };
+            return {
+              producto_id: Number(p.producto_id),
+              cantidad: p.cantidad,
+              observaciones: p.observaciones ?? null,
+              series,
+            };
           }
-          return { categoria_id: p.categoria_id ? Number(p.categoria_id) : null, sap: p.sap ?? null, nombre: p.nombre ?? null, tipo: p.tipo ?? null, cantidad: p.cantidad, observaciones: p.observaciones ?? null, series };
+          return {
+            categoria_id: p.categoria_id ? Number(p.categoria_id) : null,
+            sap: p.sap ?? null,
+            nombre: p.nombre ?? null,
+            tipo: p.tipo ?? null,
+            origen: p.origen ?? null,
+            necesita_serie: isEquipo ? (p.necesita_serie ?? null) : null,
+            necesita_mac: isEquipo ? (p.necesita_mac ?? null) : null,
+            necesita_emta_mac: isEquipo ? (p.necesita_emta_mac ?? null) : null,
+            necesita_ua: isEquipo ? (p.necesita_ua ?? null) : null,
+            cantidad: p.cantidad,
+            observaciones: p.observaciones ?? null,
+            series,
+          };
         }),
       };
       return createGuia(body);
@@ -338,7 +367,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
     }
   };
 
-  // ── Columns ────────────────────────────────────────────────────────────────
+  // ── Columns: tabla resumen de productos ────────────────────────────────────
   const watchedProductos = form.watch("productos");
 
   const productoColumns: ColumnDef<ProductoFormValues>[] = [
@@ -354,7 +383,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
       header: "Producto",
       cell: ({ row }) => (
         <span className="font-medium">
-          {row.original.nombre || row.original.sap || "—"}
+          {row.original.nombre || row.original.sap || "Sin nombre"}
         </span>
       ),
     },
@@ -363,7 +392,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
       header: "SAP",
       cell: ({ row }) => (
         <span className="text-xs text-muted-foreground">
-          {row.original.sap || "—"}
+          {row.original.sap || "Sin codigo SAP"}
         </span>
       ),
     },
@@ -372,7 +401,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
       header: "Tipo",
       cell: ({ row }) =>
         row.original.tipo ? (
-          <Badge variant="outline" className="text-xs capitalize">
+          <Badge variant="secondary"  className="text-xs capitalize">
             {row.original.tipo}
           </Badge>
         ) : (
@@ -390,11 +419,32 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
       cell: ({ row }) => {
         const series = row.original.series ?? [];
         if (!series.length)
-          return <span className="text-muted-foreground text-xs">—</span>;
+          return <span className="text-muted-foreground text-xs">Sin series</span>;
         return (
-          <Badge variant="secondary" className="text-xs">
-            {series.length} serie{series.length !== 1 ? "s" : ""}
-          </Badge>
+          <div className="flex items-center gap-1.5">
+            <Badge variant="secondary" className="text-xs">
+              {series.length} serie{series.length !== 1 ? "s" : ""}
+            </Badge>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="size-6"
+              title="Ver detalle de series"
+              onClick={() =>
+                setSeriesDetail({
+                  series: series as SerieFormValues[],
+                  nombre: row.original.nombre ?? row.original.sap ?? null,
+                  necesitaSerie: row.original.necesita_serie ?? null,
+                  necesitaMac: row.original.necesita_mac ?? null,
+                  necesitaEmtaMac: row.original.necesita_emta_mac ?? null,
+                  necesitaUa: row.original.necesita_ua ?? null,
+                })
+              }
+            >
+              <List className="size-3" />
+            </Button>
+          </div>
         );
       },
     },
@@ -402,100 +452,28 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
       id: "acciones",
       header: "",
       cell: ({ row }) => (
-        <div className="flex gap-1 justify-end">
+        <div className="flex gap-1 justify-center">
           <Button
             type="button"
-            variant="ghost"
+            variant="outline"
             size="icon"
             className="size-7"
             onClick={() => handleEditProducto(row.index)}
           >
-            <Pencil className="size-3" />
+            <Pencil className="size-2" />
           </Button>
           <Button
             type="button"
-            variant="ghost"
+            variant="outline"
             size="icon"
             className="size-7 text-destructive hover:text-destructive"
             onClick={() => {
-              if (editingProductoIndex === row.index) handleCloseProductoDialog();
+              if (editingProductoIndex === row.index)
+                handleCloseProductoDialog();
               handleDeleteProducto(row.index);
             }}
           >
-            <Trash2 className="size-3" />
-          </Button>
-        </div>
-      ),
-    },
-  ];
-
-  const serieColumns: ColumnDef<SerieFormValues>[] = [
-    {
-      id: "index",
-      header: "#",
-      cell: ({ row }) => (
-        <span className="text-muted-foreground text-xs">{row.index + 1}</span>
-      ),
-    },
-    {
-      id: "serie",
-      header: "Serie",
-      cell: ({ row }) => (
-        <span className="font-medium text-xs">{row.original.serie || "—"}</span>
-      ),
-    },
-    {
-      id: "mac",
-      header: "MAC",
-      cell: ({ row }) => (
-        <span className="text-xs text-muted-foreground font-mono">
-          {row.original.mac || "—"}
-        </span>
-      ),
-    },
-    {
-      id: "ua",
-      header: "UA",
-      cell: ({ row }) => (
-        <span className="text-xs text-muted-foreground font-mono">
-          {row.original.ua || "—"}
-        </span>
-      ),
-    },
-    {
-      id: "observaciones",
-      header: "Observaciones",
-      cell: ({ row }) => (
-        <span className="text-xs text-muted-foreground max-w-40 truncate block">
-          {row.original.observaciones || "—"}
-        </span>
-      ),
-    },
-    {
-      id: "acciones",
-      header: "",
-      cell: ({ row }) => (
-        <div className="flex gap-1 justify-end">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="size-7"
-            onClick={() => handleEditSerie(row.index)}
-          >
-            <Pencil className="size-3" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="size-7 text-destructive hover:text-destructive"
-            onClick={() => {
-              removeSerie(row.index);
-              if (editingSerieIndex === row.index) handleCloseSerieDialog();
-            }}
-          >
-            <Trash2 className="size-3" />
+            <Trash2 className="size-2" />
           </Button>
         </div>
       ),
@@ -505,18 +483,18 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
   return (
     <form
       onSubmit={form.handleSubmit((v) => mutation.mutate(v))}
-      className="space-y-6"
+      className="space-y-4"
     >
       {/* ── Sección 1: Datos de la guía ────────────────────────────────────── */}
-      <div className="space-y-4">
-        <div>
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground whitespace-nowrap">
             Datos de la guía
           </h3>
-          <Separator className="mt-2" />
+          <Separator className="flex-1" />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <FormInput
             name="numero"
             label="Número de guía"
@@ -530,62 +508,51 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
             label="Fecha"
             control={form.control}
           />
-          <FormSelectAsync
-            name="proveedor_id"
-            label="Proveedor"
+          <FormInput
+            label="Archivo adjunto (opcional)"
+            name="file"
+            type="file"
             control={form.control}
-            placeholder="Seleccione un proveedor"
-            required
-            useQueryHook={useProveedoresQuery}
-            mapOptionFn={(item) => ({
-              value: String(item.id),
-              label: item.razon_social,
-              description: item.ruc,
-            })}
+            accept=".pdf,.doc,.docx,.xls,.xlsx,image/*"
           />
         </div>
-
-        <FileUploadWithCamera
-          label="Archivo adjunto (opcional)"
-          value={archivo}
-          onChange={(file) => setArchivo(file)}
-        />
       </div>
 
       {/* ── Sección 2: Productos ────────────────────────────────────────────── */}
-      <div className="space-y-4">
-        <div>
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            Productos
-          </h3>
-          <Separator className="mt-2" />
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 flex-1">
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground whitespace-nowrap">
+              Productos
+            </h3>
+            <Separator className="flex-1" />
+          </div>
+          {!productoDialogOpen && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="ml-2 h-6 text-xs px-2"
+              onClick={handleOpenProductoDialog}
+            >
+              <PackagePlus className="size-3 mr-1" />
+              Agregar
+            </Button>
+          )}
         </div>
 
-        {/* Botón agregar producto */}
-        <div className="flex justify-end">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleOpenProductoDialog}
-          >
-            <PackagePlus className="size-3 mr-1" />
-            Agregar producto
-          </Button>
-        </div>
-
-        {/* Dialog: agregar / editar producto */}
+        {/* Formulario inline: agregar / editar producto */}
         <GuiaProductoDialog
           open={productoDialogOpen}
           editingIndex={editingProductoIndex}
           tab={productoDialogTab}
           productSubForm={productSubForm}
           watchedSeries={watchedSeries}
-          serieColumns={serieColumns}
           onClose={handleCloseProductoDialog}
           onSubmit={handleAddOrUpdateProducto}
           onTabChange={setProductoDialogTab}
-          onOpenSerieDialog={handleOpenSerieDialog}
+          onAppendSerie={appendSerie}
+          onRemoveSerie={removeSerie}
         />
 
         {/* Tabla de productos agregados */}
@@ -600,28 +567,30 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
 
         {form.formState.errors.productos &&
           !Array.isArray(form.formState.errors.productos) && (
-            <p className="text-sm text-destructive">
+            <p className="text-xs text-destructive">
               {form.formState.errors.productos.message}
             </p>
           )}
       </div>
 
-      {/* ── Dialog: agregar / editar serie ─────────────────────────────────── */}
-      <GuiaSerieDialog
-        open={serieDialogOpen}
-        editingIndex={editingSerieIndex}
-        tab={serieDialogTab}
-        productoTab={productoDialogTab}
-        serieSubForm={serieSubForm}
-        onClose={handleCloseSerieDialog}
-        onSubmit={handleAddOrUpdateSerie}
-        onTabChange={setSerieDialogTab}
+      {/* ── Modal: detalle de series ────────────────────────────────────────── */}
+      <GuiaSeriesDetailModal
+        open={!!seriesDetail}
+        onClose={() => setSeriesDetail(null)}
+        series={seriesDetail?.series ?? []}
+        productoNombre={seriesDetail?.nombre}
+        necesitaSerie={seriesDetail?.necesitaSerie}
+        necesitaMac={seriesDetail?.necesitaMac}
+        necesitaEmtaMac={seriesDetail?.necesitaEmtaMac}
+        necesitaUa={seriesDetail?.necesitaUa}
       />
 
       {/* ── Confirmación forzar eliminación de producto ─────────────────────── */}
       <ConfirmationDialog
         open={!!deleteConfirmInfo}
-        onOpenChange={(open) => { if (!open) setDeleteConfirmInfo(null); }}
+        onOpenChange={(open) => {
+          if (!open) setDeleteConfirmInfo(null);
+        }}
         title="¿Eliminar producto con series asociadas?"
         description="Este producto tiene las siguientes series asociadas que también serán eliminadas:"
         confirmText="Forzar eliminación"
@@ -637,6 +606,9 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
       </ConfirmationDialog>
 
       {/* ── Submit ─────────────────────────────────────────────────────────── */}
+      <pre className="text-xs text-muted-foreground">
+        {JSON.stringify(form.formState.errors, null, 2)}
+      </pre>
       <div className="flex justify-end">
         <Button type="submit" disabled={mutation.isPending}>
           {mutation.isPending

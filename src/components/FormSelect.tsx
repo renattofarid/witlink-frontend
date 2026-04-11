@@ -30,11 +30,12 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Controller, type Control } from "react-hook-form";
 import type { Option } from "@/lib/core.interface";
+import RequiredField from "./RequiredField";
 
 interface FormSelectProps {
   name: string;
   description?: string;
-  label: string | (() => React.ReactNode);
+  label: string;
   placeholder?: string;
   options: Option[];
   control: Control<any>;
@@ -44,6 +45,7 @@ interface FormSelectProps {
   classNameOption?: string;
   strictFilter?: boolean;
   enableCodeSearch?: boolean; // Nueva prop para habilitar búsqueda por código
+  required?: boolean;
 }
 
 export function FormSelect({
@@ -59,6 +61,7 @@ export function FormSelect({
   classNameOption,
   strictFilter = false,
   enableCodeSearch = false,
+  required = false,
 }: FormSelectProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -73,29 +76,25 @@ export function FormSelect({
 
         return (
           <Field className="flex flex-col justify-start">
-            {typeof label === "function" ? (
-              label()
-            ) : (
-              <FieldLabel className="flex justify-start items-center text-xs md:text-sm leading-none h-fit dark:text-muted-foreground">
-                {label}
-                {tooltip && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Badge
-                        color="tertiary"
-                        className="ml-2 p-0 aspect-square w-4 h-4 text-center justify-center"
-                      >
-                        ?
-                      </Badge>
-                    </TooltipTrigger>
-                    <TooltipContent>{tooltip}</TooltipContent>
-                  </Tooltip>
-                )}
-              </FieldLabel>
-            )}
+            <FieldLabel className="flex justify-start items-center text-xs md:text-sm leading-none h-fit dark:text-muted-foreground">
+              {label} {required && <RequiredField />}
+              {tooltip && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge
+                      color="tertiary"
+                      className="ml-2 p-0 aspect-square w-4 h-4 text-center justify-center"
+                    >
+                      ?
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>{tooltip}</TooltipContent>
+                </Tooltip>
+              )}
+            </FieldLabel>
 
             {description && (
-              <FieldDescription className="text-sm text-muted-foreground !mb-0">
+              <FieldDescription className="text-sm text-muted-foreground mb-0!">
                 {description}
               </FieldDescription>
             )}
@@ -113,29 +112,29 @@ export function FormSelect({
               }}
             >
               <PopoverTrigger asChild>
-                  <Button
-                    variant={"outline"}
-                    role="combobox"
-                    disabled={disabled}
-                    className={cn(
-                      "w-full justify-between min-h-7 flex min-w-0",
-                      !field.value && "text-muted-foreground",
-                      field.value && "bg-muted",
-                    )}
-                  >
-                    <span className="!text-nowrap line-clamp-1">
-                      {selected
-                        ? typeof selected.label === "function"
-                          ? selected.label()
-                          : selected.label
-                        : placeholder}
-                    </span>
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
+                <Button
+                  variant={"outline"}
+                  role="combobox"
+                  disabled={disabled}
+                  className={cn(
+                    "w-full justify-between min-h-7 flex min-w-0",
+                    !field.value && "text-muted-foreground",
+                    field.value && "bg-muted",
+                  )}
+                >
+                  <span className="text-nowrap! line-clamp-1">
+                    {selected
+                      ? typeof selected.label === "function"
+                        ? selected.label()
+                        : selected.label
+                      : placeholder}
+                  </span>
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
               </PopoverTrigger>
 
               <PopoverContent
-                className="p-0 !min-w-(--radix-popover-trigger-width) w-auto"
+                className="p-0 min-w-(--radix-popover-trigger-width)! w-auto"
                 onWheel={(e) => e.stopPropagation()}
                 onWheelCapture={(e) => e.stopPropagation()}
                 onTouchMove={(e) => e.stopPropagation()}

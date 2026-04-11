@@ -48,6 +48,8 @@ function appendProductoFields(formData: FormData, prefix: string, producto: Guia
       formData.append(`${sprefix}[serie]`, serie.serie);
     if (serie.mac !== undefined && serie.mac !== null)
       formData.append(`${sprefix}[mac]`, serie.mac);
+    if (serie.emta_mac !== undefined && serie.emta_mac !== null)
+      formData.append(`${sprefix}[emta_mac]`, serie.emta_mac);
     if (serie.ua !== undefined && serie.ua !== null)
       formData.append(`${sprefix}[ua]`, serie.ua);
     if (serie.observaciones !== undefined && serie.observaciones !== null)
@@ -97,6 +99,7 @@ function buildGuiaEditFormData(body: GuiaEditBody): FormData {
       if (serie.serie_id != null) formData.append(`${sprefix}[serie_id]`, String(serie.serie_id));
       if (serie.serie != null) formData.append(`${sprefix}[serie]`, serie.serie);
       if (serie.mac != null) formData.append(`${sprefix}[mac]`, serie.mac);
+      if (serie.emta_mac != null) formData.append(`${sprefix}[emta_mac]`, serie.emta_mac);
       if (serie.ua != null) formData.append(`${sprefix}[ua]`, serie.ua);
       if (serie.observaciones != null) formData.append(`${sprefix}[observaciones]`, serie.observaciones);
     });

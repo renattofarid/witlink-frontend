@@ -2,14 +2,15 @@ import type { PaginationResponse } from "@/lib/core.interface";
 
 export interface GuiaSerieResource {
   id: number;
-  producto_id: number;
+  producto_id?: number;
   serie: string;
   situacion: string;
-  mac: string;
-  ua: string;
-  created_at: string;
-  updated_at: string;
-  deleted_at: string;
+  mac: string | null;
+  emta_mac?: string | null;
+  ua: string | null;
+  created_at?: string;
+  updated_at?: string;
+  deleted_at?: string | null;
 }
 
 export interface GuiaProductoResource {
@@ -20,13 +21,18 @@ export interface GuiaProductoResource {
     sap: string;
     nombre: string;
     tipo: string;
+    origen?: string;
+    necesita_serie?: boolean;
+    necesita_mac?: boolean;
+    necesita_emta_mac?: boolean;
+    necesita_ua?: boolean;
     created_at: string;
     updated_at: string;
-    deleted_at: string;
+    deleted_at: string | null;
   };
   cantidad: string;
-  observaciones: string;
-  series: Array<{ serie?: GuiaSerieResource | null; observaciones?: string | null }>;
+  observaciones: string | null;
+  series: Array<{ serie?: GuiaSerieResource | null; observaciones?: string | null; created_at?: string; updated_at?: string }>;
 }
 
 export interface GuiaProveedorResource {

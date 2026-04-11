@@ -4,6 +4,7 @@ import LayoutComponent from "../components/layout";
 import { useAuthStore } from "../pages/auth/lib/auth.store";
 import HomePage from "../pages/home/components/HomePage";
 import LoginPage from "../pages/auth/components/Login";
+import WarehouseSelectPage from "../pages/auth/components/WarehouseSelect";
 import { ENABLE_PERMISSION_VALIDATION } from "../lib/permissions.config";
 import UsuariosPage from "../pages/usuarios/pages/UsuariosPage";
 import { UsuariosComplete } from "../pages/usuarios/lib/usuarios.constants";
@@ -34,11 +35,15 @@ import MaterialesPage from "../pages/materiales/pages/MaterialesPage";
 import { MaterialesComplete } from "../pages/materiales/lib/materiales.constants";
 
 function ProtectedRoute({ children }: { children: JSX.Element }) {
-  const { token, allowedRoutes } = useAuthStore();
+  const { token, allowedRoutes, almacen_id } = useAuthStore();
   const location = useLocation();
 
   if (!token) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (!almacen_id) {
+    return <Navigate to="/seleccionar-almacen" replace />;
   }
 
   if (ENABLE_PERMISSION_VALIDATION) {
@@ -62,13 +67,31 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
 }
 
 export default function AppRoutes() {
-  const { token } = useAuthStore();
+  const { token, almacen_id } = useAuthStore();
   return (
     <Routes>
       {/* Ruta pública */}
       <Route
         path="/login"
-        element={token ? <Navigate to="/inicio" /> : <LoginPage />}
+        element={
+          token
+            ? almacen_id
+              ? <Navigate to="/inicio" replace />
+              : <Navigate to="/seleccionar-almacen" replace />
+            : <LoginPage />
+        }
+      />
+
+      {/* Selección de almacén — requiere token, sin layout */}
+      <Route
+        path="/seleccionar-almacen"
+        element={
+          !token
+            ? <Navigate to="/login" replace />
+            : almacen_id
+              ? <Navigate to="/inicio" replace />
+              : <WarehouseSelectPage />
+        }
       />
 
       <Route path="/" element={<Navigate to="/inicio" />} />

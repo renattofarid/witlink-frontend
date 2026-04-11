@@ -36,6 +36,8 @@ interface ProductoFormProps {
   externalControl?: Control<any>;
   /** Hook para precargar la categoría seleccionada (necesario en contexto guía) */
   categoriaQueryByIdHook?: (id: string | null) => { data?: any; isLoading: boolean };
+  /** Omite el campo Categoría (cuando el padre lo renderiza inline) */
+  skipCategoria?: boolean;
 }
 
 export default function ProductoForm({
@@ -44,6 +46,7 @@ export default function ProductoForm({
   onSuccess,
   externalControl,
   categoriaQueryByIdHook,
+  skipCategoria = false,
 }: ProductoFormProps) {
   const queryClient = useQueryClient();
 
@@ -103,28 +106,30 @@ export default function ProductoForm({
 
   const fields = (
     <div className="space-y-4">
-      <FormSelectAsync
-        name="categoria_id"
-        label="Categoría"
-        control={activeControl}
-        placeholder="Seleccione una categoría"
-        required
-        useQueryHook={useCategoriasAsyncQuery}
-        useQueryByIdHook={categoriaQueryByIdHook}
-        mapOptionFn={(item) => ({
-          value: String(item.id),
-          label: item.nombre,
-        })}
-        defaultOption={
-          !externalControl && defaultValues?.categoria
-            ? {
-                value: String(defaultValues.categoria.id),
-                label: defaultValues.categoria.nombre,
-              }
-            : undefined
-        }
-      />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {!skipCategoria && (
+        <FormSelectAsync
+          name="categoria_id"
+          label="Categoría"
+          control={activeControl}
+          placeholder="Seleccione una categoría"
+          required
+          useQueryHook={useCategoriasAsyncQuery}
+          useQueryByIdHook={categoriaQueryByIdHook}
+          mapOptionFn={(item) => ({
+            value: String(item.id),
+            label: item.nombre,
+          })}
+          defaultOption={
+            !externalControl && defaultValues?.categoria
+              ? {
+                  value: String(defaultValues.categoria.id),
+                  label: defaultValues.categoria.nombre,
+                }
+              : undefined
+          }
+        />
+      )}
+      <div className={externalControl ? "grid grid-cols-4 gap-2" : "grid grid-cols-1 md:grid-cols-2 gap-4"}>
         <FormInput
           name="sap"
           label="SAP"
@@ -159,7 +164,7 @@ export default function ProductoForm({
       {isEquipo && (
         <>
           <Separator />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className={externalControl ? "grid grid-cols-4 gap-2" : "grid grid-cols-1 md:grid-cols-2 gap-3"}>
             <FormSwitch
               control={activeControl as Control<any>}
               name={"necesita_serie" as any}

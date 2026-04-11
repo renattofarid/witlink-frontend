@@ -1,0 +1,40 @@
+import { api } from "@/lib/config";
+import { DespachoComplete } from "./despacho.constants";
+import type {
+  DespachoResponse,
+  DespachoResource,
+  DespachoCreateBody,
+  DespachoMasivoSeriesBody,
+} from "./despacho.interface";
+
+export const getDespachos = async (
+  params: Record<string, string>,
+): Promise<DespachoResponse> => {
+  const { data } = await api.get(DespachoComplete.ENDPOINT, { params });
+  return data;
+};
+
+export const getDespacho = async (id: number): Promise<DespachoResource> => {
+  const { data } = await api.get(`${DespachoComplete.ENDPOINT}/${id}`);
+  return data;
+};
+
+export const createDespacho = async (body: DespachoCreateBody) => {
+  const { data } = await api.post(DespachoComplete.ENDPOINT, body);
+  return data;
+};
+
+export const deleteDespacho = async (id: number) => {
+  const { data } = await api.delete(`${DespachoComplete.ENDPOINT}/${id}`);
+  return data;
+};
+
+export const createDespachoMasivoSeries = async (
+  body: DespachoMasivoSeriesBody,
+) => {
+  const { data } = await api.post(
+    `${DespachoComplete.ENDPOINT}/masivo-series`,
+    body,
+  );
+  return data;
+};

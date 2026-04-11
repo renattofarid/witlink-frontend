@@ -39,6 +39,9 @@ import EquiposRetiradosEditPage from "../pages/equipos-retirados/pages/EquiposRe
 import { EquiposRetiradosComplete } from "../pages/equipos-retirados/lib/equipos-retirados.constants";
 import InventarioPage from "../pages/inventario/pages/InventarioPage";
 import { InventarioComplete } from "../pages/inventario/lib/inventario.constants";
+import DespachosPage from "../pages/despachos/pages/DespachosPage";
+import DespachoAddPage from "../pages/despachos/pages/DespachoAddPage";
+import { DespachoComplete } from "../pages/despachos/lib/despacho.constants";
 
 function ProtectedRoute({ children }: { children: JSX.Element }) {
   const { token, allowedRoutes, almacen_id } = useAuthStore();
@@ -264,6 +267,23 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <InventarioPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path={DespachoComplete.ROUTE}
+        element={
+          <ProtectedRoute>
+            <DespachosPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={DespachoComplete.ROUTE_ADD}
+        element={
+          <ProtectedRoute>
+            <DespachoAddPage />
           </ProtectedRoute>
         }
       />

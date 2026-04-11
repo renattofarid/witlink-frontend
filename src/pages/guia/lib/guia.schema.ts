@@ -48,7 +48,7 @@ export const productoSchema = z
     necesita_mac: z.boolean().nullable().optional(),
     necesita_emta_mac: z.boolean().nullable().optional(),
     necesita_ua: z.boolean().nullable().optional(),
-    cantidad: z.number().min(1, "Mínimo 1"),
+    cantidad: z.coerce.number().min(1, "Minimo 1 unidad"),
     observaciones: z.string().optional().nullable(),
     series: z.array(serieSchema).optional().nullable(),
   })
@@ -78,12 +78,32 @@ export const productoSchema = z
         path: ["series"],
       });
     }
+    // Validar unicidad de series
+    if (p.series && p.series.length > 1) {
+      const checkUnique = (
+        values: (string | null | undefined)[],
+        label: string
+      ) => {
+        const filled = values.filter(Boolean) as string[];
+        if (new Set(filled).size !== filled.length) {
+          ctx.addIssue({
+            code: "custom",
+            message: `Los valores de ${label} deben ser únicos.`,
+            path: ["series"],
+          });
+        }
+      };
+      checkUnique(p.series.map((s) => s.serie), "serie");
+      checkUnique(p.series.map((s) => s.mac), "MAC");
+      checkUnique(p.series.map((s) => s.emta_mac), "EMTA MAC");
+      checkUnique(p.series.map((s) => s.ua), "UA");
+    }
   });
 
 export const guiaCreateSchema = z.object({
   numero: z.string().min(1, "Requerido"),
   fecha: z.string().min(1, "Requerido"),
-  proveedor_id: z.string().min(1, "Requerido"),
+  // proveedor_id: z.string().min(1, "Requerido"),
   productos: z
     .array(productoSchema)
     .min(1, "Debe agregar al menos un producto"),

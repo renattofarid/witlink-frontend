@@ -1,10 +1,12 @@
-import { useForm } from "react-hook-form";
+import { useForm, useWatch, type Control } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { FormInput } from "@/components/FormInput";
 import { FormSelect } from "@/components/FormSelect";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
+import { FormSwitch } from "@/components/FormSwitch";
 import FormWrapper from "@/components/FormWrapper";
 import { successToast, errorToast, ERROR_MESSAGE } from "@/lib/core.function";
 import {
@@ -16,46 +18,70 @@ import { ProductoComplete } from "../lib/producto.constants";
 import { useCategoriasAsyncQuery } from "../lib/producto.hook";
 import type { ProductoResource } from "../lib/producto.interface";
 
+const ORIGEN_OPTIONS = [
+  { value: "claro", label: "Claro" },
+  { value: "witlink", label: "Witlink" },
+];
+
+const TIPO_OPTIONS = [
+  { value: "material", label: "Material" },
+  { value: "equipo", label: "Equipo" },
+];
+
 interface ProductoFormProps {
-  mode: "create" | "edit";
+  mode?: "create" | "edit";
   defaultValues?: ProductoResource;
   onSuccess?: () => void;
+  /** Cuando se pasa, el form usa este control externo y no hace llamada a la API */
+  externalControl?: Control<any>;
+  /** Hook para precargar la categoría seleccionada (necesario en contexto guía) */
+  categoriaQueryByIdHook?: (id: string | null) => { data?: any; isLoading: boolean };
 }
 
 export default function ProductoForm({
-  mode,
+  mode = "create",
   defaultValues,
   onSuccess,
+  externalControl,
+  categoriaQueryByIdHook,
 }: ProductoFormProps) {
   const queryClient = useQueryClient();
 
-  const form = useForm<ProductoFormValues>({
+  const standaloneForm = useForm<ProductoFormValues>({
     resolver: zodResolver(productoSchema),
     defaultValues: {
       categoria_id: defaultValues ? String(defaultValues.categoria.id) : "",
       sap: defaultValues?.sap ?? "",
       nombre: defaultValues?.nombre ?? "",
-      tipo: (defaultValues?.tipo as "consumible" | "equipo") ?? undefined,
+      tipo: (defaultValues?.tipo as "material" | "equipo") ?? undefined,
+      origen: (defaultValues?.origen as "claro" | "witlink") ?? undefined,
+      necesita_serie: defaultValues?.necesita_serie ?? null,
+      necesita_mac: defaultValues?.necesita_mac ?? null,
+      necesita_emta_mac: defaultValues?.necesita_emta_mac ?? null,
+      necesita_ua: defaultValues?.necesita_ua ?? null,
     },
     mode: "onChange",
   });
 
+  const activeControl = externalControl ?? standaloneForm.control;
+  const watchedTipo = useWatch({ control: activeControl, name: "tipo" });
+  const isEquipo = watchedTipo === "equipo";
+
   const mutation = useMutation({
     mutationFn: (values: ProductoFormValues) => {
-      if (mode === "create") {
-        return createProducto({
-          categoria_id: Number(values.categoria_id),
-          sap: values.sap,
-          nombre: values.nombre,
-          tipo: values.tipo ?? "",
-        });
-      }
-      return updateProducto(defaultValues!.id, {
+      const body = {
         categoria_id: Number(values.categoria_id),
         sap: values.sap,
         nombre: values.nombre,
-        tipo: values.tipo,
-      });
+        tipo: values.tipo ?? "",
+        origen: values.origen ?? "",
+        necesita_serie: isEquipo ? (values.necesita_serie ?? null) : null,
+        necesita_mac: isEquipo ? (values.necesita_mac ?? null) : null,
+        necesita_emta_mac: isEquipo ? (values.necesita_emta_mac ?? null) : null,
+        necesita_ua: isEquipo ? (values.necesita_ua ?? null) : null,
+      };
+      if (mode === "create") return createProducto(body);
+      return updateProducto(defaultValues!.id, body);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [ProductoComplete.QUERY_KEY] });
@@ -75,57 +101,106 @@ export default function ProductoForm({
     },
   });
 
-  const onSubmit = (values: ProductoFormValues) => {
-    mutation.mutate(values);
-  };
-
-  return (
-    <FormWrapper>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormSelectAsync
-          name="categoria_id"
-          label="Categoría"
-          control={form.control}
-          placeholder="Seleccione una categoría"
-          required
-          useQueryHook={useCategoriasAsyncQuery}
-          mapOptionFn={(item) => ({
-            value: String(item.id),
-            label: item.nombre,
-          })}
-          defaultOption={
-            defaultValues?.categoria
-              ? {
-                  value: String(defaultValues.categoria.id),
-                  label: defaultValues.categoria.nombre,
-                }
-              : undefined
-          }
-        />
+  const fields = (
+    <div className="space-y-4">
+      <FormSelectAsync
+        name="categoria_id"
+        label="Categoría"
+        control={activeControl}
+        placeholder="Seleccione una categoría"
+        required
+        useQueryHook={useCategoriasAsyncQuery}
+        useQueryByIdHook={categoriaQueryByIdHook}
+        mapOptionFn={(item) => ({
+          value: String(item.id),
+          label: item.nombre,
+        })}
+        defaultOption={
+          !externalControl && defaultValues?.categoria
+            ? {
+                value: String(defaultValues.categoria.id),
+                label: defaultValues.categoria.nombre,
+              }
+            : undefined
+        }
+      />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormInput
           name="sap"
           label="SAP"
-          control={form.control}
+          control={activeControl}
           placeholder="Código SAP"
           required
         />
         <FormInput
           name="nombre"
           label="Nombre"
-          control={form.control}
+          control={activeControl}
           placeholder="Nombre del producto"
           required
         />
         <FormSelect
           name="tipo"
           label="Tipo"
-          control={form.control}
+          control={activeControl}
           placeholder="Seleccione un tipo"
-          options={[
-            { value: "consumible", label: "Consumible" },
-            { value: "equipo", label: "Equipo" },
-          ]}
+          required
+          options={TIPO_OPTIONS}
         />
+        <FormSelect
+          name="origen"
+          label="Origen"
+          control={activeControl}
+          placeholder="Seleccione el origen"
+          required
+          options={ORIGEN_OPTIONS}
+        />
+      </div>
+      {isEquipo && (
+        <>
+          <Separator />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <FormSwitch
+              control={activeControl as Control<any>}
+              name={"necesita_serie" as any}
+              text="Necesita serie"
+              size="sm"
+            />
+            <FormSwitch
+              control={activeControl as Control<any>}
+              name={"necesita_mac" as any}
+              text="Necesita MAC"
+              size="sm"
+            />
+            <FormSwitch
+              control={activeControl as Control<any>}
+              name={"necesita_emta_mac" as any}
+              text="Necesita EMTA MAC"
+              size="sm"
+            />
+            <FormSwitch
+              control={activeControl as Control<any>}
+              name={"necesita_ua" as any}
+              text="Necesita UA"
+              size="sm"
+            />
+          </div>
+        </>
+      )}
+    </div>
+  );
+
+  if (externalControl) {
+    return fields;
+  }
+
+  return (
+    <FormWrapper>
+      <form
+        onSubmit={standaloneForm.handleSubmit((v) => mutation.mutate(v))}
+        className="space-y-4"
+      >
+        {fields}
         <div className="flex justify-end pt-2">
           <Button type="submit" disabled={mutation.isPending}>
             {mutation.isPending

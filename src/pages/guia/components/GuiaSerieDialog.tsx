@@ -13,6 +13,7 @@ const EMPTY_SERIE: SerieFormValues = {
   serie_id: null,
   serie: "",
   mac: "",
+  emta_mac: "",
   ua: "",
   observaciones: null,
 };
@@ -26,6 +27,10 @@ interface GuiaSerieDialogProps {
   onClose: () => void;
   onSubmit: () => void;
   onTabChange: (tab: "select" | "create") => void;
+  necesitaSerie?: boolean | null;
+  necesitaMac?: boolean | null;
+  necesitaEmtaMac?: boolean | null;
+  necesitaUa?: boolean | null;
 }
 
 export function GuiaSerieDialog({
@@ -37,7 +42,18 @@ export function GuiaSerieDialog({
   onClose,
   onSubmit,
   onTabChange,
+  necesitaSerie,
+  necesitaMac,
+  necesitaEmtaMac,
+  necesitaUa,
 }: GuiaSerieDialogProps) {
+  // Si no hay ningún necesita_* definido (producto del catálogo sin datos), mostrar todos
+  const showAll = necesitaSerie == null && necesitaMac == null && necesitaEmtaMac == null && necesitaUa == null;
+  const showSerie = showAll || !!necesitaSerie;
+  const showMac = showAll || !!necesitaMac;
+  const showEmtaMac = showAll || !!necesitaEmtaMac;
+  const showUa = showAll || !!necesitaUa;
+
   return (
     <GeneralModal
       open={open}
@@ -113,22 +129,31 @@ export function GuiaSerieDialog({
           </TabsContent>
 
           <TabsContent value="create" className="space-y-3 pt-2">
-            <FormInput
-              name="serie"
-              label="Número de serie"
-              control={serieSubForm.control}
-              placeholder="Ej. SN123456"
-              uppercase
-            />
-            <MacInput name="mac" label="MAC" control={serieSubForm.control} />
-            <FormInput
-              name="ua"
-              label="UA"
-              control={serieSubForm.control}
-              placeholder="XX:XX:XX:XX:XX:XX"
-              maxLength={17}
-              uppercase
-            />
+            {showSerie && (
+              <FormInput
+                name="serie"
+                label="Número de serie"
+                control={serieSubForm.control}
+                placeholder="Ej. SN123456"
+                uppercase
+              />
+            )}
+            {showMac && (
+              <MacInput name="mac" label="MAC" control={serieSubForm.control} />
+            )}
+            {showEmtaMac && (
+              <MacInput name="emta_mac" label="EMTA MAC" control={serieSubForm.control} />
+            )}
+            {showUa && (
+              <FormInput
+                name="ua"
+                label="UA"
+                control={serieSubForm.control}
+                placeholder="XX:XX:XX:XX:XX:XX"
+                maxLength={17}
+                uppercase
+              />
+            )}
             <FormInput
               name="observaciones"
               label="Observaciones"

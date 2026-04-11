@@ -106,7 +106,7 @@ export function DatePickerFormField<T extends FieldValues>({
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   return (
-    <Field className="flex flex-col gap-1">
+    <Field className="flex flex-col gap-2">
       {label && (
         <FieldLabel className="flex justify-start items-center text-xs md:text-sm leading-none h-fit dark:text-muted-foreground">
           {label}

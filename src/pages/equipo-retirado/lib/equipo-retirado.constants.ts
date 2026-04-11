@@ -1,5 +1,5 @@
 import type { ModelComplete } from "@/lib/core.interface";
-import { PackageMinus } from "lucide-react";
+import { List } from "lucide-react";
 
 export const EquipoRetiradoComplete: ModelComplete = {
   MODEL: {
@@ -7,7 +7,7 @@ export const EquipoRetiradoComplete: ModelComplete = {
     plural: "Equipos Retirados",
     gender: false,
   },
-  ICON: PackageMinus,
+  ICON: List,
   ROUTE: "/equipos-retirados",
   QUERY_KEY: "equipos-retirados",
   ABSOLUTE_ROUTE: "/equipos-retirados",

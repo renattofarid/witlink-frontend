@@ -41,3 +41,10 @@ export interface TipoUsuario {
   id: number;
   nombre: string;
 }
+
+export interface AlmacenResource {
+  id: number;
+  nombre: string;
+  direccion: string;
+  deleted_at: string | null;
+}

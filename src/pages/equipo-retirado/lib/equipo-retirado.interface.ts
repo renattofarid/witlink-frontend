@@ -1,38 +1,55 @@
 import type { PaginationResponse } from "@/lib/core.interface";
 
-export interface EquipoRetiradoSerieResource {
-  id: number;
-  serie_id: number;
-  serie: string;
-  mac: string | null;
-  observaciones: string | null;
+export interface EquipoRetiradoSerieItemResource {
+  serie: {
+    id: number;
+    serie: string;
+    situacion: string;
+    mac: string;
+    ua: string;
+    created_at: string;
+    updated_at: string;
+  };
+  observacion: string;
+  created_at: string;
+  updated_at: string;
 }
 
-export interface EquipoRetiradoProductoResource {
+export interface EquipoRetiradoProductoItemResource {
   id: number;
-  producto_id: number;
   producto: {
     id: number;
-    nombre: string;
     sap: string;
+    nombre: string;
     tipo: string;
+    necesita_serie: number;
+    necesita_mac: number;
+    necesita_emta_mac: string;
+    necesita_ua: number;
+    created_at: string;
+    updated_at: string;
   };
-  cantidad: number;
-  series: EquipoRetiradoSerieResource[] | null;
+  cantidad: string;
+  created_at: string;
+  updated_at: string;
+  series: EquipoRetiradoSerieItemResource[];
 }
 
 export interface EquipoRetiradoResource {
   id: number;
-  fecha: string;
   sot: string;
-  tipo: "P" | "C" | "O";
-  productos?: EquipoRetiradoProductoResource[];
+  fecha: string;
+  tipo: string;
+  nombre_tipo: string;
+  productos: EquipoRetiradoProductoItemResource[];
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
 }
 
 export type EquipoRetiradoResponse = PaginationResponse<EquipoRetiradoResource>;
+
+// ── Body types ────────────────────────────────────────────────────────────────
 
 export interface EquipoRetiradoSerieBody {
   serie_id: number;
@@ -41,13 +58,41 @@ export interface EquipoRetiradoSerieBody {
 
 export interface EquipoRetiradoProductoBody {
   producto_id: number;
+  origen?: string;
+  necesita_serie?: boolean;
+  necesita_mac?: boolean;
+  necesita_emta_mac?: boolean;
+  necesita_ua?: boolean;
   cantidad: number;
   series: EquipoRetiradoSerieBody[] | null;
 }
 
-export interface EquipoRetiradoBody {
+export interface EquipoRetiradoCreateBody {
   fecha: string;
   sot: string;
-  tipo: "P" | "C" | "O";
+  tipo: string;
   productos: EquipoRetiradoProductoBody[];
 }
+
+export interface EquipoRetiradoEditHeaderBody {
+  sot: string;
+  tipo: string;
+  fecha: string;
+}
+
+export interface AddProductosEquipoRetiradoBody {
+  documento_equipo_retirado_id: number;
+  productos: Array<{
+    producto_id: number;
+    cantidad: number;
+    series: EquipoRetiradoSerieBody[];
+  }>;
+}
+
+export interface AddSeriesEquipoRetiradoBody {
+  detalle_producto_documento_equipo_retirado_id: number;
+  series: EquipoRetiradoSerieBody[];
+}
+
+/** @deprecated use EquipoRetiradoCreateBody */
+export type EquipoRetiradoBody = EquipoRetiradoCreateBody;

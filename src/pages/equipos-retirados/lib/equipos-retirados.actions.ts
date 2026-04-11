@@ -1,39 +1,39 @@
 import { api } from "@/lib/config";
-import { EquipoRetiradoComplete } from "./equipo-retirado.constants";
+import { EquiposRetiradosComplete } from "./equipos-retirados.constants";
 import type {
-  EquipoRetiradoResponse,
+  EquiposRetiradosResponse,
   EquipoRetiradoResource,
   EquipoRetiradoCreateBody,
-  EquipoRetiradoEditHeaderBody,
+  EquipoRetiradoEditBody,
   AddProductosEquipoRetiradoBody,
   AddSeriesEquipoRetiradoBody,
-} from "./equipo-retirado.interface";
+} from "./equipos-retirados.interface";
 
 export const getEquiposRetirados = async (
   params: Record<string, string>,
-): Promise<EquipoRetiradoResponse> => {
-  const { data } = await api.get(EquipoRetiradoComplete.ENDPOINT, { params });
+): Promise<EquiposRetiradosResponse> => {
+  const { data } = await api.get(EquiposRetiradosComplete.ENDPOINT, { params });
   return data;
 };
 
 export const getEquipoRetirado = async (
   id: number,
 ): Promise<EquipoRetiradoResource> => {
-  const { data } = await api.get(`${EquipoRetiradoComplete.ENDPOINT}/${id}`);
+  const { data } = await api.get(`${EquiposRetiradosComplete.ENDPOINT}/${id}`);
   return data;
 };
 
 export const createEquipoRetirado = async (body: EquipoRetiradoCreateBody) => {
-  const { data } = await api.post(EquipoRetiradoComplete.ENDPOINT, body);
+  const { data } = await api.post(EquiposRetiradosComplete.ENDPOINT, body);
   return data;
 };
 
 export const updateEquipoRetirado = async (
   id: number,
-  body: EquipoRetiradoEditHeaderBody,
+  body: EquipoRetiradoEditBody,
 ) => {
   const { data } = await api.put(
-    `${EquipoRetiradoComplete.ENDPOINT}/${id}`,
+    `${EquiposRetiradosComplete.ENDPOINT}/${id}`,
     body,
   );
   return data;
@@ -41,19 +41,19 @@ export const updateEquipoRetirado = async (
 
 export const deleteEquipoRetirado = async (id: number) => {
   const { data } = await api.delete(
-    `${EquipoRetiradoComplete.ENDPOINT}/${id}`,
+    `${EquiposRetiradosComplete.ENDPOINT}/${id}`,
   );
   return data;
 };
 
 export const restoreEquipoRetirado = async (id: number) => {
   const { data } = await api.post(
-    `${EquipoRetiradoComplete.ENDPOINT}/${id}/restaurar`,
+    `${EquiposRetiradosComplete.ENDPOINT}/${id}/restaurar`,
   );
   return data;
 };
 
-// ── Productos de equipo retirado ─────────────────────────────────────────────
+// ── Productos ─────────────────────────────────────────────────────────────────
 
 export const addProductosEquipoRetirado = async (
   body: AddProductosEquipoRetiradoBody,
@@ -88,7 +88,7 @@ export const deleteProductoEquipoRetirado = async (
   return data;
 };
 
-// ── Series de equipo retirado ─────────────────────────────────────────────────
+// ── Series ────────────────────────────────────────────────────────────────────
 
 export const addSeriesEquipoRetirado = async (
   body: AddSeriesEquipoRetiradoBody,
@@ -110,9 +110,9 @@ export const deleteSerieEquipoRetirado = async (
   return data;
 };
 
-// ── Helpers para dialogs ──────────────────────────────────────────────────────
+// ── Helper ────────────────────────────────────────────────────────────────────
 
-export const getSeries = async (params: Record<string, any>) => {
+export const getSeriesDisponibles = async (params: Record<string, any>) => {
   const { data } = await api.get("/series", { params });
   return data;
 };

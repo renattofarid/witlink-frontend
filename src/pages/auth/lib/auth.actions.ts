@@ -57,6 +57,14 @@ export async function logout(): Promise<void> {
   await api.post("/auth/logout");
 }
 
+export async function selectAlmacen(almacenId: number): Promise<string> {
+  const { data } = await api.get<{ token: string }>(
+    `/almacenes/seleccionar?almacen_id=${almacenId}`,
+  );
+  useAuthStore.getState().setToken(data.token);
+  return data.token;
+}
+
 export async function getAlmacenes(): Promise<AlmacenResource[]> {
   const { data } = await api.get("/almacenes");
   // La API puede devolver { data: [] } o un array directo

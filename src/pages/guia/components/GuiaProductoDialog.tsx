@@ -1,22 +1,17 @@
+import { useWatch } from "react-hook-form";
 import type { UseFormReturn } from "react-hook-form";
 import type { ColumnDef } from "@tanstack/react-table";
-import { GeneralModal } from "@/components/GeneralModal";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { FormInput } from "@/components/FormInput";
-import { FormSelect } from "@/components/FormSelect";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { DataTable } from "@/components/DataTable";
 import { X, Check } from "lucide-react";
 import { useProductoQuery } from "@/pages/producto/lib/producto.hook";
 import type { ProductoResource } from "@/pages/producto/lib/producto.interface";
-import { useCategoriasQuery, useCategoriasQueryById } from "../lib/guia.hook";
+import { useCategoriasQueryById } from "../lib/guia.hook";
+import ProductoForm from "@/pages/producto/components/ProductoForm";
 import type { ProductoFormValues, SerieFormValues } from "../lib/guia.schema";
-
-const TIPO_OPTIONS = [
-  { value: "material", label: "Material" },
-  { value: "equipo", label: "Equipo" },
-];
 
 interface GuiaProductoDialogProps {
   open: boolean;
@@ -43,127 +38,126 @@ export function GuiaProductoDialog({
   onTabChange,
   onOpenSerieDialog,
 }: GuiaProductoDialogProps) {
+  const watchedTipo = useWatch({ control: productSubForm.control, name: "tipo" });
+  const isEquipo = watchedTipo === "equipo";
+
+  if (!open) return null;
+
   return (
-    <GeneralModal
-      open={open}
-      onClose={onClose}
-      title={
-        editingIndex !== null
-          ? `Editando producto #${editingIndex + 1}`
-          : "Agregar producto"
-      }
-      size="2xl"
-    >
-      <div className="space-y-4">
-        <Tabs
-          value={tab}
-          onValueChange={(v) => {
-            const next = v as "catalogo" | "manual";
-            if (next === "catalogo") {
-              productSubForm.setValue("categoria_id", null);
-              productSubForm.setValue("sap", null);
-              productSubForm.setValue("nombre", null);
-              productSubForm.setValue("tipo", null);
-            } else {
-              productSubForm.setValue("producto_id", null);
-              productSubForm.setValue("tipo", null);
-            }
-            onTabChange(next);
+    <div className="border rounded-lg p-4 space-y-4 bg-muted/20">
+      <div className="flex items-center justify-between">
+        <p className="text-sm font-semibold">
+          {editingIndex !== null
+            ? `Editando producto #${editingIndex + 1}`
+            : "Agregar producto"}
+        </p>
+        <Button type="button" variant="ghost" size="icon" className="size-7" onClick={onClose}>
+          <X className="size-3" />
+        </Button>
+      </div>
+
+      {/* Selector de modo */}
+      <div className="flex gap-2">
+        <Button
+          type="button"
+          variant={tab === "catalogo" ? "default" : "outline"}
+          size="sm"
+          onClick={() => {
+            if (tab === "catalogo") return;
+            productSubForm.setValue("categoria_id", null);
+            productSubForm.setValue("sap", null);
+            productSubForm.setValue("nombre", null);
+            productSubForm.setValue("tipo", null);
+            productSubForm.setValue("origen", null);
+            productSubForm.setValue("necesita_serie", null);
+            productSubForm.setValue("necesita_mac", null);
+            productSubForm.setValue("necesita_emta_mac", null);
+            productSubForm.setValue("necesita_ua", null);
+            onTabChange("catalogo");
           }}
         >
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="catalogo">Del catálogo</TabsTrigger>
-            <TabsTrigger value="manual">Ingreso manual</TabsTrigger>
-          </TabsList>
+          Catálogo
+        </Button>
+        <Button
+          type="button"
+          variant={tab === "manual" ? "default" : "outline"}
+          size="sm"
+          onClick={() => {
+            if (tab === "manual") return;
+            productSubForm.setValue("producto_id", null);
+            productSubForm.setValue("tipo", null);
+            productSubForm.setValue("necesita_serie", null);
+            productSubForm.setValue("necesita_mac", null);
+            productSubForm.setValue("necesita_emta_mac", null);
+            productSubForm.setValue("necesita_ua", null);
+            onTabChange("manual");
+          }}
+        >
+          Nuevo
+        </Button>
+      </div>
 
-          <TabsContent value="catalogo" className="space-y-3 pt-2">
-            <FormSelectAsync
-              name="producto_id"
-              label="Producto"
-              control={productSubForm.control}
-              placeholder="Buscar por nombre o SAP..."
-              useQueryHook={useProductoQuery}
-              additionalParams={{ tipo: "equipo" }}
-              mapOptionFn={(item) => ({
-                value: String(item.id),
-                label: item.nombre,
-                description: item.sap,
-              })}
-              onValueChange={(_, item: ProductoResource) => {
-                if (item) {
-                  productSubForm.setValue("categoria_id", null);
-                  productSubForm.setValue("sap", null);
-                  productSubForm.setValue("nombre", null);
-                  // Guardar tipo para validar series (equipo requiere series)
-                  productSubForm.setValue(
-                    "tipo",
-                    (item.tipo as "material" | "equipo") ?? null,
-                  );
-                }
-              }}
-            />
-          </TabsContent>
-
-          <TabsContent value="manual" className="space-y-3 pt-2">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <FormSelectAsync
-                name="categoria_id"
-                label="Categoría"
-                control={productSubForm.control}
-                placeholder="Seleccione una categoría"
-                useQueryHook={useCategoriasQuery}
-                useQueryByIdHook={useCategoriasQueryById}
-                mapOptionFn={(item) => ({
-                  value: String(item.id),
-                  label: item.nombre,
-                })}
-              />
-              <FormSelect
-                name="tipo"
-                label="Tipo"
-                control={productSubForm.control}
-                placeholder="Seleccione un tipo"
-                options={TIPO_OPTIONS}
-              />
-              <FormInput
-                name="sap"
-                label="Código SAP"
-                control={productSubForm.control}
-                placeholder="Ej. 100001"
-                uppercase
-              />
-              <FormInput
-                name="nombre"
-                label="Nombre del producto"
-                control={productSubForm.control}
-                placeholder="Descripción del producto"
-                uppercase
-              />
-            </div>
-          </TabsContent>
-        </Tabs>
-
-        {/* Campos compartidos */}
-        <div className="grid grid-cols-2 gap-3">
-          <FormInput
-            name="cantidad"
-            label="Cantidad"
+      {tab === "catalogo" && (
+        <div className="space-y-3">
+          <FormSelectAsync
+            name="producto_id"
+            label="Producto"
             control={productSubForm.control}
-            type="number"
-            placeholder="1"
-            required
-          />
-          <FormInput
-            name="observaciones"
-            label="Observaciones"
-            control={productSubForm.control}
-            placeholder="Notas internas..."
-            uppercase
+            placeholder="Buscar por nombre o SAP..."
+            useQueryHook={useProductoQuery}
+            mapOptionFn={(item) => ({
+              value: String(item.id),
+              label: item.nombre,
+              description: item.sap,
+            })}
+            onValueChange={(_, item: ProductoResource) => {
+              if (item) {
+                productSubForm.setValue("categoria_id", null);
+                productSubForm.setValue("sap", null);
+                productSubForm.setValue("nombre", null);
+                productSubForm.setValue("tipo", (item.tipo as "material" | "equipo") ?? null);
+                productSubForm.setValue("necesita_serie", item.necesita_serie ?? null);
+                productSubForm.setValue("necesita_mac", item.necesita_mac ?? null);
+                productSubForm.setValue("necesita_emta_mac", item.necesita_emta_mac ?? null);
+                productSubForm.setValue("necesita_ua", item.necesita_ua ?? null);
+              }
+            }}
           />
         </div>
+      )}
 
-        {/* Series */}
+      {tab === "manual" && (
         <div className="space-y-3">
+          <ProductoForm
+            externalControl={productSubForm.control}
+            categoriaQueryByIdHook={useCategoriasQueryById}
+          />
+        </div>
+      )}
+
+      {/* Campos compartidos */}
+      <div className="grid grid-cols-2 gap-3">
+        <FormInput
+          name="cantidad"
+          label="Cantidad"
+          control={productSubForm.control}
+          type="number"
+          placeholder="1"
+          required
+        />
+        <FormInput
+          name="observaciones"
+          label="Observaciones"
+          control={productSubForm.control}
+          placeholder="Notas internas..."
+          uppercase
+        />
+      </div>
+
+      {/* Series — solo visibles si el producto es un equipo */}
+      {isEquipo && (
+        <div className="space-y-3">
+          <Separator />
           <div className="flex items-center justify-between">
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
               Series
@@ -193,18 +187,18 @@ export function GuiaProductoDialog({
             </p>
           )}
         </div>
+      )}
 
-        <div className="flex justify-end gap-2 pt-2">
-          <Button type="button" variant="outline" onClick={onClose}>
-            <X className="size-3 mr-1" />
-            Cancelar
-          </Button>
-          <Button type="button" onClick={onSubmit}>
-            <Check className="size-3 mr-1" />
-            {editingIndex !== null ? "Actualizar producto" : "Agregar producto"}
-          </Button>
-        </div>
+      <div className="flex justify-end gap-2 pt-2">
+        <Button type="button" variant="outline" onClick={onClose}>
+          <X className="size-3 mr-1" />
+          Cancelar
+        </Button>
+        <Button type="button" onClick={onSubmit}>
+          <Check className="size-3 mr-1" />
+          {editingIndex !== null ? "Actualizar producto" : "Agregar producto"}
+        </Button>
       </div>
-    </GeneralModal>
+    </div>
   );
 }

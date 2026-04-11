@@ -2,8 +2,9 @@ import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { Warehouse, Waypoints } from "lucide-react";
-import { getAlmacenes } from "../lib/auth.actions";
+import { getAlmacenes, selectAlmacen } from "../lib/auth.actions";
 import { useAuthStore } from "../lib/auth.store";
+import { errorToast } from "@/lib/core.function";
 import { Button } from "@/components/ui/button";
 import {
   Field,
@@ -26,6 +27,7 @@ export default function WarehouseSelect({
   ...props
 }: React.ComponentProps<"div">) {
   const [selectedId, setSelectedId] = useState<string>("");
+  const [isContinuing, setIsContinuing] = useState(false);
   const navigate = useNavigate();
   const setAlmacenId = useAuthStore((s) => s.setAlmacenId);
 
@@ -45,10 +47,18 @@ export default function WarehouseSelect({
     [almacenes],
   );
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (!selectedId) return;
-    setAlmacenId(Number(selectedId));
-    navigate("/inicio", { replace: true });
+    setIsContinuing(true);
+    try {
+      await selectAlmacen(Number(selectedId));
+      setAlmacenId(Number(selectedId));
+      navigate("/inicio", { replace: true });
+    } catch {
+      errorToast("Error al seleccionar el almacén");
+    } finally {
+      setIsContinuing(false);
+    }
   };
 
   const noAlmacenes = !isLoading && almacenes.length === 0;
@@ -106,10 +116,10 @@ export default function WarehouseSelect({
                   <Field>
                     <Button
                       type="button"
-                      disabled={!selectedId || isLoading}
+                      disabled={!selectedId || isLoading || isContinuing}
                       onClick={handleContinue}
                     >
-                      Continuar
+                      {isContinuing ? "Continuando..." : "Continuar"}
                     </Button>
                   </Field>
                 </FieldGroup>

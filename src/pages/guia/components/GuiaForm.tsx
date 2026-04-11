@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { FormInput } from "@/components/FormInput";
-import { FileUploadWithCamera } from "@/components/FileUploadWithCamera";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import { DataTable } from "@/components/DataTable";
@@ -34,6 +33,7 @@ const EMPTY_SERIE: SerieFormValues = {
   serie_id: null,
   serie: "",
   mac: "",
+  emta_mac: "",
   ua: "",
   observaciones: null,
 };
@@ -44,6 +44,11 @@ const EMPTY_PRODUCTO: ProductoFormValues = {
   sap: null,
   nombre: null,
   tipo: null,
+  origen: null,
+  necesita_serie: null,
+  necesita_mac: null,
+  necesita_emta_mac: null,
+  necesita_ua: null,
   cantidad: 1,
   observaciones: null,
   series: [],
@@ -57,21 +62,13 @@ interface GuiaFormProps {
 
 export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
   const queryClient = useQueryClient();
-  const [editingProductoIndex, setEditingProductoIndex] = useState<
-    number | null
-  >(null);
-  const [editingSerieIndex, setEditingSerieIndex] = useState<number | null>(
-    null,
-  );
+  const [editingProductoIndex, setEditingProductoIndex] = useState<number | null>(null);
+  const [editingSerieIndex, setEditingSerieIndex] = useState<number | null>(null);
   const [productoDialogOpen, setProductoDialogOpen] = useState(false);
-  const [productoDialogTab, setProductoDialogTab] = useState<
-    "catalogo" | "manual"
-  >("catalogo");
+  const [productoDialogTab, setProductoDialogTab] = useState<"catalogo" | "manual">("catalogo");
   const [archivo, setArchivo] = useState<File | null>(null);
   const [serieDialogOpen, setSerieDialogOpen] = useState(false);
-  const [serieDialogTab, setSerieDialogTab] = useState<"select" | "create">(
-    "select",
-  );
+  const [serieDialogTab, setSerieDialogTab] = useState<"select" | "create">("select");
   const [deleteConfirmInfo, setDeleteConfirmInfo] = useState<{
     index: number;
     id: number;
@@ -104,6 +101,11 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
           sap: p.producto.sap ?? null,
           nombre: p.producto.nombre ?? null,
           tipo: (p.producto.tipo as "material" | "equipo") ?? null,
+          origen: null,
+          necesita_serie: null,
+          necesita_mac: null,
+          necesita_emta_mac: null,
+          necesita_ua: null,
           cantidad: Number(p.cantidad),
           observaciones: p.observaciones ?? null,
           series:
@@ -111,6 +113,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
               serie_id: s.serie?.id ?? null,
               serie: s.serie?.serie ?? null,
               mac: s.serie?.mac ?? null,
+              emta_mac: null,
               ua: s.serie?.ua ?? null,
               observaciones: s.observaciones ?? null,
             })) ?? [],
@@ -133,6 +136,12 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
   } = useFieldArray({ control: productSubForm.control, name: "series" });
 
   const watchedSeries = productSubForm.watch("series") ?? [];
+
+  // Necesita_* del producto seleccionado/ingresado
+  const watchedNecesitaSerie = useWatch({ control: productSubForm.control, name: "necesita_serie" });
+  const watchedNecesitaMac = useWatch({ control: productSubForm.control, name: "necesita_mac" });
+  const watchedNecesitaEmtaMac = useWatch({ control: productSubForm.control, name: "necesita_emta_mac" });
+  const watchedNecesitaUa = useWatch({ control: productSubForm.control, name: "necesita_ua" });
 
   const handleAddOrUpdateProducto = productSubForm.handleSubmit((values) => {
     if (editingProductoIndex === null) {
@@ -220,18 +229,33 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
         const añadir = values.productos
           .filter((p) => !p.productos_guia_id)
           .map((p) => {
+            const isEquipo = p.tipo === "equipo";
             const series =
               p.series?.map((s) => ({
                 serie_id: s.serie_id ? Number(s.serie_id) : undefined,
                 serie: s.serie ?? null,
                 mac: s.mac ?? null,
+                emta_mac: s.emta_mac ?? null,
                 ua: s.ua ?? null,
                 observaciones: s.observaciones ?? null,
               })) ?? null;
             if (p.producto_id) {
               return { producto_id: Number(p.producto_id), cantidad: p.cantidad, observaciones: p.observaciones ?? null, series };
             }
-            return { categoria_id: p.categoria_id ? Number(p.categoria_id) : null, sap: p.sap ?? null, nombre: p.nombre ?? null, tipo: p.tipo ?? null, cantidad: p.cantidad, observaciones: p.observaciones ?? null, series };
+            return {
+              categoria_id: p.categoria_id ? Number(p.categoria_id) : null,
+              sap: p.sap ?? null,
+              nombre: p.nombre ?? null,
+              tipo: p.tipo ?? null,
+              origen: p.origen ?? null,
+              necesita_serie: isEquipo ? (p.necesita_serie ?? null) : null,
+              necesita_mac: isEquipo ? (p.necesita_mac ?? null) : null,
+              necesita_emta_mac: isEquipo ? (p.necesita_emta_mac ?? null) : null,
+              necesita_ua: isEquipo ? (p.necesita_ua ?? null) : null,
+              cantidad: p.cantidad,
+              observaciones: p.observaciones ?? null,
+              series,
+            };
           });
 
         const actualizar = values.productos
@@ -246,7 +270,14 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
                 .map((s) => ({ serie_id: Number(s.serie_id), observaciones: s.observaciones ?? null })) ?? null,
               añadir: p.series
                 ?.filter((s) => !s.serie_id)
-                .map((s) => ({ serie_id: null, serie: s.serie ?? null, mac: s.mac ?? null, ua: s.ua ?? null, observaciones: s.observaciones ?? null })) ?? null,
+                .map((s) => ({
+                  serie_id: null,
+                  serie: s.serie ?? null,
+                  mac: s.mac ?? null,
+                  emta_mac: s.emta_mac ?? null,
+                  ua: s.ua ?? null,
+                  observaciones: s.observaciones ?? null,
+                })) ?? null,
             },
           }));
 
@@ -269,18 +300,33 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
         proveedor_id: Number(values.proveedor_id),
         archivo: archivo ?? undefined,
         productos: values.productos.map((p) => {
+          const isEquipo = p.tipo === "equipo";
           const series =
             p.series?.map((s) => ({
               serie_id: s.serie_id ? Number(s.serie_id) : undefined,
               serie: s.serie ?? null,
               mac: s.mac ?? null,
+              emta_mac: s.emta_mac ?? null,
               ua: s.ua ?? null,
               observaciones: s.observaciones ?? null,
             })) ?? null;
           if (p.producto_id) {
             return { producto_id: Number(p.producto_id), cantidad: p.cantidad, observaciones: p.observaciones ?? null, series };
           }
-          return { categoria_id: p.categoria_id ? Number(p.categoria_id) : null, sap: p.sap ?? null, nombre: p.nombre ?? null, tipo: p.tipo ?? null, cantidad: p.cantidad, observaciones: p.observaciones ?? null, series };
+          return {
+            categoria_id: p.categoria_id ? Number(p.categoria_id) : null,
+            sap: p.sap ?? null,
+            nombre: p.nombre ?? null,
+            tipo: p.tipo ?? null,
+            origen: p.origen ?? null,
+            necesita_serie: isEquipo ? (p.necesita_serie ?? null) : null,
+            necesita_mac: isEquipo ? (p.necesita_mac ?? null) : null,
+            necesita_emta_mac: isEquipo ? (p.necesita_emta_mac ?? null) : null,
+            necesita_ua: isEquipo ? (p.necesita_ua ?? null) : null,
+            cantidad: p.cantidad,
+            observaciones: p.observaciones ?? null,
+            series,
+          };
         }),
       };
       return createGuia(body);
@@ -454,6 +500,15 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
       ),
     },
     {
+      id: "emta_mac",
+      header: "EMTA MAC",
+      cell: ({ row }) => (
+        <span className="text-xs text-muted-foreground font-mono">
+          {row.original.emta_mac || "—"}
+        </span>
+      ),
+    },
+    {
       id: "ua",
       header: "UA",
       cell: ({ row }) => (
@@ -545,11 +600,14 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
           />
         </div>
 
-        <FileUploadWithCamera
-          label="Archivo adjunto (opcional)"
-          value={archivo}
-          onChange={(file) => setArchivo(file)}
-        />
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium">Archivo adjunto (opcional)</label>
+          <input
+            type="file"
+            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            onChange={(e) => setArchivo(e.target.files?.[0] ?? null)}
+          />
+        </div>
       </div>
 
       {/* ── Sección 2: Productos ────────────────────────────────────────────── */}
@@ -562,19 +620,21 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
         </div>
 
         {/* Botón agregar producto */}
-        <div className="flex justify-end">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleOpenProductoDialog}
-          >
-            <PackagePlus className="size-3 mr-1" />
-            Agregar producto
-          </Button>
-        </div>
+        {!productoDialogOpen && (
+          <div className="flex justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleOpenProductoDialog}
+            >
+              <PackagePlus className="size-3 mr-1" />
+              Agregar producto
+            </Button>
+          </div>
+        )}
 
-        {/* Dialog: agregar / editar producto */}
+        {/* Mini formulario inline: agregar / editar producto */}
         <GuiaProductoDialog
           open={productoDialogOpen}
           editingIndex={editingProductoIndex}
@@ -616,6 +676,10 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
         onClose={handleCloseSerieDialog}
         onSubmit={handleAddOrUpdateSerie}
         onTabChange={setSerieDialogTab}
+        necesitaSerie={watchedNecesitaSerie}
+        necesitaMac={watchedNecesitaMac}
+        necesitaEmtaMac={watchedNecesitaEmtaMac}
+        necesitaUa={watchedNecesitaUa}
       />
 
       {/* ── Confirmación forzar eliminación de producto ─────────────────────── */}

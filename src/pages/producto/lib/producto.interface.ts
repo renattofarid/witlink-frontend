@@ -5,6 +5,11 @@ export interface ProductoResource {
   sap: string;
   nombre: string;
   tipo: string;
+  origen: string;
+  necesita_serie: boolean | null;
+  necesita_mac: boolean | null;
+  necesita_emta_mac: boolean | null;
+  necesita_ua: boolean | null;
   categoria: Categoria;
   created_at: string;
   updated_at: string;
@@ -22,14 +27,24 @@ export type ProductoResponse = PaginationResponse<ProductoResource>;
 
 export interface ProductoCreateBody {
   categoria_id: number;
+  origen: string;
   sap: string;
   nombre: string;
   tipo: string;
+  necesita_serie?: boolean | null;
+  necesita_mac?: boolean | null;
+  necesita_emta_mac?: boolean | null;
+  necesita_ua?: boolean | null;
 }
 
 export interface ProductoUpdateBody {
   categoria_id: number;
+  origen: string;
   sap: string;
   nombre: string;
   tipo: string;
+  necesita_serie?: boolean | null;
+  necesita_mac?: boolean | null;
+  necesita_emta_mac?: boolean | null;
+  necesita_ua?: boolean | null;
 }

@@ -121,10 +121,10 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
           nombre: p.producto.nombre ?? null,
           tipo: (p.producto.tipo as "material" | "equipo") ?? null,
           origen: null,
-          necesita_serie: null,
-          necesita_mac: null,
-          necesita_emta_mac: null,
-          necesita_ua: null,
+          necesita_serie: p.producto.necesita_serie ?? null,
+          necesita_mac: p.producto.necesita_mac ?? null,
+          necesita_emta_mac: p.producto.necesita_emta_mac ?? null,
+          necesita_ua: p.producto.necesita_ua ?? null,
           cantidad: Number(p.cantidad),
           observaciones: p.observaciones ?? null,
           series:
@@ -132,7 +132,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
               serie_id: s.serie?.id ?? null,
               serie: s.serie?.serie ?? null,
               mac: s.serie?.mac ?? null,
-              emta_mac: null,
+              emta_mac: s.serie?.emta_mac ?? null,
               ua: s.serie?.ua ?? null,
               observaciones: s.observaciones ?? null,
             })) ?? [],
@@ -401,7 +401,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
       header: "Tipo",
       cell: ({ row }) =>
         row.original.tipo ? (
-          <Badge variant="secondary"  className="text-xs capitalize">
+          <Badge variant="default" className="text-xs capitalize">
             {row.original.tipo}
           </Badge>
         ) : (
@@ -419,10 +419,12 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
       cell: ({ row }) => {
         const series = row.original.series ?? [];
         if (!series.length)
-          return <span className="text-muted-foreground text-xs">Sin series</span>;
+          return (
+            <span className="text-muted-foreground text-xs">Sin series</span>
+          );
         return (
           <div className="flex items-center gap-1.5">
-            <Badge variant="secondary" className="text-xs">
+            <Badge variant="default" className="text-xs">
               {series.length} serie{series.length !== 1 ? "s" : ""}
             </Badge>
             <Button
@@ -606,9 +608,6 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
       </ConfirmationDialog>
 
       {/* ── Submit ─────────────────────────────────────────────────────────── */}
-      <pre className="text-xs text-muted-foreground">
-        {JSON.stringify(form.formState.errors, null, 2)}
-      </pre>
       <div className="flex justify-end">
         <Button type="submit" disabled={mutation.isPending}>
           {mutation.isPending

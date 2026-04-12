@@ -5,9 +5,12 @@ import { errorToast } from "./core.function";
 //   "https://develop.garzasoft.com:82/comercialferriego-backend-dev/public/api/";
 // export const prodAssetURL =
 //   "https://develop.garzasoft.com:82/comercialferriego-backend-dev/public/storage/";
-const baseURL = "https://develop.garzasoft.com:85/almacen-witlink/public/api/";
-export const prodAssetURL =
-  "https://develop.garzasoft.com:85/almacen-witlink/public/storage/";
+// const baseURL = "https://develop.garzasoft.com:85/almacen-witlink/public/api/";
+// export const prodAssetURL =
+//   "https://develop.garzasoft.com:85/almacen-witlink/public/storage/";
+
+const baseURL = "http://localhost/almacen-witlink/public/api/";
+export const prodAssetURL = "http://localhost/almacen-witlink/public/storage/";
 
 export const api = axios.create({
   baseURL,

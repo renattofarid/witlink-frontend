@@ -86,7 +86,7 @@ const productoColumns: ColumnDef<GuiaProductoResource>[] = [
       return (
         <div className="flex flex-wrap gap-1">
           {series.map((s, i) => (
-            <Badge key={i} variant="secondary" className="text-xs font-mono">
+            <Badge key={i} variant="default" className="text-xs font-mono">
               {s.serie?.serie || "—"}
               {s.serie?.mac ? ` · ${s.serie.mac}` : ""}
             </Badge>

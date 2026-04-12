@@ -154,8 +154,8 @@ export default function [Modulo]Page() {
       <DataTable columns={columns} data={data?.data ?? []} isLoading={isLoading} />
 
       <DataTablePagination
-        page={Number(params.pagina)}
-        per_page={Number(params.por_pagina)}
+        page={Number(params.page)}
+        per_page={Number(params.per_page)}
         totalPages={data?.meta.last_page ?? 1}
         totalData={data?.meta.total ?? 0}
         onPageChange={handlePageChange}

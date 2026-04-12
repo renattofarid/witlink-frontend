@@ -5,19 +5,22 @@ import { Badge } from "@/components/ui/badge";
 import type { GuiaResource } from "../lib/guia.interface";
 import { api } from "@/lib/config";
 import { promiseToast } from "@/lib/core.function";
+import { GuiaProductosModal } from "./GuiaProductosModal";
 
 async function openPdf(archivo: string) {
-  const promise = api.get(`/archivos/${archivo}`, { responseType: "blob" }).then((response) => {
-    const blob = response.data as Blob;
-    const url = window.URL.createObjectURL(blob);
+  const promise = api
+    .get(`/archivos/${archivo}`, { responseType: "blob" })
+    .then((response) => {
+      const blob = response.data as Blob;
+      const url = window.URL.createObjectURL(blob);
 
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = archivo;
-    a.click();
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = archivo;
+      a.click();
 
-    window.open(url);
-  });
+      window.open(url);
+    });
 
   promiseToast(promise, {
     loading: "Descargando PDF...",
@@ -56,11 +59,11 @@ export const getGuiaColumns = ({
       });
     },
   },
-  {
-    id: "proveedor",
-    header: "Proveedor",
-    cell: ({ row }) => row.original.proveedor?.razon_social ?? "-",
-  },
+  // {
+  //   id: "proveedor",
+  //   header: "Proveedor",
+  //   cell: ({ row }) => row.original.proveedor?.razon_social ?? "-",
+  // },
   {
     id: "usuario",
     header: "Usuario",
@@ -75,15 +78,12 @@ export const getGuiaColumns = ({
   {
     id: "productos",
     header: "Productos",
-    cell: ({ row }) => {
-      const count = row.original.productos?.length ?? 0;
-      if (!count) return <span className="text-muted-foreground text-xs">—</span>;
-      return (
-        <Badge variant="secondary" className="text-xs">
-          {count} producto{count !== 1 ? "s" : ""}
-        </Badge>
-      );
-    },
+    cell: ({ row }) => (
+      <GuiaProductosModal
+        productos={row.original.productos ?? []}
+        guiaNumero={row.original.numero}
+      />
+    ),
   },
   {
     id: "pdf",
@@ -92,7 +92,10 @@ export const getGuiaColumns = ({
       const url = row.original.ruta_pdf_guia;
       if (!url) return <span className="text-muted-foreground text-xs">—</span>;
       return (
-        <button onClick={() => openPdf(url)} className="text-primary hover:underline flex items-center gap-1 cursor-pointer">
+        <button
+          onClick={() => openPdf(url)}
+          className="text-primary hover:underline flex items-center gap-1 cursor-pointer"
+        >
           <FileText className="size-3.5" />
           <span className="text-xs">Ver</span>
         </button>
@@ -104,9 +107,13 @@ export const getGuiaColumns = ({
     header: "Estado",
     cell: ({ row }) =>
       row.original.deleted_at ? (
-        <Badge variant="destructive" className="text-xs">Eliminado</Badge>
+        <Badge color="destructive" className="text-xs">
+          Eliminado
+        </Badge>
       ) : (
-        <Badge variant="outline" className="text-xs text-green-600 border-green-600">Activo</Badge>
+        <Badge variant="outline" color="green">
+          Activo
+        </Badge>
       ),
   },
   {

@@ -6,11 +6,11 @@ export interface ProductoResource {
   nombre: string;
   tipo: string;
   origen: string;
-  necesita_serie: boolean | null;
-  necesita_mac: boolean | null;
-  necesita_emta_mac: boolean | null;
-  necesita_ua: boolean | null;
   categoria: Categoria;
+  necesita_serie: boolean;
+  necesita_mac: boolean;
+  necesita_emta_mac: boolean;
+  necesita_ua: boolean;
   created_at: string;
   updated_at: string;
 }

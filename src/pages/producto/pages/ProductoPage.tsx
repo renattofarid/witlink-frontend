@@ -9,7 +9,7 @@ import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
 import { successToast, errorToast, ERROR_MESSAGE } from "@/lib/core.function";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import { useProductoQuery } from "../lib/producto.hook";
-import { deleteProducto, restoreProducto } from "../lib/producto.actions";
+import { deleteProducto, restoreProducto, updateProducto } from "../lib/producto.actions";
 import { ProductoComplete } from "../lib/producto.constants";
 import { getProductoColumns } from "../components/ProductoColumns";
 import ProductoFilters from "../components/ProductoFilters";
@@ -24,6 +24,8 @@ export default function ProductoPage() {
   const [params, setParams] = useState<Record<string, string>>({
     page: "1",
     per_page: String(DEFAULT_PER_PAGE),
+    tipo: "",
+    search: "",
   });
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -35,6 +37,39 @@ export default function ProductoPage() {
   const [toDelete, setToDelete] = useState<ProductoResource | null>(null);
 
   const { data, isLoading } = useProductoQuery(params);
+
+  const toggleMutation = useMutation({
+    mutationFn: ({
+      item,
+      field,
+      value,
+    }: {
+      item: ProductoResource;
+      field: "necesita_serie" | "necesita_mac" | "necesita_emta_mac" | "necesita_ua";
+      value: boolean;
+    }) =>
+      updateProducto(item.id, {
+        categoria_id: item.categoria.id,
+        origen: item.origen,
+        sap: item.sap,
+        nombre: item.nombre,
+        tipo: item.tipo,
+        necesita_serie: item.necesita_serie,
+        necesita_mac: item.necesita_mac,
+        necesita_emta_mac: item.necesita_emta_mac,
+        necesita_ua: item.necesita_ua,
+        [field]: value,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [ProductoComplete.QUERY_KEY] });
+    },
+    onError: (error: any) => {
+      errorToast(
+        error.response.data.message ??
+          ERROR_MESSAGE(ProductoComplete.MODEL, "edit"),
+      );
+    },
+  });
 
   const deleteMutation = useMutation({
     mutationFn: () => deleteProducto(toDelete!.id),
@@ -98,10 +133,22 @@ export default function ProductoPage() {
   const handleSearchChange = (value: string) =>
     setParams((prev) => ({ ...prev, search: value, page: "1" }));
 
+  const handleTypeChange = (value: string) =>
+    setParams((prev) => ({ ...prev, tipo: value, page: "1" }));
+
+  const handleToggle = (
+    item: ProductoResource,
+    field: "necesita_serie" | "necesita_mac" | "necesita_emta_mac" | "necesita_ua",
+    value: boolean
+  ) => {
+    toggleMutation.mutate({ item, field, value });
+  };
+
   const columns = getProductoColumns({
     onEdit: handleEdit,
     onDelete: handleDelete,
     onRestore: handleRestore,
+    onToggle: handleToggle,
   });
 
   return (
@@ -112,7 +159,10 @@ export default function ProductoPage() {
         icon="Box"
       >
         <ActionsWrapper>
-          <ProductoButtons onAdd={handleAdd} onRetiro={() => setRetiroOpen(true)} />
+          <ProductoButtons
+            onAdd={handleAdd}
+            onRetiro={() => setRetiroOpen(true)}
+          />
         </ActionsWrapper>
       </TitleComponent>
 
@@ -124,12 +174,14 @@ export default function ProductoPage() {
         <ProductoFilters
           search={params.search ?? ""}
           onSearchChange={handleSearchChange}
+          type={params.tipo ?? ""}
+          onTypeChange={handleTypeChange}
         />
       </DataTable>
 
       <DataTablePagination
-        page={Number(params.pagina)}
-        per_page={Number(params.por_pagina)}
+        page={Number(params.page)}
+        per_page={Number(params.per_page)}
         totalPages={data?.meta.last_page ?? 1}
         totalData={data?.meta.total ?? 0}
         onPageChange={handlePageChange}

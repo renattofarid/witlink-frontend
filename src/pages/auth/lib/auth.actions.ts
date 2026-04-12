@@ -25,6 +25,10 @@ export async function login(body: LoginBody): Promise<AuthResponse> {
 
     const { setToken, setUser } = useAuthStore.getState();
 
+    // Limpiar almacen_id anterior para forzar la selección de almacén tras cada login
+    localStorage.removeItem("almacen_id");
+    useAuthStore.setState({ almacen_id: null });
+
     setToken(data.data.token);
     setUser(data.data.usuario);
 

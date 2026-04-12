@@ -70,7 +70,7 @@ export function GuiaProductosModal({
                         {item.producto.tipo}
                       </Badge>
                     )}
-                    <Badge variant="secondary" className="text-xs">
+                    <Badge variant="default" className="text-xs">
                       Cant: {item.cantidad}
                     </Badge>
                   </div>
@@ -163,7 +163,7 @@ export function GuiaProductosModal({
                               <td className="py-1.5 px-2">
                                 {s.serie?.situacion ? (
                                   <Badge
-                                    variant="secondary"
+                                    variant="default"
                                     className="text-xs capitalize"
                                   >
                                     {s.serie.situacion}

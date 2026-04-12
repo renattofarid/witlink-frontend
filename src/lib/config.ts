@@ -1,16 +1,8 @@
 import axios from "axios";
 import { errorToast } from "./core.function";
 
-// const baseURL =
-//   "https://develop.garzasoft.com:82/comercialferriego-backend-dev/public/api/";
-// export const prodAssetURL =
-//   "https://develop.garzasoft.com:82/comercialferriego-backend-dev/public/storage/";
-// const baseURL = "https://develop.garzasoft.com:85/almacen-witlink/public/api/";
-// export const prodAssetURL =
-//   "https://develop.garzasoft.com:85/almacen-witlink/public/storage/";
-
-const baseURL = "http://localhost/almacen-witlink/public/api/";
-export const prodAssetURL = "http://localhost/almacen-witlink/public/storage/";
+const baseURL = import.meta.env.VITE_API_BASE_URL || "https://develop.garzasoft.com:85/almacen-witlink/public/api/";
+export const prodAssetURL = import.meta.env.VITE_API_STORAGE_URL || "https://develop.garzasoft.com:85/almacen-witlink/public/storage/";
 
 export const api = axios.create({
   baseURL,

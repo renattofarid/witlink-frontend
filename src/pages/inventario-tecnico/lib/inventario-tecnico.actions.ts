@@ -1,6 +1,7 @@
 import { api } from "@/lib/config";
 import type {
   InventarioTecnicoResource,
+  InventarioTecnicoApiResponse,
   DevolverMaterialBody,
 } from "./inventario-tecnico.interface";
 
@@ -8,8 +9,32 @@ export const getInventarioTecnico = async (
   tecnicoId: number,
   params: Record<string, string> = {},
 ): Promise<InventarioTecnicoResource[]> => {
-  const { data } = await api.get(`/tecnicos/${tecnicoId}/inventario`, { params });
-  return data;
+  const { data } = await api.get<InventarioTecnicoApiResponse>(
+    `/tecnicos/${tecnicoId}/inventario`,
+    { params },
+  );
+
+  const materiales: InventarioTecnicoResource[] = data.materiales.map((m) => ({
+    id: m.id,
+    tipo: "material",
+    producto: m.material.producto.nombre,
+    sap: m.material.producto.sap,
+    cantidad: m.cantidad,
+    serie: null,
+    fecha: m.created_at,
+  }));
+
+  const series: InventarioTecnicoResource[] = data.series.map((s) => ({
+    id: s.id,
+    tipo: "serie",
+    producto: s.serie.producto.nombre,
+    sap: s.serie.producto.sap,
+    cantidad: null,
+    serie: s.serie.serie,
+    fecha: s.created_at,
+  }));
+
+  return [...materiales, ...series];
 };
 
 export const devolverMaterial = async (

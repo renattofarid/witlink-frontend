@@ -85,25 +85,36 @@ export const productoSchema = z
         path: ["series"],
       });
     }
-    // Validar unicidad de series
+    // Validar unicidad de series — marca cada campo duplicado individualmente
     if (p.series && p.series.length > 1) {
-      const checkUnique = (
+      const markDuplicates = (
         values: (string | null | undefined)[],
-        label: string
+        field: string
       ) => {
-        const filled = values.filter(Boolean) as string[];
-        if (new Set(filled).size !== filled.length) {
-          ctx.addIssue({
-            code: "custom",
-            message: `Los valores de ${label} deben ser únicos.`,
-            path: ["series"],
-          });
-        }
+        const seen = new Map<string, number[]>();
+        values.forEach((v, i) => {
+          if (v) {
+            const key = v.toUpperCase();
+            if (!seen.has(key)) seen.set(key, []);
+            seen.get(key)!.push(i);
+          }
+        });
+        seen.forEach((indices) => {
+          if (indices.length > 1) {
+            indices.forEach((i) => {
+              ctx.addIssue({
+                code: "custom",
+                message: "Duplicado",
+                path: ["series", i, field],
+              });
+            });
+          }
+        });
       };
-      checkUnique(p.series.map((s) => s.serie), "serie");
-      checkUnique(p.series.map((s) => s.mac), "MAC");
-      checkUnique(p.series.map((s) => s.emta_mac), "EMTA MAC");
-      checkUnique(p.series.map((s) => s.ua), "UA");
+      markDuplicates(p.series.map((s) => s.serie), "serie");
+      markDuplicates(p.series.map((s) => s.mac), "mac");
+      markDuplicates(p.series.map((s) => s.emta_mac), "emta_mac");
+      markDuplicates(p.series.map((s) => s.ua), "ua");
     }
   });
 

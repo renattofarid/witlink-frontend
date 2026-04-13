@@ -81,6 +81,10 @@ function buildGuiaEditBody(values: GuiaCreateFormValues): GuiaEditBody {
             ?.filter((s) => !!s.serie_id)
             .map((s) => ({
               serie_id: Number(s.serie_id),
+              serie: s.serie ?? null,
+              mac: s.mac ?? null,
+              emta_mac: s.emta_mac ?? null,
+              ua: s.ua ?? null,
               observaciones: s.observaciones ?? null,
             })) ?? null,
         añadir:

@@ -24,7 +24,7 @@ export function GuiaProductosModal({
     <>
       <Button
         variant="secondary"
-        color="neutral"
+        color="primary"
         size="sm"
         onClick={() => setOpen(true)}
       >

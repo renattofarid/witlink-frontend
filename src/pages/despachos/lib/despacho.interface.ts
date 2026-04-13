@@ -36,13 +36,16 @@ export interface DespachoTecnicoResource {
 export interface DespachoAlmacenResource {
   id: number;
   nombre: string;
+  direccion: string | null;
 }
 
 export interface DespachoSerieDetalleResource {
   id: number;
   serie: string;
-  mac: string | null;
   situacion: string;
+  mac: string | null;
+  emta_mac: string | null;
+  ua: string | null;
 }
 
 export interface DespachoProductoDetalleResource {

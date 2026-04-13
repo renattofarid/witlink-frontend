@@ -88,6 +88,10 @@ export default function EquiposRetiradosForm({
   const [currentDetalleProductoId, setCurrentDetalleProductoId] = useState<
     number | null
   >(null);
+  // producto.id (not detalle id) for filtering series
+  const [currentProductoId, setCurrentProductoId] = useState<string | null>(
+    null,
+  );
   const [deleteProductoConfirm, setDeleteProductoConfirm] = useState<{
     id: number;
     series: Array<{ serie?: string; mac?: string }>;
@@ -154,6 +158,7 @@ export default function EquiposRetiradosForm({
     productSubForm.reset(EMPTY_PRODUCTO);
     serieSubForm.reset(EMPTY_SERIE);
     setEditingProductoIndex(null);
+    setSerieDialogOpen(false);
     setProductoDialogOpen(true);
   };
 
@@ -163,6 +168,7 @@ export default function EquiposRetiradosForm({
     productSubForm.reset(producto);
     serieSubForm.reset(EMPTY_SERIE);
     setEditingSerieIndex(null);
+    setSerieDialogOpen(false);
     setProductoDialogOpen(true);
   };
 
@@ -172,6 +178,7 @@ export default function EquiposRetiradosForm({
     productSubForm.reset(EMPTY_PRODUCTO);
     serieSubForm.reset(EMPTY_SERIE);
     setEditingSerieIndex(null);
+    setSerieDialogOpen(false);
   };
 
   // ── Serie sub-form ─────────────────────────────────────────────────────────
@@ -288,6 +295,7 @@ export default function EquiposRetiradosForm({
       successToast("Producto agregado correctamente.");
       productSubForm.reset(EMPTY_PRODUCTO);
       serieSubForm.reset(EMPTY_SERIE);
+      setSerieDialogOpen(false);
       setProductoDialogOpen(false);
     },
     onError: (error: any) => {
@@ -333,6 +341,7 @@ export default function EquiposRetiradosForm({
       serieSubForm.reset(EMPTY_SERIE);
       setSerieDialogOpen(false);
       setCurrentDetalleProductoId(null);
+      setCurrentProductoId(null);
     },
     onError: (error: any) => {
       errorToast(
@@ -526,19 +535,19 @@ export default function EquiposRetiradosForm({
     const productos = equipo?.productos ?? [];
 
     return (
-      <div className="space-y-6">
+      <div className="space-y-4">
         {/* Header form */}
         <form
           onSubmit={editForm.handleSubmit((v) => editMutation.mutate(v))}
-          className="space-y-4"
+          className="space-y-2"
         >
-          <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground whitespace-nowrap">
               Datos del equipo retirado
             </h3>
-            <Separator className="mt-2" />
+            <Separator className="flex-1" />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <FormInput
               name="sot"
               label="SOT"
@@ -561,34 +570,32 @@ export default function EquiposRetiradosForm({
             />
           </div>
           <div className="flex justify-end">
-            <Button type="submit" disabled={editMutation.isPending}>
+            <Button type="submit" size="sm" disabled={editMutation.isPending}>
               {editMutation.isPending ? "Guardando..." : "Guardar cambios"}
             </Button>
           </div>
         </form>
 
         {/* Productos section */}
-        <div className="space-y-4">
-          <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground whitespace-nowrap">
               Productos
             </h3>
-            <Separator className="mt-2" />
-          </div>
-
-          {!productoDialogOpen && (
-            <div className="flex justify-end">
+            <Separator className="flex-1" />
+            {!productoDialogOpen && (
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
+                className="h-6 text-xs px-2"
                 onClick={handleOpenProductoDialog}
               >
                 <PackagePlus className="size-3 mr-1" />
-                Agregar producto
+                Agregar
               </Button>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* Add product dialog (submits via API in edit mode) */}
           <EquiposRetiradosProductoDialog
@@ -597,6 +604,9 @@ export default function EquiposRetiradosForm({
             productSubForm={productSubForm}
             watchedSeries={watchedSeries}
             serieColumns={serieColumns}
+            serieDialogOpen={serieDialogOpen}
+            editingSerieIndex={editingSerieIndex}
+            serieSubForm={serieSubForm}
             onClose={handleCloseProductoDialog}
             onSubmit={productSubForm.handleSubmit((v) =>
               addProductoMutation.mutate(v),
@@ -606,13 +616,16 @@ export default function EquiposRetiradosForm({
               setEditingSerieIndex(null);
               setSerieDialogOpen(true);
             }}
+            onCloseSerieDialog={handleCloseSerieDialog}
+            onSubmitSerie={handleAddOrUpdateSerie}
           />
 
           {/* Products from API */}
           {productos.length > 0 ? (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {productos.map((p) => {
                 const necesitaSerie = p.producto.necesita_serie === 1;
+                const isActiveForSerie = currentDetalleProductoId === p.id;
                 return (
                   <div
                     key={p.id}
@@ -630,7 +643,7 @@ export default function EquiposRetiradosForm({
                         </p>
                       </div>
                       <div className="flex gap-1 shrink-0">
-                        {necesitaSerie && (
+                        {necesitaSerie && !isActiveForSerie && (
                           <Button
                             type="button"
                             variant="outline"
@@ -638,6 +651,7 @@ export default function EquiposRetiradosForm({
                             className="h-7 text-xs"
                             onClick={() => {
                               setCurrentDetalleProductoId(p.id);
+                              setCurrentProductoId(String(p.producto.id));
                               serieSubForm.reset(EMPTY_SERIE);
                               setSerieDialogOpen(true);
                             }}
@@ -693,32 +707,34 @@ export default function EquiposRetiradosForm({
                         ))}
                       </div>
                     )}
+
+                    {/* Inline serie dialog for this product */}
+                    {isActiveForSerie && (
+                      <EquiposRetiradosSerieDialog
+                        open={serieDialogOpen}
+                        editingIndex={null}
+                        serieSubForm={serieSubForm}
+                        productoId={currentProductoId}
+                        onClose={() => {
+                          handleCloseSerieDialog();
+                          setCurrentDetalleProductoId(null);
+                          setCurrentProductoId(null);
+                        }}
+                        onSubmit={serieSubForm.handleSubmit((v) =>
+                          addSerieMutation.mutate(v),
+                        )}
+                      />
+                    )}
                   </div>
                 );
               })}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Este documento no tiene productos registrados.
             </p>
           )}
         </div>
-
-        {/* Serie dialog (for add-product dialog and per-product series) */}
-        <EquiposRetiradosSerieDialog
-          open={serieDialogOpen}
-          editingIndex={editingSerieIndex}
-          serieSubForm={serieSubForm}
-          onClose={() => {
-            handleCloseSerieDialog();
-            setCurrentDetalleProductoId(null);
-          }}
-          onSubmit={
-            currentDetalleProductoId !== null
-              ? serieSubForm.handleSubmit((v) => addSerieMutation.mutate(v))
-              : handleAddOrUpdateSerie
-          }
-        />
 
         {/* Delete producto with series confirmation */}
         <ConfirmationDialog
@@ -754,17 +770,17 @@ export default function EquiposRetiradosForm({
   return (
     <form
       onSubmit={createForm.handleSubmit((v) => createMutation.mutate(v))}
-      className="space-y-6"
+      className="space-y-4"
     >
       {/* Datos principales */}
-      <div className="space-y-4">
-        <div>
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground whitespace-nowrap">
             Datos del equipo retirado
           </h3>
-          <Separator className="mt-2" />
+          <Separator className="flex-1" />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <FormInput
             name="sot"
             label="SOT"
@@ -789,24 +805,24 @@ export default function EquiposRetiradosForm({
       </div>
 
       {/* Productos */}
-      <div className="space-y-4">
-        <div>
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground whitespace-nowrap">
             Productos
           </h3>
-          <Separator className="mt-2" />
-        </div>
-
-        <div className="flex justify-end">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleOpenProductoDialog}
-          >
-            <PackagePlus className="size-3 mr-1" />
-            Agregar producto
-          </Button>
+          <Separator className="flex-1" />
+          {!productoDialogOpen && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-6 text-xs px-2"
+              onClick={handleOpenProductoDialog}
+            >
+              <PackagePlus className="size-3 mr-1" />
+              Agregar
+            </Button>
+          )}
         </div>
 
         <EquiposRetiradosProductoDialog
@@ -815,6 +831,9 @@ export default function EquiposRetiradosForm({
           productSubForm={productSubForm}
           watchedSeries={watchedSeries}
           serieColumns={serieColumns}
+          serieDialogOpen={serieDialogOpen}
+          editingSerieIndex={editingSerieIndex}
+          serieSubForm={serieSubForm}
           onClose={handleCloseProductoDialog}
           onSubmit={handleAddOrUpdateProducto}
           onOpenSerieDialog={() => {
@@ -822,6 +841,8 @@ export default function EquiposRetiradosForm({
             setEditingSerieIndex(null);
             setSerieDialogOpen(true);
           }}
+          onCloseSerieDialog={handleCloseSerieDialog}
+          onSubmitSerie={handleAddOrUpdateSerie}
         />
 
         {watchedProductos.length > 0 && (
@@ -835,20 +856,11 @@ export default function EquiposRetiradosForm({
 
         {createForm.formState.errors.productos &&
           !Array.isArray(createForm.formState.errors.productos) && (
-            <p className="text-sm text-destructive">
+            <p className="text-xs text-destructive">
               {createForm.formState.errors.productos.message}
             </p>
           )}
       </div>
-
-      {/* Serie dialog */}
-      <EquiposRetiradosSerieDialog
-        open={serieDialogOpen}
-        editingIndex={editingSerieIndex}
-        serieSubForm={serieSubForm}
-        onClose={handleCloseSerieDialog}
-        onSubmit={handleAddOrUpdateSerie}
-      />
 
       <div className="flex justify-end">
         <Button type="submit" disabled={createMutation.isPending}>

@@ -42,7 +42,7 @@ export const productoSchema = z
     categoria_id: z.string().optional().nullable(),
     sap: z.string().optional().nullable(),
     nombre: z.string().optional().nullable(),
-    tipo: z.enum(["material", "equipo"]).optional().nullable(),
+    tipo: z.enum(["MATERIAL", "EQUIPO"]).optional().nullable(),
     origen: z.string().optional().nullable(),
     necesita_serie: z.boolean().nullable().optional(),
     necesita_mac: z.boolean().nullable().optional(),
@@ -53,6 +53,21 @@ export const productoSchema = z
     series: z.array(serieSchema).optional().nullable(),
   })
   .superRefine((p, ctx) => {
+    // Equipo manual: al menos un flag debe estar activo
+    if (
+      !p.producto_id &&
+      p.tipo === "EQUIPO" &&
+      !p.necesita_serie &&
+      !p.necesita_mac &&
+      !p.necesita_emta_mac &&
+      !p.necesita_ua
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Un equipo debe requerir al menos una serie, MAC, EMTA MAC o UA.",
+        path: ["necesita_serie"],
+      });
+    }
     // Producto manual: requiere al menos nombre o SAP
     if (!p.producto_id && !p.nombre && !p.sap) {
       ctx.addIssue({
@@ -61,16 +76,8 @@ export const productoSchema = z
         path: ["nombre"],
       });
     }
-    // SAP requerido si origen es claro y es producto manual
-    if (!p.producto_id && p.origen === "claro" && !p.sap) {
-      ctx.addIssue({
-        code: "custom",
-        message: "El código SAP es requerido cuando el origen es Claro.",
-        path: ["sap"],
-      });
-    }
     // Series requeridas solo para equipos con necesita_serie = true
-    if (p.tipo !== "equipo" || !p.necesita_serie) return;
+    if (p.tipo !== "EQUIPO" || !p.necesita_serie) return;
     if ((p.series?.length ?? 0) !== p.cantidad) {
       ctx.addIssue({
         code: "custom",

@@ -28,8 +28,8 @@ export default function ProductoFilters({
         onChange={onTypeChange}
         options={[
           { label: "Todos", value: "" },
-          { label: "Material", value: "material" },
-          { label: "Equipo", value: "equipo" },
+          { label: "Material", value: "MATERIAL" },
+          { label: "Equipo", value: "EQUIPO" },
         ]}
       />
     </FilterWrapper>

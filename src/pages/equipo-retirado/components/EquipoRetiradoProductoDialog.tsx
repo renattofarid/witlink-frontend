@@ -36,7 +36,7 @@ export function EquipoRetiradoProductoDialog({
     control: productSubForm.control,
     name: "tipo",
   });
-  const isEquipo = watchedTipo === "equipo";
+  const isEquipo = watchedTipo === "EQUIPO";
 
   if (!open) return null;
 
@@ -76,7 +76,7 @@ export function EquipoRetiradoProductoDialog({
             productSubForm.setValue("sap", item.sap ?? null);
             productSubForm.setValue(
               "tipo",
-              (item.tipo as "material" | "equipo") ?? null,
+              (item.tipo as "MATERIAL" | "EQUIPO") ?? null,
             );
             productSubForm.setValue("origen", item.origen ?? null);
             productSubForm.setValue(

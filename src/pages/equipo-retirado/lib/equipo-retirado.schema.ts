@@ -12,7 +12,7 @@ export const erProductoSchema = z
     producto_id: z.union([z.string(), z.number()]).nullable(),
     nombre: z.string().optional().nullable(),
     sap: z.string().optional().nullable(),
-    tipo: z.enum(["material", "equipo"]).optional().nullable(),
+    tipo: z.enum(["MATERIAL", "EQUIPO"]).optional().nullable(),
     origen: z.string().optional().nullable(),
     necesita_serie: z.boolean().optional().nullable(),
     necesita_mac: z.boolean().optional().nullable(),
@@ -29,7 +29,7 @@ export const erProductoSchema = z
         path: ["producto_id"],
       });
     }
-    if (p.tipo === "equipo" && (p.series?.length ?? 0) !== p.cantidad) {
+    if (p.tipo === "EQUIPO" && (p.series?.length ?? 0) !== p.cantidad) {
       ctx.addIssue({
         code: "custom",
         message: `Este producto es un equipo y debe tener ${p.cantidad} serie(s) asociada(s).`,

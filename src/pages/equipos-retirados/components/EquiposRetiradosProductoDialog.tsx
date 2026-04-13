@@ -13,6 +13,7 @@ import type {
   ProductoRetiradoFormValues,
   SerieRetiradaFormValues,
 } from "../lib/equipos-retirados.schema";
+import { EquiposRetiradosSerieDialog } from "./EquiposRetiradosSerieDialog";
 
 interface EquiposRetiradosProductoDialogProps {
   open: boolean;
@@ -20,9 +21,14 @@ interface EquiposRetiradosProductoDialogProps {
   productSubForm: UseFormReturn<ProductoRetiradoFormValues>;
   watchedSeries: SerieRetiradaFormValues[];
   serieColumns: ColumnDef<SerieRetiradaFormValues>[];
+  serieDialogOpen: boolean;
+  editingSerieIndex: number | null;
+  serieSubForm: UseFormReturn<SerieRetiradaFormValues>;
   onClose: () => void;
   onSubmit: () => void;
   onOpenSerieDialog: () => void;
+  onCloseSerieDialog: () => void;
+  onSubmitSerie: () => void;
 }
 
 export function EquiposRetiradosProductoDialog({
@@ -31,19 +37,29 @@ export function EquiposRetiradosProductoDialog({
   productSubForm,
   watchedSeries,
   serieColumns,
+  serieDialogOpen,
+  editingSerieIndex,
+  serieSubForm,
   onClose,
   onSubmit,
   onOpenSerieDialog,
+  onCloseSerieDialog,
+  onSubmitSerie,
 }: EquiposRetiradosProductoDialogProps) {
   const necesitaSerie = useWatch({
     control: productSubForm.control,
     name: "necesita_serie",
   });
 
+  const watchedProductoId = useWatch({
+    control: productSubForm.control,
+    name: "producto_id",
+  });
+
   if (!open) return null;
 
   return (
-    <div className="border rounded-lg p-4 space-y-4 bg-muted/20">
+    <div className="border rounded-lg p-3 space-y-3 bg-muted/20">
       <div className="flex items-center justify-between">
         <p className="text-sm font-semibold">
           {editingIndex !== null
@@ -61,7 +77,7 @@ export function EquiposRetiradosProductoDialog({
         </Button>
       </div>
 
-      <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+      <div className="grid gap-3 grid-cols-1 md:grid-cols-2">
         <FormSelectAsync
           name="producto_id"
           label="Producto"
@@ -106,21 +122,33 @@ export function EquiposRetiradosProductoDialog({
       </div>
 
       {necesitaSerie && (
-        <div className="space-y-3">
-          <Separator />
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground whitespace-nowrap">
               Series
             </p>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={onOpenSerieDialog}
-            >
-              + Agregar serie
-            </Button>
+            <Separator className="flex-1" />
+            {!serieDialogOpen && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-6 text-xs px-2"
+                onClick={onOpenSerieDialog}
+              >
+                + Agregar serie
+              </Button>
+            )}
           </div>
+
+          <EquiposRetiradosSerieDialog
+            open={serieDialogOpen}
+            editingIndex={editingSerieIndex}
+            serieSubForm={serieSubForm}
+            productoId={watchedProductoId ? String(watchedProductoId) : null}
+            onClose={onCloseSerieDialog}
+            onSubmit={onSubmitSerie}
+          />
 
           {watchedSeries.length > 0 && (
             <DataTable
@@ -132,19 +160,19 @@ export function EquiposRetiradosProductoDialog({
           )}
 
           {productSubForm.formState.errors.series?.message && (
-            <p className="text-sm text-destructive">
+            <p className="text-xs text-destructive">
               {productSubForm.formState.errors.series.message}
             </p>
           )}
         </div>
       )}
 
-      <div className="flex justify-end gap-2 pt-2">
-        <Button type="button" variant="outline" onClick={onClose}>
+      <div className="flex justify-end gap-2 pt-1">
+        <Button type="button" variant="outline" size="sm" onClick={onClose}>
           <X className="size-3 mr-1" />
           Cancelar
         </Button>
-        <Button type="button" onClick={onSubmit}>
+        <Button type="button" size="sm" onClick={onSubmit}>
           <Check className="size-3 mr-1" />
           {editingIndex !== null ? "Actualizar producto" : "Agregar producto"}
         </Button>

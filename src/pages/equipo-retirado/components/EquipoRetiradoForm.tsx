@@ -778,7 +778,7 @@ export default function EquipoRetiradoForm({
         {productos.length > 0 ? (
           <div className="space-y-3">
             {productos.map((p) => {
-              const isEquipo = p.producto.necesita_serie === 1;
+              const isEquipo = p.producto.tipo === "EQUIPO";
               return (
                 <div
                   key={p.id}

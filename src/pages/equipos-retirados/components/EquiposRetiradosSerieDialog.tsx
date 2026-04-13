@@ -1,5 +1,4 @@
 import type { UseFormReturn } from "react-hook-form";
-import { GeneralModal } from "@/components/GeneralModal";
 import { Button } from "@/components/ui/button";
 import { FormInput } from "@/components/FormInput";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
@@ -11,6 +10,7 @@ interface EquiposRetiradosSerieDialogProps {
   open: boolean;
   editingIndex: number | null;
   serieSubForm: UseFormReturn<SerieRetiradaFormValues>;
+  productoId?: string | null;
   onClose: () => void;
   onSubmit: () => void;
 }
@@ -19,60 +19,70 @@ export function EquiposRetiradosSerieDialog({
   open,
   editingIndex,
   serieSubForm,
+  productoId,
   onClose,
   onSubmit,
 }: EquiposRetiradosSerieDialogProps) {
-  return (
-    <GeneralModal
-      open={open}
-      onClose={onClose}
-      title={
-        editingIndex !== null
-          ? `Editando serie #${editingIndex + 1}`
-          : "Agregar serie"
-      }
-      size="md"
-    >
-      <div className="space-y-4">
-        <FormSelectAsync
-          name="serie_id"
-          label="Serie"
-          control={serieSubForm.control}
-          placeholder="Buscar por número de serie..."
-          useQueryHook={useSeriesDisponiblesQuery}
-          legacyPagination={false}
-          mapOptionFn={(item) => ({
-            value: String(item.id),
-            label: item.serie,
-            description: item.mac ?? undefined,
-          })}
-          onValueChange={(_, item) => {
-            if (item) {
-              serieSubForm.setValue("serie", item.serie ?? null);
-              serieSubForm.setValue("mac", item.mac ?? null);
-            }
-          }}
-          required
-        />
-        <FormInput
-          name="observaciones"
-          label="Observaciones"
-          control={serieSubForm.control}
-          placeholder="Notas sobre esta serie..."
-          uppercase
-        />
+  if (!open) return null;
 
-        <div className="flex justify-end gap-2 pt-2">
-          <Button type="button" variant="outline" onClick={onClose}>
-            <X className="size-3 mr-1" />
-            Cancelar
-          </Button>
-          <Button type="button" onClick={onSubmit}>
-            <Check className="size-3 mr-1" />
-            {editingIndex !== null ? "Actualizar" : "Agregar"}
-          </Button>
-        </div>
+  return (
+    <div className="border rounded-lg p-3 space-y-3 bg-muted/10">
+      <div className="flex items-center justify-between">
+        <p className="text-sm font-semibold">
+          {editingIndex !== null
+            ? `Editando serie #${editingIndex + 1}`
+            : "Agregar serie"}
+        </p>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="size-7"
+          onClick={onClose}
+        >
+          <X className="size-3" />
+        </Button>
       </div>
-    </GeneralModal>
+
+      <FormSelectAsync
+        name="serie_id"
+        label="Serie"
+        control={serieSubForm.control}
+        placeholder="Buscar por número de serie..."
+        useQueryHook={useSeriesDisponiblesQuery}
+        legacyPagination={false}
+        additionalParams={productoId ? { producto_id: Number(productoId) } : {}}
+        mapOptionFn={(item) => ({
+          value: String(item.id),
+          label: item.serie,
+          description: item.mac ?? undefined,
+        })}
+        onValueChange={(_, item) => {
+          if (item) {
+            serieSubForm.setValue("serie", item.serie ?? null);
+            serieSubForm.setValue("mac", item.mac ?? null);
+          }
+        }}
+        required
+      />
+      <FormInput
+        name="observaciones"
+        label="Observaciones"
+        control={serieSubForm.control}
+        placeholder="Notas sobre esta serie..."
+        uppercase
+      />
+
+      <div className="flex justify-end gap-2">
+        <Button type="button" variant="outline" size="sm" onClick={onClose}>
+          <X className="size-3 mr-1" />
+          Cancelar
+        </Button>
+        <Button type="button" size="sm" onClick={onSubmit}>
+          <Check className="size-3 mr-1" />
+          {editingIndex !== null ? "Actualizar" : "Agregar"}
+        </Button>
+      </div>
+    </div>
   );
 }

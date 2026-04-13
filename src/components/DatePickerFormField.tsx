@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/field";
 import { cn } from "@/lib/utils";
 import type { Matcher } from "react-day-picker";
+import RequiredField from "./RequiredField";
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(false);
@@ -52,6 +53,7 @@ interface DatePickerFormFieldProps<T extends FieldValues> {
   captionLayout?: "label" | "dropdown" | "dropdown-months" | "dropdown-years";
   onChange?: (date: Date | undefined) => void;
   endMonth?: Date;
+  required?: boolean;
 }
 
 export function DatePickerFormField<T extends FieldValues>({
@@ -67,6 +69,7 @@ export function DatePickerFormField<T extends FieldValues>({
   captionLayout = "label",
   onChange,
   endMonth,
+  required,
 }: DatePickerFormFieldProps<T>) {
   const isMobile = useIsMobile();
   const { field, fieldState } = useController({ control, name });
@@ -110,7 +113,7 @@ export function DatePickerFormField<T extends FieldValues>({
     <Field className="flex flex-col gap-2">
       {label && (
         <FieldLabel className="flex justify-start items-center text-xs md:text-sm leading-none h-fit dark:text-muted-foreground">
-          {label}
+          {label} {required && <RequiredField />}
         </FieldLabel>
       )}
 

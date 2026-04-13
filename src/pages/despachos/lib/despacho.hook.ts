@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getDespachos } from "./despacho.actions";
+import { getDespachos, getSeriesDisponibles } from "./despacho.actions";
 import { DespachoComplete } from "./despacho.constants";
 import { getTecnicos } from "@/pages/tecnico/lib/tecnico.actions";
 
@@ -9,6 +9,16 @@ export const useDespachoQuery = (params: Record<string, string>) => {
     queryFn: () => getDespachos(params),
     refetchOnWindowFocus: true,
     enabled: !!params.tecnico_id,
+  });
+};
+
+export const useSeriesDisponiblesDespachoQuery = (params: Record<string, any> = {}) => {
+  const { enabled = true, ...apiParams } = params;
+  return useQuery({
+    queryKey: ["series-disponibles-despacho", apiParams],
+    queryFn: () => getSeriesDisponibles(apiParams),
+    enabled,
+    refetchOnWindowFocus: false,
   });
 };
 

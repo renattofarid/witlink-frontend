@@ -8,6 +8,8 @@ import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { X, Check, Plus, Trash2 } from "lucide-react";
 import { useProductoQuery } from "@/pages/producto/lib/producto.hook";
 import type { ProductoResource } from "@/pages/producto/lib/producto.interface";
+import type { SerieResource } from "@/pages/serie/lib/serie.interface";
+import { useSeriesDisponiblesDespachoQuery } from "../lib/despacho.hook";
 import type {
   DespachoProductoFormValues,
   DespachoSerieFormValues,
@@ -22,7 +24,6 @@ interface DespachoProductoDialogProps {
   onSubmit: () => void;
   onAppendSerie: (serie: DespachoSerieFormValues) => void;
   onRemoveSerie: (index: number) => void;
-  onUpdateSerie: (index: number, value: string) => void;
 }
 
 export function DespachoProductoDialog({
@@ -34,11 +35,15 @@ export function DespachoProductoDialog({
   onSubmit,
   onAppendSerie,
   onRemoveSerie,
-  onUpdateSerie,
 }: DespachoProductoDialogProps) {
   const watchedCantidad = useWatch({
     control: productSubForm.control,
     name: "cantidad",
+  });
+
+  const watchedProductoId = useWatch({
+    control: productSubForm.control,
+    name: "producto_id",
   });
 
   // Auto-sincronizar filas de series con la cantidad ingresada
@@ -131,18 +136,39 @@ export function DespachoProductoDialog({
         </div>
 
         {watchedSeries.length > 0 && (
-          <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+          <div className="space-y-1.5 max-h-64 overflow-y-auto pr-1">
             {watchedSeries.map((_, index) => (
               <div key={index} className="flex items-center gap-2">
                 <span className="text-xs text-muted-foreground w-5 text-right shrink-0">
                   {index + 1}.
                 </span>
-                <input
-                  className="flex-1 h-7 rounded-md border border-input bg-background px-2 py-0.5 text-xs shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring uppercase"
-                  placeholder="Ej. ABC123456"
-                  value={watchedSeries[index]?.serie ?? ""}
-                  onChange={(e) => onUpdateSerie(index, e.target.value)}
-                />
+                <div className="flex-1">
+                  <FormSelectAsync
+                    name={`series.${index}.serie_id` as any}
+                    control={productSubForm.control}
+                    placeholder="Buscar por número de serie..."
+                    useQueryHook={useSeriesDisponiblesDespachoQuery}
+                    legacyPagination={false}
+                    additionalParams={
+                      watchedProductoId
+                        ? { producto_id: Number(watchedProductoId) }
+                        : {}
+                    }
+                    mapOptionFn={(item: SerieResource) => ({
+                      value: String(item.id),
+                      label: item.serie ?? String(item.id),
+                      description: item.mac ?? undefined,
+                    })}
+                    onValueChange={(_: any, item: SerieResource) => {
+                      if (item) {
+                        productSubForm.setValue(
+                          `series.${index}.serie` as any,
+                          item.serie ?? "",
+                        );
+                      }
+                    }}
+                  />
+                </div>
                 <Button
                   type="button"
                   variant="ghost"

@@ -4,7 +4,7 @@ export interface ProductoResource {
   id: number;
   sap: string;
   nombre: string;
-  tipo: string;
+  tipo: "MATERIAL" | "EQUIPO";
   origen: string;
   categoria: Categoria;
   necesita_serie: boolean;

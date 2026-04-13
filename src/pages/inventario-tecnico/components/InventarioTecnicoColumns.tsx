@@ -3,22 +3,64 @@ import { ButtonAction } from "@/components/ButtonAction";
 import { Undo2 } from "lucide-react";
 import type { InventarioTecnicoResource } from "../lib/inventario-tecnico.interface";
 
-interface ColumnActions {
+const formatFecha = (fecha: string) =>
+  new Date(fecha).toLocaleDateString("es-PE", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+
+// --- Columnas para la tabla de MATERIALES ---
+
+interface MaterialColumnActions {
   onDevolverMaterial: (row: InventarioTecnicoResource) => void;
+}
+
+export const getMaterialColumns = ({
+  onDevolverMaterial,
+}: MaterialColumnActions): ColumnDef<InventarioTecnicoResource>[] => [
+  {
+    accessorKey: "producto",
+    header: "Producto",
+  },
+  {
+    accessorKey: "sap",
+    header: "SAP",
+  },
+  {
+    accessorKey: "cantidad",
+    header: "Cantidad",
+    cell: ({ row }) => row.original.cantidad ?? "—",
+  },
+  {
+    accessorKey: "fecha",
+    header: "Fecha",
+    cell: ({ row }) => (row.original.fecha ? formatFecha(row.original.fecha) : "—"),
+  },
+  {
+    id: "acciones",
+    header: "Acciones",
+    cell: ({ row }) => (
+      <ButtonAction
+        icon={Undo2}
+        color="red"
+        tooltip="Devolver material"
+        canRender
+        onClick={() => onDevolverMaterial(row.original)}
+      />
+    ),
+  },
+];
+
+// --- Columnas para la tabla de SERIES ---
+
+interface SerieColumnActions {
   onDevolverSerie: (row: InventarioTecnicoResource) => void;
 }
 
-export const getInventarioTecnicoColumns = ({
-  onDevolverMaterial,
+export const getSerieColumns = ({
   onDevolverSerie,
-}: ColumnActions): ColumnDef<InventarioTecnicoResource>[] => [
-  {
-    accessorKey: "tipo",
-    header: "Tipo",
-    cell: ({ row }) => (
-      <span className="capitalize">{row.original.tipo}</span>
-    ),
-  },
+}: SerieColumnActions): ColumnDef<InventarioTecnicoResource>[] => [
   {
     accessorKey: "producto",
     header: "Producto",
@@ -33,40 +75,21 @@ export const getInventarioTecnicoColumns = ({
     cell: ({ row }) => row.original.serie ?? "—",
   },
   {
-    accessorKey: "cantidad",
-    header: "Cantidad",
-    cell: ({ row }) =>
-      row.original.cantidad != null ? row.original.cantidad : "—",
-  },
-  {
     accessorKey: "fecha",
     header: "Fecha",
+    cell: ({ row }) => (row.original.fecha ? formatFecha(row.original.fecha) : "—"),
   },
   {
     id: "acciones",
     header: "Acciones",
-    cell: ({ row }) => {
-      const item = row.original;
-      const isMaterial = item.tipo === "material";
-      const isSerie = item.tipo === "serie";
-      return (
-        <div className="flex gap-1">
-          <ButtonAction
-            icon={Undo2}
-            color="red"
-            tooltip="Devolver material"
-            canRender={isMaterial}
-            onClick={() => onDevolverMaterial(item)}
-          />
-          <ButtonAction
-            icon={Undo2}
-            color="red"
-            tooltip="Devolver serie"
-            canRender={isSerie}
-            onClick={() => onDevolverSerie(item)}
-          />
-        </div>
-      );
-    },
+    cell: ({ row }) => (
+      <ButtonAction
+        icon={Undo2}
+        color="red"
+        tooltip="Devolver serie"
+        canRender
+        onClick={() => onDevolverSerie(row.original)}
+      />
+    ),
   },
 ];

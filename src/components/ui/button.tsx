@@ -17,6 +17,8 @@ const colorClasses = {
     border: "border-primary dark:border-blue-500",
     bg: "bg-primary text-primary-foreground dark:bg-blue-600",
     bgSolid: "bg-primary text-primary-foreground dark:bg-blue-600", // Para default/secondary/destructive
+    bgSolidSecondary:
+      "bg-primary/5 dark:bg-blue-950 text-primary dark:text-blue-400", // Para default/secondary/", 400ark:ve
     hoverSolid: "hover:bg-primary/90 dark:hover:bg-blue-600", // Para default/secondary/destructive
     hoverOutline:
       "hover:bg-primary/5 dark:hover:bg-blue-950 hover:text-primary dark:hover:text-blue-400", // Para outline/tertiary/ghost
@@ -27,7 +29,8 @@ const colorClasses = {
     border: "border-muted-foreground",
     bg: "bg-muted text-muted-foreground",
     bgSolid: "bg-muted text-foreground",
-    hoverSolid: "hover:bg-muted/90",
+    bgSolidSecondary: "bg-muted/50 text-muted-foreground",
+    hoverSolid: "hover:bg-muted/80",
     hoverOutline: "hover:bg-muted/50 hover:text-muted-foreground",
   },
 
@@ -37,6 +40,8 @@ const colorClasses = {
     border: "border-slate-500 dark:border-slate-400",
     bg: "bg-slate-500 dark:bg-slate-600 text-white",
     bgSolid: "bg-slate-500 dark:bg-slate-600 text-white",
+    bgSolidSecondary:
+      "bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400",
     hoverSolid: "hover:bg-slate-600 dark:hover:bg-slate-700",
     hoverOutline:
       "hover:bg-slate-50 dark:hover:bg-slate-950 hover:text-slate-600 dark:hover:text-slate-400",
@@ -46,6 +51,8 @@ const colorClasses = {
     border: "border-gray-500 dark:border-gray-400",
     bg: "bg-gray-500 dark:bg-gray-600 text-white",
     bgSolid: "bg-gray-500 dark:bg-gray-600 text-white",
+    bgSolidSecondary:
+      "bg-gray-50 dark:bg-gray-950 text-gray-600 dark:text-gray-400",
     hoverSolid: "hover:bg-gray-600 dark:hover:bg-gray-700",
     hoverOutline:
       "hover:bg-gray-50 dark:hover:bg-gray-950 hover:text-gray-600 dark:hover:text-gray-400",
@@ -55,6 +62,8 @@ const colorClasses = {
     border: "border-zinc-500 dark:border-zinc-400",
     bg: "bg-zinc-500 dark:bg-zinc-600 text-white",
     bgSolid: "bg-zinc-500 dark:bg-zinc-600 text-white",
+    bgSolidSecondary:
+      "bg-zinc-50 dark:bg-zinc-950 text-zinc-600 dark:text-zinc-400",
     hoverSolid: "hover:bg-zinc-600 dark:hover:bg-zinc-700",
     hoverOutline:
       "hover:bg-zinc-50 dark:hover:bg-zinc-950 hover:text-zinc-600 dark:hover:text-zinc-400",
@@ -64,6 +73,8 @@ const colorClasses = {
     border: "border-neutral-500 dark:border-neutral-400",
     bg: "bg-neutral-500 dark:bg-neutral-600 text-white",
     bgSolid: "bg-neutral-500 dark:bg-neutral-600 text-white",
+    bgSolidSecondary:
+      "bg-neutral-50 dark:bg-neutral-950 text-neutral-600 dark:text-neutral-400",
     hoverSolid: "hover:bg-neutral-600 dark:hover:bg-neutral-700",
     hoverOutline:
       "hover:bg-neutral-50 dark:hover:bg-neutral-950 hover:text-neutral-600 dark:hover:text-neutral-400",
@@ -73,6 +84,8 @@ const colorClasses = {
     border: "border-stone-500 dark:border-stone-400",
     bg: "bg-stone-500 dark:bg-stone-600 text-white",
     bgSolid: "bg-stone-500 dark:bg-stone-600 text-white",
+    bgSolidSecondary:
+      "bg-stone-50 dark:bg-stone-950 text-stone-600 dark:text-stone-400",
     hoverSolid: "hover:bg-stone-600 dark:hover:bg-stone-700",
     hoverOutline:
       "hover:bg-stone-50 dark:hover:bg-stone-950 hover:text-stone-600 dark:hover:text-stone-400",
@@ -84,6 +97,8 @@ const colorClasses = {
     border: "border-red-500 dark:border-red-400",
     bg: "bg-red-500 dark:bg-red-600 text-white",
     bgSolid: "bg-red-500 dark:bg-red-600 text-white",
+    bgSolidSecondary:
+      "bg-red-50 dark:bg-red-950 text-red-600 dark:text-red-400",
     hoverSolid: "hover:bg-red-600 dark:hover:bg-red-700",
     hoverOutline:
       "hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-600 dark:hover:text-red-400",
@@ -93,6 +108,8 @@ const colorClasses = {
     border: "border-rose-500 dark:border-rose-400",
     bg: "bg-rose-500 dark:bg-rose-600 text-white",
     bgSolid: "bg-rose-500 dark:bg-rose-600 text-white",
+    bgSolidSecondary:
+      "bg-rose-50 dark:bg-rose-950 text-rose-600 dark:text-rose-400",
     hoverSolid: "hover:bg-rose-600 dark:hover:bg-rose-700",
     hoverOutline:
       "hover:bg-rose-50 dark:hover:bg-rose-950 hover:text-rose-600 dark:hover:text-rose-400",
@@ -104,6 +121,8 @@ const colorClasses = {
     border: "border-orange-500 dark:border-orange-400",
     bg: "bg-orange-500 dark:bg-orange-600 text-white",
     bgSolid: "bg-orange-500 dark:bg-orange-600 text-white",
+    bgSolidSecondary:
+      "bg-orange-50 dark:bg-orange-950 text-orange-600 dark:text-orange-400",
     hoverSolid: "hover:bg-orange-600 dark:hover:bg-orange-700",
     hoverOutline:
       "hover:bg-orange-50 dark:hover:bg-orange-950 hover:text-orange-600 dark:hover:text-orange-400",
@@ -113,6 +132,8 @@ const colorClasses = {
     border: "border-amber-500 dark:border-amber-400",
     bg: "bg-amber-500 dark:bg-amber-600 text-white",
     bgSolid: "bg-amber-500 dark:bg-amber-600 text-white",
+    bgSolidSecondary:
+      "bg-amber-50 dark:bg-amber-950 text-amber-600 dark:text-amber-400",
     hoverSolid: "hover:bg-amber-600 dark:hover:bg-amber-700",
     hoverOutline:
       "hover:bg-amber-50 dark:hover:bg-amber-950 hover:text-amber-600 dark:hover:text-amber-400",
@@ -124,6 +145,8 @@ const colorClasses = {
     border: "border-yellow-500 dark:border-yellow-400",
     bg: "bg-yellow-500 dark:bg-yellow-600 text-white",
     bgSolid: "bg-yellow-500 dark:bg-yellow-600 text-white",
+    bgSolidSecondary:
+      "bg-yellow-50 dark:bg-yellow-950 text-yellow-600 dark:text-yellow-400",
     hoverSolid: "hover:bg-yellow-600 dark:hover:bg-yellow-700",
     hoverOutline:
       "hover:bg-yellow-50 dark:hover:bg-yellow-950 hover:text-yellow-600 dark:hover:text-yellow-400",
@@ -135,6 +158,8 @@ const colorClasses = {
     border: "border-lime-500 dark:border-lime-400",
     bg: "bg-lime-500 dark:bg-lime-600 text-white",
     bgSolid: "bg-lime-500 dark:bg-lime-600 text-white",
+    bgSolidSecondary:
+      "bg-lime-50 dark:bg-lime-950 text-lime-600 dark:text-lime-400",
     hoverSolid: "hover:bg-lime-600 dark:hover:bg-lime-700",
     hoverOutline:
       "hover:bg-lime-50 dark:hover:bg-lime-950 hover:text-lime-600 dark:hover:text-lime-400",
@@ -144,6 +169,8 @@ const colorClasses = {
     border: "border-green-500 dark:border-green-400",
     bg: "bg-green-500 dark:bg-green-600 text-white",
     bgSolid: "bg-green-500 dark:bg-green-600 text-white",
+    bgSolidSecondary:
+      "bg-green-50 dark:bg-green-950 text-green-600 dark:text-green-400",
     hoverSolid: "hover:bg-green-600 dark:hover:bg-green-700",
     hoverOutline:
       "hover:bg-green-50 dark:hover:bg-green-950 hover:text-green-600 dark:hover:text-green-400",
@@ -153,6 +180,8 @@ const colorClasses = {
     border: "border-emerald-500 dark:border-emerald-400",
     bg: "bg-emerald-500 dark:bg-emerald-600 text-white",
     bgSolid: "bg-emerald-500 dark:bg-emerald-600 text-white",
+    bgSolidSecondary:
+      "bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400",
     hoverSolid: "hover:bg-emerald-600 dark:hover:bg-emerald-700",
     hoverOutline:
       "hover:bg-emerald-50 dark:hover:bg-emerald-950 hover:text-emerald-600 dark:hover:text-emerald-400",
@@ -162,6 +191,8 @@ const colorClasses = {
     border: "border-teal-500 dark:border-teal-400",
     bg: "bg-teal-500 dark:bg-teal-600 text-white",
     bgSolid: "bg-teal-500 dark:bg-teal-600 text-white",
+    bgSolidSecondary:
+      "bg-teal-50 dark:bg-teal-950 text-teal-600 dark:text-teal-400",
     hoverSolid: "hover:bg-teal-600 dark:hover:bg-teal-700",
     hoverOutline:
       "hover:bg-teal-50 dark:hover:bg-teal-950 hover:text-teal-600 dark:hover:text-teal-400",
@@ -173,6 +204,8 @@ const colorClasses = {
     border: "border-cyan-500 dark:border-cyan-400",
     bg: "bg-cyan-500 dark:bg-cyan-600 text-white",
     bgSolid: "bg-cyan-500 dark:bg-cyan-600 text-white",
+    bgSolidSecondary:
+      "bg-cyan-50 dark:bg-cyan-950 text-cyan-600 dark:text-cyan-400",
     hoverSolid: "hover:bg-cyan-600 dark:hover:bg-cyan-700",
     hoverOutline:
       "hover:bg-cyan-50 dark:hover:bg-cyan-950 hover:text-cyan-600 dark:hover:text-cyan-400",
@@ -182,6 +215,8 @@ const colorClasses = {
     border: "border-sky-500 dark:border-sky-400",
     bg: "bg-sky-500 dark:bg-sky-600 text-white",
     bgSolid: "bg-sky-500 dark:bg-sky-600 text-white",
+    bgSolidSecondary:
+      "bg-sky-50 dark:bg-sky-950 text-sky-600 dark:text-sky-400",
     hoverSolid: "hover:bg-sky-600 dark:hover:bg-sky-700",
     hoverOutline:
       "hover:bg-sky-50 dark:hover:bg-sky-950 hover:text-sky-600 dark:hover:text-sky-400",
@@ -191,6 +226,8 @@ const colorClasses = {
     border: "border-blue-500 dark:border-blue-400",
     bg: "bg-blue-500 dark:bg-blue-600 text-white",
     bgSolid: "bg-blue-500 dark:bg-blue-600 text-white",
+    bgSolidSecondary:
+      "bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400",
     hoverSolid: "hover:bg-blue-600 dark:hover:bg-blue-700",
     hoverOutline:
       "hover:bg-blue-50 dark:hover:bg-blue-950 hover:text-blue-600 dark:hover:text-blue-400",
@@ -200,6 +237,8 @@ const colorClasses = {
     border: "border-indigo-500 dark:border-indigo-400",
     bg: "bg-indigo-500 dark:bg-indigo-600 text-white",
     bgSolid: "bg-indigo-500 dark:bg-indigo-600 text-white",
+    bgSolidSecondary:
+      "bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400",
     hoverSolid: "hover:bg-indigo-600 dark:hover:bg-indigo-700",
     hoverOutline:
       "hover:bg-indigo-50 dark:hover:bg-indigo-950 hover:text-indigo-600 dark:hover:text-indigo-400",
@@ -209,6 +248,8 @@ const colorClasses = {
     border: "border-violet-500 dark:border-violet-400",
     bg: "bg-violet-500 dark:bg-violet-600 text-white",
     bgSolid: "bg-violet-500 dark:bg-violet-600 text-white",
+    bgSolidSecondary:
+      "bg-violet-50 dark:bg-violet-950 text-violet-600 dark:text-violet-400",
     hoverSolid: "hover:bg-violet-600 dark:hover:bg-violet-700",
     hoverOutline:
       "hover:bg-violet-50 dark:hover:bg-violet-950 hover:text-violet-600 dark:hover:text-violet-400",
@@ -220,6 +261,8 @@ const colorClasses = {
     border: "border-purple-500 dark:border-purple-400",
     bg: "bg-purple-500 dark:bg-purple-600 text-white",
     bgSolid: "bg-purple-500 dark:bg-purple-600 text-white",
+    bgSolidSecondary:
+      "bg-purple-50 dark:bg-purple-950 text-purple-600 dark:text-purple-400",
     hoverSolid: "hover:bg-purple-600 dark:hover:bg-purple-700",
     hoverOutline:
       "hover:bg-purple-50 dark:hover:bg-purple-950 hover:text-purple-600 dark:hover:text-purple-400",
@@ -229,6 +272,8 @@ const colorClasses = {
     border: "border-fuchsia-500 dark:border-fuchsia-400",
     bg: "bg-fuchsia-500 dark:bg-fuchsia-600 text-white",
     bgSolid: "bg-fuchsia-500 dark:bg-fuchsia-600 text-white",
+    bgSolidSecondary:
+      "bg-fuchsia-50 dark:bg-fuchsia-950 text-fuchsia-600 dark:text-fuchsia-400",
     hoverSolid: "hover:bg-fuchsia-600 dark:hover:bg-fuchsia-700",
     hoverOutline:
       "hover:bg-fuchsia-50 dark:hover:bg-fuchsia-950 hover:text-fuchsia-600 dark:hover:text-fuchsia-400",
@@ -238,6 +283,8 @@ const colorClasses = {
     border: "border-pink-500 dark:border-pink-400",
     bg: "bg-pink-500 dark:bg-pink-600 text-white",
     bgSolid: "bg-pink-500 dark:bg-pink-600 text-white",
+    bgSolidSecondary:
+      "bg-pink-50 dark:bg-pink-950 text-pink-600 dark:text-pink-400",
     hoverSolid: "hover:bg-pink-600 dark:hover:bg-pink-700",
     hoverOutline:
       "hover:bg-pink-50 dark:hover:bg-pink-950 hover:text-pink-600 dark:hover:text-pink-400",
@@ -246,6 +293,8 @@ const colorClasses = {
 
 // Generar compound variants automáticamente desde el color map
 const colorKeys = Object.keys(colorClasses) as Array<keyof typeof colorClasses>;
+
+export type ButtonColors = keyof typeof colorClasses;
 
 const buttonVariants = cva(
   "cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
@@ -350,7 +399,7 @@ const buttonVariants = cva(
       ...colorKeys.map((color) => ({
         variant: "secondary" as const,
         color,
-        class: `${colorClasses[color].bgSolid} ${colorClasses[color].hoverSolid}`,
+        class: `${colorClasses[color].bgSolidSecondary} ${colorClasses[color].hoverOutline}`,
       })),
 
       // Tertiary + colores

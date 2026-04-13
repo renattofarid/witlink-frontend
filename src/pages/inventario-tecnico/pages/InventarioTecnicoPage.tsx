@@ -25,7 +25,7 @@ export default function InventarioTecnicoPage() {
   const [devolverSerieOpen, setDevolverSerieOpen] = useState(false);
   const [selected, setSelected] = useState<InventarioTecnicoResource | null>(null);
 
-  const queryParams = fecha ? { fecha } : {};
+  const queryParams: Record<string, string> = fecha ? { fecha } : {};
   const { data = [], isLoading } = useInventarioTecnicoQuery(tecnicoId, queryParams);
 
   const invalidate = () =>

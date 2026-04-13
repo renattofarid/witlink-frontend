@@ -59,8 +59,8 @@ export default function ProductoForm({
       categoria_id: defaultValues ? String(defaultValues.categoria.id) : "",
       sap: defaultValues?.sap ?? "",
       nombre: defaultValues?.nombre ?? "",
-      tipo: (defaultValues?.tipo as "material" | "equipo") ?? undefined,
-      origen: (defaultValues?.origen as "claro" | "witlink") ?? undefined,
+      tipo: (defaultValues?.tipo as "MATERIAL" | "EQUIPO") ?? undefined,
+      origen: (defaultValues?.origen as "CLARO" | "WITLINK") ?? undefined,
       necesita_serie: defaultValues?.necesita_serie ?? null,
       necesita_mac: defaultValues?.necesita_mac ?? null,
       necesita_emta_mac: defaultValues?.necesita_emta_mac ?? null,
@@ -71,7 +71,7 @@ export default function ProductoForm({
 
   const activeControl = externalControl ?? standaloneForm.control;
   const watchedTipo = useWatch({ control: activeControl, name: "tipo" });
-  const isEquipo = watchedTipo === "equipo";
+  const isEquipo = watchedTipo === "EQUIPO";
 
   const mutation = useMutation({
     mutationFn: (values: ProductoFormValues) => {

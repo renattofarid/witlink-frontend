@@ -93,8 +93,8 @@ export interface GuiaProductoBody {
   categoria_id?: number | null;
   sap?: string | null;
   nombre?: string | null;
-  tipo?: "material" | "equipo" | null;
-  origen?: string | null;
+  tipo: "MATERIAL" | "EQUIPO" | null;
+  origen: string | null;
   necesita_serie?: boolean | null;
   necesita_mac?: boolean | null;
   necesita_emta_mac?: boolean | null;

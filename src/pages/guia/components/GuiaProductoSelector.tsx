@@ -38,16 +38,22 @@ export function GuiaProductoSelector({
               })}
               onValueChange={(_, item: ProductoResource) => {
                 if (item) {
+                  console.log("[GuiaProductoSelector] producto seleccionado:", {
+                    id: item.id,
+                    tipo: item.tipo,
+                    origen: item.origen,
+                    necesita_serie: item.necesita_serie,
+                    necesita_mac: item.necesita_mac,
+                    necesita_emta_mac: item.necesita_emta_mac,
+                    necesita_ua: item.necesita_ua,
+                  });
                   productSubForm.setValue(
                     "categoria_id",
                     item.categoria?.id ? String(item.categoria.id) : null,
                   );
                   productSubForm.setValue("sap", item.sap ?? null);
                   productSubForm.setValue("nombre", item.nombre ?? null);
-                  productSubForm.setValue(
-                    "tipo",
-                    (item.tipo as "material" | "equipo") ?? null,
-                  );
+                  productSubForm.setValue("tipo", item.tipo);
                   productSubForm.setValue(
                     "necesita_serie",
                     item.necesita_serie ?? false,
@@ -64,10 +70,7 @@ export function GuiaProductoSelector({
                     "necesita_ua",
                     item.necesita_ua ?? false,
                   );
-                  productSubForm.setValue(
-                    "origen",
-                    (item.origen as "claro" | "witlink") ?? null,
-                  );
+                  productSubForm.setValue("origen", item.origen);
                 }
               }}
             />

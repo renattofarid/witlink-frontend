@@ -68,7 +68,8 @@ export function GuiaProductoDialog({
     name: "cantidad",
   });
 
-  const isEquipo = watchedTipo === "equipo";
+  console.log("[GuiaProductoDialog] watchedTipo:", watchedTipo, "| isEquipo:", watchedTipo === "EQUIPO");
+  const isEquipo = watchedTipo === "EQUIPO";
   const disabledSerie = necesitaSerie !== true;
   const disabledMac = necesitaMac !== true;
   const disabledEmtaMac = necesitaEmtaMac !== true;

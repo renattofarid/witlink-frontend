@@ -63,7 +63,7 @@ export function EquipoRetiradoProductoDialog({
               productSubForm.setValue("sap", item.sap ?? null);
               productSubForm.setValue(
                 "tipo",
-                (item.tipo as "material" | "equipo") ?? null,
+                (item.tipo as "MATERIAL" | "EQUIPO") ?? null,
               );
             }
           }}

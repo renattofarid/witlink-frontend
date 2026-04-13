@@ -36,6 +36,15 @@ function appendProductoFields(formData: FormData, prefix: string, producto: Guia
     formData.append(`${prefix}[nombre]`, producto.nombre);
   if (producto.tipo !== undefined && producto.tipo !== null)
     formData.append(`${prefix}[tipo]`, producto.tipo);
+  formData.append(`${prefix}[origen]`, producto.origen ?? "");
+  if (producto.necesita_serie !== undefined && producto.necesita_serie !== null)
+    formData.append(`${prefix}[necesita_serie]`, producto.necesita_serie ? "1" : "0");
+  if (producto.necesita_mac !== undefined && producto.necesita_mac !== null)
+    formData.append(`${prefix}[necesita_mac]`, producto.necesita_mac ? "1" : "0");
+  if (producto.necesita_emta_mac !== undefined && producto.necesita_emta_mac !== null)
+    formData.append(`${prefix}[necesita_emta_mac]`, producto.necesita_emta_mac ? "1" : "0");
+  if (producto.necesita_ua !== undefined && producto.necesita_ua !== null)
+    formData.append(`${prefix}[necesita_ua]`, producto.necesita_ua ? "1" : "0");
   formData.append(`${prefix}[cantidad]`, String(producto.cantidad));
   if (producto.observaciones !== undefined && producto.observaciones !== null)
     formData.append(`${prefix}[observaciones]`, producto.observaciones);

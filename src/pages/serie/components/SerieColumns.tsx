@@ -19,16 +19,20 @@ export const getSerieColumns = ({
     header: "Serie",
   },
   {
-    accessorKey: "situacion",
-    header: "Situación",
-  },
-  {
     accessorKey: "mac",
     header: "MAC",
   },
   {
+    accessorKey: "emta_mac",
+    header: "EMTA MAC",
+  },
+  {
     accessorKey: "ua",
     header: "UA",
+  },
+  {
+    accessorKey: "situacion",
+    header: "Situación",
   },
   {
     id: "producto",

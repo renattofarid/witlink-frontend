@@ -3,10 +3,11 @@ import type { ProductoResource } from "@/pages/producto/lib/producto.interface";
 
 export interface SerieResource {
   id: number;
-  serie: string;
   situacion: string;
-  mac: string;
-  ua: string;
+  serie?: string;
+  emta_mac?: string;
+  mac?: string;
+  ua?: string;
   producto: ProductoResource;
   created_at: string;
   updated_at: string;

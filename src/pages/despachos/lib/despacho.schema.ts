@@ -1,7 +1,8 @@
 import { z } from "zod";
 
 export const despachoSerieSchema = z.object({
-  serie: z.string().min(1, "Serie requerida"),
+  serie_id: z.union([z.string(), z.number()]).optional().nullable(),
+  serie: z.string().optional().nullable(),
 });
 
 export const despachoProductoSchema = z.object({

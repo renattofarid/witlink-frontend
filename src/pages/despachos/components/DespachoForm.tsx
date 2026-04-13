@@ -68,14 +68,9 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
   const {
     append: appendSerie,
     remove: removeSerie,
-    update: updateSerieField,
   } = useFieldArray({ control: productSubForm.control, name: "series" });
 
   const watchedSeries = productSubForm.watch("series") ?? [];
-
-  const handleUpdateSerie = (index: number, value: string) => {
-    updateSerieField(index, { serie: value });
-  };
 
   // ── Handlers: producto ─────────────────────────────────────────────────────
   const handleAddOrUpdateProducto = productSubForm.handleSubmit((values) => {
@@ -117,8 +112,8 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
           id: Number(p.producto_id),
           cantidad: p.cantidad,
           series: (p.series ?? [])
-            .filter((s) => s.serie.trim() !== "")
-            .map((s) => ({ serie: s.serie.trim().toUpperCase() })),
+            .filter((s) => s.serie && s.serie.trim() !== "")
+            .map((s) => ({ serie: s.serie!.trim().toUpperCase() })),
         })),
       });
     },
@@ -282,7 +277,6 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
           onSubmit={handleAddOrUpdateProducto}
           onAppendSerie={appendSerie}
           onRemoveSerie={removeSerie}
-          onUpdateSerie={handleUpdateSerie}
         />
 
         {watchedProductos.length > 0 && (

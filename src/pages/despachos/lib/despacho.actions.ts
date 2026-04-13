@@ -29,6 +29,11 @@ export const deleteDespacho = async (id: number) => {
   return data;
 };
 
+export const getSeriesDisponibles = async (params: Record<string, any>) => {
+  const { data } = await api.get("/series", { params });
+  return data;
+};
+
 export const createDespachoMasivoSeries = async (
   body: DespachoMasivoSeriesBody,
 ) => {

@@ -15,6 +15,13 @@ export const getKardexColumns = (): ColumnDef<KardexResource>[] => [
   {
     accessorKey: "fecha",
     header: "Fecha",
+    cell: ({ row }) => {
+      const raw = row.original.fecha;
+      if (!raw) return null;
+      // Replace hyphens with slashes so JS parses it as local time, not UTC
+      const date = new Date(raw.replace(/-/g, "/"));
+      return date.toLocaleDateString("es-PE", { day: "2-digit", month: "2-digit", year: "numeric" });
+    },
   },
   {
     accessorKey: "codigo",

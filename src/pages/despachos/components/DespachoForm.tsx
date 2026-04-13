@@ -168,7 +168,7 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
       header: "Series",
       cell: ({ row }) => {
         const series = (row.original.series ?? []).filter(
-          (s) => s.serie.trim() !== "",
+          (s) => s.serie && s.serie.trim() !== "",
         );
         if (!series.length)
           return (

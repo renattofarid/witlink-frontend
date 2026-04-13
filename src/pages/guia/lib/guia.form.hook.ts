@@ -31,6 +31,8 @@ function buildProductoNuevo(p: any, isEquipo: boolean): GuiaProductoBody {
   if (p.producto_id) {
     return {
       producto_id: Number(p.producto_id),
+      tipo: p.tipo ?? null,
+      origen: p.origen ?? null,
       cantidad: p.cantidad,
       observaciones: p.observaciones ?? null,
       series,

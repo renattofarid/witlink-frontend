@@ -8,7 +8,7 @@ export const useDespachoQuery = (params: Record<string, string>) => {
     queryKey: [DespachoComplete.QUERY_KEY, params],
     queryFn: () => getDespachos(params),
     refetchOnWindowFocus: true,
-    enabled: !!params.tecnico_id,
+    enabled: true,
   });
 };
 

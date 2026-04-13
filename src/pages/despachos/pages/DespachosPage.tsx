@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import PageWrapper from "@/components/PageWrapper";
 import TitleComponent from "@/components/TitleComponent";
 import ActionsWrapper from "@/components/ActionsWrapper";
@@ -16,11 +17,12 @@ import DespachoFilters from "../components/DespachoFilters";
 import DespachoButtons from "../components/DespachoButtons";
 import { DespachoMasivoDialog } from "../components/DespachoMasivoDialog";
 import type { DespachoResource } from "../lib/despacho.interface";
+import { DESPACHO_ROUTE_VIEW } from "../lib/despacho.constants";
 import { Button } from "@/components/ui/button";
 import { ListPlus } from "lucide-react";
 
 export default function DespachosPage() {
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   const [tecnicoId, setTecnicoId] = useState("");
@@ -53,6 +55,10 @@ export default function DespachosPage() {
     },
   });
 
+  const handleView = (row: DespachoResource) => {
+    navigate(`${DESPACHO_ROUTE_VIEW}/${row.id}`);
+  };
+
   const handleDelete = (row: DespachoResource) => {
     setToDelete(row);
     setDeleteOpen(true);
@@ -69,7 +75,7 @@ export default function DespachosPage() {
   const handlePerPageChange = (perPage: number) =>
     setParams((prev) => ({ ...prev, per_page: String(perPage), page: "1" }));
 
-  const columns = getDespachoColumns({ onDelete: handleDelete });
+  const columns = getDespachoColumns({ onDelete: handleDelete, onView: handleView });
 
   return (
     <PageWrapper>
@@ -90,19 +96,13 @@ export default function DespachosPage() {
       <DataTable
         columns={columns}
         data={data?.data ?? []}
-        isLoading={isLoading && !!tecnicoId}
+        isLoading={isLoading}
       >
         <DespachoFilters
           tecnicoId={tecnicoId}
           onTecnicoChange={handleTecnicoChange}
         />
       </DataTable>
-
-      {!tecnicoId && (
-        <p className="text-sm text-muted-foreground text-center py-6">
-          Selecciona un técnico para ver sus despachos.
-        </p>
-      )}
 
       <DataTablePagination
         page={Number(params.page)}

@@ -12,6 +12,59 @@ export interface DespachoResource {
   almacen_id: number;
 }
 
+// ── Tipos anidados para la vista de detalle ──────────────────────────────────
+
+export interface DespachoPersonaResource {
+  id: number;
+  nombre: string;
+  apellido_paterno: string;
+  apellido_materno: string;
+  dni: string;
+}
+
+export interface DespachoUsuarioResource {
+  id: number;
+  nombre_usuario: string;
+  persona: DespachoPersonaResource | null;
+}
+
+export interface DespachoTecnicoResource {
+  id: number;
+  persona: DespachoPersonaResource | null;
+}
+
+export interface DespachoAlmacenResource {
+  id: number;
+  nombre: string;
+}
+
+export interface DespachoSerieDetalleResource {
+  id: number;
+  serie: string;
+  mac: string | null;
+  situacion: string;
+}
+
+export interface DespachoProductoDetalleResource {
+  id: number;
+  cantidad: number;
+  producto: {
+    id: number;
+    nombre: string;
+    sap: string;
+    tipo: string | null;
+    origen: string | null;
+  };
+  series: Array<{ serie: DespachoSerieDetalleResource | null }>;
+}
+
+export interface DespachoDetailResource extends DespachoResource {
+  tecnico: DespachoTecnicoResource | null;
+  usuario: DespachoUsuarioResource | null;
+  almacen: DespachoAlmacenResource | null;
+  productos: DespachoProductoDetalleResource[];
+}
+
 export type DespachoResponse = PaginationResponse<DespachoResource>;
 
 export interface DespachoSerieBody {

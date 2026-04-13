@@ -53,14 +53,14 @@ export const getInventarioTecnicoColumns = ({
         <div className="flex gap-1">
           <ButtonAction
             icon={Undo2}
-            color="warning"
+            color="red"
             tooltip="Devolver material"
             canRender={isMaterial}
             onClick={() => onDevolverMaterial(item)}
           />
           <ButtonAction
             icon={Undo2}
-            color="warning"
+            color="red"
             tooltip="Devolver serie"
             canRender={isSerie}
             onClick={() => onDevolverSerie(item)}

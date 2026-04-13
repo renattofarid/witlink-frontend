@@ -14,3 +14,5 @@ export const DespachoComplete: ModelComplete = {
   ABSOLUTE_ROUTE: "/despachos",
   ROUTE_ADD: "/despachos/agregar",
 };
+
+export const DESPACHO_ROUTE_VIEW = "/despachos/ver";

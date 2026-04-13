@@ -120,7 +120,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
           sap: p.producto.sap ?? null,
           nombre: p.producto.nombre ?? null,
           tipo: (p.producto.tipo as "material" | "equipo") ?? null,
-          origen: null,
+          origen: (p.producto.origen as "claro" | "witlink") ?? null,
           necesita_serie: p.producto.necesita_serie ?? null,
           necesita_mac: p.producto.necesita_mac ?? null,
           necesita_emta_mac: p.producto.necesita_emta_mac ?? null,
@@ -158,6 +158,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
   // ── Handlers: producto ─────────────────────────────────────────────────────
   const handleAddOrUpdateProducto = productSubForm.handleSubmit((values) => {
     if (editingProductoIndex === null) {
+      console.log("Appending producto:", values);
       appendProducto(values);
     } else {
       updateProductoField(editingProductoIndex, values);
@@ -219,12 +220,12 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
               nombre: p.nombre ?? null,
               tipo: p.tipo ?? null,
               origen: p.origen ?? null,
-              necesita_serie: isEquipo ? (p.necesita_serie ?? null) : null,
-              necesita_mac: isEquipo ? (p.necesita_mac ?? null) : null,
+              necesita_serie: isEquipo ? (p.necesita_serie ?? false) : false,
+              necesita_mac: isEquipo ? (p.necesita_mac ?? false) : false,
               necesita_emta_mac: isEquipo
-                ? (p.necesita_emta_mac ?? null)
-                : null,
-              necesita_ua: isEquipo ? (p.necesita_ua ?? null) : null,
+                ? (p.necesita_emta_mac ?? false)
+                : false,
+              necesita_ua: isEquipo ? (p.necesita_ua ?? false) : false,
               cantidad: p.cantidad,
               observaciones: p.observaciones ?? null,
               series,
@@ -302,10 +303,10 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
             nombre: p.nombre ?? null,
             tipo: p.tipo ?? null,
             origen: p.origen ?? null,
-            necesita_serie: isEquipo ? (p.necesita_serie ?? null) : null,
-            necesita_mac: isEquipo ? (p.necesita_mac ?? null) : null,
-            necesita_emta_mac: isEquipo ? (p.necesita_emta_mac ?? null) : null,
-            necesita_ua: isEquipo ? (p.necesita_ua ?? null) : null,
+            necesita_serie: isEquipo ? (p.necesita_serie ?? false) : false,
+            necesita_mac: isEquipo ? (p.necesita_mac ?? false) : false,
+            necesita_emta_mac: isEquipo ? (p.necesita_emta_mac ?? false) : false,
+            necesita_ua: isEquipo ? (p.necesita_ua ?? false) : false,
             cantidad: p.cantidad,
             observaciones: p.observaciones ?? null,
             series,
@@ -506,9 +507,15 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
             uppercase
           />
           <DatePickerFormField
+            required
             name="fecha"
             label="Fecha"
             control={form.control}
+            disabledRange={[
+              {
+                after: new Date(),
+              },
+            ]}
           />
           <FormInput
             label="Archivo adjunto (opcional)"

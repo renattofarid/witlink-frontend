@@ -19,13 +19,13 @@ import { useCategoriasAsyncQuery } from "../lib/producto.hook";
 import type { ProductoResource } from "../lib/producto.interface";
 
 const ORIGEN_OPTIONS = [
-  { value: "claro", label: "Claro" },
-  { value: "witlink", label: "Witlink" },
+  { value: "CLARO", label: "Claro" },
+  { value: "WITLINK", label: "Witlink" },
 ];
 
 const TIPO_OPTIONS = [
-  { value: "material", label: "Material" },
-  { value: "equipo", label: "Equipo" },
+  { value: "MATERIAL", label: "Material" },
+  { value: "EQUIPO", label: "Equipo" },
 ];
 
 interface ProductoFormProps {
@@ -35,7 +35,10 @@ interface ProductoFormProps {
   /** Cuando se pasa, el form usa este control externo y no hace llamada a la API */
   externalControl?: Control<any>;
   /** Hook para precargar la categoría seleccionada (necesario en contexto guía) */
-  categoriaQueryByIdHook?: (id: string | null) => { data?: any; isLoading: boolean };
+  categoriaQueryByIdHook?: (id: string | null) => {
+    data?: any;
+    isLoading: boolean;
+  };
   /** Omite el campo Categoría (cuando el padre lo renderiza inline) */
   skipCategoria?: boolean;
 }
@@ -78,10 +81,10 @@ export default function ProductoForm({
         nombre: values.nombre,
         tipo: values.tipo ?? "",
         origen: values.origen ?? "",
-        necesita_serie: isEquipo ? (values.necesita_serie ?? null) : null,
-        necesita_mac: isEquipo ? (values.necesita_mac ?? null) : null,
-        necesita_emta_mac: isEquipo ? (values.necesita_emta_mac ?? null) : null,
-        necesita_ua: isEquipo ? (values.necesita_ua ?? null) : null,
+        necesita_serie: isEquipo ? (values.necesita_serie ?? false) : false,
+        necesita_mac: isEquipo ? (values.necesita_mac ?? false) : false,
+        necesita_emta_mac: isEquipo ? (values.necesita_emta_mac ?? false) : false,
+        necesita_ua: isEquipo ? (values.necesita_ua ?? false) : false,
       };
       if (mode === "create") return createProducto(body);
       return updateProducto(defaultValues!.id, body);
@@ -129,13 +132,20 @@ export default function ProductoForm({
           }
         />
       )}
-      <div className={externalControl ? "grid grid-cols-4 gap-2" : "grid grid-cols-1 md:grid-cols-2 gap-4"}>
+      <div
+        className={
+          externalControl
+            ? "grid grid-cols-4 gap-2"
+            : "grid grid-cols-1 md:grid-cols-2 gap-4"
+        }
+      >
         <FormInput
           name="sap"
           label="SAP"
           control={activeControl}
           placeholder="Código SAP"
           required
+          uppercase
         />
         <FormInput
           name="nombre"
@@ -143,6 +153,7 @@ export default function ProductoForm({
           control={activeControl}
           placeholder="Nombre del producto"
           required
+          uppercase
         />
         <FormSelect
           name="tipo"
@@ -164,7 +175,13 @@ export default function ProductoForm({
       {isEquipo && (
         <>
           <Separator />
-          <div className={externalControl ? "grid grid-cols-4 gap-2" : "grid grid-cols-1 md:grid-cols-2 gap-3"}>
+          <div
+            className={
+              externalControl
+                ? "grid grid-cols-4 gap-2"
+                : "grid grid-cols-1 md:grid-cols-2 gap-3"
+            }
+          >
             <FormSwitch
               control={activeControl as Control<any>}
               name={"necesita_serie" as any}

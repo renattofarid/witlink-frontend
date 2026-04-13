@@ -53,6 +53,21 @@ export const productoSchema = z
     series: z.array(serieSchema).optional().nullable(),
   })
   .superRefine((p, ctx) => {
+    // Equipo manual: al menos un flag debe estar activo
+    if (
+      !p.producto_id &&
+      p.tipo === "equipo" &&
+      !p.necesita_serie &&
+      !p.necesita_mac &&
+      !p.necesita_emta_mac &&
+      !p.necesita_ua
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Un equipo debe requerir al menos una serie, MAC, EMTA MAC o UA.",
+        path: ["necesita_serie"],
+      });
+    }
     // Producto manual: requiere al menos nombre o SAP
     if (!p.producto_id && !p.nombre && !p.sap) {
       ctx.addIssue({

@@ -1,14 +1,14 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import type { KardexResource } from "../lib/kardex.interface";
-import { Badge } from "@/components/ui/badge";
+import { Badge, type BadgeColor } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
-const movimientoBadgeColor: Record<string, string> = {
-  INGRESO: "bg-green-100 text-green-800 border-green-200",
-  SALIDA: "bg-red-100 text-red-800 border-red-200",
-  DEVOLUCION: "bg-blue-100 text-blue-800 border-blue-200",
-  LIQUIDACION_INSTALADO: "bg-yellow-100 text-yellow-800 border-yellow-200",
-  RETIRADO: "bg-gray-100 text-gray-800 border-gray-200",
+const movimientoBadgeColor: Record<string, BadgeColor> = {
+  INGRESO: "green",
+  SALIDA: "red",
+  DEVOLUCION: "blue",
+  LIQUIDACION_INSTALADO: "yellow",
+  RETIRADO: "gray",
 };
 
 export const getKardexColumns = (): ColumnDef<KardexResource>[] => [
@@ -42,8 +42,8 @@ export const getKardexColumns = (): ColumnDef<KardexResource>[] => [
       const mov = row.original.movimiento;
       return (
         <Badge
-          variant="outline"
-          className={cn("text-xs", movimientoBadgeColor[mov] ?? "")}
+          variant="default"
+          color={movimientoBadgeColor[mov] ?? "default"}
         >
           {mov}
         </Badge>

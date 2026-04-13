@@ -6,6 +6,7 @@ import type { GuiaResource } from "../lib/guia.interface";
 import { api } from "@/lib/config";
 import { promiseToast } from "@/lib/core.function";
 import { GuiaProductosModal } from "./GuiaProductosModal";
+import { Button } from "@/components/ui/button";
 
 async function openPdf(archivo: string) {
   const promise = api
@@ -90,15 +91,15 @@ export const getGuiaColumns = ({
     header: "PDF",
     cell: ({ row }) => {
       const url = row.original.ruta_pdf_guia;
-      if (!url) return <span className="text-muted-foreground text-xs">—</span>;
+      if (!url) return <span className="text-muted-foreground text-xs">Sin archivo</span>;
       return (
-        <button
+        <Button
           onClick={() => openPdf(url)}
           className="text-primary hover:underline flex items-center gap-1 cursor-pointer"
         >
           <FileText className="size-3.5" />
           <span className="text-xs">Ver</span>
-        </button>
+        </Button>
       );
     },
   },
@@ -111,7 +112,7 @@ export const getGuiaColumns = ({
           Eliminado
         </Badge>
       ) : (
-        <Badge variant="outline" color="green">
+        <Badge variant="default" color="green">
           Activo
         </Badge>
       ),

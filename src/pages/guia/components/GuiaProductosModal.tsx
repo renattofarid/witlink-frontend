@@ -23,10 +23,10 @@ export function GuiaProductosModal({
   return (
     <>
       <Button
-        variant="outline"
+        variant="secondary"
+        color="primary"
         size="sm"
         onClick={() => setOpen(true)}
-        className="h-7 px-2 text-xs gap-1.5"
       >
         <Package className="size-3" />
         {count} producto{count !== 1 ? "s" : ""}

@@ -87,24 +87,32 @@ function buildGuiaEditFormData(body: GuiaEditBody): FormData {
   if (body.proveedor_id != null) formData.append("proveedor_id", String(body.proveedor_id));
   if (body.archivo) formData.append("archivo", body.archivo);
 
+  // productos[0][añadir][i][...] → dot-notation: productos.0.añadir.i.* → matches productos.*.añadir.*.*
   (body.productos?.añadir ?? []).forEach((producto, i) => {
-    appendProductoFields(formData, `productos[añadir][${i}]`, producto);
+    appendProductoFields(formData, `productos[0][añadir][${i}]`, producto);
   });
 
+  // productos[0][actualizar][i][...] → dot-notation: productos.0.actualizar.i.* → matches productos.*.actualizar.*.*
   (body.productos?.actualizar ?? []).forEach((producto, i) => {
-    const prefix = `productos[actualizar][${i}]`;
+    const prefix = `productos[0][actualizar][${i}]`;
     formData.append(`${prefix}[id]`, String(producto.id));
     if (producto.cantidad != null) formData.append(`${prefix}[cantidad]`, String(producto.cantidad));
     if (producto.observaciones != null) formData.append(`${prefix}[observaciones]`, producto.observaciones);
 
+    // series[0][actualizar][j][...] → matches productos.*.actualizar.*.series.*.actualizar.*.*
     (producto.series?.actualizar ?? []).forEach((serie, j) => {
-      formData.append(`${prefix}[series][actualizar][${j}][serie_id]`, String(serie.serie_id));
-      if (serie.observaciones != null)
-        formData.append(`${prefix}[series][actualizar][${j}][observaciones]`, serie.observaciones);
+      const sprefix = `${prefix}[series][0][actualizar][${j}]`;
+      formData.append(`${sprefix}[serie_id]`, String(serie.serie_id));
+      if (serie.serie != null) formData.append(`${sprefix}[serie]`, serie.serie);
+      if (serie.mac != null) formData.append(`${sprefix}[mac]`, serie.mac);
+      if (serie.emta_mac != null) formData.append(`${sprefix}[emta_mac]`, serie.emta_mac);
+      if (serie.ua != null) formData.append(`${sprefix}[ua]`, serie.ua);
+      if (serie.observaciones != null) formData.append(`${sprefix}[observaciones]`, serie.observaciones);
     });
 
+    // series[0][añadir][j][...] → matches productos.*.actualizar.*.series.*.añadir.*.*
     (producto.series?.añadir ?? []).forEach((serie, j) => {
-      const sprefix = `${prefix}[series][añadir][${j}]`;
+      const sprefix = `${prefix}[series][0][añadir][${j}]`;
       if (serie.serie_id != null) formData.append(`${sprefix}[serie_id]`, String(serie.serie_id));
       if (serie.serie != null) formData.append(`${sprefix}[serie]`, serie.serie);
       if (serie.mac != null) formData.append(`${sprefix}[mac]`, serie.mac);

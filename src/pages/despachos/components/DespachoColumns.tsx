@@ -1,15 +1,17 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { ButtonAction } from "@/components/ButtonAction";
-import { Trash2 } from "lucide-react";
+import { Trash2, Eye } from "lucide-react";
 import type { DespachoResource } from "../lib/despacho.interface";
 
 interface ColumnActions {
   onDelete: (row: DespachoResource) => void;
+  onView: (row: DespachoResource) => void;
 }
 
 export const getDespachoColumns = ({
   onDelete,
+  onView,
 }: ColumnActions): ColumnDef<DespachoResource>[] => [
   {
     accessorKey: "numero",
@@ -34,6 +36,7 @@ export const getDespachoColumns = ({
     cell: ({ row }) => (
       <span className="text-xs text-muted-foreground">
         #{row.original.almacen_id}
+        {/* {row.original.almacen_nombre ? ` - ${row.original.almacen_nombre}` : ""} */}
       </span>
     ),
   },
@@ -42,14 +45,11 @@ export const getDespachoColumns = ({
     header: "Estado",
     cell: ({ row }) =>
       row.original.deleted_at ? (
-        <Badge color="destructive" className="text-xs">
+        <Badge variant="default" color="red">
           Eliminado
         </Badge>
       ) : (
-        <Badge
-          variant="outline"
-          className="text-xs text-green-600 border-green-600"
-        >
+        <Badge variant="default" color="green">
           Activo
         </Badge>
       ),
@@ -62,6 +62,10 @@ export const getDespachoColumns = ({
       const isDeleted = !!item.deleted_at;
       return (
         <div className="flex gap-1">
+          <ButtonAction
+            icon={Eye}
+            onClick={() => onView(item)}
+          />
           <ButtonAction
             icon={Trash2}
             canRender={!isDeleted}

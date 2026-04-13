@@ -95,7 +95,7 @@ export function DespachoProductoDialog({
           mapOptionFn={(item: ProductoResource) => ({
             value: String(item.id),
             label: item.nombre,
-            description: item.sap,
+            description: item.sap + " | " + item.tipo,
           })}
           onValueChange={(_, item: ProductoResource) => {
             if (item) {

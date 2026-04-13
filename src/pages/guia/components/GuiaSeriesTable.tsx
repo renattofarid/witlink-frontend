@@ -58,13 +58,6 @@ export function GuiaSeriesTable({
         const { disabledSerie } = flagsRef.current;
         const form = formRef.current;
         const index = row.index;
-        if (row.original.serie_id) {
-          return (
-            <span className={cn("font-mono text-xs", disabledSerie && "opacity-40")}>
-              {row.original.serie || "—"}
-            </span>
-          );
-        }
         return (
           <FormInput
             name={`series.${index}.serie`}
@@ -88,13 +81,6 @@ export function GuiaSeriesTable({
         const { disabledMac } = flagsRef.current;
         const form = formRef.current;
         const index = row.index;
-        if (row.original.serie_id) {
-          return (
-            <span className={cn("font-mono text-xs", disabledMac && "opacity-40")}>
-              {row.original.mac || "—"}
-            </span>
-          );
-        }
         return (
           <Controller
             control={form.control}
@@ -127,13 +113,6 @@ export function GuiaSeriesTable({
         const { disabledEmtaMac } = flagsRef.current;
         const form = formRef.current;
         const index = row.index;
-        if (row.original.serie_id) {
-          return (
-            <span className={cn("font-mono text-xs", disabledEmtaMac && "opacity-40")}>
-              {row.original.emta_mac || "—"}
-            </span>
-          );
-        }
         return (
           <Controller
             control={form.control}
@@ -166,13 +145,6 @@ export function GuiaSeriesTable({
         const { disabledUa } = flagsRef.current;
         const form = formRef.current;
         const index = row.index;
-        if (row.original.serie_id) {
-          return (
-            <span className={cn("font-mono text-xs", disabledUa && "opacity-40")}>
-              {row.original.ua || "—"}
-            </span>
-          );
-        }
         return (
           <FormInput
             name={`series.${index}.ua`}

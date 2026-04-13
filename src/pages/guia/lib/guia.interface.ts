@@ -114,6 +114,10 @@ export interface GuiaCreateBody {
 
 export interface GuiaSerieActualizarBody {
   serie_id: number;
+  serie?: string | null;
+  mac?: string | null;
+  emta_mac?: string | null;
+  ua?: string | null;
   observaciones?: string | null;
 }
 

@@ -44,6 +44,8 @@ import DespachoAddPage from "../pages/despachos/pages/DespachoAddPage";
 import { DespachoComplete } from "../pages/despachos/lib/despacho.constants";
 import KardexPage from "../pages/kardex/pages/KardexPage";
 import { KardexComplete } from "../pages/kardex/lib/kardex.constants";
+import InventarioTecnicoPage from "../pages/inventario-tecnico/pages/InventarioTecnicoPage";
+import { InventarioTecnicoComplete } from "../pages/inventario-tecnico/lib/inventario-tecnico.constants";
 
 function ProtectedRoute({ children }: { children: JSX.Element }) {
   const { token, allowedRoutes, almacen_id } = useAuthStore();
@@ -295,6 +297,15 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <KardexPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path={InventarioTecnicoComplete.ROUTE}
+        element={
+          <ProtectedRoute>
+            <InventarioTecnicoPage />
           </ProtectedRoute>
         }
       />

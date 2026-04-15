@@ -28,7 +28,7 @@ export type ProductoResponse = PaginationResponse<ProductoResource>;
 export interface ProductoCreateBody {
   categoria_id: number;
   origen: string;
-  sap: string;
+  sap?: string;
   nombre: string;
   tipo: string;
   necesita_serie?: boolean | null;
@@ -40,7 +40,7 @@ export interface ProductoCreateBody {
 export interface ProductoUpdateBody {
   categoria_id: number;
   origen: string;
-  sap: string;
+  sap?: string;
   nombre: string;
   tipo: string;
   necesita_serie?: boolean | null;

@@ -3,7 +3,7 @@ import { z } from "zod";
 export const productoSchema = z
   .object({
     categoria_id: z.string().min(1, "Requerido"),
-    sap: z.string().min(1, "Requerido").max(50, "Máximo 50 caracteres"),
+    sap: z.string().max(50, "Máximo 50 caracteres").optional(),
     nombre: z.string().min(1, "Requerido").max(255, "Máximo 255 caracteres"),
     tipo: z.enum(["MATERIAL", "EQUIPO"], { message: "Requerido" }),
     origen: z.enum(["CLARO", "WITLINK"], { message: "Requerido" }),
@@ -13,6 +13,13 @@ export const productoSchema = z
     necesita_ua: z.boolean().nullable().optional(),
   })
   .superRefine((v, ctx) => {
+    if (v.origen === "CLARO" && (!v.sap || v.sap.trim() === "")) {
+      ctx.addIssue({
+        code: "custom",
+        message: "SAP es requerido para productos Claro",
+        path: ["sap"],
+      });
+    }
     if (
       v.tipo === "EQUIPO" &&
       !v.necesita_serie &&

@@ -12,7 +12,7 @@ export default function App() {
           <AppRoutes />
         </BrowserRouter>
       </TooltipProvider>
-        <Toaster />
+      <Toaster />
     </ThemeProvider>
   );
 }

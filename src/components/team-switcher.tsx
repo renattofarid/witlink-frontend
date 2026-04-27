@@ -1,7 +1,8 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { ChevronsUpDown, Warehouse } from "lucide-react";
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { ChevronsUpDown, Loader2, Warehouse } from "lucide-react";
 
 import {
   DropdownMenu,
@@ -18,12 +19,15 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
-import { getAlmacenes } from "@/pages/auth/lib/auth.actions";
+import { getAlmacenes, selectAlmacen } from "@/pages/auth/lib/auth.actions";
+import { errorToast } from "@/lib/core.function";
 
 export function TeamSwitcher() {
   const { isMobile } = useSidebar();
   const almacen_id = useAuthStore((s) => s.almacen_id);
   const setAlmacenId = useAuthStore((s) => s.setAlmacenId);
+  const [switching, setSwitching] = useState<number | null>(null);
+  const queryClient = useQueryClient();
 
   const { data: almacenes = [] } = useQuery({
     queryKey: ["almacenes-select"],
@@ -32,6 +36,20 @@ export function TeamSwitcher() {
   });
 
   const activeAlmacen = almacenes.find((a) => a.id === almacen_id) ?? null;
+
+  const handleSelect = async (id: number) => {
+    if (id === almacen_id || switching !== null) return;
+    setSwitching(id);
+    try {
+      await selectAlmacen(id);
+      setAlmacenId(id);
+      queryClient.invalidateQueries();
+    } catch {
+      errorToast("Error al cambiar de almacén");
+    } finally {
+      setSwitching(null);
+    }
+  };
 
   return (
     <SidebarMenu>
@@ -43,7 +61,11 @@ export function TeamSwitcher() {
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                <Warehouse className="size-4" />
+                {switching !== null ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Warehouse className="size-4" />
+                )}
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">
@@ -68,12 +90,17 @@ export function TeamSwitcher() {
             {almacenes.map((almacen) => (
               <DropdownMenuItem
                 key={almacen.id}
-                onClick={() => setAlmacenId(almacen.id)}
+                onClick={() => handleSelect(almacen.id)}
                 className="gap-2 p-2"
+                disabled={switching !== null}
                 data-active={almacen.id === almacen_id}
               >
                 <div className="flex size-6 items-center justify-center rounded-md border">
-                  <Warehouse className="size-3.5 shrink-0" />
+                  {switching === almacen.id ? (
+                    <Loader2 className="size-3.5 shrink-0 animate-spin" />
+                  ) : (
+                    <Warehouse className="size-3.5 shrink-0" />
+                  )}
                 </div>
                 {almacen.nombre}
                 {almacen.id === almacen_id && (

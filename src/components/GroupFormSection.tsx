@@ -50,15 +50,15 @@ export const GroupFormSection = ({
         className
       )}
     >
-      <div className={`${bgColor} px-6 py-2.5 border-b border-muted`}>
+      <div className={`${bgColor} px-3 py-1.5 border-b border-muted`}>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <h3
             className={cn(
-              "text-sm md:text-base font-semibold flex items-center",
+              "text-xs md:text-sm font-semibold flex items-center",
               iconColor
             )}
           >
-            <Icon className={`size-4 md:size-5 mr-2`} />
+            <Icon className={`size-3 md:size-4 mr-2`} />
             {title}
           </h3>
           {headerExtra}

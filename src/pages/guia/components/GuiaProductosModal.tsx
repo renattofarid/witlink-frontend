@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Package } from "lucide-react";
-import { GeneralModal } from "@/components/GeneralModal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { GuiaProductoResource } from "../lib/guia.interface";
+import GeneralSheet from "@/components/GeneralSheet";
 
 interface GuiaProductosModalProps {
   productos: GuiaProductoResource[];
@@ -17,8 +17,7 @@ export function GuiaProductosModal({
   const [open, setOpen] = useState(false);
   const count = productos.length;
 
-  if (!count)
-    return <span className="text-muted-foreground text-xs">—</span>;
+  if (!count) return <span className="text-muted-foreground text-xs">—</span>;
 
   return (
     <>
@@ -32,7 +31,7 @@ export function GuiaProductosModal({
         {count} producto{count !== 1 ? "s" : ""}
       </Button>
 
-      <GeneralModal
+      <GeneralSheet
         open={open}
         onClose={() => setOpen(false)}
         title="Detalle de productos"
@@ -42,8 +41,12 @@ export function GuiaProductosModal({
       >
         <div className="space-y-4">
           {productos.map((item, i) => {
-            const { necesita_serie, necesita_mac, necesita_emta_mac, necesita_ua } =
-              item.producto;
+            const {
+              necesita_serie,
+              necesita_mac,
+              necesita_emta_mac,
+              necesita_ua,
+            } = item.producto;
             const series = item.series ?? [];
 
             // Determinar qué columnas mostrar basado en los flags del producto
@@ -53,7 +56,10 @@ export function GuiaProductosModal({
             const showUa = !!necesita_ua;
 
             return (
-              <div key={item.id ?? i} className="border rounded-lg p-4 space-y-3">
+              <div
+                key={item.id ?? i}
+                className="border rounded-lg p-4 space-y-3"
+              >
                 {/* Cabecera del producto */}
                 <div className="flex items-start justify-between gap-2">
                   <div className="space-y-0.5">
@@ -92,21 +98,35 @@ export function GuiaProductosModal({
                       <table className="w-full text-xs">
                         <thead>
                           <tr className="border-b text-muted-foreground uppercase tracking-wide">
-                            <th className="py-1.5 px-2 text-left font-medium w-8">#</th>
+                            <th className="py-1.5 px-2 text-left font-medium w-8">
+                              #
+                            </th>
                             {showSerie && (
-                              <th className="py-1.5 px-2 text-left font-medium">Serie</th>
+                              <th className="py-1.5 px-2 text-left font-medium">
+                                Serie
+                              </th>
                             )}
                             {showMac && (
-                              <th className="py-1.5 px-2 text-left font-medium">MAC</th>
+                              <th className="py-1.5 px-2 text-left font-medium">
+                                MAC
+                              </th>
                             )}
                             {showEmtaMac && (
-                              <th className="py-1.5 px-2 text-left font-medium">EMTA MAC</th>
+                              <th className="py-1.5 px-2 text-left font-medium">
+                                EMTA MAC
+                              </th>
                             )}
                             {showUa && (
-                              <th className="py-1.5 px-2 text-left font-medium">UA</th>
+                              <th className="py-1.5 px-2 text-left font-medium">
+                                UA
+                              </th>
                             )}
-                            <th className="py-1.5 px-2 text-left font-medium">Situación</th>
-                            <th className="py-1.5 px-2 text-left font-medium">Observaciones</th>
+                            <th className="py-1.5 px-2 text-left font-medium">
+                              Situación
+                            </th>
+                            <th className="py-1.5 px-2 text-left font-medium">
+                              Observaciones
+                            </th>
                           </tr>
                         </thead>
                         <tbody>
@@ -169,7 +189,9 @@ export function GuiaProductosModal({
                                     {s.serie.situacion}
                                   </Badge>
                                 ) : (
-                                  <span className="text-muted-foreground">—</span>
+                                  <span className="text-muted-foreground">
+                                    —
+                                  </span>
                                 )}
                               </td>
                               <td className="py-1.5 px-2 text-muted-foreground max-w-40 truncate">
@@ -190,7 +212,7 @@ export function GuiaProductosModal({
             );
           })}
         </div>
-      </GeneralModal>
+      </GeneralSheet>
     </>
   );
 }

@@ -62,7 +62,7 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
   }, [liquidacion, form]);
 
   const saveMutation = useMutation({
-    mutationFn: (values: LiquidacionFormValues) => {
+    mutationFn: () => {
       if (!liquidacion) throw new Error("No hay SOT cargada");
       if (items.length === 0)
         throw new Error("Debe agregar al menos un producto");
@@ -103,6 +103,7 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
       onSuccess?.();
     },
     onError: (error: any) => {
+      console.log( error);
       errorToast(
         error.message ??
           error.response?.data?.message ??
@@ -112,8 +113,7 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
   });
 
   const handleSave = form.handleSubmit(() => {
-    const values = form.getValues();
-    saveMutation.mutate(values);
+    saveMutation.mutate();
   });
 
   const handleAddItems = (newItems: LiquidacionCartItem[]) => {

@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus } from "lucide-react";
+import { Plus, Upload } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import PageWrapper from "@/components/PageWrapper";
 import TitleComponent from "@/components/TitleComponent";
 import ActionsWrapper from "@/components/ActionsWrapper";
@@ -8,16 +9,43 @@ import { DataTable } from "@/components/DataTable";
 import DataTablePagination from "@/components/DataTablePagination";
 import { Button } from "@/components/ui/button";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
+import { successToast, errorToast } from "@/lib/core.function";
 import { useLiquidacionesQuery } from "../lib/liquidaciones.hook";
 import { LiquidacionesComplete } from "../lib/liquidaciones.constants";
 import { getLiquidacionColumns } from "../components/LiquidacionColumns";
 import LiquidacionFilters from "../components/LiquidacionFilters";
+import { importarLiquidacionesCSV } from "../lib/liquidaciones.actions";
 
 export default function LiquidacionesPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [search, setSearch] = useState("");
   const [estado, setEstado] = useState("");
+
+  const importMutation = useMutation({
+    mutationFn: (file: File) => importarLiquidacionesCSV(file),
+    onSuccess: () => {
+      successToast("Liquidaciones importadas correctamente");
+      queryClient.invalidateQueries({ queryKey: [LiquidacionesComplete.QUERY_KEY] });
+    },
+    onError: () => {
+      errorToast("Error al importar el archivo");
+    },
+  });
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      importMutation.mutate(file);
+      e.target.value = "";
+    }
+  };
   const [params, setParams] = useState<Record<string, string>>({
     page: "1",
     per_page: String(DEFAULT_PER_PAGE),
@@ -52,6 +80,22 @@ export default function LiquidacionesPage() {
         icon="ClipboardList"
       >
         <ActionsWrapper>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv"
+            className="hidden"
+            onChange={handleFileChange}
+          />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleImportClick}
+            disabled={importMutation.isPending}
+          >
+            <Upload className="size-4 mr-1" />
+            {importMutation.isPending ? "Importando..." : "Importar CSV"}
+          </Button>
           <Button
             onClick={() => navigate(LiquidacionesComplete.ROUTE_ADD!)}
             size="sm"

@@ -77,7 +77,30 @@ export const useLiquidacionStore = create<LiquidacionStore>((set) => ({
   addItem: (item) =>
     set((state) => ({ items: [...state.items, item] })),
   addItems: (newItems) =>
-    set((state) => ({ items: [...state.items, ...newItems] })),
+    set((state) => {
+      const result = [...state.items];
+      for (const newItem of newItems) {
+        if (newItem.tipo === "material") {
+          const idx = result.findIndex(
+            (i) =>
+              i.tipo === "material" &&
+              i.producto_id === newItem.producto_id &&
+              i.tecnico_id === newItem.tecnico_id,
+          );
+          if (idx !== -1) {
+            result[idx] = {
+              ...result[idx],
+              cantidad: result[idx].cantidad + newItem.cantidad,
+            };
+          } else {
+            result.push(newItem);
+          }
+        } else {
+          result.push(newItem);
+        }
+      }
+      return { items: result };
+    }),
   removeItem: (tempId) =>
     set((state) => ({ items: state.items.filter((i) => i.tempId !== tempId) })),
   clearItems: () => set({ items: [] }),

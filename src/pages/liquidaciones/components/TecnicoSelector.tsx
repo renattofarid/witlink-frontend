@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,12 +20,14 @@ import type { TecnicoResource } from "@/pages/tecnico/lib/tecnico.interface";
 interface TecnicoSelectorProps {
   value: string;
   onChange: (id: string, nombre: string) => void;
+  onNameResolved?: (nombre: string) => void;
   placeholder?: string;
 }
 
 export default function TecnicoSelector({
   value,
   onChange,
+  onNameResolved,
   placeholder = "Seleccionar técnico...",
 }: TecnicoSelectorProps) {
   const [open, setOpen] = useState(false);
@@ -39,6 +41,14 @@ export default function TecnicoSelector({
   const tecnicos: TecnicoResource[] = data?.data ?? [];
 
   const selectedTecnico = tecnicos.find((t) => String(t.id) === value);
+
+  useEffect(() => {
+    if (selectedTecnico) {
+      const nombre = `${selectedTecnico.persona.nombre} ${selectedTecnico.persona.apellido_paterno}`;
+      onNameResolved?.(nombre);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedTecnico?.id]);
   const displayName = selectedTecnico
     ? `${selectedTecnico.persona.nombre} ${selectedTecnico.persona.apellido_paterno}`
     : value

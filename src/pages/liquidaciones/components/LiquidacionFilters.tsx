@@ -42,7 +42,7 @@ export default function LiquidacionFilters({
 
   return (
     <div className="flex flex-wrap gap-2 items-center">
-      <div className="relative min-w-[200px]">
+      <div className="relative min-w-50">
         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
         <Input
           className="pl-8 h-8 text-xs"
@@ -60,7 +60,7 @@ export default function LiquidacionFilters({
           onApply();
         }}
       >
-        <SelectTrigger className="h-8 text-xs w-[150px]">
+        <SelectTrigger className="h-8 text-xs w-37.5">
           <SelectValue placeholder="Estado" />
         </SelectTrigger>
         <SelectContent>

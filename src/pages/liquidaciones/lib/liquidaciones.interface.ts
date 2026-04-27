@@ -152,6 +152,7 @@ export interface LiquidacionCartItem {
 
 export interface SaveProductosBody {
   liquidacion_id: number;
+  cantidad: number;
   productos: Array<{
     cantidad: number;
     tecnico_id: number;

@@ -90,8 +90,14 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
         grouped[key].series.push(...item.series.map((s) => s.id));
       });
 
+      const totalCantidad = Object.values(grouped).reduce(
+        (sum, g) => sum + g.cantidad,
+        0,
+      );
+
       return saveProductosLiquidacion({
         liquidacion_id: liquidacion.id,
+        cantidad: totalCantidad,
         productos: Object.values(grouped),
       });
     },

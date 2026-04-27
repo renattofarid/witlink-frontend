@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useForm, useWatch, type Control } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -71,13 +72,15 @@ export default function ProductoForm({
 
   const activeControl = externalControl ?? standaloneForm.control;
   const watchedTipo = useWatch({ control: activeControl, name: "tipo" });
+  const watchedOrigen = useWatch({ control: activeControl, name: "origen" });
   const isEquipo = watchedTipo === "EQUIPO";
+  const isClaro = watchedOrigen === "CLARO";
 
   const mutation = useMutation({
     mutationFn: (values: ProductoFormValues) => {
       const body = {
         categoria_id: Number(values.categoria_id),
-        sap: values.sap,
+        sap: isClaro ? values.sap : undefined,
         nombre: values.nombre,
         tipo: values.tipo ?? "",
         origen: values.origen ?? "",
@@ -139,14 +142,16 @@ export default function ProductoForm({
             : "grid grid-cols-1 md:grid-cols-2 gap-4"
         }
       >
-        <FormInput
-          name="sap"
-          label="SAP"
-          control={activeControl}
-          placeholder="Código SAP"
-          required
-          uppercase
-        />
+        {isClaro && (
+          <FormInput
+            name="sap"
+            label="SAP"
+            control={activeControl}
+            placeholder="Código SAP"
+            required
+            uppercase
+          />
+        )}
         <FormInput
           name="nombre"
           label="Nombre"

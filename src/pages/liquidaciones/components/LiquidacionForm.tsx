@@ -103,7 +103,6 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
       onSuccess?.();
     },
     onError: (error: any) => {
-      console.log(error);
       const errorMessage =
         error?.response?.data?.message ||
         error?.message ||

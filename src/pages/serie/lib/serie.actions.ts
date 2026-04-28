@@ -23,3 +23,8 @@ export const deleteSerie = async (id: number) => {
   const { data } = await api.delete(`${SerieComplete.ENDPOINT}/${id}`);
   return data;
 };
+
+export const confirmarDisponibilidadSerie = async (id: number) => {
+  const { data } = await api.post(`${SerieComplete.ENDPOINT}/${id}/confirmar-disponibilidad`);
+  return data;
+};

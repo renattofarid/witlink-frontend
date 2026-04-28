@@ -75,7 +75,7 @@ export default function LiquidacionesPage() {
   return (
     <PageWrapper>
       <TitleComponent
-        title={LiquidacionesComplete.MODEL.plural}
+        title={LiquidacionesComplete.MODEL.plural ?? LiquidacionesComplete.MODEL.name}
         subtitle="Gestión de liquidaciones de órdenes de servicio"
         icon="ClipboardList"
       >

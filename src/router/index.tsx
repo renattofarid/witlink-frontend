@@ -20,7 +20,10 @@ import GuiaPage from "../pages/guia/pages/GuiaPage";
 import GuiaAddPage from "../pages/guia/pages/GuiaAddPage";
 import GuiaEditPage from "../pages/guia/pages/GuiaEditPage";
 import GuiaViewPage from "../pages/guia/pages/GuiaViewPage";
-import { GuiaComplete, GUIA_ROUTE_VIEW } from "../pages/guia/lib/guia.constants";
+import {
+  GuiaComplete,
+  GUIA_ROUTE_VIEW,
+} from "../pages/guia/lib/guia.constants";
 import OficinaPage from "../pages/oficina/pages/OficinaPage";
 import { OficinaComplete } from "../pages/oficina/lib/oficina.constants";
 import ProductoPage from "../pages/producto/pages/ProductoPage";
@@ -42,11 +45,23 @@ import { InventarioComplete } from "../pages/inventario/lib/inventario.constants
 import DespachosPage from "../pages/despachos/pages/DespachosPage";
 import DespachoAddPage from "../pages/despachos/pages/DespachoAddPage";
 import DespachoViewPage from "../pages/despachos/pages/DespachoViewPage";
-import { DespachoComplete, DESPACHO_ROUTE_VIEW } from "../pages/despachos/lib/despacho.constants";
+import {
+  DespachoComplete,
+  DESPACHO_ROUTE_VIEW,
+} from "../pages/despachos/lib/despacho.constants";
 import KardexPage from "../pages/kardex/pages/KardexPage";
 import { KardexComplete } from "../pages/kardex/lib/kardex.constants";
 import InventarioTecnicoPage from "../pages/inventario-tecnico/pages/InventarioTecnicoPage";
 import { InventarioTecnicoComplete } from "../pages/inventario-tecnico/lib/inventario-tecnico.constants";
+import LiquidacionesPage from "../pages/liquidaciones/pages/LiquidacionesPage";
+import LiquidacionCreatePage from "../pages/liquidaciones/pages/LiquidacionCreatePage";
+import LiquidacionDetailPage from "../pages/liquidaciones/pages/LiquidacionDetailPage";
+import LiquidacionEditPage from "../pages/liquidaciones/pages/LiquidacionEditPage";
+import {
+  LiquidacionesComplete,
+  LIQUIDACION_ROUTE_VIEW,
+  LIQUIDACION_ROUTE_EDIT,
+} from "../pages/liquidaciones/lib/liquidaciones.constants";
 
 function ProtectedRoute({ children }: { children: JSX.Element }) {
   const { token, allowedRoutes, almacen_id } = useAuthStore();
@@ -88,11 +103,15 @@ export default function AppRoutes() {
       <Route
         path="/login"
         element={
-          token
-            ? almacen_id
-              ? <Navigate to="/inicio" replace />
-              : <Navigate to="/seleccionar-almacen" replace />
-            : <LoginPage />
+          token ? (
+            almacen_id ? (
+              <Navigate to="/inicio" replace />
+            ) : (
+              <Navigate to="/seleccionar-almacen" replace />
+            )
+          ) : (
+            <LoginPage />
+          )
         }
       />
 
@@ -100,11 +119,13 @@ export default function AppRoutes() {
       <Route
         path="/seleccionar-almacen"
         element={
-          !token
-            ? <Navigate to="/login" replace />
-            : almacen_id
-              ? <Navigate to="/inicio" replace />
-              : <WarehouseSelectPage />
+          !token ? (
+            <Navigate to="/login" replace />
+          ) : almacen_id ? (
+            <Navigate to="/inicio" replace />
+          ) : (
+            <WarehouseSelectPage />
+          )
         }
       />
 
@@ -315,6 +336,39 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <InventarioTecnicoPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path={LiquidacionesComplete.ROUTE}
+        element={
+          <ProtectedRoute>
+            <LiquidacionesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={LiquidacionesComplete.ROUTE_ADD}
+        element={
+          <ProtectedRoute>
+            <LiquidacionCreatePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={`${LIQUIDACION_ROUTE_VIEW}/:sot`}
+        element={
+          <ProtectedRoute>
+            <LiquidacionDetailPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={`${LIQUIDACION_ROUTE_EDIT}/:sot`}
+        element={
+          <ProtectedRoute>
+            <LiquidacionEditPage />
           </ProtectedRoute>
         }
       />

@@ -7,6 +7,7 @@ import { api } from "@/lib/config";
 import { promiseToast } from "@/lib/core.function";
 import { GuiaProductosModal } from "./GuiaProductosModal";
 import { Button } from "@/components/ui/button";
+import { parse } from "date-fns";
 
 async function openPdf(archivo: string) {
   const promise = api
@@ -53,18 +54,14 @@ export const getGuiaColumns = ({
     cell: ({ row }) => {
       const fecha = row.original.fecha;
       if (!fecha) return "-";
-      return new Date(fecha).toLocaleDateString("es-PE", {
+      const parsedDate = parse(fecha, "yyyy-MM-dd", new Date());
+      return parsedDate.toLocaleDateString("es-PE", {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
       });
     },
   },
-  // {
-  //   id: "proveedor",
-  //   header: "Proveedor",
-  //   cell: ({ row }) => row.original.proveedor?.razon_social ?? "-",
-  // },
   {
     id: "usuario",
     header: "Usuario",
@@ -91,7 +88,10 @@ export const getGuiaColumns = ({
     header: "PDF",
     cell: ({ row }) => {
       const url = row.original.ruta_pdf_guia;
-      if (!url) return <span className="text-muted-foreground text-xs">Sin archivo</span>;
+      if (!url)
+        return (
+          <span className="text-muted-foreground text-xs">Sin archivo</span>
+        );
       return (
         <Button
           onClick={() => openPdf(url)}

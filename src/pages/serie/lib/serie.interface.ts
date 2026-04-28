@@ -4,6 +4,13 @@ import type { ProductoResource } from "@/pages/producto/lib/producto.interface";
 export interface SerieResource {
   id: number;
   situacion: string;
+  situacion_label:
+    | "PENDIENTE"
+    | "DISPONIBLE"
+    | "DESPACHADO"
+    | "LIQUIDADO"
+    | "RETIRADO"
+    | "DEVUELTO";
   serie?: string;
   emta_mac?: string;
   mac?: string;

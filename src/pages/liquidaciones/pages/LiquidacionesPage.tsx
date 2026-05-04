@@ -14,7 +14,9 @@ import { useLiquidacionesQuery } from "../lib/liquidaciones.hook";
 import { LiquidacionesComplete } from "../lib/liquidaciones.constants";
 import { getLiquidacionColumns } from "../components/LiquidacionColumns";
 import LiquidacionFilters from "../components/LiquidacionFilters";
-import { importarLiquidacionesCSV } from "../lib/liquidaciones.actions";
+import { importarLiquidacionesCSV, getActaBySot } from "../lib/liquidaciones.actions";
+import ImportarActasDialog from "../components/ImportarActasDialog";
+import type { LiquidacionResource } from "../lib/liquidaciones.interface";
 
 export default function LiquidacionesPage() {
   const navigate = useNavigate();
@@ -23,6 +25,7 @@ export default function LiquidacionesPage() {
 
   const [search, setSearch] = useState("");
   const [estado, setEstado] = useState("");
+  const [actasDialogOpen, setActasDialogOpen] = useState(false);
 
   const importMutation = useMutation({
     mutationFn: (file: File) => importarLiquidacionesCSV(file),
@@ -70,7 +73,21 @@ export default function LiquidacionesPage() {
   const handlePerPageChange = (perPage: number) =>
     setParams((prev) => ({ ...prev, per_page: String(perPage), page: "1" }));
 
-  const columns = getLiquidacionColumns();
+  const handleGetActa = async (row: LiquidacionResource) => {
+    try {
+      const blob = await getActaBySot(row.sot);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `acta-${row.sot}`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      errorToast("No se pudo obtener el acta para este SOT");
+    }
+  };
+
+  const columns = getLiquidacionColumns({ onGetActa: handleGetActa });
 
   return (
     <PageWrapper>
@@ -95,6 +112,14 @@ export default function LiquidacionesPage() {
           >
             <Upload className="size-4 mr-1" />
             {importMutation.isPending ? "Importando..." : "Importar CSV"}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setActasDialogOpen(true)}
+          >
+            <Upload className="size-4 mr-1" />
+            Importar actas
           </Button>
           <Button
             onClick={() => navigate(LiquidacionesComplete.ROUTE_ADD!)}
@@ -127,6 +152,11 @@ export default function LiquidacionesPage() {
         totalData={data?.meta.total ?? 0}
         onPageChange={handlePageChange}
         setPerPage={handlePerPageChange}
+      />
+
+      <ImportarActasDialog
+        open={actasDialogOpen}
+        onClose={() => setActasDialogOpen(false)}
       />
     </PageWrapper>
   );

@@ -1,6 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { useNavigate } from "react-router-dom";
-import { Eye, Pencil, Sheet } from "lucide-react";
+import { Eye, FileText, Pencil, Sheet } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { LiquidacionResource } from "../lib/liquidaciones.interface";
 import {
@@ -11,6 +11,7 @@ import { ButtonAction } from "@/components/ButtonAction";
 
 interface ColumnOptions {
   onExport?: (row: LiquidacionResource) => void;
+  onGetActa?: (row: LiquidacionResource) => void;
 }
 
 export function getLiquidacionColumns(
@@ -101,7 +102,11 @@ export function getLiquidacionColumns(
       id: "acciones",
       header: "Acciones",
       cell: ({ row }) => (
-        <LiquidacionRowActions row={row.original} onExport={options.onExport} />
+        <LiquidacionRowActions
+          row={row.original}
+          onExport={options.onExport}
+          onGetActa={options.onGetActa}
+        />
       ),
     },
   ];
@@ -110,9 +115,11 @@ export function getLiquidacionColumns(
 function LiquidacionRowActions({
   row,
   onExport,
+  onGetActa,
 }: {
   row: LiquidacionResource;
   onExport?: (row: LiquidacionResource) => void;
+  onGetActa?: (row: LiquidacionResource) => void;
 }) {
   const navigate = useNavigate();
   return (
@@ -132,6 +139,13 @@ function LiquidacionRowActions({
           icon={Sheet}
           tooltip="Exportar Excel"
           onClick={() => onExport(row)}
+        />
+      )}
+      {onGetActa && (
+        <ButtonAction
+          icon={FileText}
+          tooltip="Obtener acta por SOT"
+          onClick={() => onGetActa(row)}
         />
       )}
     </div>

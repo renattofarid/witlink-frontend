@@ -63,3 +63,23 @@ export const getInventarioTecnicoLiquidacion = async (tecnicoId: number) => {
   const { data } = await api.get(`/tecnicos/${tecnicoId}/inventario`);
   return data;
 };
+
+export const importarActas = async (
+  fecha: string,
+  archivos: File[],
+): Promise<unknown> => {
+  const formData = new FormData();
+  formData.append("fecha", fecha);
+  archivos.forEach((file) => formData.append("archivos[]", file));
+  const { data } = await api.post("/actas", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return data;
+};
+
+export const getActaBySot = async (sot: string): Promise<Blob> => {
+  const { data } = await api.get(`/actas/${encodeURIComponent(sot)}`, {
+    responseType: "blob",
+  });
+  return data;
+};

@@ -5,6 +5,7 @@ import type {
   LiquidacionesResponse,
   SaveProductosBody,
   SaveProductosResponse,
+  ActaResource,
 } from "./liquidaciones.interface";
 
 export const searchSot = async (sot: string): Promise<SotSearchResponse> => {
@@ -77,9 +78,12 @@ export const importarActas = async (
   return data;
 };
 
-export const getActaBySot = async (sot: string): Promise<Blob> => {
-  const { data } = await api.get(`/actas/${encodeURIComponent(sot)}`, {
-    responseType: "blob",
-  });
+export const getActaBySot = async (sot: string) => {
+  const { data } = await api.get<ActaResource[]>(`/actas/${encodeURIComponent(sot)}`);
+  return data;
+};
+
+export const getActaBlob = async (rutaArchivo: string): Promise<Blob> => {
+  const { data } = await api.post("/archivos", { ruta: rutaArchivo }, { responseType: "blob" });
   return data;
 };

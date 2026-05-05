@@ -3,8 +3,8 @@ import type { ModelComplete } from "@/lib/core.interface";
 
 export const TrasladoComplete: ModelComplete = {
   MODEL: {
-    name: "traslado",
-    plural: "traslados",
+    name: "Traslado",
+    plural: "Traslados",
     gender: false,
   },
   ICON: List,

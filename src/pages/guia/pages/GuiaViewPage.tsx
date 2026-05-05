@@ -10,28 +10,9 @@ import { DataTable } from "@/components/DataTable";
 import type { ColumnDef } from "@tanstack/react-table";
 import { GuiaComplete } from "../lib/guia.constants";
 import { getGuia } from "../lib/guia.actions";
-import { api } from "@/lib/config";
-import { promiseToast } from "@/lib/core.function";
 import type { GuiaProductoResource } from "../lib/guia.interface";
-
-async function openPdf(archivo: string) {
-  const promise = api
-    .get(`/archivos/${archivo}`, { responseType: "blob" })
-    .then((response) => {
-      const blob = response.data as Blob;
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = archivo;
-      a.click();
-      window.open(url);
-    });
-  promiseToast(promise, {
-    loading: "Descargando PDF...",
-    success: "PDF descargado",
-    error: "Error al descargar el PDF",
-  });
-}
+import { openPdf } from "../lib/guia.actions";
+import FormSkeleton from "@/components/FormSkeleton";
 
 const productoColumns: ColumnDef<GuiaProductoResource>[] = [
   {
@@ -116,11 +97,7 @@ export default function GuiaViewPage() {
   });
 
   if (isLoading) {
-    return (
-      <FormWrapper>
-        <div className="text-muted-foreground text-sm">Cargando...</div>
-      </FormWrapper>
-    );
+    return <FormSkeleton />;
   }
 
   if (!guia) {

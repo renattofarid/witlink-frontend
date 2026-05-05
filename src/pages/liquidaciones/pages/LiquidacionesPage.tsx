@@ -8,13 +8,18 @@ import ActionsWrapper from "@/components/ActionsWrapper";
 import { DataTable } from "@/components/DataTable";
 import DataTablePagination from "@/components/DataTablePagination";
 import { Button } from "@/components/ui/button";
+import { GeneralModal } from "@/components/GeneralModal";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
-import { successToast, errorToast } from "@/lib/core.function";
+import { successToast, errorToast, warningToast } from "@/lib/core.function";
 import { useLiquidacionesQuery } from "../lib/liquidaciones.hook";
 import { LiquidacionesComplete } from "../lib/liquidaciones.constants";
 import { getLiquidacionColumns } from "../components/LiquidacionColumns";
 import LiquidacionFilters from "../components/LiquidacionFilters";
-import { importarLiquidacionesCSV, getActaBySot } from "../lib/liquidaciones.actions";
+import {
+  importarLiquidacionesCSV,
+  getActaBySot,
+  getActaBlob,
+} from "../lib/liquidaciones.actions";
 import ImportarActasDialog from "../components/ImportarActasDialog";
 import type { LiquidacionResource } from "../lib/liquidaciones.interface";
 
@@ -26,12 +31,16 @@ export default function LiquidacionesPage() {
   const [search, setSearch] = useState("");
   const [estado, setEstado] = useState("");
   const [actasDialogOpen, setActasDialogOpen] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [pdfSot, setPdfSot] = useState<string>("");
 
   const importMutation = useMutation({
     mutationFn: (file: File) => importarLiquidacionesCSV(file),
     onSuccess: () => {
       successToast("Liquidaciones importadas correctamente");
-      queryClient.invalidateQueries({ queryKey: [LiquidacionesComplete.QUERY_KEY] });
+      queryClient.invalidateQueries({
+        queryKey: [LiquidacionesComplete.QUERY_KEY],
+      });
     },
     onError: () => {
       errorToast("Error al importar el archivo");
@@ -49,6 +58,7 @@ export default function LiquidacionesPage() {
       e.target.value = "";
     }
   };
+
   const [params, setParams] = useState<Record<string, string>>({
     page: "1",
     per_page: String(DEFAULT_PER_PAGE),
@@ -63,7 +73,13 @@ export default function LiquidacionesPage() {
 
   const { data, isLoading } = useLiquidacionesQuery(buildQueryParams());
 
-  const handleApplyFilters = () => {
+  const handleSearchChange = (v: string) => {
+    setSearch(v);
+    setParams((prev) => ({ ...prev, page: "1" }));
+  };
+
+  const handleEstadoChange = (v: string) => {
+    setEstado(v);
     setParams((prev) => ({ ...prev, page: "1" }));
   };
 
@@ -75,16 +91,24 @@ export default function LiquidacionesPage() {
 
   const handleGetActa = async (row: LiquidacionResource) => {
     try {
-      const blob = await getActaBySot(row.sot);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `acta-${row.sot}`;
-      a.click();
-      URL.revokeObjectURL(url);
+      const actas = await getActaBySot(row.sot);
+      if (!actas.length) {
+        warningToast("No hay acta registrada para este SOT");
+        return;
+      }
+      const blob = await getActaBlob(actas[0].ruta_archivo);
+      const url = window.URL.createObjectURL(blob);
+      setPdfUrl(url);
+      setPdfSot(row.sot);
     } catch {
       errorToast("No se pudo obtener el acta para este SOT");
     }
+  };
+
+  const handleClosePdf = () => {
+    if (pdfUrl) window.URL.revokeObjectURL(pdfUrl);
+    setPdfUrl(null);
+    setPdfSot("");
   };
 
   const columns = getLiquidacionColumns({ onGetActa: handleGetActa });
@@ -92,7 +116,9 @@ export default function LiquidacionesPage() {
   return (
     <PageWrapper>
       <TitleComponent
-        title={LiquidacionesComplete.MODEL.plural ?? LiquidacionesComplete.MODEL.name}
+        title={
+          LiquidacionesComplete.MODEL.plural ?? LiquidacionesComplete.MODEL.name
+        }
         subtitle="Gestión de liquidaciones de órdenes de servicio"
         icon="ClipboardList"
       >
@@ -139,9 +165,8 @@ export default function LiquidacionesPage() {
         <LiquidacionFilters
           search={search}
           estado={estado}
-          onSearchChange={setSearch}
-          onEstadoChange={setEstado}
-          onApply={handleApplyFilters}
+          onSearchChange={handleSearchChange}
+          onEstadoChange={handleEstadoChange}
         />
       </DataTable>
 
@@ -158,6 +183,23 @@ export default function LiquidacionesPage() {
         open={actasDialogOpen}
         onClose={() => setActasDialogOpen(false)}
       />
+
+      <GeneralModal
+        open={!!pdfUrl}
+        onClose={handleClosePdf}
+        title={`SOT ${pdfSot}`}
+        subtitle="ACTA"
+        size="5xl"
+        icon="FileArchive"
+      >
+        {pdfUrl && (
+          <iframe
+            src={pdfUrl}
+            className="w-full h-[70vh] rounded border-0"
+            title={`Acta SOT ${pdfSot}`}
+          />
+        )}
+      </GeneralModal>
     </PageWrapper>
   );
 }

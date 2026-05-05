@@ -24,6 +24,7 @@ export interface LiquidacionResource {
   tecnico2: number | null;
   estado_liquidacion: string | null;
   observaciones: string | null;
+  acta: ActaResource | null;
 }
 
 // ── Documentos / equipos retirados ────────────────────────────────────────────
@@ -159,6 +160,16 @@ export interface SaveProductosBody {
     producto_id: number;
     series: number[];
   }>;
+}
+
+// ── Actas ─────────────────────────────────────────────────────────────────────
+
+export interface ActaResource {
+  fecha: string;
+  liquidacion_id: number;
+  ruta_archivo: string;
+  created_at: string;
+  updated_at: string;
 }
 
 // ── Listado paginado ──────────────────────────────────────────────────────────

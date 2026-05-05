@@ -79,6 +79,9 @@ export default function TrasladoForm({ onSuccess }: TrasladoFormProps) {
             label: item.serie ?? `Serie #${item.id}`,
             description: item.producto?.nombre,
           })}
+          additionalParams={{
+            situacion: "RE",
+          }}
           perPage={20}
           required
         />
@@ -102,6 +105,7 @@ export default function TrasladoForm({ onSuccess }: TrasladoFormProps) {
         label="Opciones"
         text="Modo retirados"
         textDescription="Incluir equipos retirados en el traslado"
+        autoHeight
       />
 
       <div className="flex justify-end">

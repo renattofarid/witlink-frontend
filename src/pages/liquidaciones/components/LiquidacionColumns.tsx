@@ -44,17 +44,16 @@ export function getLiquidacionColumns(
     {
       accessorKey: "fecha",
       header: "Fecha",
-      cell: ({ row }) =>
-        row.original.fecha
-          ? new Date(row.original.fecha + "T12:00:00").toLocaleDateString(
-              "es-PE",
-              {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-              },
-            )
-          : "—",
+      cell: ({ row }) => {
+        const fecha = row.original.fecha;
+        if (!fecha) return "—";
+        const raw = fecha.includes("T") ? fecha : fecha + "T12:00:00";
+        return new Date(raw).toLocaleDateString("es-PE", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        });
+      },
     },
     {
       accessorKey: "tipo_trabajo",

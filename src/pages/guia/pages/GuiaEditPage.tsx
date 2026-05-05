@@ -5,6 +5,7 @@ import TitleFormComponent from "@/components/TitleFormComponent";
 import GuiaForm from "../components/GuiaForm";
 import { GuiaComplete } from "../lib/guia.constants";
 import { getGuia } from "../lib/guia.actions";
+import FormSkeleton from "@/components/FormSkeleton";
 
 export default function GuiaEditPage() {
   const { id } = useParams();
@@ -17,11 +18,7 @@ export default function GuiaEditPage() {
   });
 
   if (isLoading) {
-    return (
-      <FormWrapper>
-        <div className="text-muted-foreground text-sm">Cargando...</div>
-      </FormWrapper>
-    );
+    return <FormSkeleton />;
   }
 
   return (

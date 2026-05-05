@@ -41,7 +41,7 @@ export default function ImportarActasDialog({ open, onClose }: Props) {
 
   const mutation = useMutation({
     mutationFn: ({ fecha }: FormValues) =>
-      importarActas(new Date(fecha).toISOString(), archivos),
+      importarActas(fecha.split("T")[0], archivos),
     onSuccess: () => {
       successToast("Actas importadas correctamente");
       handleClose();

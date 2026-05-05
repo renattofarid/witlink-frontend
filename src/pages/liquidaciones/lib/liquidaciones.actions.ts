@@ -5,6 +5,7 @@ import type {
   LiquidacionesResponse,
   SaveProductosBody,
   SaveProductosResponse,
+  ActaResource,
 } from "./liquidaciones.interface";
 
 export const searchSot = async (sot: string): Promise<SotSearchResponse> => {
@@ -61,5 +62,28 @@ export const exportarResumenLiquidacion = async (
 
 export const getInventarioTecnicoLiquidacion = async (tecnicoId: number) => {
   const { data } = await api.get(`/tecnicos/${tecnicoId}/inventario`);
+  return data;
+};
+
+export const importarActas = async (
+  fecha: string,
+  archivos: File[],
+): Promise<unknown> => {
+  const formData = new FormData();
+  formData.append("fecha", fecha);
+  archivos.forEach((file) => formData.append("archivos[]", file));
+  const { data } = await api.post("/actas", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return data;
+};
+
+export const getActaBySot = async (sot: string) => {
+  const { data } = await api.get<ActaResource[]>(`/actas/${encodeURIComponent(sot)}`);
+  return data;
+};
+
+export const getActaBlob = async (rutaArchivo: string): Promise<Blob> => {
+  const { data } = await api.post("/archivos", { ruta: rutaArchivo }, { responseType: "blob" });
   return data;
 };

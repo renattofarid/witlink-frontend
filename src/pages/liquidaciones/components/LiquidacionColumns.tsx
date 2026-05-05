@@ -1,6 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { useNavigate } from "react-router-dom";
-import { Eye, Pencil, Sheet } from "lucide-react";
+import { Eye, FileText, Pencil, Sheet } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { LiquidacionResource } from "../lib/liquidaciones.interface";
 import {
@@ -11,6 +11,7 @@ import { ButtonAction } from "@/components/ButtonAction";
 
 interface ColumnOptions {
   onExport?: (row: LiquidacionResource) => void;
+  onGetActa?: (row: LiquidacionResource) => void;
 }
 
 export function getLiquidacionColumns(
@@ -43,17 +44,16 @@ export function getLiquidacionColumns(
     {
       accessorKey: "fecha",
       header: "Fecha",
-      cell: ({ row }) =>
-        row.original.fecha
-          ? new Date(row.original.fecha + "T12:00:00").toLocaleDateString(
-              "es-PE",
-              {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-              },
-            )
-          : "—",
+      cell: ({ row }) => {
+        const fecha = row.original.fecha;
+        if (!fecha) return "—";
+        const raw = fecha.includes("T") ? fecha : fecha + "T12:00:00";
+        return new Date(raw).toLocaleDateString("es-PE", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        });
+      },
     },
     {
       accessorKey: "tipo_trabajo",
@@ -101,7 +101,11 @@ export function getLiquidacionColumns(
       id: "acciones",
       header: "Acciones",
       cell: ({ row }) => (
-        <LiquidacionRowActions row={row.original} onExport={options.onExport} />
+        <LiquidacionRowActions
+          row={row.original}
+          onExport={options.onExport}
+          onGetActa={options.onGetActa}
+        />
       ),
     },
   ];
@@ -110,9 +114,11 @@ export function getLiquidacionColumns(
 function LiquidacionRowActions({
   row,
   onExport,
+  onGetActa,
 }: {
   row: LiquidacionResource;
   onExport?: (row: LiquidacionResource) => void;
+  onGetActa?: (row: LiquidacionResource) => void;
 }) {
   const navigate = useNavigate();
   return (
@@ -132,6 +138,13 @@ function LiquidacionRowActions({
           icon={Sheet}
           tooltip="Exportar Excel"
           onClick={() => onExport(row)}
+        />
+      )}
+      {onGetActa && (
+        <ButtonAction
+          icon={FileText}
+          tooltip="Obtener acta por SOT"
+          onClick={() => onGetActa(row)}
         />
       )}
     </div>

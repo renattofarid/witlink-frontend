@@ -13,7 +13,7 @@ export interface TitlesInterface {
 
 export interface ModelInterface {
   name: string;
-  plural?: string;
+  plural: string;
   /**
    * true for feminine (e.g., "la", "una") and false for masculine (e.g., "el", "un").
    * Indicates the grammatical gender of the model name for correct article usage in Spanish.

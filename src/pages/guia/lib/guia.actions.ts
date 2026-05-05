@@ -1,6 +1,26 @@
 import { api } from "@/lib/config";
+import { promiseToast } from "@/lib/core.function";
 import { GuiaComplete } from "./guia.constants";
 import type { GuiaResponse, GuiaResource, GuiaCreateBody, GuiaEditBody, GuiaProductoBody } from "./guia.interface";
+
+export async function openPdf(ruta: string) {
+  const promise = api
+    .post("/archivos", { ruta }, { responseType: "blob" })
+    .then((response) => {
+      const blob = response.data as Blob;
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = ruta;
+      a.click();
+      window.open(url);
+    });
+  promiseToast(promise, {
+    loading: "Descargando PDF...",
+    success: "PDF descargado",
+    error: "Error al descargar el PDF",
+  });
+}
 
 export const getGuias = async (params: Record<string, string>): Promise<GuiaResponse> => {
   const { data } = await api.get(GuiaComplete.ENDPOINT, { params });

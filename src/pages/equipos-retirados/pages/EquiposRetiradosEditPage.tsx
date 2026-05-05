@@ -4,6 +4,7 @@ import TitleFormComponent from "@/components/TitleFormComponent";
 import EquiposRetiradosForm from "../components/EquiposRetiradosForm";
 import { EquiposRetiradosComplete } from "../lib/equipos-retirados.constants";
 import { useEquipoRetiradoDetailQuery } from "../lib/equipos-retirados.hook";
+import FormSkeleton from "@/components/FormSkeleton";
 
 export default function EquiposRetiradosEditPage() {
   const { id } = useParams();
@@ -14,11 +15,7 @@ export default function EquiposRetiradosEditPage() {
   );
 
   if (isLoading) {
-    return (
-      <FormWrapper>
-        <div className="text-muted-foreground text-sm">Cargando...</div>
-      </FormWrapper>
-    );
+    return <FormSkeleton />;
   }
 
   return (

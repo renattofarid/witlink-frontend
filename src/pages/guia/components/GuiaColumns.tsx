@@ -3,33 +3,11 @@ import { Pencil, Trash2, RotateCcw, FileText, Eye } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import type { GuiaResource } from "../lib/guia.interface";
-import { api } from "@/lib/config";
-import { promiseToast } from "@/lib/core.function";
+import { openPdf } from "../lib/guia.actions";
 import { GuiaProductosModal } from "./GuiaProductosModal";
 import { Button } from "@/components/ui/button";
 import { parse } from "date-fns";
 
-async function openPdf(archivo: string) {
-  const promise = api
-    .get(`/archivos/${archivo}`, { responseType: "blob" })
-    .then((response) => {
-      const blob = response.data as Blob;
-      const url = window.URL.createObjectURL(blob);
-
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = archivo;
-      a.click();
-
-      window.open(url);
-    });
-
-  promiseToast(promise, {
-    loading: "Descargando PDF...",
-    success: "PDF descargado",
-    error: "Error al descargar el PDF",
-  });
-}
 
 interface ColumnActions {
   onView: (row: GuiaResource) => void;

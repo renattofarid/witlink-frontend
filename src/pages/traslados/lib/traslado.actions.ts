@@ -1,7 +1,8 @@
 import { api } from "@/lib/config";
 import type {
   TrasladoResource,
-  TrasladoCreateBody,
+  TrasladoSerieCreateBody,
+  TrasladoMaterialCreateBody,
 } from "./traslado.interface";
 
 export const getTraslados = async (
@@ -11,10 +12,18 @@ export const getTraslados = async (
   return data;
 };
 
-export const createTraslado = async (
+export const createTrasladoSerie = async (
   serieId: number,
-  body: TrasladoCreateBody,
+  body: TrasladoSerieCreateBody,
 ) => {
-  const { data } = await api.post(`/series/${serieId}/ubicacion`, body);
+  const { data } = await api.post(`/traslados/series/${serieId}`, body);
+  return data;
+};
+
+export const createTrasladoMaterial = async (
+  materialId: number,
+  body: TrasladoMaterialCreateBody,
+) => {
+  const { data } = await api.post(`/traslados/materiales/${materialId}`, body);
   return data;
 };

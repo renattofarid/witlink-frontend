@@ -10,8 +10,12 @@ export interface TrasladoResource {
   usuario: string;
 }
 
-export interface TrasladoCreateBody {
-  operacion: string;
+export interface TrasladoSerieCreateBody {
   destino_almacen_id: number;
-  modo_retirados?: number;
+  modo_retirados?: boolean;
+}
+
+export interface TrasladoMaterialCreateBody {
+  destino_almacen_id: number;
+  cantidad: number;
 }

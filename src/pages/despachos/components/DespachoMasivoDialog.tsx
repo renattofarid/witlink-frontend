@@ -66,7 +66,7 @@ export function DespachoMasivoDialog({
         </DialogHeader>
 
         <form
-          onSubmit={form.handleSubmit((v) => mutation.mutate(v))}
+          onSubmit={form.control.handleSubmit((v) => mutation.mutate(v))}
           className="space-y-4"
         >
           <FormSelectAsync

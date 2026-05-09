@@ -34,7 +34,7 @@ export default function ImportarActasDialog({ open, onClose }: Props) {
   const [archivos, setArchivos] = useState<File[]>([]);
   const [archivoError, setArchivoError] = useState("");
 
-  const { control, handleSubmit, reset } = useForm<FormValues>({
+  const { control, reset } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { fecha: "" },
   });
@@ -83,7 +83,7 @@ export default function ImportarActasDialog({ open, onClose }: Props) {
           <DialogTitle>Importar actas</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 py-2">
+        <form onSubmit={control.handleSubmit(onSubmit)} className="space-y-4 py-2">
           <DateTimePickerForm
             control={control}
             name="fecha"

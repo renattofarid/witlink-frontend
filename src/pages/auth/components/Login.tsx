@@ -90,7 +90,7 @@ export default function LoginPage({
             </div>
             <div>
               <form
-                onSubmit={form.handleSubmit(onSubmit)}
+                onSubmit={form.control.handleSubmit(onSubmit)}
                 className="grid w-full gap-6"
               >
                 <FieldGroup>

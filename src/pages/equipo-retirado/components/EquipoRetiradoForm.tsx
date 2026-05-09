@@ -153,7 +153,7 @@ export default function EquipoRetiradoForm({
   });
 
   // ── Handlers: serie sub-form ───────────────────────────────────────────────
-  const handleAddOrUpdateSerie = serieSubForm.handleSubmit((values) => {
+  const handleAddOrUpdateSerie = serieSubForm.control.handleSubmit((values) => {
     if (editingSerieIndex === null) {
       appendSerie(values);
     } else {
@@ -178,7 +178,7 @@ export default function EquipoRetiradoForm({
   };
 
   // ── Handlers: producto sub-form (create mode) ──────────────────────────────
-  const handleAddOrUpdateProducto = productSubForm.handleSubmit((values) => {
+  const handleAddOrUpdateProducto = productSubForm.control.handleSubmit((values) => {
     if (editingProductoIndex === null) {
       appendProducto(values);
     } else {
@@ -576,7 +576,7 @@ export default function EquipoRetiradoForm({
   if (mode === "create") {
     return (
       <form
-        onSubmit={createForm.handleSubmit((v) => createMutation.mutate(v))}
+        onSubmit={createForm.control.handleSubmit((v) => createMutation.mutate(v))}
         className="space-y-6"
       >
         {/* Header */}
@@ -691,7 +691,7 @@ export default function EquipoRetiradoForm({
     <div className="space-y-6">
       {/* Header form */}
       <form
-        onSubmit={editHeaderForm.handleSubmit((v) =>
+        onSubmit={editHeaderForm.control.handleSubmit((v) =>
           updateHeaderMutation.mutate(v),
         )}
         className="space-y-4"
@@ -764,7 +764,7 @@ export default function EquipoRetiradoForm({
           watchedSeries={watchedSeries as ErSerieFormValues[]}
           serieColumns={serieColumns}
           onClose={handleCloseProductoDialog}
-          onSubmit={productSubForm.handleSubmit((v) =>
+          onSubmit={productSubForm.control.handleSubmit((v) =>
             addProductoMutation.mutate(v),
           )}
           onOpenSerieDialog={() => {
@@ -881,7 +881,7 @@ export default function EquipoRetiradoForm({
         }}
         onSubmit={
           currentDetalleProductoId !== null
-            ? serieSubForm.handleSubmit((v) => addSerieMutation.mutate(v))
+            ? serieSubForm.control.handleSubmit((v) => addSerieMutation.mutate(v))
             : handleAddOrUpdateSerie
         }
       />

@@ -125,7 +125,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
   const watchedSeries = productSubForm.watch("series") ?? [];
 
   // ── Handlers: producto dialog ──────────────────────────────────────────────
-  const handleAddOrUpdateProducto = productSubForm.handleSubmit((values) => {
+  const handleAddOrUpdateProducto = productSubForm.control.handleSubmit((values) => {
     if (editingProductoIndex === null) {
       appendProducto(values);
     } else {
@@ -183,7 +183,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
 
   return (
     <form
-      onSubmit={form.handleSubmit((v) => mutation.mutate(v))}
+      onSubmit={form.control.handleSubmit((v) => mutation.mutate(v))}
       className="space-y-4"
     >
       {/* ── Sección 1: Datos de la guía ────────────────────────────────────── */}

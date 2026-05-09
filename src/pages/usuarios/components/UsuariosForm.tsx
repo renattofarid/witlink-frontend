@@ -153,7 +153,7 @@ export default function UsuariosForm({
   return (
     <FormWrapper>
       <form
-        onSubmit={form.handleSubmit((v) => mutation.mutate(v))}
+        onSubmit={form.control.handleSubmit((v) => mutation.mutate(v))}
         className="space-y-4"
       >
         {mode === "create" && (

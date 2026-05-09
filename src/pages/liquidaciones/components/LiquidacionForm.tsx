@@ -117,7 +117,7 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
     },
   });
 
-  const handleSave = form.handleSubmit(() => {
+  const handleSave = form.control.handleSubmit(() => {
     saveMutation.mutate();
   });
 

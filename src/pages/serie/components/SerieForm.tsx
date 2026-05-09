@@ -65,7 +65,7 @@ export default function SerieForm({ onSuccess }: SerieFormProps) {
 
   return (
     <FormWrapper>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.control.handleSubmit(onSubmit)} className="space-y-4">
         <FormInput
           name="serie"
           label="Serie"

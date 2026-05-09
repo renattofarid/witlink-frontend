@@ -75,7 +75,7 @@ function EditForm({
 
   return (
     <form
-      onSubmit={form.handleSubmit((v) => mutation.mutate(v))}
+      onSubmit={form.control.handleSubmit((v) => mutation.mutate(v))}
       className="space-y-4"
     >
       <div className="grid grid-cols-2 gap-3">
@@ -184,7 +184,7 @@ function BulkCreateForm({
 
   return (
     <form
-      onSubmit={form.handleSubmit((v) => mutation.mutate(v))}
+      onSubmit={form.control.handleSubmit((v) => mutation.mutate(v))}
       className="space-y-3"
     >
       <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-1">

@@ -30,7 +30,7 @@ export const getTrasladoListColumns = (): ColumnDef<TrasladoListItem>[] => [
     cell: ({ row }) => {
       const tipo = row.original.tipo_producto;
       return (
-        <Badge variant={tipo === "EQUIPO" ? "default" : "secondary"} className="text-xs">
+        <Badge variant={tipo === "EQUIPO" ? "default" : "outline"} className="text-xs">
           {tipo}
         </Badge>
       );

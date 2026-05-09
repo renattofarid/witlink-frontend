@@ -67,7 +67,7 @@ export default function PersonaForm({
 
   return (
     <FormWrapper>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.control.handleSubmit(onSubmit)} className="space-y-4">
         <FormInput
           name="nombre"
           label="Nombre"

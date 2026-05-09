@@ -73,7 +73,7 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
   const watchedSeries = productSubForm.watch("series") ?? [];
 
   // ── Handlers: producto ─────────────────────────────────────────────────────
-  const handleAddOrUpdateProducto = productSubForm.handleSubmit((values) => {
+  const handleAddOrUpdateProducto = productSubForm.control.handleSubmit((values) => {
     if (editingProductoIndex === null) {
       appendProducto(values);
     } else {
@@ -214,7 +214,7 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
 
   return (
     <form
-      onSubmit={form.handleSubmit((v) => mutation.mutate(v))}
+      onSubmit={form.control.handleSubmit((v) => mutation.mutate(v))}
       className="space-y-4"
     >
       {/* ── Sección 1: Técnico ─────────────────────────────────────────────── */}

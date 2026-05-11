@@ -93,7 +93,7 @@ export default function EquipoRetiradoModal({
   const watchedSeries = productSubForm.watch("series") ?? [];
   const watchedProductoId = productSubForm.watch("producto_id");
 
-  const handleAddOrUpdateProducto = productSubForm.handleSubmit((values) => {
+  const handleAddOrUpdateProducto = productSubForm.control.handleSubmit((values) => {
     if (editingProductoIndex === null) {
       appendProducto(values);
     } else {
@@ -136,7 +136,7 @@ export default function EquipoRetiradoModal({
     mode: "onChange",
   });
 
-  const handleAddOrUpdateSerie = serieSubForm.handleSubmit((values) => {
+  const handleAddOrUpdateSerie = serieSubForm.control.handleSubmit((values) => {
     if (editingSerieIndex === null) {
       appendSerie(values);
     } else {
@@ -332,7 +332,7 @@ export default function EquipoRetiradoModal({
       size="3xl"
     >
       <form
-        onSubmit={form.handleSubmit((v) => mutation.mutate(v))}
+        onSubmit={form.control.handleSubmit((v) => mutation.mutate(v))}
         className="space-y-6"
       >
         {/* ── Datos del registro ─────────────────────────────────────────────── */}

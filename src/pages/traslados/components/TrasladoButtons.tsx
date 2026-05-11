@@ -1,14 +1,28 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { TrasladoComplete } from "../lib/traslado.constants";
+import { GeneralModal } from "@/components/GeneralModal";
+import TrasladoForm from "./TrasladoForm";
 
 export default function TrasladoButtons() {
-  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+
   return (
-    <Button onClick={() => navigate(TrasladoComplete.ROUTE_ADD!)}>
-      <Plus className="size-4 mr-1" />
-      Agregar
-    </Button>
+    <>
+      <Button onClick={() => setOpen(true)}>
+        <Plus className="size-4 mr-1" />
+        Agregar
+      </Button>
+
+      <GeneralModal
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Nuevo traslado"
+        icon="ArrowLeftRight"
+        size="lg"
+      >
+        <TrasladoForm onSuccess={() => setOpen(false)} />
+      </GeneralModal>
+    </>
   );
 }

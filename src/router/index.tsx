@@ -63,7 +63,6 @@ import {
   LIQUIDACION_ROUTE_EDIT,
 } from "../pages/liquidaciones/lib/liquidaciones.constants";
 import TrasladosPage from "../pages/traslados/pages/TrasladosPage";
-import TrasladoAddPage from "../pages/traslados/pages/TrasladoAddPage";
 import { TrasladoComplete } from "../pages/traslados/lib/traslado.constants";
 
 function ProtectedRoute({ children }: { children: JSX.Element }) {
@@ -381,14 +380,6 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <TrasladosPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path={TrasladoComplete.ROUTE_ADD}
-        element={
-          <ProtectedRoute>
-            <TrasladoAddPage />
           </ProtectedRoute>
         }
       />

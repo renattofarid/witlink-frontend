@@ -1,8 +1,8 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
-import type { TrasladoResource } from "../lib/traslado.interface";
+import type { TrasladoListItem } from "../lib/traslado.interface";
 
-export const getTrasladoColumns = (): ColumnDef<TrasladoResource>[] => [
+export const getTrasladoListColumns = (): ColumnDef<TrasladoListItem>[] => [
   {
     accessorKey: "fecha",
     header: "Fecha",
@@ -14,40 +14,44 @@ export const getTrasladoColumns = (): ColumnDef<TrasladoResource>[] => [
     },
   },
   {
-    accessorKey: "guia",
-    header: "Guía",
-    cell: ({ row }) => row.original.guia ?? "-",
-  },
-  {
-    accessorKey: "tipo_movimiento",
-    header: "Tipo Movimiento",
+    accessorKey: "codigo",
+    header: "Código SAP",
     cell: ({ row }) => (
-      <Badge variant="outline" className="text-xs font-medium">
-        {row.original.tipo_movimiento}
-      </Badge>
+      <span className="font-mono text-xs">{row.original.codigo}</span>
     ),
   },
   {
-    accessorKey: "ubicacion",
-    header: "Ubicación",
+    accessorKey: "producto",
+    header: "Producto",
   },
   {
-    accessorKey: "origen",
+    accessorKey: "tipo_producto",
+    header: "Tipo",
+    cell: ({ row }) => {
+      const tipo = row.original.tipo_producto;
+      return (
+        <Badge variant={tipo === "EQUIPO" ? "default" : "outline"} className="text-xs">
+          {tipo}
+        </Badge>
+      );
+    },
+  },
+  {
+    accessorKey: "cantidad",
+    header: "Cantidad",
+  },
+  {
+    accessorKey: "serie",
+    header: "Serie",
+    cell: ({ row }) => row.original.serie ?? "-",
+  },
+  {
+    accessorKey: "almacen_origen",
     header: "Origen",
-    cell: ({ row }) => row.original.origen ?? "-",
   },
   {
-    accessorKey: "destino",
+    accessorKey: "almacen_destino",
     header: "Destino",
-  },
-  {
-    accessorKey: "registro",
-    header: "Registro",
-    cell: ({ row }) => (
-      <span className="text-xs text-muted-foreground">
-        {row.original.registro}
-      </span>
-    ),
   },
   {
     accessorKey: "usuario",

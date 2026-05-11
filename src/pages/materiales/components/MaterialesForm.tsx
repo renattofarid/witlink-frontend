@@ -76,7 +76,7 @@ export default function MaterialesForm({
 
   return (
     <FormWrapper>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.control.handleSubmit(onSubmit)} className="space-y-4">
         <FormSelectAsync
           name="producto_id"
           label="Producto"

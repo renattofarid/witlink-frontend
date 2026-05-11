@@ -224,7 +224,7 @@ export default function ProductoForm({
   return (
     <FormWrapper>
       <form
-        onSubmit={standaloneForm.handleSubmit((v) => mutation.mutate(v))}
+        onSubmit={standaloneForm.control.handleSubmit((v) => mutation.mutate(v))}
         className="space-y-4"
       >
         {fields}

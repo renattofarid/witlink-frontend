@@ -141,7 +141,7 @@ export default function EquiposRetiradosForm({
 
   const watchedSeries = productSubForm.watch("series") ?? [];
 
-  const handleAddOrUpdateProducto = productSubForm.handleSubmit((values) => {
+  const handleAddOrUpdateProducto = productSubForm.control.handleSubmit((values) => {
     if (editingProductoIndex === null) {
       appendProducto(values);
     } else {
@@ -188,7 +188,7 @@ export default function EquiposRetiradosForm({
     mode: "onChange",
   });
 
-  const handleAddOrUpdateSerie = serieSubForm.handleSubmit((values) => {
+  const handleAddOrUpdateSerie = serieSubForm.control.handleSubmit((values) => {
     if (editingSerieIndex === null) {
       appendSerie(values);
     } else {
@@ -538,7 +538,7 @@ export default function EquiposRetiradosForm({
       <div className="space-y-4">
         {/* Header form */}
         <form
-          onSubmit={editForm.handleSubmit((v) => editMutation.mutate(v))}
+          onSubmit={editForm.control.handleSubmit((v) => editMutation.mutate(v))}
           className="space-y-2"
         >
           <div className="flex items-center gap-2">
@@ -608,7 +608,7 @@ export default function EquiposRetiradosForm({
             editingSerieIndex={editingSerieIndex}
             serieSubForm={serieSubForm}
             onClose={handleCloseProductoDialog}
-            onSubmit={productSubForm.handleSubmit((v) =>
+            onSubmit={productSubForm.control.handleSubmit((v) =>
               addProductoMutation.mutate(v),
             )}
             onOpenSerieDialog={() => {
@@ -720,7 +720,7 @@ export default function EquiposRetiradosForm({
                           setCurrentDetalleProductoId(null);
                           setCurrentProductoId(null);
                         }}
-                        onSubmit={serieSubForm.handleSubmit((v) =>
+                        onSubmit={serieSubForm.control.handleSubmit((v) =>
                           addSerieMutation.mutate(v),
                         )}
                       />
@@ -769,7 +769,7 @@ export default function EquiposRetiradosForm({
   // ── CREATE MODE ────────────────────────────────────────────────────────────
   return (
     <form
-      onSubmit={createForm.handleSubmit((v) => createMutation.mutate(v))}
+      onSubmit={createForm.control.handleSubmit((v) => createMutation.mutate(v))}
       className="space-y-4"
     >
       {/* Datos principales */}

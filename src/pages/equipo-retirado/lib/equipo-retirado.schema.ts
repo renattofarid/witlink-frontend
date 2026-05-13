@@ -18,6 +18,7 @@ export const erProductoSchema = z
     necesita_mac: z.boolean().optional().nullable(),
     necesita_emta_mac: z.boolean().optional().nullable(),
     necesita_ua: z.boolean().optional().nullable(),
+    cantidad: z.number().min(1, "Mínimo 1"),
     series: z.array(erSerieSchema).optional().nullable(),
   })
   .superRefine((p, ctx) => {

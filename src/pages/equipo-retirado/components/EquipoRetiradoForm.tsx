@@ -62,6 +62,7 @@ const EMPTY_PRODUCTO: ErProductoFormValues = {
   necesita_mac: null,
   necesita_emta_mac: null,
   necesita_ua: null,
+  cantidad: 1,
   series: [],
 };
 
@@ -143,6 +144,15 @@ export default function EquipoRetiradoForm({
   } = useFieldArray({ control: productSubForm.control, name: "series" });
 
   const watchedSeries = productSubForm.watch("series") ?? [];
+  const watchedProductoTipo = productSubForm.watch("tipo");
+
+  useEffect(() => {
+    const next =
+      watchedProductoTipo === "EQUIPO" ? watchedSeries.length : 1;
+    productSubForm.setValue("cantidad", next === 0 ? 0 : next, {
+      shouldValidate: false,
+    });
+  }, [watchedSeries, watchedProductoTipo]);
 
   // ── Serie sub-form ─────────────────────────────────────────────────────────
   const serieSubForm = useForm<ErSerieFormValues>({
@@ -228,7 +238,7 @@ export default function EquipoRetiradoForm({
           necesita_mac: p.necesita_mac ?? false,
           necesita_emta_mac: p.necesita_emta_mac ?? false,
           necesita_ua: p.necesita_ua ?? false,
-          cantidad: p.tipo === "EQUIPO" ? (p.series?.length ?? 0) : 1,
+          cantidad: p.cantidad,
           series:
             p.series?.map((s) => ({
               serie_id: Number(s.serie_id),
@@ -279,7 +289,7 @@ export default function EquipoRetiradoForm({
         productos: [
           {
             producto_id: Number(values.producto_id),
-            cantidad: values.tipo === "EQUIPO" ? (values.series?.length ?? 0) : 1,
+            cantidad: values.cantidad,
             series:
               values.series?.map((s) => ({
                 serie_id: Number(s.serie_id),
@@ -524,10 +534,7 @@ export default function EquipoRetiradoForm({
     {
       id: "cantidad",
       header: "Cant.",
-      cell: ({ row }) =>
-        row.original.tipo === "EQUIPO"
-          ? (row.original.series?.length ?? 0)
-          : 1,
+      cell: ({ row }) => row.original.cantidad,
     },
     {
       id: "series",

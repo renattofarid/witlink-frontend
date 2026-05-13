@@ -31,8 +31,15 @@ export interface GuiaProductoResource {
     deleted_at: string | null;
   };
   cantidad: string;
+  confirmado: number;
   observaciones: string | null;
-  series: Array<{ serie?: GuiaSerieResource | null; observaciones?: string | null; created_at?: string; updated_at?: string }>;
+  series: Array<{
+    serie?: GuiaSerieResource | null;
+    confirmado: number;
+    observaciones?: string | null;
+    created_at?: string;
+    updated_at?: string;
+  }>;
 }
 
 export interface GuiaPersonaResource {

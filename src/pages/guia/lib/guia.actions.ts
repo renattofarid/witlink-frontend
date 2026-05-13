@@ -145,6 +145,16 @@ function buildGuiaEditFormData(body: GuiaEditBody): FormData {
   return formData;
 }
 
+export const confirmarSerie = async (productoGuiaId: number, serieId: number) => {
+  const { data } = await api.patch(`/detalle-series-guia/${productoGuiaId}/${serieId}`);
+  return data;
+};
+
+export const confirmarProducto = async (id: number) => {
+  const { data } = await api.patch(`/productos-guia/${id}/confirmar-disponibilidad`);
+  return data;
+};
+
 export const deleteProductoGuia = async (id: number, forzar?: boolean) => {
   const params = forzar ? { forzar: true } : undefined;
   const { data } = await api.delete(`/productos-guia/${id}`, { params });

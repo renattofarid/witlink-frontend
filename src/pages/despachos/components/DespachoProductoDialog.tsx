@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { FormInput } from "@/components/FormInput";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
-import { X, Check, Plus, Trash2 } from "lucide-react";
+import { X, Check, Trash2 } from "lucide-react";
 import { useProductoQuery } from "@/pages/producto/lib/producto.hook";
 import type { ProductoResource } from "@/pages/producto/lib/producto.interface";
 import type { SerieResource } from "@/pages/serie/lib/serie.interface";
@@ -123,16 +123,6 @@ export function DespachoProductoDialog({
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
             Series ({watchedSeries.length})
           </p>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="h-6 text-xs px-2"
-            onClick={() => onAppendSerie({ serie: "" })}
-          >
-            <Plus className="size-3 mr-1" />
-            Agregar serie
-          </Button>
         </div>
 
         {watchedSeries.length > 0 && (
@@ -165,6 +155,12 @@ export function DespachoProductoDialog({
                           `series.${index}.serie` as any,
                           item.serie ?? "",
                         );
+                        if (index === watchedSeries.length - 1) {
+                          productSubForm.setValue(
+                            "cantidad",
+                            Number(watchedCantidad) + 1,
+                          );
+                        }
                       }
                     }}
                   />

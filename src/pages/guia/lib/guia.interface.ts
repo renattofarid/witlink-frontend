@@ -35,17 +35,6 @@ export interface GuiaProductoResource {
   series: Array<{ serie?: GuiaSerieResource | null; observaciones?: string | null; created_at?: string; updated_at?: string }>;
 }
 
-export interface GuiaProveedorResource {
-  id: number;
-  ruc: string;
-  razon_social: string;
-  telefono: string;
-  direccion: string;
-  created_at: string;
-  updated_at: string;
-  deleted_at: string;
-}
-
 export interface GuiaPersonaResource {
   id: number;
   nombre: string;
@@ -69,7 +58,7 @@ export interface GuiaResource {
   numero: string;
   fecha: string;
   ruta_pdf_guia: string | null;
-  proveedor: GuiaProveedorResource;
+  confirmado: boolean;
   usuario: GuiaUsuarioResource;
   productos?: GuiaProductoResource[];
   created_at: string;
@@ -107,7 +96,6 @@ export interface GuiaProductoBody {
 export interface GuiaCreateBody {
   numero: string;
   fecha: string;
-  // proveedor_id: number;
   archivo?: File | null;
   productos: GuiaProductoBody[];
 }
@@ -134,7 +122,6 @@ export interface GuiaProductoActualizarBody {
 export interface GuiaEditBody {
   numero?: string | null;
   fecha?: string | null;
-  proveedor_id?: number | null;
   archivo?: File | null;
   productos?: {
     añadir?: GuiaProductoBody[] | null;

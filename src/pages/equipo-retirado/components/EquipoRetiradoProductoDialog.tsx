@@ -3,7 +3,6 @@ import type { UseFormReturn } from "react-hook-form";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { FormInput } from "@/components/FormInput";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { DataTable } from "@/components/DataTable";
 import { X, Check } from "lucide-react";
@@ -98,15 +97,6 @@ export function EquipoRetiradoProductoDialog({
             productSubForm.setValue("series", []);
           }
         }}
-      />
-
-      <FormInput
-        name="cantidad"
-        label="Cantidad"
-        control={productSubForm.control}
-        type="number"
-        placeholder="1"
-        required
       />
 
       {/* Series — solo visibles si el producto es un equipo */}

@@ -18,7 +18,6 @@ export const erProductoSchema = z
     necesita_mac: z.boolean().optional().nullable(),
     necesita_emta_mac: z.boolean().optional().nullable(),
     necesita_ua: z.boolean().optional().nullable(),
-    cantidad: z.number().min(1, "Mínimo 1"),
     series: z.array(erSerieSchema).optional().nullable(),
   })
   .superRefine((p, ctx) => {
@@ -27,13 +26,6 @@ export const erProductoSchema = z
         code: "custom",
         message: "Seleccione un producto.",
         path: ["producto_id"],
-      });
-    }
-    if (p.tipo === "EQUIPO" && (p.series?.length ?? 0) !== p.cantidad) {
-      ctx.addIssue({
-        code: "custom",
-        message: `Este producto es un equipo y debe tener ${p.cantidad} serie(s) asociada(s).`,
-        path: ["series"],
       });
     }
   });

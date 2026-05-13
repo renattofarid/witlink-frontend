@@ -152,15 +152,7 @@ export default function GuiaViewPage() {
             </p>
             <p className="font-medium">{fecha}</p>
           </div>
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">
-              Proveedor
-            </p>
-            <p className="font-medium">{guia.proveedor?.razon_social ?? "—"}</p>
-            <p className="text-xs text-muted-foreground">
-              {guia.proveedor?.ruc ?? ""}
-            </p>
-          </div>
+          
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground uppercase tracking-wide">
               Registrado por

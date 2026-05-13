@@ -57,6 +57,7 @@ export function EquipoRetiradoSerieDialog({
             if (item) {
               serieSubForm.setValue("serie", item.serie);
               serieSubForm.setValue("mac", item.mac ?? null);
+              onSubmit();
             }
           }}
         />

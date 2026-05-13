@@ -8,7 +8,6 @@ import { GuiaProductosModal } from "./GuiaProductosModal";
 import { Button } from "@/components/ui/button";
 import { parse } from "date-fns";
 
-
 interface ColumnActions {
   onView: (row: GuiaResource) => void;
   onEdit: (row: GuiaResource) => void;
@@ -82,16 +81,16 @@ export const getGuiaColumns = ({
     },
   },
   {
-    id: "estado",
-    header: "Estado",
+    id: "confirmado",
+    header: "Confirmado",
     cell: ({ row }) =>
-      row.original.deleted_at ? (
-        <Badge color="destructive" className="text-xs">
-          Eliminado
+      row.original.confirmado ? (
+        <Badge variant="default" color="green" className="text-xs">
+          Confirmado
         </Badge>
       ) : (
-        <Badge variant="default" color="green">
-          Activo
+        <Badge color="gray" className="text-xs">
+          Pendiente
         </Badge>
       ),
   },

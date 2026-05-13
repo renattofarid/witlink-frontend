@@ -62,7 +62,6 @@ const EMPTY_PRODUCTO: ErProductoFormValues = {
   necesita_mac: null,
   necesita_emta_mac: null,
   necesita_ua: null,
-  cantidad: 1,
   series: [],
 };
 
@@ -229,7 +228,7 @@ export default function EquipoRetiradoForm({
           necesita_mac: p.necesita_mac ?? false,
           necesita_emta_mac: p.necesita_emta_mac ?? false,
           necesita_ua: p.necesita_ua ?? false,
-          cantidad: p.cantidad,
+          cantidad: p.tipo === "EQUIPO" ? (p.series?.length ?? 0) : 1,
           series:
             p.series?.map((s) => ({
               serie_id: Number(s.serie_id),
@@ -280,7 +279,7 @@ export default function EquipoRetiradoForm({
         productos: [
           {
             producto_id: Number(values.producto_id),
-            cantidad: values.cantidad,
+            cantidad: values.tipo === "EQUIPO" ? (values.series?.length ?? 0) : 1,
             series:
               values.series?.map((s) => ({
                 serie_id: Number(s.serie_id),
@@ -525,7 +524,10 @@ export default function EquipoRetiradoForm({
     {
       id: "cantidad",
       header: "Cant.",
-      cell: ({ row }) => row.original.cantidad,
+      cell: ({ row }) =>
+        row.original.tipo === "EQUIPO"
+          ? (row.original.series?.length ?? 0)
+          : 1,
     },
     {
       id: "series",

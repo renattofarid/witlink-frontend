@@ -16,6 +16,8 @@ interface ExportButtonsProps {
   excelFileName?: string;
   pdfFileName?: string;
   variant?: "grouped" | "separate";
+  params?: Record<string, string>;
+  excelResponseFormat?: "blob" | "base64";
 }
 
 export default function ExportButtons({
@@ -24,23 +26,41 @@ export default function ExportButtons({
   excelFileName = "export.xlsx",
   pdfFileName = "export.pdf",
   variant = "grouped",
+  params,
+  excelResponseFormat = "blob",
 }: ExportButtonsProps) {
   const handleExcelDownload = async () => {
     if (!excelEndpoint) return;
 
     try {
-      const response = await api.get(excelEndpoint, {
-        responseType: "blob",
-      });
-
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", excelFileName);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
+      if (excelResponseFormat === "base64") {
+        const { data } = await api.get(excelEndpoint, { params });
+        const binary = atob(data.file_base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        const blob = new Blob([bytes], { type: data.mime_type });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", data.file_name ?? excelFileName);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+      } else {
+        const response = await api.get(excelEndpoint, {
+          responseType: "blob",
+          params,
+        });
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", excelFileName);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+      }
 
       toast.success("Excel descargado exitosamente");
     } catch (error) {
@@ -82,7 +102,7 @@ export default function ExportButtons({
               <Button
                 size="sm"
                 variant="ghost"
-                className="p-0 hover:bg-green-700/5 hover:text-green-700 dark:hover:bg-primary dark:hover:text-white transition-colors"
+                className="px-2 hover:bg-green-700/5 hover:text-green-700 dark:hover:bg-primary dark:hover:text-white transition-colors"
                 onClick={handleExcelDownload}
               >
                 <Sheet className="size-4" />
@@ -101,7 +121,7 @@ export default function ExportButtons({
               <Button
                 size="sm"
                 variant="ghost"
-                className="p-0 hover:bg-red-700/5 hover:text-red-700 transition-colors"
+                className="px-2 hover:bg-red-700/5 hover:text-red-700 transition-colors"
                 onClick={handlePDFDownload}
               >
                 <FileText className="size-4" />
@@ -126,7 +146,7 @@ export default function ExportButtons({
             <Button
               size="sm"
               variant="ghost"
-              className="h-8 w-8 p-0 hover:bg-green-700/5 hover:text-green-700 transition-colors"
+              className="px-2 h-8 w-8 p-0 hover:bg-green-700/5 hover:text-green-700 transition-colors"
               onClick={handleExcelDownload}
             >
               <Sheet className="size-4" />
@@ -144,7 +164,7 @@ export default function ExportButtons({
             <Button
               size="sm"
               variant="ghost"
-              className="h-8 w-8 p-0 hover:bg-red-700/5 hover:text-red-700 transition-colors"
+              className="px-2 h-8 w-8 p-0 hover:bg-red-700/5 hover:text-red-700 transition-colors"
               onClick={handlePDFDownload}
             >
               <FileText className="size-4" />

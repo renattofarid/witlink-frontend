@@ -20,7 +20,7 @@ export default function InventarioTecnicoFilters({
 }: InventarioTecnicoFiltersProps) {
   return (
     <FilterWrapper>
-      <div className="flex items-center gap-2 min-w-60">
+      <div className="flex items-center gap-2">
         <SearchableSelectAsync
           value={tecnicoId}
           onChange={onTecnicoChange}
@@ -41,7 +41,6 @@ export default function InventarioTecnicoFilters({
           onFechaChange(date ? format(date, "yyyy-MM-dd") : "")
         }
         placeholder="Filtrar por fecha"
-        showClearButton
       />
     </FilterWrapper>
   );

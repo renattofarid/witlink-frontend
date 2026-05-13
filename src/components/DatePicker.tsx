@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { format, parseISO, isValid } from "date-fns";
-import { CalendarIcon, CalendarPlusIcon, X } from "lucide-react";
+import { CalendarIcon, CalendarPlusIcon } from "lucide-react";
 import { es } from "date-fns/locale";
 
 import { Button } from "@/components/ui/button";
@@ -51,7 +51,6 @@ interface DatePickerProps {
   disabledRange?: Matcher | Matcher[];
   captionLayout?: "label" | "dropdown" | "dropdown-months" | "dropdown-years";
   className?: string;
-  showClearButton?: boolean;
   error?: string;
 }
 
@@ -67,7 +66,6 @@ export default function DatePicker({
   disabledRange,
   captionLayout = "label",
   className,
-  showClearButton = true,
   error,
 }: DatePickerProps) {
   const isMobile = useIsMobile();
@@ -82,7 +80,7 @@ export default function DatePicker({
   }, [value]);
 
   const [visibleMonth, setVisibleMonth] = useState<Date | undefined>(
-    parsedDate
+    parsedDate,
   );
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -101,11 +99,6 @@ export default function DatePicker({
     if (isMobile && date) {
       setDrawerOpen(false);
     }
-  };
-
-  const handleClear = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onChange(undefined);
   };
 
   return (
@@ -144,18 +137,12 @@ export default function DatePicker({
               className={cn(
                 "w-full justify-between font-normal",
                 !parsedDate && "text-muted-foreground",
-                error && "border-red-500"
+                error && "border-red-500",
               )}
               disabled={disabled}
             >
               <span className="truncate">{displayValue}</span>
               <div className="flex items-center space-x-2">
-                {parsedDate && showClearButton && !disabled && (
-                  <X
-                    className="h-4 w-4 hover:text-red-500 transition-colors"
-                    onClick={handleClear}
-                  />
-                )}
                 <CalendarPlusIcon className="h-4 w-4 opacity-50" />
               </div>
             </Button>
@@ -185,19 +172,13 @@ export default function DatePicker({
               className={cn(
                 "w-full justify-between font-normal",
                 !parsedDate && "text-muted-foreground",
-                error && "border-red-500"
+                error && "border-red-500",
               )}
-              size= "default"
+              size="default"
               disabled={disabled}
             >
               <span className="truncate">{displayValue}</span>
               <div className="flex items-center space-x-2">
-                {parsedDate && showClearButton && !disabled && (
-                  <X
-                    className="h-4 w-4 hover:text-red-500 transition-colors"
-                    onClick={handleClear}
-                  />
-                )}
                 <CalendarIcon className="h-4 w-4 opacity-50" />
               </div>
             </Button>

@@ -21,6 +21,7 @@ import {
   getActaBlob,
 } from "../lib/liquidaciones.actions";
 import ImportarActasDialog from "../components/ImportarActasDialog";
+import LiquidacionesExportButtons from "../components/LiquidacionesExportButtons";
 import type { LiquidacionResource } from "../lib/liquidaciones.interface";
 
 export default function LiquidacionesPage() {
@@ -123,6 +124,7 @@ export default function LiquidacionesPage() {
         icon="ClipboardList"
       >
         <ActionsWrapper>
+          <LiquidacionesExportButtons />
           <input
             ref={fileInputRef}
             type="file"

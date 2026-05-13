@@ -1,0 +1,156 @@
+import { useState } from "react";
+import { format } from "date-fns";
+import { Sheet } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
+import { api } from "@/lib/config";
+import { toast } from "sonner";
+import DatePicker from "@/components/DatePicker";
+
+interface ExcelResponse {
+  file_name: string;
+  mime_type: string;
+  file_base64: string;
+}
+
+function downloadFromBase64({ file_base64, file_name, mime_type }: ExcelResponse) {
+  const byteChars = atob(file_base64);
+  const buffer = new ArrayBuffer(byteChars.length);
+  const bytes = new Uint8Array(buffer);
+  for (let i = 0; i < byteChars.length; i++) bytes[i] = byteChars.charCodeAt(i);
+  const blob = new Blob([buffer], { type: mime_type });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.setAttribute("download", file_name);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+}
+
+export default function LiquidacionesExportButtons() {
+  const [open, setOpen] = useState(false);
+  const [fechaInicio, setFechaInicio] = useState<Date>(
+    () => new Date(new Date().getFullYear(), 0, 1)
+  );
+  const [fechaFin, setFechaFin] = useState<Date>(() => new Date());
+  const [loadingLiquidadas, setLoadingLiquidadas] = useState(false);
+  const [loadingResumen, setLoadingResumen] = useState(false);
+
+  const handleLiquidadasDownload = async () => {
+    setLoadingLiquidadas(true);
+    try {
+      const { data } = await api.get<ExcelResponse>(
+        "/liquidaciones/liquidadas/exportar-excel"
+      );
+      downloadFromBase64(data);
+      toast.success("Excel descargado exitosamente");
+    } catch {
+      toast.error("Error al descargar el archivo Excel");
+    } finally {
+      setLoadingLiquidadas(false);
+    }
+  };
+
+  const handleResumenDownload = async () => {
+    if (!fechaInicio || !fechaFin) {
+      toast.error("Selecciona las fechas de inicio y fin");
+      return;
+    }
+    setLoadingResumen(true);
+    try {
+      const { data } = await api.get<ExcelResponse>(
+        "/liquidaciones/resumen-excel",
+        {
+          params: {
+            fecha_inicio: format(fechaInicio, "yyyy-MM-dd"),
+            fecha_fin: format(fechaFin, "yyyy-MM-dd"),
+          },
+        }
+      );
+      downloadFromBase64(data);
+      toast.success("Resumen descargado exitosamente");
+      setOpen(false);
+    } catch {
+      toast.error("Error al descargar el resumen");
+    } finally {
+      setLoadingResumen(false);
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1 bg-gray-50 dark:bg-gray-800 rounded-lg border dark:border-gray-800">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="px-2 hover:bg-green-700/5 hover:text-green-700 dark:hover:bg-primary dark:hover:text-white transition-colors"
+              onClick={handleLiquidadasDownload}
+              disabled={loadingLiquidadas}
+            >
+              <Sheet className="size-4" />
+              Liquidadas
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Exportar liquidaciones en estado liquidada</p>
+          </TooltipContent>
+        </Tooltip>
+      </div>
+
+      <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
+        <Sheet className="size-4 mr-1" />
+        Resumen Excel
+      </Button>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Resumen de liquidaciones</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label>Fecha inicio</Label>
+              <DatePicker
+                value={fechaInicio}
+                onChange={(d) => d && setFechaInicio(d)}
+                captionLayout="dropdown"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>Fecha fin</Label>
+              <DatePicker
+                value={fechaFin}
+                onChange={(d) => d && setFechaFin(d)}
+                captionLayout="dropdown"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleResumenDownload} disabled={loadingResumen}>
+              {loadingResumen ? "Descargando..." : "Descargar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

@@ -51,7 +51,6 @@ export default function KardexFilters({ params, setParams }: KardexFiltersProps)
           }))
         }
         placeholder="Desde"
-        showClearButton
       />
       <DatePicker
         value={params.fecha_hasta ?? ""}
@@ -63,7 +62,6 @@ export default function KardexFilters({ params, setParams }: KardexFiltersProps)
           }))
         }
         placeholder="Hasta"
-        showClearButton
       />
       <SearchableSelect
         placeholder="Almacén"

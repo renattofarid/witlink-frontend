@@ -54,7 +54,6 @@ export default function TrasladoFilters({ params, setParams }: TrasladoFiltersPr
           }))
         }
         placeholder="Desde"
-        showClearButton
       />
       <DatePicker
         value={params.fecha_hasta ?? ""}
@@ -66,7 +65,6 @@ export default function TrasladoFilters({ params, setParams }: TrasladoFiltersPr
           }))
         }
         placeholder="Hasta"
-        showClearButton
       />
       <SearchableSelect
         placeholder="Almacén origen"

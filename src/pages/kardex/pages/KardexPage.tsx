@@ -2,6 +2,7 @@ import { useState } from "react";
 import PageWrapper from "@/components/PageWrapper";
 import TitleComponent from "@/components/TitleComponent";
 import ActionsWrapper from "@/components/ActionsWrapper";
+import ExportButtons from "@/components/ExportButtons";
 import { DataTable } from "@/components/DataTable";
 import DataTablePagination from "@/components/DataTablePagination";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
@@ -26,6 +27,10 @@ export default function KardexPage() {
   const handlePerPageChange = (perPage: number) =>
     setParams((prev) => ({ ...prev, per_page: String(perPage), page: "1" }));
 
+  const exportParams = Object.fromEntries(
+    Object.entries(params).filter(([k]) => !["page", "per_page"].includes(k))
+  );
+
   return (
     <PageWrapper>
       <TitleComponent
@@ -34,7 +39,11 @@ export default function KardexPage() {
         icon="ScrollText"
       >
         <ActionsWrapper>
-          <KardexFilters params={params} setParams={setParams} />
+          <ExportButtons
+            excelEndpoint="/movimientos/exportar-excel"
+            excelFileName="kardex.xlsx"
+            params={exportParams}
+          />
         </ActionsWrapper>
       </TitleComponent>
 
@@ -42,7 +51,9 @@ export default function KardexPage() {
         columns={columns}
         data={data?.data ?? []}
         isLoading={isLoading}
-      />
+      >
+        <KardexFilters params={params} setParams={setParams} />
+      </DataTable>
 
       <DataTablePagination
         page={Number(params.page)}

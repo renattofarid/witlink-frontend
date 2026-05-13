@@ -154,6 +154,11 @@ export const confirmarProducto = async (id: number) => {
   return data;
 };
 
+export const confirmarDisponibilidad = async (id: number) => {
+  const { data } = await api.patch(`${GuiaComplete.ENDPOINT}/${id}/confirmarDisponibilidad`);
+  return data;
+};
+
 export const deleteProductoGuia = async (id: number, forzar?: boolean) => {
   const params = forzar ? { forzar: true } : undefined;
   const { data } = await api.delete(`/productos-guia/${id}`, { params });

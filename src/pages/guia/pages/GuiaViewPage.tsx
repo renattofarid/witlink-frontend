@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import FormWrapper from "@/components/FormWrapper";
 import TitleFormComponent from "@/components/TitleFormComponent";
 import { Separator } from "@/components/ui/separator";
@@ -13,38 +13,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { CheckCircle, CheckCircle2, FileText } from "lucide-react";
+import { FileText } from "lucide-react";
 import { GuiaComplete } from "../lib/guia.constants";
-import { getGuia, openPdf, confirmarSerie, confirmarProducto } from "../lib/guia.actions";
-import { promiseToast } from "@/lib/core.function";
+import { getGuia, openPdf } from "../lib/guia.actions";
 import FormSkeleton from "@/components/FormSkeleton";
 
 export default function GuiaViewPage() {
   const { id } = useParams();
-  const queryClient = useQueryClient();
 
   const { data: guia, isLoading } = useQuery({
     queryKey: [GuiaComplete.QUERY_KEY, "detail", id],
     queryFn: () => getGuia(Number(id)),
     enabled: !!id,
     refetchOnWindowFocus: true,
-  });
-
-  const confirmarProductoMutation = useMutation({
-    mutationFn: (productoId: number) => confirmarProducto(productoId),
-    onSuccess: () =>
-      queryClient.invalidateQueries({
-        queryKey: [GuiaComplete.QUERY_KEY, "detail", id],
-      }),
-  });
-
-  const confirmarSerieMutation = useMutation({
-    mutationFn: ({ productoGuiaId, serieId }: { productoGuiaId: number; serieId: number }) =>
-      confirmarSerie(productoGuiaId, serieId),
-    onSuccess: () =>
-      queryClient.invalidateQueries({
-        queryKey: [GuiaComplete.QUERY_KEY, "detail", id],
-      }),
   });
 
   if (isLoading) return <FormSkeleton />;
@@ -139,7 +120,6 @@ export default function GuiaViewPage() {
                   <TableHead className="w-28">Tipo</TableHead>
                   <TableHead className="w-16 text-right">Cant.</TableHead>
                   <TableHead className="w-28">Estado</TableHead>
-                  <TableHead className="w-32">Acción</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -168,31 +148,6 @@ export default function GuiaViewPage() {
                           <Badge variant="default" color={isProductConfirmado ? "green" : "muted"} className="text-xs">
                             {isProductConfirmado ? "Confirmado" : "Pendiente"}
                           </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {!isProductConfirmado ? (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="h-7 text-xs gap-1"
-                              disabled={confirmarProductoMutation.isPending}
-                              onClick={() =>
-                                promiseToast(
-                                  confirmarProductoMutation.mutateAsync(producto.id),
-                                  {
-                                    loading: "Confirmando...",
-                                    success: "Producto confirmado",
-                                    error: "Error al confirmar",
-                                  }
-                                )
-                              }
-                            >
-                              <CheckCircle className="size-3" />
-                              {hasSeries ? "Confirmar todo" : "Confirmar"}
-                            </Button>
-                          ) : (
-                            <CheckCircle2 className="size-4 text-green-500" />
-                          )}
                         </TableCell>
                       </TableRow>
 
@@ -226,35 +181,6 @@ export default function GuiaViewPage() {
                                 <Badge variant="default" color={isSerieConfirmada ? "green" : "muted"} className="text-xs">
                                   {isSerieConfirmada ? "Confirmado" : "Pendiente"}
                                 </Badge>
-                              </TableCell>
-                              <TableCell>
-                                {!isSerieConfirmada ? (
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="h-7 text-xs gap-1"
-                                    disabled={confirmarSerieMutation.isPending}
-                                    onClick={() => {
-                                      if (!serieItem.serie) return;
-                                      promiseToast(
-                                        confirmarSerieMutation.mutateAsync({
-                                          productoGuiaId: producto.id,
-                                          serieId: serieItem.serie.id,
-                                        }),
-                                        {
-                                          loading: "Confirmando serie...",
-                                          success: "Serie confirmada",
-                                          error: "Error al confirmar la serie",
-                                        }
-                                      );
-                                    }}
-                                  >
-                                    <CheckCircle className="size-3" />
-                                    Confirmar
-                                  </Button>
-                                ) : (
-                                  <CheckCircle2 className="size-4 text-green-500" />
-                                )}
                               </TableCell>
                             </TableRow>
                           );

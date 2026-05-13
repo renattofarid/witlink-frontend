@@ -9,10 +9,11 @@ import ExportButtons from "@/components/ExportButtons";
 import { DataTable } from "@/components/DataTable";
 import DataTablePagination from "@/components/DataTablePagination";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
+import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 import { successToast, errorToast, ERROR_MESSAGE } from "@/lib/core.function";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import { useGuiaQuery } from "../lib/guia.hook";
-import { deleteGuia, restoreGuia } from "../lib/guia.actions";
+import { deleteGuia, restoreGuia, confirmarDisponibilidad } from "../lib/guia.actions";
 import { GuiaComplete, GUIA_ROUTE_VIEW } from "../lib/guia.constants";
 import { getGuiaColumns } from "../components/GuiaColumns";
 import GuiaFilters from "../components/GuiaFilters";
@@ -33,6 +34,9 @@ export default function GuiaPage() {
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [toDelete, setToDelete] = useState<GuiaResource | null>(null);
+
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [toConfirm, setToConfirm] = useState<GuiaResource | null>(null);
 
   const { data, isLoading } = useGuiaQuery(params);
 
@@ -64,6 +68,19 @@ export default function GuiaPage() {
     },
   });
 
+  const confirmarMutation = useMutation({
+    mutationFn: () => confirmarDisponibilidad(toConfirm!.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [GuiaComplete.QUERY_KEY] });
+      successToast("Guía confirmada correctamente.");
+    },
+    onError: (error: any) => {
+      errorToast(
+        error.response?.data?.message ?? "Error al confirmar la guía.",
+      );
+    },
+  });
+
   const handleView = (row: GuiaResource) => {
     navigate(`${GUIA_ROUTE_VIEW}/${row.id}`);
   };
@@ -79,6 +96,11 @@ export default function GuiaPage() {
 
   const handleRestore = (row: GuiaResource) => {
     restoreMutation.mutate(row.id);
+  };
+
+  const handleConfirm = (row: GuiaResource) => {
+    setToConfirm(row);
+    setConfirmOpen(true);
   };
 
   const handlePageChange = (page: number) =>
@@ -100,6 +122,7 @@ export default function GuiaPage() {
     onEdit: handleEdit,
     onDelete: handleDelete,
     onRestore: handleRestore,
+    onConfirm: handleConfirm,
   });
 
   return (
@@ -144,6 +167,17 @@ export default function GuiaPage() {
         description="¿Estás seguro de que deseas eliminar esta guía? Esta acción no se puede deshacer."
         onConfirm={async () => {
           await deleteMutation.mutateAsync();
+        }}
+      />
+
+      <ConfirmationDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Confirmar disponibilidad"
+        description={`¿Confirmas la disponibilidad de la guía "${toConfirm?.numero}"?`}
+        confirmText="Confirmar"
+        onConfirm={async () => {
+          await confirmarMutation.mutateAsync();
         }}
       />
     </PageWrapper>

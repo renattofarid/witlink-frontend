@@ -28,7 +28,7 @@ api.interceptors.request.use(
 // Variable para evitar múltiples redirecciones simultáneas
 let isRedirecting = false;
 
-// Interceptor para manejar respuestas y errores
+// Interceptor para manejar respuestas y  errores
 api.interceptors.response.use(
   (response) => {
     return response;

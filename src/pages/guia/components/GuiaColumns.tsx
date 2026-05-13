@@ -1,5 +1,5 @@
 import { ButtonAction } from "@/components/ButtonAction";
-import { Pencil, Trash2, RotateCcw, FileText, Eye } from "lucide-react";
+import { Pencil, Trash2, RotateCcw, FileText, Eye, CheckCircle } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import type { GuiaResource } from "../lib/guia.interface";
@@ -13,6 +13,7 @@ interface ColumnActions {
   onEdit: (row: GuiaResource) => void;
   onDelete: (row: GuiaResource) => void;
   onRestore: (row: GuiaResource) => void;
+  onConfirm: (row: GuiaResource) => void;
 }
 
 export const getGuiaColumns = ({
@@ -20,6 +21,7 @@ export const getGuiaColumns = ({
   onEdit,
   onDelete,
   onRestore,
+  onConfirm,
 }: ColumnActions): ColumnDef<GuiaResource>[] => [
   {
     accessorKey: "numero",
@@ -111,6 +113,11 @@ export const getGuiaColumns = ({
             icon={Pencil}
             canRender={!isDeleted}
             onClick={() => onEdit(item)}
+          />
+          <ButtonAction
+            icon={CheckCircle}
+            canRender={!isDeleted && !item.confirmado}
+            onClick={() => onConfirm(item)}
           />
           <ButtonAction
             icon={Trash2}

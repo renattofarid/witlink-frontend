@@ -181,7 +181,7 @@ export default function TrasladoForm({ onSuccess }: TrasladoFormProps) {
     setCartError(null);
   };
 
-  const handleSubmit = form.handleSubmit((values) => {
+  const handleSubmit = form.control.handleSubmit((values) => {
     const cart = values.tipo === "serie" ? seriesCart : materialsCart;
     if (cart.length === 0) {
       setCartError(

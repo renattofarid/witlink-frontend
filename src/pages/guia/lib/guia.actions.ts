@@ -104,7 +104,6 @@ function buildGuiaEditFormData(body: GuiaEditBody): FormData {
   const formData = new FormData();
   if (body.numero != null) formData.append("numero", body.numero);
   if (body.fecha != null) formData.append("fecha", body.fecha);
-  if (body.proveedor_id != null) formData.append("proveedor_id", String(body.proveedor_id));
   if (body.archivo) formData.append("archivo", body.archivo);
 
   // productos[0][añadir][i][...] → dot-notation: productos.0.añadir.i.* → matches productos.*.añadir.*.*

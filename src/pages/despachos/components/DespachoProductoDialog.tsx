@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useWatch } from "react-hook-form";
 import type { UseFormReturn } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -36,6 +36,9 @@ export function DespachoProductoDialog({
   onAppendSerie,
   onRemoveSerie,
 }: DespachoProductoDialogProps) {
+  const seriesContainerRef = useRef<HTMLDivElement>(null);
+  const shouldFocusLastRef = useRef(false);
+
   const watchedCantidad = useWatch({
     control: productSubForm.control,
     name: "cantidad",
@@ -48,6 +51,7 @@ export function DespachoProductoDialog({
 
   // Auto-sincronizar filas de series con la cantidad ingresada
   useEffect(() => {
+    if (!open) return;
     const target = Number(watchedCantidad) || 0;
     const current = productSubForm.getValues("series")?.length ?? 0;
     if (current < target) {
@@ -60,7 +64,15 @@ export function DespachoProductoDialog({
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [watchedCantidad]);
+  }, [watchedCantidad, open]);
+
+  // Auto-focus the newly appended series row
+  useEffect(() => {
+    if (!shouldFocusLastRef.current || !seriesContainerRef.current) return;
+    shouldFocusLastRef.current = false;
+    const buttons = seriesContainerRef.current.querySelectorAll<HTMLButtonElement>('[role="combobox"]');
+    buttons[buttons.length - 1]?.click();
+  }, [watchedSeries.length]);
 
   if (!open) return null;
 
@@ -125,8 +137,8 @@ export function DespachoProductoDialog({
           </p>
         </div>
 
-        {watchedSeries.length > 0 && (
-          <div className="space-y-1.5 max-h-64 overflow-y-auto pr-1">
+        {watchedProductoId && watchedSeries.length > 0 && (
+          <div ref={seriesContainerRef} className="space-y-1.5 max-h-64 overflow-y-auto pr-1">
             {watchedSeries.map((_, index) => (
               <div key={index} className="flex items-center gap-2">
                 <span className="text-xs text-muted-foreground w-5 text-right shrink-0">
@@ -156,6 +168,7 @@ export function DespachoProductoDialog({
                           item.serie ?? "",
                         );
                         if (index === watchedSeries.length - 1) {
+                          shouldFocusLastRef.current = true;
                           productSubForm.setValue(
                             "cantidad",
                             Number(watchedCantidad) + 1,

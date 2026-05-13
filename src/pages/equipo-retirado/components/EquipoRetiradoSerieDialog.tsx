@@ -2,6 +2,7 @@ import type { UseFormReturn } from "react-hook-form";
 import { GeneralModal } from "@/components/GeneralModal";
 import { Button } from "@/components/ui/button";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
+import { FormInput } from "@/components/FormInput";
 import { X, Check } from "lucide-react";
 import { useSeriesERQuery } from "../lib/equipo-retirado.hook";
 import type { ErSerieFormValues } from "../lib/equipo-retirado.schema";
@@ -35,29 +36,41 @@ export function EquipoRetiradoSerieDialog({
       open={open}
       onClose={onClose}
       title={isEditing ? `Editando serie #${editingIndex + 1}` : "Agregar serie"}
-      size="sm"
+      size="md"
     >
       <div className="space-y-3">
-        <FormSelectAsync
-          name="serie_id"
-          label="Serie"
-          control={serieSubForm.control}
-          placeholder="Buscar por número de serie o MAC..."
-          useQueryHook={useSeriesERQuery}
-          legacyPagination={false}
-          mapOptionFn={(item) => ({
-            value: String(item.id),
-            label: item.serie,
-            description: item.mac,
-          })}
-          onValueChange={(_, item) => {
-            if (item) {
-              serieSubForm.setValue("serie", item.serie);
-              serieSubForm.setValue("mac", item.mac ?? null);
-              if (!isEditing) onSubmit();
-            }
-          }}
-        />
+        <div className="flex gap-2 items-end">
+          <div className="flex-1">
+            <FormSelectAsync
+              name="serie_id"
+              label="Serie"
+              control={serieSubForm.control}
+              placeholder="Buscar por número de serie o MAC..."
+              useQueryHook={useSeriesERQuery}
+              legacyPagination={false}
+              mapOptionFn={(item) => ({
+                value: String(item.id),
+                label: item.serie,
+                description: item.mac,
+              })}
+              onValueChange={(_, item) => {
+                if (item) {
+                  serieSubForm.setValue("serie", item.serie);
+                  serieSubForm.setValue("mac", item.mac ?? null);
+                  if (!isEditing) onSubmit();
+                }
+              }}
+            />
+          </div>
+          <div className="w-36">
+            <FormInput
+              name="observaciones"
+              label="Observaciones"
+              control={serieSubForm.control}
+              placeholder="Opcional"
+            />
+          </div>
+        </div>
 
         <div className="flex justify-end gap-2">
           <Button

@@ -5,13 +5,19 @@ import TitleFormComponent from "@/components/TitleFormComponent";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { CheckCircle, CheckCircle2, FileText } from "lucide-react";
 import { GuiaComplete } from "../lib/guia.constants";
 import { getGuia, openPdf, confirmarSerie, confirmarProducto } from "../lib/guia.actions";
 import { promiseToast } from "@/lib/core.function";
 import FormSkeleton from "@/components/FormSkeleton";
-
-const GRID = "grid grid-cols-[2.5rem_1fr_6rem_4rem_7rem_7rem] gap-3";
 
 export default function GuiaViewPage() {
   const { id } = useParams();
@@ -125,142 +131,139 @@ export default function GuiaViewPage() {
           <p className="text-sm text-muted-foreground">Esta guía no tiene productos registrados.</p>
         ) : (
           <div className="border rounded-md overflow-hidden">
-            {/* Header */}
-            <div className={`${GRID} items-center px-3 py-2 bg-muted/50 border-b text-xs font-medium text-muted-foreground uppercase tracking-wide`}>
-              <span className="text-center">#</span>
-              <span>Producto / Serie</span>
-              <span>Tipo</span>
-              <span className="text-right">Cant.</span>
-              <span>Estado</span>
-              <span>Acción</span>
-            </div>
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50 hover:bg-muted/50">
+                  <TableHead className="w-10 text-center">#</TableHead>
+                  <TableHead>Producto / Serie</TableHead>
+                  <TableHead className="w-28">Tipo</TableHead>
+                  <TableHead className="w-16 text-right">Cant.</TableHead>
+                  <TableHead className="w-28">Estado</TableHead>
+                  <TableHead className="w-32">Acción</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {guia.productos!.map((producto, index) => {
+                  const hasSeries = (producto.series?.length ?? 0) > 0;
+                  const isProductConfirmado = producto.confirmado === 1;
 
-            {guia.productos!.map((producto, index) => {
-              const hasSeries = (producto.series?.length ?? 0) > 0;
-              const isProductConfirmado = producto.confirmado === 1;
-
-              return (
-                <div key={producto.id} className="border-b last:border-0">
-                  {/* Product row */}
-                  <div className={`${GRID} items-center px-3 py-3`}>
-                    <span className="text-center text-xs text-muted-foreground font-medium">
-                      {index + 1}
-                    </span>
-                    <div>
-                      <p className="text-sm font-medium leading-tight">
-                        {producto.producto.nombre}
-                      </p>
-                      <p className="text-xs text-muted-foreground font-mono mt-0.5">
-                        {producto.producto.sap}
-                      </p>
-                    </div>
-                    <Badge variant="outline" className="text-xs w-fit">
-                      {producto.producto.tipo}
-                    </Badge>
-                    <span className="text-right text-sm">{Number(producto.cantidad)}</span>
-                    <Badge
-                      variant="default"
-                      color={isProductConfirmado ? "green" : "muted"}
-                      className="text-xs w-fit"
-                    >
-                      {isProductConfirmado ? "Confirmado" : "Pendiente"}
-                    </Badge>
-                    <div className="flex items-center">
-                      {!isProductConfirmado ? (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-7 text-xs gap-1"
-                          disabled={confirmarProductoMutation.isPending}
-                          onClick={() =>
-                            promiseToast(
-                              confirmarProductoMutation.mutateAsync(producto.id),
-                              {
-                                loading: "Confirmando...",
-                                success: "Producto confirmado",
-                                error: "Error al confirmar",
+                  return (
+                    <>
+                      {/* Product row */}
+                      <TableRow key={`p-${producto.id}`}>
+                        <TableCell className="text-center text-xs text-muted-foreground font-medium">
+                          {index + 1}
+                        </TableCell>
+                        <TableCell>
+                          <p className="text-sm font-medium leading-tight">{producto.producto.nombre}</p>
+                          <p className="text-xs text-muted-foreground font-mono mt-0.5">{producto.producto.sap}</p>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="text-xs">
+                            {producto.producto.tipo}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">{Number(producto.cantidad)}</TableCell>
+                        <TableCell>
+                          <Badge variant="default" color={isProductConfirmado ? "green" : "muted"} className="text-xs">
+                            {isProductConfirmado ? "Confirmado" : "Pendiente"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {!isProductConfirmado ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 text-xs gap-1"
+                              disabled={confirmarProductoMutation.isPending}
+                              onClick={() =>
+                                promiseToast(
+                                  confirmarProductoMutation.mutateAsync(producto.id),
+                                  {
+                                    loading: "Confirmando...",
+                                    success: "Producto confirmado",
+                                    error: "Error al confirmar",
+                                  }
+                                )
                               }
-                            )
-                          }
-                        >
-                          <CheckCircle className="size-3" />
-                          {hasSeries ? "Confirmar todo" : "Confirmar"}
-                        </Button>
-                      ) : (
-                        <CheckCircle2 className="size-4 text-green-500" />
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Series sub-rows */}
-                  {hasSeries && (
-                    <div className="border-t bg-muted/20 divide-y divide-border/40">
-                      {producto.series.map((serieItem, sIndex) => {
-                        const isSerieConfirmada = serieItem.confirmado === 1;
-                        return (
-                          <div
-                            key={serieItem.serie?.id ?? sIndex}
-                            className={`${GRID} items-center px-3 py-2 border-l-2 border-l-muted-foreground/20`}
-                          >
-                            <span className="text-center text-muted-foreground text-sm">↳</span>
-                            <div>
-                              <span className="text-xs font-mono font-medium">
-                                {serieItem.serie?.serie || "—"}
-                              </span>
-                              {serieItem.serie?.mac && (
-                                <span className="text-xs text-muted-foreground ml-2">
-                                  · MAC: {serieItem.serie.mac}
-                                </span>
-                              )}
-                            </div>
-                            <Badge variant="outline" className="text-xs w-fit">
-                              {serieItem.serie?.situacion || "—"}
-                            </Badge>
-                            <span />
-                            <Badge
-                              variant="default"
-                              color={isSerieConfirmada ? "green" : "muted"}
-                              className="text-xs w-fit"
                             >
-                              {isSerieConfirmada ? "Confirmado" : "Pendiente"}
-                            </Badge>
-                            <div className="flex items-center">
-                              {!isSerieConfirmada ? (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="h-7 text-xs gap-1"
-                                  disabled={confirmarSerieMutation.isPending}
-                                  onClick={() => {
-                                    if (!serieItem.serie) return;
-                                    promiseToast(
-                                      confirmarSerieMutation.mutateAsync({
-                                        productoGuiaId: producto.id,
-                                        serieId: serieItem.serie.id,
-                                      }),
-                                      {
-                                        loading: "Confirmando serie...",
-                                        success: "Serie confirmada",
-                                        error: "Error al confirmar la serie",
-                                      }
-                                    );
-                                  }}
-                                >
-                                  <CheckCircle className="size-3" />
-                                  Confirmar
-                                </Button>
-                              ) : (
-                                <CheckCircle2 className="size-4 text-green-500" />
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+                              <CheckCircle className="size-3" />
+                              {hasSeries ? "Confirmar todo" : "Confirmar"}
+                            </Button>
+                          ) : (
+                            <CheckCircle2 className="size-4 text-green-500" />
+                          )}
+                        </TableCell>
+                      </TableRow>
+
+                      {/* Serie sub-rows */}
+                      {hasSeries &&
+                        producto.series.map((serieItem, sIndex) => {
+                          const isSerieConfirmada = serieItem.confirmado === 1;
+                          return (
+                            <TableRow
+                              key={`s-${serieItem.serie?.id ?? sIndex}`}
+                              className="bg-muted/20 hover:bg-muted/30"
+                            >
+                              <TableCell className="text-center text-muted-foreground">↳</TableCell>
+                              <TableCell className="pl-4 border-l-2 border-l-muted-foreground/20">
+                                <span className="text-xs font-mono font-medium">
+                                  {serieItem.serie?.serie || "—"}
+                                </span>
+                                {serieItem.serie?.mac && (
+                                  <span className="text-xs text-muted-foreground ml-2">
+                                    · MAC: {serieItem.serie.mac}
+                                  </span>
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="outline" className="text-xs">
+                                  {serieItem.serie?.situacion || "—"}
+                                </Badge>
+                              </TableCell>
+                              <TableCell />
+                              <TableCell>
+                                <Badge variant="default" color={isSerieConfirmada ? "green" : "muted"} className="text-xs">
+                                  {isSerieConfirmada ? "Confirmado" : "Pendiente"}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                {!isSerieConfirmada ? (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-7 text-xs gap-1"
+                                    disabled={confirmarSerieMutation.isPending}
+                                    onClick={() => {
+                                      if (!serieItem.serie) return;
+                                      promiseToast(
+                                        confirmarSerieMutation.mutateAsync({
+                                          productoGuiaId: producto.id,
+                                          serieId: serieItem.serie.id,
+                                        }),
+                                        {
+                                          loading: "Confirmando serie...",
+                                          success: "Serie confirmada",
+                                          error: "Error al confirmar la serie",
+                                        }
+                                      );
+                                    }}
+                                  >
+                                    <CheckCircle className="size-3" />
+                                    Confirmar
+                                  </Button>
+                                ) : (
+                                  <CheckCircle2 className="size-4 text-green-500" />
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                    </>
+                  );
+                })}
+              </TableBody>
+            </Table>
           </div>
         )}
       </div>

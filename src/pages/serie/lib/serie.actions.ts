@@ -2,6 +2,12 @@ import { api } from "@/lib/config";
 import { SerieComplete } from "./serie.constants";
 import type { SerieResponse, SerieResource, SerieBody } from "./serie.interface";
 
+export interface ExcelResponse {
+  file_name: string;
+  mime_type: string;
+  file_base64: string;
+}
+
 export const getSeries = async (
   params: Record<string, string>
 ): Promise<SerieResponse> => {
@@ -26,5 +32,12 @@ export const deleteSerie = async (id: number) => {
 
 export const confirmarDisponibilidadSerie = async (id: number) => {
   const { data } = await api.post(`${SerieComplete.ENDPOINT}/${id}/confirmar-disponibilidad`);
+  return data;
+};
+
+export const exportSeries = async (formato: "xlsx" | "csv"): Promise<ExcelResponse> => {
+  const { data } = await api.get<ExcelResponse>("/inventarios/series/exportar-excel", {
+    params: { formato },
+  });
   return data;
 };

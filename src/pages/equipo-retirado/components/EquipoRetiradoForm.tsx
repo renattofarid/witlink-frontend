@@ -144,6 +144,18 @@ export default function EquipoRetiradoForm({
   } = useFieldArray({ control: productSubForm.control, name: "series" });
 
   const watchedSeries = productSubForm.watch("series") ?? [];
+  const watchedProductoTipo = productSubForm.watch("tipo");
+
+  useEffect(() => {
+    const validSeries = (watchedSeries ?? []).filter(
+      (s) => s.serie_id !== null && s.serie_id !== "",
+    );
+    const next =
+      watchedProductoTipo === "EQUIPO" ? validSeries.length : 1;
+    productSubForm.setValue("cantidad", next === 0 ? 0 : next, {
+      shouldValidate: false,
+    });
+  }, [watchedSeries, watchedProductoTipo]);
 
   // ── Serie sub-form ─────────────────────────────────────────────────────────
   const serieSubForm = useForm<ErSerieFormValues>({
@@ -179,10 +191,16 @@ export default function EquipoRetiradoForm({
 
   // ── Handlers: producto sub-form (create mode) ──────────────────────────────
   const handleAddOrUpdateProducto = productSubForm.control.handleSubmit((values) => {
+    const cleanValues = {
+      ...values,
+      series: (values.series ?? []).filter(
+        (s) => s.serie_id !== null && s.serie_id !== "",
+      ),
+    };
     if (editingProductoIndex === null) {
-      appendProducto(values);
+      appendProducto(cleanValues);
     } else {
-      updateProductoField(editingProductoIndex, values);
+      updateProductoField(editingProductoIndex, cleanValues);
       setEditingProductoIndex(null);
     }
     productSubForm.reset(EMPTY_PRODUCTO);
@@ -638,15 +656,12 @@ export default function EquipoRetiradoForm({
             open={productoDialogOpen}
             editingIndex={editingProductoIndex}
             productSubForm={productSubForm}
+            serieSubForm={serieSubForm}
             watchedSeries={watchedSeries as ErSerieFormValues[]}
             serieColumns={serieColumns}
             onClose={handleCloseProductoDialog}
             onSubmit={handleAddOrUpdateProducto}
-            onOpenSerieDialog={() => {
-              serieSubForm.reset(EMPTY_SERIE);
-              setEditingSerieIndex(null);
-              setSerieDialogOpen(true);
-            }}
+            onAddSerie={(serie) => appendSerie(serie)}
           />
 
           {watchedProductos.length > 0 && (
@@ -666,7 +681,7 @@ export default function EquipoRetiradoForm({
             )}
         </div>
 
-        {/* Serie dialog (inside product dialog) */}
+        {/* Serie dialog — solo para edición de series existentes */}
         <EquipoRetiradoSerieDialog
           open={serieDialogOpen}
           editingIndex={editingSerieIndex}
@@ -761,17 +776,14 @@ export default function EquipoRetiradoForm({
           open={productoDialogOpen}
           editingIndex={null}
           productSubForm={productSubForm}
+          serieSubForm={serieSubForm}
           watchedSeries={watchedSeries as ErSerieFormValues[]}
           serieColumns={serieColumns}
           onClose={handleCloseProductoDialog}
           onSubmit={productSubForm.control.handleSubmit((v) =>
             addProductoMutation.mutate(v),
           )}
-          onOpenSerieDialog={() => {
-            serieSubForm.reset(EMPTY_SERIE);
-            setEditingSerieIndex(null);
-            setSerieDialogOpen(true);
-          }}
+          onAddSerie={(serie) => appendSerie(serie)}
         />
 
         {/* Products list from API */}

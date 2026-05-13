@@ -65,3 +65,10 @@ export const generarCarga = async (tecnicoId: number): Promise<Blob> => {
   });
   return data;
 };
+
+export const exportarInventarioTecnico = async (tecnicoId: number) => {
+  const { data } = await api.get<{ file_name: string; mime_type: string; file_base64: string }>(
+    `/tecnicos/${tecnicoId}/inventario/exportarExcel`
+  );
+  return data;
+};

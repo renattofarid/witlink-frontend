@@ -20,18 +20,14 @@ export const getTrasladoList = async (
   return data;
 };
 
-export const createTrasladoSerie = async (
-  serieId: number,
-  body: TrasladoSerieCreateBody,
-) => {
-  const { data } = await api.post(`/traslados/series/${serieId}`, body);
+export const createTrasladoSeries = async (body: TrasladoSerieCreateBody) => {
+  const { data } = await api.post("/traslados/series", body);
   return data;
 };
 
-export const createTrasladoMaterial = async (
-  materialId: number,
+export const createTrasladoMateriales = async (
   body: TrasladoMaterialCreateBody,
 ) => {
-  const { data } = await api.post(`/traslados/materiales/${materialId}`, body);
+  const { data } = await api.post("/traslados/materiales", body);
   return data;
 };

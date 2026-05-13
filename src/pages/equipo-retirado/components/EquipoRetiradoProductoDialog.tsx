@@ -1,37 +1,50 @@
+import { useRef } from "react";
 import { useWatch } from "react-hook-form";
 import type { UseFormReturn } from "react-hook-form";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { FormInput } from "@/components/FormInput";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
+import { FormInput } from "@/components/FormInput";
 import { DataTable } from "@/components/DataTable";
 import { X, Check } from "lucide-react";
 import { useProductoQuery } from "@/pages/producto/lib/producto.hook";
+import { useSeriesERQuery } from "../lib/equipo-retirado.hook";
 import type { ProductoResource } from "@/pages/producto/lib/producto.interface";
 import type { ErProductoFormValues, ErSerieFormValues } from "../lib/equipo-retirado.schema";
+
+const EMPTY_SERIE: ErSerieFormValues = {
+  serie_id: null,
+  serie: "",
+  mac: "",
+  observaciones: null,
+};
 
 interface EquipoRetiradoProductoDialogProps {
   open: boolean;
   editingIndex: number | null;
   productSubForm: UseFormReturn<ErProductoFormValues>;
+  serieSubForm: UseFormReturn<ErSerieFormValues>;
   watchedSeries: ErSerieFormValues[];
   serieColumns: ColumnDef<ErSerieFormValues>[];
   onClose: () => void;
   onSubmit: () => void;
-  onOpenSerieDialog: () => void;
+  onAddSerie: (serie: ErSerieFormValues) => void;
 }
 
 export function EquipoRetiradoProductoDialog({
   open,
   editingIndex,
   productSubForm,
+  serieSubForm,
   watchedSeries,
   serieColumns,
   onClose,
   onSubmit,
-  onOpenSerieDialog,
+  onAddSerie,
 }: EquipoRetiradoProductoDialogProps) {
+  const serieSelectRef = useRef<HTMLDivElement>(null);
+
   const watchedTipo = useWatch({
     control: productSubForm.control,
     name: "tipo",
@@ -48,13 +61,7 @@ export function EquipoRetiradoProductoDialog({
             ? `Editando producto #${editingIndex + 1}`
             : "Agregar producto"}
         </p>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="size-7"
-          onClick={onClose}
-        >
+        <Button type="button" variant="ghost" size="icon" className="size-7" onClick={onClose}>
           <X className="size-3" />
         </Button>
       </div>
@@ -74,57 +81,61 @@ export function EquipoRetiradoProductoDialog({
           if (item) {
             productSubForm.setValue("nombre", item.nombre ?? null);
             productSubForm.setValue("sap", item.sap ?? null);
-            productSubForm.setValue(
-              "tipo",
-              (item.tipo as "MATERIAL" | "EQUIPO") ?? null,
-            );
+            productSubForm.setValue("tipo", (item.tipo as "MATERIAL" | "EQUIPO") ?? null);
             productSubForm.setValue("origen", item.origen ?? null);
-            productSubForm.setValue(
-              "necesita_serie",
-              item.necesita_serie ?? null,
-            );
-            productSubForm.setValue(
-              "necesita_mac",
-              item.necesita_mac ?? null,
-            );
-            productSubForm.setValue(
-              "necesita_emta_mac",
-              item.necesita_emta_mac ?? null,
-            );
-            productSubForm.setValue(
-              "necesita_ua",
-              item.necesita_ua ?? null,
-            );
+            productSubForm.setValue("necesita_serie", item.necesita_serie ?? null);
+            productSubForm.setValue("necesita_mac", item.necesita_mac ?? null);
+            productSubForm.setValue("necesita_emta_mac", item.necesita_emta_mac ?? null);
+            productSubForm.setValue("necesita_ua", item.necesita_ua ?? null);
             productSubForm.setValue("series", []);
           }
         }}
       />
 
-      <FormInput
-        name="cantidad"
-        label="Cantidad"
-        control={productSubForm.control}
-        type="number"
-        placeholder="1"
-        required
-      />
-
-      {/* Series — solo visibles si el producto es un equipo */}
+      {/* Series — inline search, solo para EQUIPO */}
       {isEquipo && (
-        <div className="space-y-3">
+        <div className="space-y-2">
           <Separator />
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Series
-            </p>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={onOpenSerieDialog}
-            >
-              + Agregar serie
-            </Button>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+            Series {watchedSeries.length > 0 && `(${watchedSeries.length})`}
+          </p>
+
+          <div className="flex gap-2 items-end">
+            <div className="flex-1" ref={serieSelectRef}>
+              <FormSelectAsync
+                name="serie_id"
+                control={serieSubForm.control}
+                placeholder="Buscar por número de serie o MAC..."
+                useQueryHook={useSeriesERQuery}
+                legacyPagination={false}
+                mapOptionFn={(item) => ({
+                  value: String(item.id),
+                  label: item.serie,
+                  description: item.mac,
+                })}
+                onValueChange={(_, item) => {
+                  if (item) {
+                    onAddSerie({
+                      serie_id: String(item.id),
+                      serie: item.serie,
+                      mac: item.mac ?? null,
+                      observaciones: serieSubForm.getValues("observaciones"),
+                    });
+                    serieSubForm.reset(EMPTY_SERIE);
+                    setTimeout(() => {
+                      serieSelectRef.current?.querySelector("button")?.focus();
+                    }, 50);
+                  }
+                }}
+              />
+            </div>
+            <div className="w-36">
+              <FormInput
+                name="observaciones"
+                control={serieSubForm.control}
+                placeholder="Observaciones"
+              />
+            </div>
           </div>
 
           {watchedSeries.length > 0 && (
@@ -134,12 +145,6 @@ export function EquipoRetiradoProductoDialog({
               variant="outline"
               isVisibleColumnFilter={false}
             />
-          )}
-
-          {productSubForm.formState.errors.series?.message && (
-            <p className="text-sm text-destructive">
-              {productSubForm.formState.errors.series.message}
-            </p>
           )}
         </div>
       )}

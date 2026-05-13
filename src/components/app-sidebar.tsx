@@ -11,10 +11,25 @@ import {
   Building,
   Box,
   Boxes,
-  ClipboardList,
   type LucideIcon,
   Anvil,
   FileDigit,
+  ReceiptText,
+  FileText,
+  Truck,
+  BookMarked,
+  PackageMinus,
+  HardDrive,
+  Barcode,
+  Wrench,
+  ArrowRightLeft,
+  Package,
+  Tags,
+  BriefcaseBusiness,
+  UsersRound,
+  ShieldCheck,
+  BarChart3,
+  Blocks,
 } from "lucide-react";
 import {
   Sidebar,
@@ -32,10 +47,7 @@ import { MenuComplete } from "@/pages/menu/lib/menu.constants";
 
 const iconMap: Record<string, LucideIcon> = {
   Dashboard: LayoutDashboard,
-  dashboard: LayoutDashboard,
-  people: Users,
   List: List,
-  settings: Settings,
   Settings: Settings,
   User: User,
   Users: Users,
@@ -43,9 +55,29 @@ const iconMap: Record<string, LucideIcon> = {
   Building: Building,
   Box: Box,
   Boxes: Boxes,
-  assessment: ClipboardList,
   Anvil: Anvil,
   FileDigit: FileDigit,
+
+  // Nuevos
+  ReceiptText: ReceiptText,
+  FileText: FileText,
+  Truck: Truck,
+  BookMarked: BookMarked,
+  PackageMinus: PackageMinus,
+  HardDrive: HardDrive,
+  Barcode: Barcode,
+  Wrench: Wrench,
+  ArrowRightLeft: ArrowRightLeft,
+
+  // Nuevos módulos
+  Package: Package,
+  Tags: Tags,
+  BriefcaseBusiness: BriefcaseBusiness,
+  UsersRound: UsersRound,
+  ShieldCheck: ShieldCheck,
+
+  BarChart3: BarChart3,
+  Blocks: Blocks,
 };
 
 const getIcon = (name: string): LucideIcon => iconMap[name] ?? LayoutGrid;

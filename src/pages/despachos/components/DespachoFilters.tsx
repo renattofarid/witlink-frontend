@@ -14,7 +14,7 @@ export default function DespachoFilters({
 }: DespachoFiltersProps) {
   return (
     <FilterWrapper>
-      <div className="flex items-center gap-2 min-w-60">
+      <div className="flex items-center gap-2">
         <SearchableSelectAsync
           value={tecnicoId}
           onChange={onTecnicoChange}

@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import PageWrapper from "@/components/PageWrapper";
 import TitleComponent from "@/components/TitleComponent";
 import ActionsWrapper from "@/components/ActionsWrapper";
+import ExportButtons from "@/components/ExportButtons";
 import { DataTable } from "@/components/DataTable";
 import DataTablePagination from "@/components/DataTablePagination";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
@@ -21,9 +23,12 @@ export default function GuiaPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
+  const today = new Date();
   const [params, setParams] = useState<Record<string, string>>({
     page: "1",
     per_page: String(DEFAULT_PER_PAGE),
+    fecha_inicio: format(new Date(today.getFullYear(), 0, 1), "yyyy-MM-dd"),
+    fecha_fin: format(today, "yyyy-MM-dd"),
   });
 
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -86,10 +91,9 @@ export default function GuiaPage() {
       page: "1",
     }));
 
-  const handleSearchChange = (value: string) => {
-    console.log("Search value:", value);
-    setParams((prev) => ({ ...prev, page: "1" }));
-  };
+  const exportParams = Object.fromEntries(
+    Object.entries(params).filter(([k]) => !["page", "per_page"].includes(k))
+  );
 
   const columns = getGuiaColumns({
     onView: handleView,
@@ -106,6 +110,12 @@ export default function GuiaPage() {
         icon="ClipboardList"
       >
         <ActionsWrapper>
+          <ExportButtons
+            excelEndpoint="/guias/exportar-excel"
+            excelFileName="guias.xlsx"
+            excelResponseFormat="base64"
+            params={exportParams}
+          />
           <GuiaButtons />
         </ActionsWrapper>
       </TitleComponent>
@@ -115,10 +125,7 @@ export default function GuiaPage() {
         data={data?.data ?? []}
         isLoading={isLoading}
       >
-        <GuiaFilters
-          search={params.search ?? ""}
-          onSearchChange={handleSearchChange}
-        />
+        <GuiaFilters params={params} setParams={setParams} />
       </DataTable>
 
       <DataTablePagination

@@ -121,7 +121,6 @@ export const productoSchema = z
 export const guiaCreateSchema = z.object({
   numero: z.string().min(1, "Requerido"),
   fecha: z.string().min(1, "Requerido"),
-  // proveedor_id: z.string().min(1, "Requerido"),
   productos: z
     .array(productoSchema)
     .min(1, "Debe agregar al menos un producto"),

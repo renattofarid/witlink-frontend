@@ -33,9 +33,15 @@ export type TrasladoListResponse = PaginationResponse<TrasladoListItem>;
 export interface TrasladoSerieCreateBody {
   destino_almacen_id: number;
   modo_retirados?: boolean;
+  series: number[];
+}
+
+export interface TrasladoMaterialItem {
+  material_id: number;
+  cantidad: number;
 }
 
 export interface TrasladoMaterialCreateBody {
   destino_almacen_id: number;
-  cantidad: number;
+  materiales: TrasladoMaterialItem[];
 }

@@ -1,104 +1,53 @@
 import { useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import FormWrapper from "@/components/FormWrapper";
 import TitleFormComponent from "@/components/TitleFormComponent";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FileText } from "lucide-react";
-import { DataTable } from "@/components/DataTable";
-import type { ColumnDef } from "@tanstack/react-table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { CheckCircle, CheckCircle2, FileText } from "lucide-react";
 import { GuiaComplete } from "../lib/guia.constants";
-import { getGuia } from "../lib/guia.actions";
-import type { GuiaProductoResource } from "../lib/guia.interface";
-import { openPdf } from "../lib/guia.actions";
+import { getGuia, openPdf, confirmarSerie, confirmarProducto } from "../lib/guia.actions";
+import { promiseToast } from "@/lib/core.function";
 import FormSkeleton from "@/components/FormSkeleton";
-
-const productoColumns: ColumnDef<GuiaProductoResource>[] = [
-  {
-    id: "index",
-    header: "#",
-    cell: ({ row }) => (
-      <span className="text-muted-foreground text-xs">{row.index + 1}</span>
-    ),
-  },
-  {
-    id: "nombre",
-    header: "Producto",
-    cell: ({ row }) => (
-      <span className="font-medium">
-        {row.original.producto.nombre || row.original.producto.sap || "—"}
-      </span>
-    ),
-  },
-  {
-    id: "sap",
-    header: "SAP",
-    cell: ({ row }) => (
-      <span className="text-xs text-muted-foreground">
-        {row.original.producto.sap || "—"}
-      </span>
-    ),
-  },
-  {
-    id: "tipo",
-    header: "Tipo",
-    cell: ({ row }) =>
-      row.original.producto.tipo ? (
-        <Badge variant="outline" className="text-xs capitalize">
-          {row.original.producto.tipo}
-        </Badge>
-      ) : (
-        <span className="text-muted-foreground">—</span>
-      ),
-  },
-  {
-    id: "cantidad",
-    header: "Cant.",
-    cell: ({ row }) => row.original.cantidad,
-  },
-  {
-    id: "series",
-    header: "Series",
-    cell: ({ row }) => {
-      const series = row.original.series ?? [];
-      if (!series.length)
-        return <span className="text-muted-foreground text-xs">—</span>;
-      return (
-        <div className="flex flex-wrap gap-1">
-          {series.map((s, i) => (
-            <Badge key={i} variant="default" className="text-xs font-mono">
-              {s.serie?.serie || "—"}
-              {s.serie?.mac ? ` · ${s.serie.mac}` : ""}
-            </Badge>
-          ))}
-        </div>
-      );
-    },
-  },
-  {
-    id: "observaciones",
-    header: "Observaciones",
-    cell: ({ row }) => (
-      <span className="text-xs text-muted-foreground">
-        {row.original.observaciones || "—"}
-      </span>
-    ),
-  },
-];
 
 export default function GuiaViewPage() {
   const { id } = useParams();
+  const queryClient = useQueryClient();
 
   const { data: guia, isLoading } = useQuery({
     queryKey: [GuiaComplete.QUERY_KEY, "detail", id],
     queryFn: () => getGuia(Number(id)),
     enabled: !!id,
+    refetchOnWindowFocus: true,
   });
 
-  if (isLoading) {
-    return <FormSkeleton />;
-  }
+  const confirmarProductoMutation = useMutation({
+    mutationFn: (productoId: number) => confirmarProducto(productoId),
+    onSuccess: () =>
+      queryClient.invalidateQueries({
+        queryKey: [GuiaComplete.QUERY_KEY, "detail", id],
+      }),
+  });
+
+  const confirmarSerieMutation = useMutation({
+    mutationFn: ({ productoGuiaId, serieId }: { productoGuiaId: number; serieId: number }) =>
+      confirmarSerie(productoGuiaId, serieId),
+    onSuccess: () =>
+      queryClient.invalidateQueries({
+        queryKey: [GuiaComplete.QUERY_KEY, "detail", id],
+      }),
+  });
+
+  if (isLoading) return <FormSkeleton />;
 
   if (!guia) {
     return (
@@ -141,30 +90,15 @@ export default function GuiaViewPage() {
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="space-y-1">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">
-              Número
-            </p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">Número</p>
             <p className="font-medium">{guia.numero}</p>
           </div>
           <div className="space-y-1">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">
-              Fecha
-            </p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">Fecha</p>
             <p className="font-medium">{fecha}</p>
           </div>
           <div className="space-y-1">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">
-              Proveedor
-            </p>
-            <p className="font-medium">{guia.proveedor?.razon_social ?? "—"}</p>
-            <p className="text-xs text-muted-foreground">
-              {guia.proveedor?.ruc ?? ""}
-            </p>
-          </div>
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">
-              Registrado por
-            </p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">Registrado por</p>
             <p className="font-medium">{nombreUsuario}</p>
           </div>
         </div>
@@ -193,17 +127,144 @@ export default function GuiaViewPage() {
           <Separator className="mt-2" />
         </div>
 
-        {(guia.productos?.length ?? 0) > 0 ? (
-          <DataTable
-            columns={productoColumns}
-            data={guia.productos ?? []}
-            variant="outline"
-            isVisibleColumnFilter={false}
-          />
+        {(guia.productos?.length ?? 0) === 0 ? (
+          <p className="text-sm text-muted-foreground">Esta guía no tiene productos registrados.</p>
         ) : (
-          <p className="text-sm text-muted-foreground">
-            Esta guía no tiene productos registrados.
-          </p>
+          <div className="border rounded-md overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50 hover:bg-muted/50">
+                  <TableHead className="w-10 text-center">#</TableHead>
+                  <TableHead>Producto / Serie</TableHead>
+                  <TableHead className="w-28">Tipo</TableHead>
+                  <TableHead className="w-16 text-right">Cant.</TableHead>
+                  <TableHead className="w-28">Estado</TableHead>
+                  <TableHead className="w-32">Acción</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {guia.productos!.map((producto, index) => {
+                  const hasSeries = (producto.series?.length ?? 0) > 0;
+                  const isProductConfirmado = producto.confirmado === 1;
+
+                  return (
+                    <>
+                      {/* Product row */}
+                      <TableRow key={`p-${producto.id}`}>
+                        <TableCell className="text-center text-xs text-muted-foreground font-medium">
+                          {index + 1}
+                        </TableCell>
+                        <TableCell>
+                          <p className="text-sm font-medium leading-tight">{producto.producto.nombre}</p>
+                          <p className="text-xs text-muted-foreground font-mono mt-0.5">{producto.producto.sap}</p>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="text-xs">
+                            {producto.producto.tipo}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">{Number(producto.cantidad)}</TableCell>
+                        <TableCell>
+                          <Badge variant="default" color={isProductConfirmado ? "green" : "muted"} className="text-xs">
+                            {isProductConfirmado ? "Confirmado" : "Pendiente"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {!isProductConfirmado ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 text-xs gap-1"
+                              disabled={confirmarProductoMutation.isPending}
+                              onClick={() =>
+                                promiseToast(
+                                  confirmarProductoMutation.mutateAsync(producto.id),
+                                  {
+                                    loading: "Confirmando...",
+                                    success: "Producto confirmado",
+                                    error: "Error al confirmar",
+                                  }
+                                )
+                              }
+                            >
+                              <CheckCircle className="size-3" />
+                              {hasSeries ? "Confirmar todo" : "Confirmar"}
+                            </Button>
+                          ) : (
+                            <CheckCircle2 className="size-4 text-green-500" />
+                          )}
+                        </TableCell>
+                      </TableRow>
+
+                      {/* Serie sub-rows */}
+                      {hasSeries &&
+                        producto.series.map((serieItem, sIndex) => {
+                          const isSerieConfirmada = serieItem.confirmado === 1;
+                          return (
+                            <TableRow
+                              key={`s-${serieItem.serie?.id ?? sIndex}`}
+                              className="bg-muted/20 hover:bg-muted/30"
+                            >
+                              <TableCell className="text-center text-muted-foreground">↳</TableCell>
+                              <TableCell className="pl-4 border-l-2 border-l-muted-foreground/20">
+                                <span className="text-xs font-mono font-medium">
+                                  {serieItem.serie?.serie || "—"}
+                                </span>
+                                {serieItem.serie?.mac && (
+                                  <span className="text-xs text-muted-foreground ml-2">
+                                    · MAC: {serieItem.serie.mac}
+                                  </span>
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="outline" className="text-xs">
+                                  {serieItem.serie?.situacion || "—"}
+                                </Badge>
+                              </TableCell>
+                              <TableCell />
+                              <TableCell>
+                                <Badge variant="default" color={isSerieConfirmada ? "green" : "muted"} className="text-xs">
+                                  {isSerieConfirmada ? "Confirmado" : "Pendiente"}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                {!isSerieConfirmada ? (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-7 text-xs gap-1"
+                                    disabled={confirmarSerieMutation.isPending}
+                                    onClick={() => {
+                                      if (!serieItem.serie) return;
+                                      promiseToast(
+                                        confirmarSerieMutation.mutateAsync({
+                                          productoGuiaId: producto.id,
+                                          serieId: serieItem.serie.id,
+                                        }),
+                                        {
+                                          loading: "Confirmando serie...",
+                                          success: "Serie confirmada",
+                                          error: "Error al confirmar la serie",
+                                        }
+                                      );
+                                    }}
+                                  >
+                                    <CheckCircle className="size-3" />
+                                    Confirmar
+                                  </Button>
+                                ) : (
+                                  <CheckCircle2 className="size-4 text-green-500" />
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                    </>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
         )}
       </div>
     </FormWrapper>

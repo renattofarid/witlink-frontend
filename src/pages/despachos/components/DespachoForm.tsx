@@ -74,10 +74,18 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
 
   // ── Handlers: producto ─────────────────────────────────────────────────────
   const handleAddOrUpdateProducto = productSubForm.control.handleSubmit((values) => {
+    const filteredSeries = (values.series ?? []).filter(
+      (s) => s.serie_id || (s.serie && s.serie.trim() !== ""),
+    );
+    const cleanValues = {
+      ...values,
+      series: filteredSeries,
+      cantidad: filteredSeries.length > 0 ? filteredSeries.length : values.cantidad,
+    };
     if (editingProductoIndex === null) {
-      appendProducto(values);
+      appendProducto(cleanValues);
     } else {
-      updateProductoField(editingProductoIndex, values);
+      updateProductoField(editingProductoIndex, cleanValues);
       setEditingProductoIndex(null);
     }
     productSubForm.reset(EMPTY_PRODUCTO);

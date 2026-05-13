@@ -104,7 +104,6 @@ function buildGuiaEditFormData(body: GuiaEditBody): FormData {
   const formData = new FormData();
   if (body.numero != null) formData.append("numero", body.numero);
   if (body.fecha != null) formData.append("fecha", body.fecha);
-  if (body.proveedor_id != null) formData.append("proveedor_id", String(body.proveedor_id));
   if (body.archivo) formData.append("archivo", body.archivo);
 
   // productos[0][añadir][i][...] → dot-notation: productos.0.añadir.i.* → matches productos.*.añadir.*.*
@@ -144,6 +143,16 @@ function buildGuiaEditFormData(body: GuiaEditBody): FormData {
 
   return formData;
 }
+
+export const confirmarSerie = async (productoGuiaId: number, serieId: number) => {
+  const { data } = await api.patch(`/detalle-series-guia/${productoGuiaId}/${serieId}`);
+  return data;
+};
+
+export const confirmarProducto = async (id: number) => {
+  const { data } = await api.patch(`/productos-guia/${id}/confirmar-disponibilidad`);
+  return data;
+};
 
 export const deleteProductoGuia = async (id: number, forzar?: boolean) => {
   const params = forzar ? { forzar: true } : undefined;

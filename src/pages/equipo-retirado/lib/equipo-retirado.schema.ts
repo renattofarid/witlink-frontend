@@ -29,13 +29,6 @@ export const erProductoSchema = z
         path: ["producto_id"],
       });
     }
-    if (p.tipo === "EQUIPO" && (p.series?.length ?? 0) !== p.cantidad) {
-      ctx.addIssue({
-        code: "custom",
-        message: `Este producto es un equipo y debe tener ${p.cantidad} serie(s) asociada(s).`,
-        path: ["series"],
-      });
-    }
   });
 
 export const equipoRetiradoSchema = z.object({

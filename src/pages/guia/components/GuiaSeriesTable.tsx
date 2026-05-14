@@ -22,6 +22,7 @@ interface GuiaSeriesTableProps {
   disabledMac: boolean;
   disabledEmtaMac: boolean;
   disabledUa: boolean;
+  onAdvance: (rowIndex: number, field: string) => void;
 }
 
 export function GuiaSeriesTable({
@@ -32,12 +33,15 @@ export function GuiaSeriesTable({
   disabledMac,
   disabledEmtaMac,
   disabledUa,
+  onAdvance,
 }: GuiaSeriesTableProps) {
   // Refs para evitar closures stale en useMemo de columnas
   const flagsRef = useRef({ disabledSerie, disabledMac, disabledEmtaMac, disabledUa });
   flagsRef.current = { disabledSerie, disabledMac, disabledEmtaMac, disabledUa };
   const formRef = useRef(productSubForm);
   formRef.current = productSubForm;
+  const onAdvanceRef = useRef(onAdvance);
+  onAdvanceRef.current = onAdvance;
 
   const columns = useMemo((): ColumnDef<SerieFormValues>[] => [
     {
@@ -60,12 +64,14 @@ export function GuiaSeriesTable({
         const index = row.index;
         return (
           <FormInput
+            id={`series-${index}-serie`}
             name={`series.${index}.serie`}
             control={form.control}
             disabled={disabledSerie}
             placeholder="SN123456"
             uppercase
             className={cn("h-7 text-xs", disabledSerie && "opacity-40 cursor-not-allowed")}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onAdvanceRef.current(index, "serie"); } }}
           />
         );
       },
@@ -87,6 +93,7 @@ export function GuiaSeriesTable({
             name={`series.${index}.mac` as any}
             render={({ field, fieldState }) => (
               <FormInput
+                id={`series-${index}-mac`}
                 name={`series.${index}.mac`}
                 value={field.value ?? ""}
                 onChange={(e) => field.onChange(formatMac(e.target.value))}
@@ -96,6 +103,7 @@ export function GuiaSeriesTable({
                 maxLength={17}
                 error={fieldState.error?.message}
                 className={cn("h-7 text-xs font-mono", disabledMac && "opacity-40 cursor-not-allowed")}
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onAdvanceRef.current(index, "mac"); } }}
               />
             )}
           />
@@ -119,6 +127,7 @@ export function GuiaSeriesTable({
             name={`series.${index}.emta_mac` as any}
             render={({ field, fieldState }) => (
               <FormInput
+                id={`series-${index}-emta_mac`}
                 name={`series.${index}.emta_mac`}
                 value={field.value ?? ""}
                 onChange={(e) => field.onChange(formatMac(e.target.value))}
@@ -128,6 +137,7 @@ export function GuiaSeriesTable({
                 maxLength={17}
                 error={fieldState.error?.message}
                 className={cn("h-7 text-xs font-mono", disabledEmtaMac && "opacity-40 cursor-not-allowed")}
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onAdvanceRef.current(index, "emta_mac"); } }}
               />
             )}
           />
@@ -147,6 +157,7 @@ export function GuiaSeriesTable({
         const index = row.index;
         return (
           <FormInput
+            id={`series-${index}-ua`}
             name={`series.${index}.ua`}
             control={form.control}
             disabled={disabledUa}
@@ -154,6 +165,7 @@ export function GuiaSeriesTable({
             maxLength={17}
             uppercase
             className={cn("h-7 text-xs font-mono", disabledUa && "opacity-40 cursor-not-allowed")}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onAdvanceRef.current(index, "ua"); } }}
           />
         );
       },

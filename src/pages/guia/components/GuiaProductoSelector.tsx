@@ -13,11 +13,13 @@ import type { ProductoFormValues } from "../lib/guia.schema";
 interface GuiaProductoSelectorProps {
   tab: "catalogo" | "manual";
   productSubForm: UseFormReturn<ProductoFormValues>;
+  readonlyCantidad?: boolean;
 }
 
 export function GuiaProductoSelector({
   tab,
   productSubForm,
+  readonlyCantidad,
 }: GuiaProductoSelectorProps) {
   return (
     <>
@@ -98,6 +100,9 @@ export function GuiaProductoSelector({
           type="number"
           placeholder="1"
           required
+          readOnly={readonlyCantidad}
+          tabIndex={readonlyCantidad ? -1 : undefined}
+          className={readonlyCantidad ? "bg-muted cursor-not-allowed opacity-70" : undefined}
         />
         <FormInput
           name="observaciones"

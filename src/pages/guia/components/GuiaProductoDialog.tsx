@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { useWatch } from "react-hook-form";
 import type { UseFormReturn } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -41,7 +41,6 @@ export function GuiaProductoDialog({
   onSubmit,
   onTabChange,
   onAppendSerie,
-  onRemoveSerie,
 }: GuiaProductoDialogProps) {
   const watchedTipo = useWatch({
     control: productSubForm.control,
@@ -68,7 +67,6 @@ export function GuiaProductoDialog({
     name: "cantidad",
   });
 
-  console.log("[GuiaProductoDialog] watchedTipo:", watchedTipo, "| isEquipo:", watchedTipo === "EQUIPO");
   const isEquipo = watchedTipo === "EQUIPO";
   const disabledSerie = necesitaSerie !== true;
   const disabledMac = necesitaMac !== true;
@@ -77,17 +75,52 @@ export function GuiaProductoDialog({
   const needsSeries =
     !!necesitaSerie || !!necesitaMac || !!necesitaEmtaMac || !!necesitaUa;
 
+  // Inicializa con 1 fila vacía cuando el producto es equipo con series
   useEffect(() => {
     if (!isEquipo || !needsSeries) return;
-    const target = Number(watchedCantidad) || 0;
-    const current = productSubForm.getValues("series")?.length ?? 0;
-    if (current < target) {
-      for (let i = current; i < target; i++) onAppendSerie({ ...EMPTY_SERIE });
-    } else if (current > target) {
-      for (let i = current - 1; i >= target; i--) onRemoveSerie(i);
+    const series = productSubForm.getValues("series") ?? [];
+    if (series.length === 0) {
+      onAppendSerie({ ...EMPTY_SERIE });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [watchedCantidad, isEquipo, needsSeries]);
+  }, [isEquipo, needsSeries]);
+
+  // Sincroniza cantidad = series.length automáticamente
+  useEffect(() => {
+    if (!isEquipo || !needsSeries) return;
+    productSubForm.setValue("cantidad", watchedSeries.length, { shouldValidate: false });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watchedSeries.length, isEquipo, needsSeries]);
+
+  // Avanza el foco al siguiente campo habilitado; al final de fila crea una nueva
+  const handleAdvance = useCallback(
+    (rowIndex: number, currentField: string) => {
+      const activeFields = [
+        !disabledSerie && "serie",
+        !disabledMac && "mac",
+        !disabledEmtaMac && "emta_mac",
+        !disabledUa && "ua",
+      ].filter(Boolean) as string[];
+
+      const nextField = activeFields[activeFields.indexOf(currentField) + 1];
+
+      if (nextField) {
+        document.getElementById(`series-${rowIndex}-${nextField}`)?.focus();
+      } else {
+        const nextRow = rowIndex + 1;
+        const series = productSubForm.getValues("series") ?? [];
+        if (nextRow < series.length) {
+          document.getElementById(`series-${nextRow}-${activeFields[0]}`)?.focus();
+        } else {
+          onAppendSerie({ ...EMPTY_SERIE });
+          setTimeout(() => {
+            document.getElementById(`series-${nextRow}-${activeFields[0]}`)?.focus();
+          }, 0);
+        }
+      }
+    },
+    [disabledSerie, disabledMac, disabledEmtaMac, disabledUa, productSubForm, onAppendSerie],
+  );
 
   if (!open) return null;
 
@@ -101,7 +134,11 @@ export function GuiaProductoDialog({
         onClose={onClose}
       />
 
-      <GuiaProductoSelector tab={tab} productSubForm={productSubForm} />
+      <GuiaProductoSelector
+        tab={tab}
+        productSubForm={productSubForm}
+        readonlyCantidad={isEquipo && needsSeries}
+      />
 
       <GuiaProductoFlags
         necesitaSerie={necesitaSerie}
@@ -119,6 +156,7 @@ export function GuiaProductoDialog({
           disabledMac={disabledMac}
           disabledEmtaMac={disabledEmtaMac}
           disabledUa={disabledUa}
+          onAdvance={handleAdvance}
         />
       )}
 

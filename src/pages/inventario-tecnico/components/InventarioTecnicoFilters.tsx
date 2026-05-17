@@ -3,7 +3,7 @@ import FilterWrapper from "@/components/FilterWrapper";
 import { SearchableSelectAsync } from "@/components/SearchableSelectAsync";
 import DatePicker from "@/components/DatePicker";
 import { useTecnicoInventarioQuery } from "../lib/inventario-tecnico.hook";
-import type { TecnicoResource } from "@/pages/tecnico/lib/tecnico.interface";
+import type { PersonaResource } from "@/pages/persona/lib/persona.interface";
 
 interface InventarioTecnicoFiltersProps {
   tecnicoId: string;
@@ -26,11 +26,9 @@ export default function InventarioTecnicoFilters({
           onChange={onTecnicoChange}
           placeholder="Seleccionar técnico..."
           useQueryHook={useTecnicoInventarioQuery}
-          mapOptionFn={(item: TecnicoResource) => ({
+          mapOptionFn={(item: PersonaResource) => ({
             value: String(item.id),
-            label: item.persona
-              ? `${item.persona.nombre} ${item.persona.apellido_paterno}`
-              : `Técnico #${item.id}`,
+            label: `${item.nombre} ${item.apellido_paterno}`,
           })}
           perPage={20}
         />

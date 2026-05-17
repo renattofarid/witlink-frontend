@@ -20,7 +20,7 @@ import { useTecnicosLiquidacionQuery } from "../lib/liquidaciones.hook";
 import LiquidacionHeaderInfo from "./LiquidacionHeaderInfo";
 import LiquidacionDetailTable from "./LiquidacionDetailTable";
 import AddProductosModal from "./AddProductosModal";
-import type { TecnicoResource } from "@/pages/tecnico/lib/tecnico.interface";
+import type { PersonaResource } from "@/pages/persona/lib/persona.interface";
 import type { LiquidacionCartItem } from "../lib/liquidaciones.interface";
 
 interface LiquidacionFormProps {
@@ -142,10 +142,10 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
           control={form.control}
           placeholder="Seleccionar técnico..."
           useQueryHook={useTecnicosLiquidacionQuery}
-          mapOptionFn={(item: TecnicoResource) => ({
+          mapOptionFn={(item: PersonaResource) => ({
             value: String(item.id),
-            label: `${item.persona.nombre} ${item.persona.apellido_paterno}`,
-            description: `DNI: ${item.persona.dni}`,
+            label: `${item.nombre} ${item.apellido_paterno}`,
+            description: `DNI: ${item.dni}`,
           })}
           perPage={20}
           required
@@ -156,10 +156,10 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
           control={form.control}
           placeholder="Seleccionar técnico (opcional)..."
           useQueryHook={useTecnicosLiquidacionQuery}
-          mapOptionFn={(item: TecnicoResource) => ({
+          mapOptionFn={(item: PersonaResource) => ({
             value: String(item.id),
-            label: `${item.persona.nombre} ${item.persona.apellido_paterno}`,
-            description: `DNI: ${item.persona.dni}`,
+            label: `${item.nombre} ${item.apellido_paterno}`,
+            description: `DNI: ${item.dni}`,
           })}
           perPage={20}
         />

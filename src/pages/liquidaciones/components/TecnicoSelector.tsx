@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 import { useTecnicosLiquidacionQuery } from "../lib/liquidaciones.hook";
-import type { TecnicoResource } from "@/pages/tecnico/lib/tecnico.interface";
+import type { PersonaResource } from "@/pages/persona/lib/persona.interface";
 
 interface TecnicoSelectorProps {
   value: string;
@@ -38,19 +38,20 @@ export default function TecnicoSelector({
     per_page: 20,
   });
 
-  const tecnicos: TecnicoResource[] = data?.data ?? [];
+  const tecnicos: PersonaResource[] = data?.data ?? [];
 
   const selectedTecnico = tecnicos.find((t) => String(t.id) === value);
 
   useEffect(() => {
     if (selectedTecnico) {
-      const nombre = `${selectedTecnico.persona.nombre} ${selectedTecnico.persona.apellido_paterno}`;
+      const nombre = `${selectedTecnico.nombre} ${selectedTecnico.apellido_paterno}`;
       onNameResolved?.(nombre);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTecnico?.id]);
+
   const displayName = selectedTecnico
-    ? `${selectedTecnico.persona.nombre} ${selectedTecnico.persona.apellido_paterno}`
+    ? `${selectedTecnico.nombre} ${selectedTecnico.apellido_paterno}`
     : value
     ? `Técnico #${value}`
     : placeholder;
@@ -87,7 +88,7 @@ export default function TecnicoSelector({
               <CommandEmpty>Sin resultados.</CommandEmpty>
             )}
             {tecnicos.map((t) => {
-              const nombre = `${t.persona.nombre} ${t.persona.apellido_paterno}`;
+              const nombre = `${t.nombre} ${t.apellido_paterno}`;
               return (
                 <CommandItem
                   key={t.id}
@@ -106,7 +107,7 @@ export default function TecnicoSelector({
                   <div className="flex flex-col">
                     <span className="text-sm">{nombre}</span>
                     <span className="text-xs text-muted-foreground">
-                      DNI: {t.persona.dni}
+                      DNI: {t.dni}
                     </span>
                   </div>
                 </CommandItem>

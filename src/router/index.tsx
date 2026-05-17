@@ -30,8 +30,6 @@ import OficinaPage from "../pages/oficina/pages/OficinaPage";
 import { OficinaComplete } from "../pages/oficina/lib/oficina.constants";
 import ProductoPage from "../pages/producto/pages/ProductoPage";
 import { ProductoComplete } from "../pages/producto/lib/producto.constants";
-import TecnicoPage from "../pages/tecnico/pages/TecnicoPage";
-import { TecnicoComplete } from "../pages/tecnico/lib/tecnico.constants";
 import MenuPage from "../pages/menu/pages/MenuPage";
 import { MenuComplete } from "../pages/menu/lib/menu.constants";
 import SeriePage from "../pages/serie/pages/SeriePage";
@@ -244,15 +242,6 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <ProductoPage />
-          </ProtectedRoute>
-        }
-      />
-
-      <Route
-        path={TecnicoComplete.ROUTE}
-        element={
-          <ProtectedRoute>
-            <TecnicoPage />
           </ProtectedRoute>
         }
       />

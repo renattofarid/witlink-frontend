@@ -78,6 +78,7 @@ export function DateRangePickerFilter({
           defaultMonth={dateRange?.from}
           onSelect={handleSelect}
           className="rounded-md border"
+          autoFocus
         />
       </PopoverContent>
     </Popover>

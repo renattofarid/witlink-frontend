@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { format } from "date-fns";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import PageWrapper from "@/components/PageWrapper";
@@ -26,9 +27,14 @@ export default function DespachosPage() {
   const queryClient = useQueryClient();
 
   const [tecnicoId, setTecnicoId] = useState("");
-  const [params, setParams] = useState<Record<string, string>>({
-    page: "1",
-    per_page: String(DEFAULT_PER_PAGE),
+  const [params, setParams] = useState<Record<string, string>>(() => {
+    const today = new Date();
+    return {
+      page: "1",
+      per_page: String(DEFAULT_PER_PAGE),
+      fecha_inicio: format(new Date(today.getFullYear(), 0, 1), "yyyy-MM-dd"),
+      fecha_fin: format(today, "yyyy-MM-dd"),
+    };
   });
 
   const [deleteOpen, setDeleteOpen] = useState(false);

@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { getInventarioTecnico } from "./inventario-tecnico.actions";
 import { InventarioTecnicoComplete } from "./inventario-tecnico.constants";
-import { getTecnicos } from "@/pages/tecnico/lib/tecnico.actions";
+import { getPersonas } from "@/pages/persona/lib/persona.actions";
 
 export const useInventarioTecnicoQuery = (
   tecnicoId: string,
@@ -17,8 +17,12 @@ export const useInventarioTecnicoQuery = (
 export const useTecnicoInventarioQuery = (params: Record<string, any> = {}) => {
   const { enabled = true, ...apiParams } = params;
   return useQuery({
-    queryKey: ["tecnicos-inventario-tecnico", apiParams],
-    queryFn: () => getTecnicos(apiParams as Record<string, string>),
+    queryKey: ["personas-tecnicos-inventario", apiParams],
+    queryFn: () =>
+      getPersonas({
+        tipo_empleado: "Técnico",
+        ...apiParams,
+      } as Record<string, string | undefined>),
     enabled,
     refetchOnWindowFocus: false,
   });

@@ -20,3 +20,25 @@ export const usePersonaQuery = (id: number) => {
     enabled: !!id,
   });
 };
+
+export const usePersonaSelectQuery = (params: Record<string, any> = {}) => {
+  return useQuery({
+    queryKey: ["personas-select", params],
+    queryFn: () => getPersonas(params as Record<string, string | undefined>),
+    refetchOnWindowFocus: false,
+  });
+};
+
+export const usePersonasTecnicosQuery = (params: Record<string, any> = {}) => {
+  const { enabled = true, ...apiParams } = params;
+  return useQuery({
+    queryKey: ["personas-tecnicos", apiParams],
+    queryFn: () =>
+      getPersonas({
+        tipo_empleado: "Técnico",
+        ...apiParams,
+      } as Record<string, string | undefined>),
+    enabled,
+    refetchOnWindowFocus: false,
+  });
+};

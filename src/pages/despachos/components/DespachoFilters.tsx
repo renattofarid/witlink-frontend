@@ -1,10 +1,10 @@
 import { format } from "date-fns";
 import FilterWrapper from "@/components/FilterWrapper";
 import SearchInput from "@/components/SearchInput";
-import DatePicker from "@/components/DatePicker";
+import { DateRangePickerFilter } from "@/components/DateRangePickerFilter";
 import { SearchableSelectAsync } from "@/components/SearchableSelectAsync";
 import { useTecnicoDespachoQuery } from "../lib/despacho.hook";
-import type { TecnicoResource } from "@/pages/tecnico/lib/tecnico.interface";
+import type { PersonaResource } from "@/pages/persona/lib/persona.interface";
 
 interface DespachoFiltersProps {
   params: Record<string, string>;
@@ -19,6 +19,13 @@ export default function DespachoFilters({
   tecnicoId,
   onTecnicoChange,
 }: DespachoFiltersProps) {
+  const dateFrom = params.fecha_inicio
+    ? new Date(params.fecha_inicio + "T00:00:00")
+    : undefined;
+  const dateTo = params.fecha_fin
+    ? new Date(params.fecha_fin + "T00:00:00")
+    : undefined;
+
   return (
     <FilterWrapper>
       <SearchInput
@@ -28,38 +35,27 @@ export default function DespachoFilters({
         }
         placeholder="Buscar por número..."
       />
-      <DatePicker
-        value={params.fecha_inicio ?? ""}
-        onChange={(date) =>
+      <DateRangePickerFilter
+        dateFrom={dateFrom}
+        dateTo={dateTo}
+        onDateChange={(from, to) =>
           setParams((prev) => ({
             ...prev,
-            fecha_inicio: date ? format(date, "yyyy-MM-dd") : "",
+            fecha_inicio: from ? format(from, "yyyy-MM-dd") : "",
+            fecha_fin: to ? format(to, "yyyy-MM-dd") : "",
             page: "1",
           }))
         }
-        placeholder="Desde"
-      />
-      <DatePicker
-        value={params.fecha_fin ?? ""}
-        onChange={(date) =>
-          setParams((prev) => ({
-            ...prev,
-            fecha_fin: date ? format(date, "yyyy-MM-dd") : "",
-            page: "1",
-          }))
-        }
-        placeholder="Hasta"
+        className="w-fit"
       />
       <SearchableSelectAsync
         value={tecnicoId}
         onChange={onTecnicoChange}
         placeholder="Seleccionar técnico..."
         useQueryHook={useTecnicoDespachoQuery}
-        mapOptionFn={(item: TecnicoResource) => ({
+        mapOptionFn={(item: PersonaResource) => ({
           value: String(item.id),
-          label: item.persona
-            ? `${item.persona.nombre} ${item.persona.apellido_paterno}`
-            : `Técnico #${item.id}`,
+          label: `${item.nombre} ${item.apellido_paterno}`,
         })}
         perPage={20}
       />

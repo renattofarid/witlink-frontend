@@ -9,3 +9,13 @@ export const useCuadrillaQuery = (params: Record<string, string>) => {
     refetchOnWindowFocus: true,
   });
 };
+
+export const useCuadrillaSelectQuery = (params: Record<string, any> = {}) => {
+  const { enabled = true, ...apiParams } = params;
+  return useQuery({
+    queryKey: ["cuadrillas-select", apiParams],
+    queryFn: () => getCuadrillas(apiParams as Record<string, string>),
+    enabled,
+    refetchOnWindowFocus: false,
+  });
+};

@@ -94,9 +94,13 @@ export default function PersonaPage() {
     }));
 
   const handleSearchChange = (value: string) => {
-    console.log("Search value:", value);
-    setParams((prev) => ({ ...prev, page: "1" }));
+    setParams((prev) => ({ ...prev, search: value, page: "1" }));
   };
+
+  const handleTipoEmpleadoChange = (value: string) => {
+    setParams((prev) => ({ ...prev, tipo_empleado: value, page: "1" }));
+  };
+
   const columns = getPersonaColumns({
     onEdit: handleEdit,
     onDelete: handleDelete,
@@ -123,6 +127,8 @@ export default function PersonaPage() {
         <PersonaFilters
           search={params.search ?? ""}
           onSearchChange={handleSearchChange}
+          tipoEmpleado={params.tipo_empleado ?? ""}
+          onTipoEmpleadoChange={handleTipoEmpleadoChange}
         />
       </DataTable>
 

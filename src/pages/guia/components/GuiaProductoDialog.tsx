@@ -41,6 +41,7 @@ export function GuiaProductoDialog({
   onSubmit,
   onTabChange,
   onAppendSerie,
+  onRemoveSerie,
 }: GuiaProductoDialogProps) {
   const watchedTipo = useWatch({
     control: productSubForm.control,
@@ -157,6 +158,7 @@ export function GuiaProductoDialog({
           disabledEmtaMac={disabledEmtaMac}
           disabledUa={disabledUa}
           onAdvance={handleAdvance}
+          onRemoveSerie={onRemoveSerie}
         />
       )}
 

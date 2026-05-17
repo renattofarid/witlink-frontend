@@ -5,6 +5,8 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/DataTable";
 import { FormInput } from "@/components/FormInput";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ProductoFormValues, SerieFormValues } from "../lib/guia.schema";
 
@@ -23,6 +25,7 @@ interface GuiaSeriesTableProps {
   disabledEmtaMac: boolean;
   disabledUa: boolean;
   onAdvance: (rowIndex: number, field: string) => void;
+  onRemoveSerie: (index: number) => void;
 }
 
 export function GuiaSeriesTable({
@@ -34,6 +37,7 @@ export function GuiaSeriesTable({
   disabledEmtaMac,
   disabledUa,
   onAdvance,
+  onRemoveSerie,
 }: GuiaSeriesTableProps) {
   // Refs para evitar closures stale en useMemo de columnas
   const flagsRef = useRef({ disabledSerie, disabledMac, disabledEmtaMac, disabledUa });
@@ -42,6 +46,10 @@ export function GuiaSeriesTable({
   formRef.current = productSubForm;
   const onAdvanceRef = useRef(onAdvance);
   onAdvanceRef.current = onAdvance;
+  const onRemoveSerieRef = useRef(onRemoveSerie);
+  onRemoveSerieRef.current = onRemoveSerie;
+  const watchedSeriesRef = useRef(watchedSeries);
+  watchedSeriesRef.current = watchedSeries;
 
   const columns = useMemo((): ColumnDef<SerieFormValues>[] => [
     {
@@ -167,6 +175,26 @@ export function GuiaSeriesTable({
             className={cn("h-7 text-xs font-mono", disabledUa && "opacity-40 cursor-not-allowed")}
             onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onAdvanceRef.current(index, "ua"); } }}
           />
+        );
+      },
+    },
+    {
+      id: "eliminar",
+      header: "",
+      cell: ({ row }) => {
+        const index = row.index;
+        const canDelete = watchedSeriesRef.current.length > 1;
+        return (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 text-destructive hover:text-destructive hover:bg-destructive/10"
+            disabled={!canDelete}
+            onClick={() => onRemoveSerieRef.current(index)}
+          >
+            <Trash2 className="size-3" />
+          </Button>
         );
       },
     },

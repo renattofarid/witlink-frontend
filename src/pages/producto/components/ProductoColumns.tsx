@@ -8,19 +8,11 @@ import { BoolCell } from "./BoolCell";
 interface ColumnActions {
   onEdit: (row: ProductoResource) => void;
   onDelete: (row: ProductoResource) => void;
-  onRestore: (row: ProductoResource) => void;
-  onToggle: (
-    item: ProductoResource,
-    field: "necesita_serie" | "necesita_mac" | "necesita_emta_mac" | "necesita_ua",
-    value: boolean
-  ) => void;
 }
 
 export const getProductoColumns = ({
   onEdit,
   onDelete,
-  // onRestore,
-  onToggle,
 }: ColumnActions): ColumnDef<ProductoResource>[] => [
   {
     accessorKey: "id",
@@ -65,80 +57,31 @@ export const getProductoColumns = ({
   {
     id: "necesita_serie",
     header: "Serie",
-    cell: ({ row }) => {
-      const item = row.original;
-      return (
-        <BoolCell
-          value={item.necesita_serie}
-          onCheckedChange={(v) => onToggle(item, "necesita_serie", v)}
-        />
-      );
-    },
+    cell: ({ row }) => <BoolCell value={row.original.necesita_serie} />,
   },
   {
     id: "necesita_mac",
     header: "MAC",
-    cell: ({ row }) => {
-      const item = row.original;
-      return (
-        <BoolCell
-          value={item.necesita_mac}
-          onCheckedChange={(v) => onToggle(item, "necesita_mac", v)}
-        />
-      );
-    },
+    cell: ({ row }) => <BoolCell value={row.original.necesita_mac} />,
   },
   {
     id: "necesita_emta_mac",
     header: "EMTA MAC",
-    cell: ({ row }) => {
-      const item = row.original;
-      return (
-        <BoolCell
-          value={item.necesita_emta_mac}
-          onCheckedChange={(v) => onToggle(item, "necesita_emta_mac", v)}
-        />
-      );
-    },
+    cell: ({ row }) => <BoolCell value={row.original.necesita_emta_mac} />,
   },
   {
     id: "necesita_ua",
     header: "UA",
-    cell: ({ row }) => {
-      const item = row.original;
-      return (
-        <BoolCell
-          value={item.necesita_ua}
-          onCheckedChange={(v) => onToggle(item, "necesita_ua", v)}
-        />
-      );
-    },
+    cell: ({ row }) => <BoolCell value={row.original.necesita_ua} />,
   },
   {
     id: "acciones",
     header: "Acciones",
-    cell: ({ row }) => {
-      const item = row.original;
-      // const isDeleted = !!item.deleted_at;
-      return (
-        <div className="flex gap-1">
-          <ButtonAction
-            icon={Pencil}
-            // canRender={!isDeleted}
-            onClick={() => onEdit(item)}
-          />
-          <ButtonAction
-            icon={Trash2}
-            // canRender={!isDeleted}
-            onClick={() => onDelete(item)}
-          />
-          {/* <ButtonAction
-            icon={RotateCcw}
-            canRender={isDeleted}
-            onClick={() => onRestore(item)}
-          /> */}
-        </div>
-      );
-    },
+    cell: ({ row }) => (
+      <div className="flex gap-1">
+        <ButtonAction icon={Pencil} onClick={() => onEdit(row.original)} />
+        <ButtonAction icon={Trash2} onClick={() => onDelete(row.original)} />
+      </div>
+    ),
   },
 ];

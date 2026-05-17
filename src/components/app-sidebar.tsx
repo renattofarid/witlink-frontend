@@ -121,7 +121,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   if (!user) return null;
 
   return (
-    <Sidebar collapsible="icon" variant="floating" {...props}>
+    <Sidebar className="border-muted-foreground" collapsible="icon" variant="sidebar" {...props}>
       <SidebarHeader>
         <TeamSwitcher />
       </SidebarHeader>

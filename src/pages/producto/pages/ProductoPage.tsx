@@ -9,7 +9,7 @@ import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
 import { successToast, errorToast, ERROR_MESSAGE } from "@/lib/core.function";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import { useProductoQuery } from "../lib/producto.hook";
-import { deleteProducto, restoreProducto, updateProducto } from "../lib/producto.actions";
+import { deleteProducto } from "../lib/producto.actions";
 import { ProductoComplete } from "../lib/producto.constants";
 import { getProductoColumns } from "../components/ProductoColumns";
 import ProductoFilters from "../components/ProductoFilters";
@@ -38,39 +38,6 @@ export default function ProductoPage() {
 
   const { data, isLoading } = useProductoQuery(params);
 
-  const toggleMutation = useMutation({
-    mutationFn: ({
-      item,
-      field,
-      value,
-    }: {
-      item: ProductoResource;
-      field: "necesita_serie" | "necesita_mac" | "necesita_emta_mac" | "necesita_ua";
-      value: boolean;
-    }) =>
-      updateProducto(item.id, {
-        categoria_id: item.categoria.id,
-        origen: item.origen,
-        sap: item.sap,
-        nombre: item.nombre,
-        tipo: item.tipo,
-        necesita_serie: item.necesita_serie,
-        necesita_mac: item.necesita_mac,
-        necesita_emta_mac: item.necesita_emta_mac,
-        necesita_ua: item.necesita_ua,
-        [field]: value,
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [ProductoComplete.QUERY_KEY] });
-    },
-    onError: (error: any) => {
-      errorToast(
-        error.response.data.message ??
-          ERROR_MESSAGE(ProductoComplete.MODEL, "edit"),
-      );
-    },
-  });
-
   const deleteMutation = useMutation({
     mutationFn: () => deleteProducto(toDelete!.id),
     onSuccess: () => {
@@ -81,20 +48,6 @@ export default function ProductoPage() {
       errorToast(
         error.response.data.message ??
           ERROR_MESSAGE(ProductoComplete.MODEL, "delete"),
-      );
-    },
-  });
-
-  const restoreMutation = useMutation({
-    mutationFn: (id: number) => restoreProducto(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [ProductoComplete.QUERY_KEY] });
-      successToast("Producto restaurado correctamente.");
-    },
-    onError: (error: any) => {
-      errorToast(
-        error.response.data.message ??
-          ERROR_MESSAGE(ProductoComplete.MODEL, "restore"),
       );
     },
   });
@@ -116,19 +69,11 @@ export default function ProductoPage() {
     setDeleteOpen(true);
   };
 
-  const handleRestore = (row: ProductoResource) => {
-    restoreMutation.mutate(row.id);
-  };
-
   const handlePageChange = (page: number) =>
     setParams((prev) => ({ ...prev, page: String(page) }));
 
   const handlePerPageChange = (perPage: number) =>
-    setParams((prev) => ({
-      ...prev,
-      per_page: String(perPage),
-      page: "1",
-    }));
+    setParams((prev) => ({ ...prev, per_page: String(perPage), page: "1" }));
 
   const handleSearchChange = (value: string) =>
     setParams((prev) => ({ ...prev, search: value, page: "1" }));
@@ -136,19 +81,9 @@ export default function ProductoPage() {
   const handleTypeChange = (value: string) =>
     setParams((prev) => ({ ...prev, tipo: value, page: "1" }));
 
-  const handleToggle = (
-    item: ProductoResource,
-    field: "necesita_serie" | "necesita_mac" | "necesita_emta_mac" | "necesita_ua",
-    value: boolean
-  ) => {
-    toggleMutation.mutate({ item, field, value });
-  };
-
   const columns = getProductoColumns({
     onEdit: handleEdit,
     onDelete: handleDelete,
-    onRestore: handleRestore,
-    onToggle: handleToggle,
   });
 
   return (

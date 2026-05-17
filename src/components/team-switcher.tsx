@@ -71,7 +71,7 @@ export function TeamSwitcher() {
                 <span className="truncate font-medium">
                   {activeAlmacen?.nombre ?? "Sin almacén"}
                 </span>
-                <span className="truncate text-xs text-muted-foreground">
+                <span className="truncate text-xs text-muted">
                   Almacén activo
                 </span>
               </div>

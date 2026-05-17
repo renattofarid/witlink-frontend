@@ -35,9 +35,14 @@ export default function DespachosPage() {
   const [toDelete, setToDelete] = useState<DespachoResource | null>(null);
   const [masivoOpen, setMasivoOpen] = useState(false);
 
-  const queryParams = tecnicoId
-    ? { ...params, tecnico_id: tecnicoId }
-    : params;
+  const { fecha_inicio, fecha_fin, ...restParams } = params;
+  const queryParams: Record<string, any> = {
+    ...restParams,
+    ...(tecnicoId ? { tecnico_id: tecnicoId } : {}),
+  };
+  if (fecha_inicio || fecha_fin) {
+    queryParams["fecha[]"] = [fecha_inicio ?? "", fecha_fin ?? ""].filter(Boolean);
+  }
 
   const { data, isLoading } = useDespachoQuery(queryParams);
 
@@ -99,6 +104,8 @@ export default function DespachosPage() {
         isLoading={isLoading}
       >
         <DespachoFilters
+          params={params}
+          setParams={setParams}
           tecnicoId={tecnicoId}
           onTecnicoChange={handleTecnicoChange}
         />

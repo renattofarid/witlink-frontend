@@ -20,9 +20,11 @@ import GuiaPage from "../pages/guia/pages/GuiaPage";
 import GuiaAddPage from "../pages/guia/pages/GuiaAddPage";
 import GuiaEditPage from "../pages/guia/pages/GuiaEditPage";
 import GuiaViewPage from "../pages/guia/pages/GuiaViewPage";
+import GuiaEquipoRetiradoEditPage from "../pages/guia/pages/GuiaEquipoRetiradoEditPage";
 import {
   GuiaComplete,
   GUIA_ROUTE_VIEW,
+  GUIA_EQUIPO_RETIRADO_ROUTE_EDIT,
 } from "../pages/guia/lib/guia.constants";
 import OficinaPage from "../pages/oficina/pages/OficinaPage";
 import { OficinaComplete } from "../pages/oficina/lib/oficina.constants";
@@ -216,6 +218,14 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <GuiaViewPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={`${GUIA_EQUIPO_RETIRADO_ROUTE_EDIT}/:id`}
+        element={
+          <ProtectedRoute>
+            <GuiaEquipoRetiradoEditPage />
           </ProtectedRoute>
         }
       />

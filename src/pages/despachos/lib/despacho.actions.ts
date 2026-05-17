@@ -9,7 +9,7 @@ import type {
 import type { SerieResource } from "@/pages/serie/lib/serie.interface";
 
 export const getDespachos = async (
-  params: Record<string, string>,
+  params: Record<string, any>,
 ): Promise<DespachoResponse> => {
   const { data } = await api.get(DespachoComplete.ENDPOINT, { params });
   return data;

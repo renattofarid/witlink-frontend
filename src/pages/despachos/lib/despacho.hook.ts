@@ -3,7 +3,7 @@ import { getDespachos, getSeriesDisponibles } from "./despacho.actions";
 import { DespachoComplete } from "./despacho.constants";
 import { getTecnicos } from "@/pages/tecnico/lib/tecnico.actions";
 
-export const useDespachoQuery = (params: Record<string, string>) => {
+export const useDespachoQuery = (params: Record<string, any>) => {
   return useQuery({
     queryKey: [DespachoComplete.QUERY_KEY, params],
     queryFn: () => getDespachos(params),

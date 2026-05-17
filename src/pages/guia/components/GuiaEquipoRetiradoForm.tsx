@@ -19,7 +19,6 @@ import { format } from "date-fns";
 import {
   productoSchema,
   type ProductoFormValues,
-  type SerieFormValues,
 } from "../lib/guia.schema";
 import { GuiaProductoDialog } from "./GuiaProductoDialog";
 
@@ -74,15 +73,6 @@ const EMPTY_PRODUCTO: ProductoFormValues = {
   cantidad: 1,
   observaciones: null,
   series: [],
-};
-
-const EMPTY_SERIE: SerieFormValues = {
-  serie_id: null,
-  serie: "",
-  mac: "",
-  emta_mac: "",
-  ua: "",
-  observaciones: null,
 };
 
 // ── Helper: map ProductoFormValues → equipo retirado body ─────────────────────
@@ -772,5 +762,3 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
   );
 }
 
-// Suppress unused import warning
-void EMPTY_SERIE;

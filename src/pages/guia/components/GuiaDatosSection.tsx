@@ -1,7 +1,8 @@
-import type { Control } from "react-hook-form";
+import { Controller, type Control } from "react-hook-form";
 import { Separator } from "@/components/ui/separator";
 import { FormInput } from "@/components/FormInput";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
+import { Input } from "@/components/ui/input";
 import type { GuiaCreateFormValues } from "../lib/guia.schema";
 
 interface GuiaDatosSectionProps {
@@ -34,12 +35,22 @@ export function GuiaDatosSection({ control }: GuiaDatosSectionProps) {
           control={control}
           disabledRange={[{ after: new Date() }]}
         />
-        <FormInput
-          label="Archivo adjunto (opcional)"
-          name="file"
-          type="file"
+        <Controller
+          name="archivo"
           control={control}
-          accept=".pdf,.doc,.docx,.xls,.xlsx,image/*"
+          render={({ field: { onChange, value: _value, ...field } }) => (
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-medium text-muted-foreground">
+                Archivo adjunto (opcional)
+              </label>
+              <Input
+                type="file"
+                accept=".pdf,.doc,.docx,.xls,.xlsx,image/*"
+                onChange={(e) => onChange(e.target.files?.[0] ?? null)}
+                {...field}
+              />
+            </div>
+          )}
         />
       </div>
     </div>

@@ -1,15 +1,15 @@
-import { useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useWatch } from "react-hook-form";
 import type { UseFormReturn } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
 import { FormInput } from "@/components/FormInput";
+import { Separator } from "@/components/ui/separator";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
-import { X, Check, Trash2 } from "lucide-react";
+import { X, Check, Trash2, Loader2, Plus } from "lucide-react";
 import { useProductoQuery } from "@/pages/producto/lib/producto.hook";
 import type { ProductoResource } from "@/pages/producto/lib/producto.interface";
-import type { SerieResource } from "@/pages/serie/lib/serie.interface";
-import { useSeriesDisponiblesDespachoQuery } from "../lib/despacho.hook";
+import { validateSerieDisponible } from "../lib/despacho.actions";
 import type {
   DespachoProductoFormValues,
   DespachoSerieFormValues,
@@ -36,43 +36,78 @@ export function DespachoProductoDialog({
   onAppendSerie,
   onRemoveSerie,
 }: DespachoProductoDialogProps) {
-  const seriesContainerRef = useRef<HTMLDivElement>(null);
-  const shouldFocusLastRef = useRef(false);
-
-  const watchedCantidad = useWatch({
-    control: productSubForm.control,
-    name: "cantidad",
-  });
+  const [serieInput, setSerieInput] = useState("");
+  const [isValidating, setIsValidating] = useState(false);
+  const [inputError, setInputError] = useState("");
+  const [seriesError, setSeriesError] = useState("");
+  const isValidatingRef = useRef(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const watchedProductoId = useWatch({
     control: productSubForm.control,
     name: "producto_id",
   });
 
-  // Auto-sincronizar filas de series con la cantidad ingresada
+  // Auto-sync cantidad with confirmed series count
   useEffect(() => {
-    if (!open) return;
-    const target = Number(watchedCantidad) || 0;
-    const current = productSubForm.getValues("series")?.length ?? 0;
-    if (current < target) {
-      for (let i = current; i < target; i++) {
-        onAppendSerie({ serie: "" });
-      }
-    } else if (current > target) {
-      for (let i = current - 1; i >= target; i--) {
-        onRemoveSerie(i);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [watchedCantidad, open]);
+    productSubForm.setValue("cantidad", watchedSeries.length || 0);
+    if (watchedSeries.length > 0) setSeriesError("");
+  }, [watchedSeries.length, productSubForm]);
 
-  // Auto-focus the newly appended series row
+  // Reset input state when dialog closes or opens for a new product
   useEffect(() => {
-    if (!shouldFocusLastRef.current || !seriesContainerRef.current) return;
-    shouldFocusLastRef.current = false;
-    const buttons = seriesContainerRef.current.querySelectorAll<HTMLButtonElement>('[role="combobox"]');
-    buttons[buttons.length - 1]?.click();
-  }, [watchedSeries.length]);
+    if (!open) {
+      setSerieInput("");
+      setInputError("");
+      setSeriesError("");
+    }
+  }, [open]);
+
+  const handleValidateSerie = useCallback(async () => {
+    if (isValidatingRef.current) return;
+    const trimmed = serieInput.trim().toUpperCase();
+    if (!trimmed) return;
+
+    if (watchedSeries.some((s) => s.serie?.toUpperCase() === trimmed)) {
+      setInputError("Esta serie ya fue agregada");
+      return;
+    }
+
+    isValidatingRef.current = true;
+    setIsValidating(true);
+    setInputError("");
+    try {
+      const result = await validateSerieDisponible({
+        serie: trimmed,
+        producto_id: watchedProductoId,
+      });
+      onAppendSerie({ serie: result.serie ?? trimmed, serie_id: result.id });
+      setSerieInput("");
+      inputRef.current?.focus();
+    } catch (error: any) {
+      setInputError(
+        error.response?.data?.message ?? error.message ?? "Serie no disponible",
+      );
+    } finally {
+      isValidatingRef.current = false;
+      setIsValidating(false);
+    }
+  }, [serieInput, watchedSeries, watchedProductoId, onAppendSerie]);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleValidateSerie();
+    }
+  };
+
+  const handleDialogSubmit = () => {
+    if (watchedSeries.length === 0) {
+      setSeriesError("Debe agregar al menos una serie");
+      return;
+    }
+    onSubmit();
+  };
 
   if (!open) return null;
 
@@ -96,7 +131,7 @@ export function DespachoProductoDialog({
         </Button>
       </div>
 
-      {/* Campos principales */}
+      {/* Producto + Cantidad (deshabilitada) */}
       <div className="grid gap-3 grid-cols-1 md:grid-cols-2">
         <FormSelectAsync
           name="producto_id"
@@ -123,61 +158,30 @@ export function DespachoProductoDialog({
           label="Cantidad"
           control={productSubForm.control}
           type="number"
-          placeholder="1"
-          required
+          disabled
         />
       </div>
 
       {/* Series */}
       <div className="space-y-2">
         <Separator />
-        <div className="flex items-center justify-between">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-            Series ({watchedSeries.length})
-          </p>
-        </div>
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+          Series ({watchedSeries.length})
+        </p>
 
-        {watchedProductoId && watchedSeries.length > 0 && (
-          <div ref={seriesContainerRef} className="space-y-1.5 max-h-64 overflow-y-auto pr-1">
-            {watchedSeries.map((_, index) => (
-              <div key={index} className="flex items-center gap-2">
+        {/* Lista de series confirmadas */}
+        {watchedSeries.length > 0 && (
+          <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
+            {watchedSeries.map((s, index) => (
+              <div
+                key={index}
+                className="flex items-center gap-2 rounded-md border px-2 py-1.5 bg-background"
+              >
                 <span className="text-xs text-muted-foreground w-5 text-right shrink-0">
                   {index + 1}.
                 </span>
-                <div className="flex-1">
-                  <FormSelectAsync
-                    name={`series.${index}.serie_id` as any}
-                    control={productSubForm.control}
-                    placeholder="Buscar por número de serie..."
-                    useQueryHook={useSeriesDisponiblesDespachoQuery}
-                    legacyPagination={false}
-                    additionalParams={
-                      watchedProductoId
-                        ? { producto_id: Number(watchedProductoId) }
-                        : {}
-                    }
-                    mapOptionFn={(item: SerieResource) => ({
-                      value: String(item.id),
-                      label: item.serie ?? String(item.id),
-                      description: item.mac ?? undefined,
-                    })}
-                    onValueChange={(_: any, item: SerieResource) => {
-                      if (item) {
-                        productSubForm.setValue(
-                          `series.${index}.serie` as any,
-                          item.serie ?? "",
-                        );
-                        if (index === watchedSeries.length - 1) {
-                          shouldFocusLastRef.current = true;
-                          productSubForm.setValue(
-                            "cantidad",
-                            Number(watchedCantidad) + 1,
-                          );
-                        }
-                      }
-                    }}
-                  />
-                </div>
+                <Check className="size-3 text-green-500 shrink-0" />
+                <span className="flex-1 text-sm font-mono">{s.serie}</span>
                 <Button
                   type="button"
                   variant="ghost"
@@ -192,10 +196,46 @@ export function DespachoProductoDialog({
           </div>
         )}
 
-        {productSubForm.formState.errors.series?.message && (
-          <p className="text-xs text-destructive">
-            {productSubForm.formState.errors.series.message}
-          </p>
+        {/* Input para ingresar nueva serie — solo si hay producto seleccionado */}
+        {watchedProductoId && (
+          <div className="space-y-1">
+            <div className="flex gap-2">
+              <Input
+                ref={inputRef}
+                value={serieInput}
+                onChange={(e) => {
+                  setSerieInput(e.target.value.toUpperCase());
+                  if (inputError) setInputError("");
+                }}
+                onKeyDown={handleKeyDown}
+                onBlur={() => handleValidateSerie()}
+                placeholder="Ingresar número de serie y presionar Enter..."
+                className={`font-mono${inputError ? " border-destructive" : ""}`}
+                disabled={isValidating}
+              />
+              <Button
+                type="button"
+                size="icon"
+                variant="outline"
+                className="shrink-0"
+                onClick={handleValidateSerie}
+                disabled={isValidating || !serieInput.trim()}
+              >
+                {isValidating ? (
+                  <Loader2 className="size-3 animate-spin" />
+                ) : (
+                  <Plus className="size-3" />
+                )}
+              </Button>
+            </div>
+            {inputError && (
+              <p className="text-xs text-destructive">{inputError}</p>
+            )}
+          </div>
+        )}
+
+        {seriesError && (
+          <p className="text-xs text-destructive">{seriesError}</p>
         )}
       </div>
 
@@ -205,7 +245,7 @@ export function DespachoProductoDialog({
           <X className="size-3 mr-1" />
           Cancelar
         </Button>
-        <Button type="button" size="sm" onClick={onSubmit}>
+        <Button type="button" size="sm" onClick={handleDialogSubmit}>
           <Check className="size-3 mr-1" />
           {editingIndex !== null ? "Actualizar producto" : "Agregar producto"}
         </Button>

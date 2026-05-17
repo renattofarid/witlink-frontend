@@ -71,17 +71,25 @@ export interface EquipoRetiradoResource {
 export type EquiposRetiradosResponse = PaginationResponse<EquipoRetiradoResource>;
 
 export interface EquipoRetiradoSerieBody {
-  serie_id: number;
-  observaciones: string;
+  serie_id?: number | null;
+  serie?: string | null;
+  mac?: string | null;
+  emta_mac?: string | null;
+  ua?: string | null;
+  observaciones?: string | null;
 }
 
 export interface EquipoRetiradoProductoBody {
-  producto_id: number;
-  origen: string;
-  necesita_serie: boolean;
-  necesita_mac: boolean;
-  necesita_emta_mac: boolean;
-  necesita_ua: boolean;
+  producto_id?: number | null;
+  categoria_id?: number | null;
+  sap?: string | null;
+  nombre?: string | null;
+  tipo?: string | null;
+  origen?: string | null;
+  necesita_serie?: boolean;
+  necesita_mac?: boolean;
+  necesita_emta_mac?: boolean;
+  necesita_ua?: boolean;
   cantidad: number;
   series: EquipoRetiradoSerieBody[];
 }
@@ -101,11 +109,22 @@ export interface EquipoRetiradoEditBody {
 
 export interface AddProductosEquipoRetiradoBody {
   documento_equipo_retirado_id: number;
-  productos: Array<{
-    producto_id: number;
-    cantidad: number;
-    series: EquipoRetiradoSerieBody[];
-  }>;
+  productos: AddProductosEquipoRetiradoBodyItem[];
+}
+
+export interface AddProductosEquipoRetiradoBodyItem {
+  producto_id?: number | null;
+  categoria_id?: number | null;
+  sap?: string | null;
+  nombre?: string | null;
+  tipo?: string | null;
+  origen?: string | null;
+  necesita_serie?: boolean;
+  necesita_mac?: boolean;
+  necesita_emta_mac?: boolean;
+  necesita_ua?: boolean;
+  cantidad: number;
+  series: EquipoRetiradoSerieBody[];
 }
 
 export interface AddSeriesEquipoRetiradoBody {

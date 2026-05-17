@@ -1,5 +1,12 @@
 import { ButtonAction } from "@/components/ButtonAction";
-import { Pencil, Trash2, RotateCcw, FileText, Eye, CheckCircle } from "lucide-react";
+import {
+  Pencil,
+  Trash2,
+  RotateCcw,
+  FileText,
+  Eye,
+  CheckCircle,
+} from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import type { GuiaResource } from "../lib/guia.interface";
@@ -72,10 +79,7 @@ export const getGuiaColumns = ({
           <span className="text-muted-foreground text-xs">Sin archivo</span>
         );
       return (
-        <Button
-          onClick={() => openPdf(url)}
-          className="text-primary hover:underline flex items-center gap-1 cursor-pointer"
-        >
+        <Button size="xs" onClick={() => openPdf(url)}>
           <FileText className="size-3.5" />
           <span className="text-xs">Ver</span>
         </Button>

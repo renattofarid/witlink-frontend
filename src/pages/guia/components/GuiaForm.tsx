@@ -66,6 +66,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
     defaultValues: {
       numero: "",
       fecha: format(new Date(), "yyyy-MM-dd"),
+      archivo: null,
       productos: [],
     },
     mode: "onChange",

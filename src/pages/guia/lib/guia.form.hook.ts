@@ -58,6 +58,7 @@ function buildGuiaCreateBody(values: GuiaCreateFormValues): GuiaCreateBody {
   return {
     numero: values.numero,
     fecha: values.fecha,
+    archivo: values.archivo ?? null,
     productos: values.productos.map((p) =>
       buildProductoNuevo(p, p.tipo === "EQUIPO"),
     ),
@@ -104,7 +105,7 @@ function buildGuiaEditBody(values: GuiaCreateFormValues): GuiaEditBody {
   return {
     numero: values.numero,
     fecha: values.fecha,
-    archivo: null,
+    archivo: values.archivo ?? null,
     productos: {
       añadir: añadir.length ? añadir : null,
       actualizar: actualizar.length ? actualizar : null,

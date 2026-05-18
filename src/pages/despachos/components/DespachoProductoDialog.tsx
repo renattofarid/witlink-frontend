@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { FormInput } from "@/components/FormInput";
 import { Separator } from "@/components/ui/separator";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
-import { X, Check, Trash2, Loader2, Plus } from "lucide-react";
+import { X, Check, Trash2, Loader2, Plus, Pencil } from "lucide-react";
 import { useProductoQuery } from "@/pages/producto/lib/producto.hook";
 import type { ProductoResource } from "@/pages/producto/lib/producto.interface";
 import { validateSerieDisponible } from "../lib/despacho.actions";
@@ -24,6 +24,7 @@ interface DespachoProductoDialogProps {
   onSubmit: () => void;
   onAppendSerie: (serie: DespachoSerieFormValues) => void;
   onRemoveSerie: (index: number) => void;
+  onUpdateSerie: (index: number, serie: DespachoSerieFormValues) => void;
 }
 
 export function DespachoProductoDialog({
@@ -35,6 +36,7 @@ export function DespachoProductoDialog({
   onSubmit,
   onAppendSerie,
   onRemoveSerie,
+  onUpdateSerie,
 }: DespachoProductoDialogProps) {
   const [serieInput, setSerieInput] = useState("");
   const [isValidating, setIsValidating] = useState(false);
@@ -43,26 +45,35 @@ export function DespachoProductoDialog({
   const isValidatingRef = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Inline-edit state for confirmed series
+  const [editingSerieIndex, setEditingSerieIndex] = useState<number | null>(null);
+  const [editingSerieValue, setEditingSerieValue] = useState("");
+  const [isEditingValidating, setIsEditingValidating] = useState(false);
+  const [editingError, setEditingError] = useState("");
+  const isEditingValidatingRef = useRef(false);
+
   const watchedProductoId = useWatch({
     control: productSubForm.control,
     name: "producto_id",
   });
 
-  // Auto-sync cantidad with confirmed series count
   useEffect(() => {
     productSubForm.setValue("cantidad", watchedSeries.length || 0);
     if (watchedSeries.length > 0) setSeriesError("");
   }, [watchedSeries.length, productSubForm]);
 
-  // Reset input state when dialog closes or opens for a new product
   useEffect(() => {
     if (!open) {
       setSerieInput("");
       setInputError("");
       setSeriesError("");
+      setEditingSerieIndex(null);
+      setEditingSerieValue("");
+      setEditingError("");
     }
   }, [open]);
 
+  // ── Agregar nueva serie ────────────────────────────────────────────────────
   const handleValidateSerie = useCallback(async () => {
     if (isValidatingRef.current) return;
     const trimmed = serieInput.trim().toUpperCase();
@@ -101,6 +112,65 @@ export function DespachoProductoDialog({
     }
   };
 
+  // ── Edición inline de serie confirmada ────────────────────────────────────
+  const handleStartEditSerie = (index: number) => {
+    setEditingSerieIndex(index);
+    setEditingSerieValue(watchedSeries[index].serie ?? "");
+    setEditingError("");
+  };
+
+  const handleCancelEditSerie = () => {
+    setEditingSerieIndex(null);
+    setEditingSerieValue("");
+    setEditingError("");
+  };
+
+  const handleConfirmEditSerie = useCallback(async (index: number) => {
+    if (isEditingValidatingRef.current) return;
+    const trimmed = editingSerieValue.trim().toUpperCase();
+    if (!trimmed) return;
+
+    const isDuplicate = watchedSeries.some(
+      (s, i) => i !== index && s.serie?.toUpperCase() === trimmed,
+    );
+    if (isDuplicate) {
+      setEditingError("Esta serie ya fue agregada");
+      return;
+    }
+
+    isEditingValidatingRef.current = true;
+    setIsEditingValidating(true);
+    setEditingError("");
+    try {
+      const result = await validateSerieDisponible({
+        serie: trimmed,
+        producto_id: watchedProductoId,
+      });
+      onUpdateSerie(index, { serie: result.serie ?? trimmed, serie_id: result.id });
+      setEditingSerieIndex(null);
+      setEditingSerieValue("");
+    } catch (error: any) {
+      setEditingError(
+        error.response?.data?.message ?? error.message ?? "Serie no disponible",
+      );
+    } finally {
+      isEditingValidatingRef.current = false;
+      setIsEditingValidating(false);
+    }
+  }, [editingSerieValue, watchedSeries, watchedProductoId, onUpdateSerie]);
+
+  const handleEditKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleConfirmEditSerie(index);
+    }
+    if (e.key === "Escape") {
+      e.preventDefault();
+      handleCancelEditSerie();
+    }
+  };
+
+  // ── Submit del producto ────────────────────────────────────────────────────
   const handleDialogSubmit = () => {
     if (watchedSeries.length === 0) {
       setSeriesError("Debe agregar al menos una serie");
@@ -172,31 +242,88 @@ export function DespachoProductoDialog({
         {/* Lista de series confirmadas */}
         {watchedSeries.length > 0 && (
           <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
-            {watchedSeries.map((s, index) => (
-              <div
-                key={index}
-                className="flex items-center gap-2 rounded-md border px-2 py-1.5 bg-background"
-              >
-                <span className="text-xs text-muted-foreground w-5 text-right shrink-0">
-                  {index + 1}.
-                </span>
-                <Check className="size-3 text-green-500 shrink-0" />
-                <span className="flex-1 text-sm font-mono">{s.serie}</span>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="size-6 text-destructive hover:text-destructive shrink-0"
-                  onClick={() => onRemoveSerie(index)}
+            {watchedSeries.map((s, index) =>
+              editingSerieIndex === index ? (
+                <div key={index} className="space-y-1">
+                  <div className="flex items-center gap-2 rounded-md border px-2 py-1.5 bg-background ring-1 ring-ring">
+                    <span className="text-xs text-muted-foreground w-5 text-right shrink-0">
+                      {index + 1}.
+                    </span>
+                    <Input
+                      autoFocus
+                      value={editingSerieValue}
+                      onChange={(e) => {
+                        setEditingSerieValue(e.target.value.toUpperCase());
+                        if (editingError) setEditingError("");
+                      }}
+                      onKeyDown={(e) => handleEditKeyDown(e, index)}
+                      className={`h-6 text-sm font-mono border-0 shadow-none p-0 focus-visible:ring-0 flex-1${editingError ? " text-destructive" : ""}`}
+                      disabled={isEditingValidating}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="size-6 text-green-600 hover:text-green-700 shrink-0"
+                      onClick={() => handleConfirmEditSerie(index)}
+                      disabled={isEditingValidating || !editingSerieValue.trim()}
+                    >
+                      {isEditingValidating ? (
+                        <Loader2 className="size-3 animate-spin" />
+                      ) : (
+                        <Check className="size-3" />
+                      )}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="size-6 shrink-0"
+                      onClick={handleCancelEditSerie}
+                      disabled={isEditingValidating}
+                    >
+                      <X className="size-3" />
+                    </Button>
+                  </div>
+                  {editingError && (
+                    <p className="text-xs text-destructive pl-7">{editingError}</p>
+                  )}
+                </div>
+              ) : (
+                <div
+                  key={index}
+                  className="flex items-center gap-2 rounded-md border px-2 py-1.5 bg-background"
                 >
-                  <Trash2 className="size-3" />
-                </Button>
-              </div>
-            ))}
+                  <span className="text-xs text-muted-foreground w-5 text-right shrink-0">
+                    {index + 1}.
+                  </span>
+                  <Check className="size-3 text-green-500 shrink-0" />
+                  <span className="flex-1 text-sm font-mono">{s.serie}</span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="size-6 shrink-0"
+                    onClick={() => handleStartEditSerie(index)}
+                  >
+                    <Pencil className="size-3" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="size-6 text-destructive hover:text-destructive shrink-0"
+                    onClick={() => onRemoveSerie(index)}
+                  >
+                    <Trash2 className="size-3" />
+                  </Button>
+                </div>
+              ),
+            )}
           </div>
         )}
 
-        {/* Input para ingresar nueva serie — solo si hay producto seleccionado */}
+        {/* Input para ingresar nueva serie */}
         {watchedProductoId && (
           <div className="space-y-1">
             <div className="flex gap-2">

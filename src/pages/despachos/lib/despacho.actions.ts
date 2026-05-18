@@ -39,26 +39,8 @@ export const validateSerieDisponible = async (params: {
   serie: string;
   producto_id: number | string;
 }): Promise<SerieResource> => {
-  const { data } = await api.get("/series", {
-    params: { buscar: params.serie, producto_id: params.producto_id },
-  });
-  const items: SerieResource[] = Array.isArray(data) ? data : (data.data ?? []);
-  const match = items.find(
-    (s) => s.serie?.toUpperCase() === params.serie.toUpperCase(),
-  );
-  if (!match) {
-    const err: any = new Error("Serie no encontrada o no disponible");
-    err.response = { data: { message: "Serie no encontrada o no disponible" } };
-    throw err;
-  }
-  if (match.situacion_label !== "DISPONIBLE") {
-    const err: any = new Error(`Serie ${match.situacion_label}`);
-    err.response = {
-      data: { message: `Serie no disponible (estado: ${match.situacion_label})` },
-    };
-    throw err;
-  }
-  return match;
+  const { data } = await api.get(`/series/${encodeURIComponent(params.serie)}/validar`);
+  return data;
 };
 
 export const createDespachoMasivoSeries = async (

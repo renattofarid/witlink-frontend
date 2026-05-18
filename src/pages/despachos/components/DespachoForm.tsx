@@ -68,6 +68,7 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
   const {
     append: appendSerie,
     remove: removeSerie,
+    update: updateSerie,
   } = useFieldArray({ control: productSubForm.control, name: "series" });
 
   const watchedSeries = productSubForm.watch("series") ?? [];
@@ -283,6 +284,7 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
           onSubmit={handleAddOrUpdateProducto}
           onAppendSerie={appendSerie}
           onRemoveSerie={removeSerie}
+          onUpdateSerie={updateSerie}
         />
 
         {watchedProductos.length > 0 && (

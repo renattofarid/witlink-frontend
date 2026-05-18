@@ -20,16 +20,16 @@ import GuiaPage from "../pages/guia/pages/GuiaPage";
 import GuiaAddPage from "../pages/guia/pages/GuiaAddPage";
 import GuiaEditPage from "../pages/guia/pages/GuiaEditPage";
 import GuiaViewPage from "../pages/guia/pages/GuiaViewPage";
+import GuiaEquipoRetiradoEditPage from "../pages/guia/pages/GuiaEquipoRetiradoEditPage";
 import {
   GuiaComplete,
   GUIA_ROUTE_VIEW,
+  GUIA_EQUIPO_RETIRADO_ROUTE_EDIT,
 } from "../pages/guia/lib/guia.constants";
 import OficinaPage from "../pages/oficina/pages/OficinaPage";
 import { OficinaComplete } from "../pages/oficina/lib/oficina.constants";
 import ProductoPage from "../pages/producto/pages/ProductoPage";
 import { ProductoComplete } from "../pages/producto/lib/producto.constants";
-import TecnicoPage from "../pages/tecnico/pages/TecnicoPage";
-import { TecnicoComplete } from "../pages/tecnico/lib/tecnico.constants";
 import MenuPage from "../pages/menu/pages/MenuPage";
 import { MenuComplete } from "../pages/menu/lib/menu.constants";
 import SeriePage from "../pages/serie/pages/SeriePage";
@@ -219,6 +219,14 @@ export default function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path={`${GUIA_EQUIPO_RETIRADO_ROUTE_EDIT}/:id`}
+        element={
+          <ProtectedRoute>
+            <GuiaEquipoRetiradoEditPage />
+          </ProtectedRoute>
+        }
+      />
 
       <Route
         path={OficinaComplete.ROUTE}
@@ -234,15 +242,6 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <ProductoPage />
-          </ProtectedRoute>
-        }
-      />
-
-      <Route
-        path={TecnicoComplete.ROUTE}
-        element={
-          <ProtectedRoute>
-            <TecnicoPage />
           </ProtectedRoute>
         }
       />

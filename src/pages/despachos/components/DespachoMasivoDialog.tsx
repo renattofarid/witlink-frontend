@@ -16,7 +16,7 @@ import { createDespachoMasivoSeries } from "../lib/despacho.actions";
 import { DespachoComplete } from "../lib/despacho.constants";
 import { useTecnicoDespachoQuery } from "../lib/despacho.hook";
 import { despachoMasivoSchema, type DespachoMasivoFormValues } from "../lib/despacho.schema";
-import type { TecnicoResource } from "@/pages/tecnico/lib/tecnico.interface";
+import type { PersonaResource } from "@/pages/persona/lib/persona.interface";
 
 interface DespachoMasivoDialogProps {
   open: boolean;
@@ -75,11 +75,9 @@ export function DespachoMasivoDialog({
             control={form.control}
             placeholder="Seleccionar técnico..."
             useQueryHook={useTecnicoDespachoQuery}
-            mapOptionFn={(item: TecnicoResource) => ({
+            mapOptionFn={(item: PersonaResource) => ({
               value: String(item.id),
-              label: item.persona
-                ? `${item.persona.nombre} ${item.persona.apellido_paterno}`
-                : `Técnico #${item.id}`,
+              label: `${item.nombre} ${item.apellido_paterno}`,
             })}
             perPage={20}
             required

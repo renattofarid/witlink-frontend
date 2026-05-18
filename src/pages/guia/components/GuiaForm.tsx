@@ -66,6 +66,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
     defaultValues: {
       numero: "",
       fecha: format(new Date(), "yyyy-MM-dd"),
+      archivo: null,
       productos: [],
     },
     mode: "onChange",
@@ -160,6 +161,9 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
   // ── Mutation + delete ──────────────────────────────────────────────────────
   const mutation = useGuiaMutation(mode, guia, onSuccess);
   const {
+    pendingDeleteInfo,
+    setPendingDeleteInfo,
+    handleConfirmDeleteProducto,
     deleteConfirmInfo,
     setDeleteConfirmInfo,
     handleDeleteProducto,
@@ -252,6 +256,18 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
         necesitaMac={seriesDetail?.necesitaMac}
         necesitaEmtaMac={seriesDetail?.necesitaEmtaMac}
         necesitaUa={seriesDetail?.necesitaUa}
+      />
+
+      {/* ── Confirmación eliminar producto ──────────────────────────────────── */}
+      <ConfirmationDialog
+        open={!!pendingDeleteInfo}
+        onOpenChange={(open) => {
+          if (!open) setPendingDeleteInfo(null);
+        }}
+        title="¿Eliminar producto?"
+        description="¿Estás seguro de que deseas eliminar este producto de la guía? Esta acción no se puede deshacer."
+        confirmText="Eliminar"
+        onConfirm={handleConfirmDeleteProducto}
       />
 
       {/* ── Confirmación forzar eliminación de producto ─────────────────────── */}

@@ -16,7 +16,7 @@ import {
 import { createUsuario, updateUsuario } from "../lib/usuarios.actions";
 import { UsuariosComplete } from "../lib/usuarios.constants";
 import type { UsuariosResource } from "../lib/usuarios.interface";
-import { usePersonaSelectQuery } from "@/pages/tecnico/lib/tecnico.hook";
+import { usePersonaSelectQuery } from "@/pages/persona/lib/persona.hook";
 import { useTipoUsuarioSelectQuery } from "@/pages/tipo-usuario/lib/tipo-usuario.hook";
 import { TipoUsuarioComplete } from "@/pages/tipo-usuario/lib/tipo-usuario.constants";
 import { useOficinaSelectQuery } from "@/pages/oficina/lib/oficina.hook";

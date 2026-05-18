@@ -58,8 +58,9 @@ function buildGuiaCreateBody(values: GuiaCreateFormValues): GuiaCreateBody {
   return {
     numero: values.numero,
     fecha: values.fecha,
+    archivo: values.archivo ?? null,
     productos: values.productos.map((p) =>
-      buildProductoNuevo(p, p.tipo === "EQUIPO")
+      buildProductoNuevo(p, p.tipo === "EQUIPO"),
     ),
   };
 }
@@ -104,7 +105,7 @@ function buildGuiaEditBody(values: GuiaCreateFormValues): GuiaEditBody {
   return {
     numero: values.numero,
     fecha: values.fecha,
-    archivo: null,
+    archivo: values.archivo ?? null,
     productos: {
       añadir: añadir.length ? añadir : null,
       actualizar: actualizar.length ? actualizar : null,
@@ -117,7 +118,7 @@ function buildGuiaEditBody(values: GuiaCreateFormValues): GuiaEditBody {
 export function useGuiaMutation(
   mode: "create" | "edit",
   guia: GuiaResource | undefined,
-  onSuccess?: () => void
+  onSuccess?: () => void,
 ) {
   const queryClient = useQueryClient();
 
@@ -133,19 +134,22 @@ export function useGuiaMutation(
       successToast(
         mode === "edit"
           ? "Guía actualizada correctamente."
-          : "Guía creada correctamente."
+          : "Guía creada correctamente.",
       );
       onSuccess?.();
     },
     onError: (error: any) => {
-      errorToast(
-        error.response?.data?.message ?? "Error al guardar la guía."
-      );
+      errorToast(error.response?.data?.message ?? "Error al guardar la guía.");
     },
   });
 }
 
 // ── useGuiaDeleteProducto ──────────────────────────────────────────────────
+
+export interface PendingDeleteInfo {
+  index: number;
+  id: number;
+}
 
 export interface DeleteConfirmInfo {
   index: number;
@@ -153,23 +157,30 @@ export interface DeleteConfirmInfo {
   series: Array<{ serie?: string; mac?: string; ua?: string }>;
 }
 
-export function useGuiaDeleteProducto(
-  removeProducto: (index: number) => void
-) {
+export function useGuiaDeleteProducto(removeProducto: (index: number) => void) {
   const queryClient = useQueryClient();
+  const [pendingDeleteInfo, setPendingDeleteInfo] =
+    useState<PendingDeleteInfo | null>(null);
   const [deleteConfirmInfo, setDeleteConfirmInfo] =
     useState<DeleteConfirmInfo | null>(null);
 
-  const handleDeleteProducto = async (
+  const handleDeleteProducto = (
     index: number,
-    productosGuiaId?: number | null
+    productosGuiaId?: number | null,
   ) => {
     if (!productosGuiaId) {
       removeProducto(index);
       return;
     }
+    setPendingDeleteInfo({ index, id: productosGuiaId });
+  };
+
+  const handleConfirmDeleteProducto = async () => {
+    if (!pendingDeleteInfo) return;
+    const { index, id } = pendingDeleteInfo;
+    setPendingDeleteInfo(null);
     try {
-      await deleteProductoGuia(productosGuiaId);
+      await deleteProductoGuia(id);
       removeProducto(index);
       queryClient.invalidateQueries({ queryKey: [GuiaComplete.QUERY_KEY] });
       successToast("Producto eliminado correctamente.");
@@ -178,7 +189,7 @@ export function useGuiaDeleteProducto(
       const series: Array<{ serie?: string; mac?: string; ua?: string }> =
         responseData?.series ?? responseData?.data?.series ?? [];
       if (series.length > 0) {
-        setDeleteConfirmInfo({ index, id: productosGuiaId, series });
+        setDeleteConfirmInfo({ index, id, series });
       } else {
         errorToast(responseData?.message ?? "Error al eliminar el producto.");
       }
@@ -188,19 +199,22 @@ export function useGuiaDeleteProducto(
   const handleForceDeleteProducto = async () => {
     if (!deleteConfirmInfo) return;
     try {
-      await deleteProductoGuia(deleteConfirmInfo.id, true);
+      await deleteProductoGuia(deleteConfirmInfo.id);
       removeProducto(deleteConfirmInfo.index);
       setDeleteConfirmInfo(null);
       queryClient.invalidateQueries({ queryKey: [GuiaComplete.QUERY_KEY] });
       successToast("Producto eliminado correctamente.");
     } catch (error: any) {
       errorToast(
-        error.response?.data?.message ?? "Error al eliminar el producto."
+        error.response?.data?.message ?? "Error al eliminar el producto.",
       );
     }
   };
 
   return {
+    pendingDeleteInfo,
+    setPendingDeleteInfo,
+    handleConfirmDeleteProducto,
     deleteConfirmInfo,
     setDeleteConfirmInfo,
     handleDeleteProducto,

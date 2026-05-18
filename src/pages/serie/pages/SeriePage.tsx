@@ -88,9 +88,6 @@ export default function SeriePage() {
       page: "1",
     }));
 
-  const handleSearchChange = (value: string) =>
-    setParams((prev) => ({ ...prev, search: value, page: "1" }));
-
   const columns = getSerieColumns({
     onDelete: handleDelete,
     onConfirm: handleConfirm,
@@ -113,10 +110,7 @@ export default function SeriePage() {
         data={data?.data ?? []}
         isLoading={isLoading}
       >
-        <SerieFilters
-          search={params.search ?? ""}
-          onSearchChange={handleSearchChange}
-        />
+        <SerieFilters params={params} setParams={setParams} />
       </DataTable>
 
       <DataTablePagination

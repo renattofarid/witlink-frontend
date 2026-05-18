@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { format } from "date-fns";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import PageWrapper from "@/components/PageWrapper";
@@ -26,18 +27,28 @@ export default function DespachosPage() {
   const queryClient = useQueryClient();
 
   const [tecnicoId, setTecnicoId] = useState("");
-  const [params, setParams] = useState<Record<string, string>>({
-    page: "1",
-    per_page: String(DEFAULT_PER_PAGE),
+  const [params, setParams] = useState<Record<string, string>>(() => {
+    const today = new Date();
+    return {
+      page: "1",
+      per_page: String(DEFAULT_PER_PAGE),
+      fecha_inicio: format(new Date(today.getFullYear(), 0, 1), "yyyy-MM-dd"),
+      fecha_fin: format(today, "yyyy-MM-dd"),
+    };
   });
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [toDelete, setToDelete] = useState<DespachoResource | null>(null);
   const [masivoOpen, setMasivoOpen] = useState(false);
 
-  const queryParams = tecnicoId
-    ? { ...params, tecnico_id: tecnicoId }
-    : params;
+  const { fecha_inicio, fecha_fin, ...restParams } = params;
+  const queryParams: Record<string, any> = {
+    ...restParams,
+    ...(tecnicoId ? { tecnico_id: tecnicoId } : {}),
+  };
+  if (fecha_inicio || fecha_fin) {
+    queryParams["fecha[]"] = [fecha_inicio ?? "", fecha_fin ?? ""].filter(Boolean);
+  }
 
   const { data, isLoading } = useDespachoQuery(queryParams);
 
@@ -99,6 +110,8 @@ export default function DespachosPage() {
         isLoading={isLoading}
       >
         <DespachoFilters
+          params={params}
+          setParams={setParams}
           tecnicoId={tecnicoId}
           onTecnicoChange={handleTecnicoChange}
         />

@@ -6,9 +6,10 @@ import type {
   DespachoCreateBody,
   DespachoMasivoSeriesBody,
 } from "./despacho.interface";
+import type { SerieResource } from "@/pages/serie/lib/serie.interface";
 
 export const getDespachos = async (
-  params: Record<string, string>,
+  params: Record<string, any>,
 ): Promise<DespachoResponse> => {
   const { data } = await api.get(DespachoComplete.ENDPOINT, { params });
   return data;
@@ -31,6 +32,14 @@ export const deleteDespacho = async (id: number) => {
 
 export const getSeriesDisponibles = async (params: Record<string, any>) => {
   const { data } = await api.get("/series", { params });
+  return data;
+};
+
+export const validateSerieDisponible = async (params: {
+  serie: string;
+  producto_id: number | string;
+}): Promise<SerieResource> => {
+  const { data } = await api.get(`/series/${encodeURIComponent(params.serie)}/validar`);
   return data;
 };
 

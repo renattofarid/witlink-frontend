@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { getDespachos, getSeriesDisponibles } from "./despacho.actions";
 import { DespachoComplete } from "./despacho.constants";
-import { getTecnicos } from "@/pages/tecnico/lib/tecnico.actions";
+import { getPersonas } from "@/pages/persona/lib/persona.actions";
 
-export const useDespachoQuery = (params: Record<string, string>) => {
+export const useDespachoQuery = (params: Record<string, any>) => {
   return useQuery({
     queryKey: [DespachoComplete.QUERY_KEY, params],
     queryFn: () => getDespachos(params),
@@ -25,8 +25,12 @@ export const useSeriesDisponiblesDespachoQuery = (params: Record<string, any> = 
 export const useTecnicoDespachoQuery = (params: Record<string, any> = {}) => {
   const { enabled = true, ...apiParams } = params;
   return useQuery({
-    queryKey: ["tecnicos-despacho", apiParams],
-    queryFn: () => getTecnicos(apiParams as Record<string, string>),
+    queryKey: ["personas-tecnicos-despacho", apiParams],
+    queryFn: () =>
+      getPersonas({
+        tipo_empleado: "Técnico",
+        ...apiParams,
+      } as Record<string, string | undefined>),
     enabled,
     refetchOnWindowFocus: false,
   });

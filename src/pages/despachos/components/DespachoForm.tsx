@@ -19,7 +19,7 @@ import {
 import { createDespacho } from "../lib/despacho.actions";
 import { DespachoComplete } from "../lib/despacho.constants";
 import { useTecnicoDespachoQuery } from "../lib/despacho.hook";
-import type { TecnicoResource } from "@/pages/tecnico/lib/tecnico.interface";
+import type { PersonaResource } from "@/pages/persona/lib/persona.interface";
 import { DespachoProductoDialog } from "./DespachoProductoDialog";
 import { despachoProductoSchema } from "../lib/despacho.schema";
 
@@ -68,6 +68,7 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
   const {
     append: appendSerie,
     remove: removeSerie,
+    update: updateSerie,
   } = useFieldArray({ control: productSubForm.control, name: "series" });
 
   const watchedSeries = productSubForm.watch("series") ?? [];
@@ -241,11 +242,9 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
             control={form.control}
             placeholder="Seleccionar técnico..."
             useQueryHook={useTecnicoDespachoQuery}
-            mapOptionFn={(item: TecnicoResource) => ({
+            mapOptionFn={(item: PersonaResource) => ({
               value: String(item.id),
-              label: item.persona
-                ? `${item.persona.nombre} ${item.persona.apellido_paterno}`
-                : `Técnico #${item.id}`,
+              label: `${item.nombre} ${item.apellido_paterno}`,
             })}
             perPage={20}
             required
@@ -285,6 +284,7 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
           onSubmit={handleAddOrUpdateProducto}
           onAppendSerie={appendSerie}
           onRemoveSerie={removeSerie}
+          onUpdateSerie={updateSerie}
         />
 
         {watchedProductos.length > 0 && (

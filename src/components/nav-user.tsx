@@ -40,7 +40,7 @@ export function NavUser({ user }: { user: AuthUsuario }) {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-accent data-[state=open]:text-accent-foreground hover:bg-muted hover:text-inherit rounded-lg w-full md:w-auto"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-accent-foreground hover:bg-sidebar-accent hover:text-inherit rounded-lg w-full md:w-auto"
             >
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarFallback className="rounded-lg bg-primary text-primary-foreground">

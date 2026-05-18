@@ -5,7 +5,7 @@ import {
   getInventarioTecnicoLiquidacion,
 } from "./liquidaciones.actions";
 import { LiquidacionesComplete } from "./liquidaciones.constants";
-import { getTecnicos } from "@/pages/tecnico/lib/tecnico.actions";
+import { getPersonas } from "@/pages/persona/lib/persona.actions";
 
 export const useLiquidacionesQuery = (params: Record<string, string>) => {
   return useQuery({
@@ -30,8 +30,12 @@ export const useTecnicosLiquidacionQuery = (
 ) => {
   const { enabled = true, ...apiParams } = params;
   return useQuery({
-    queryKey: ["tecnicos-liquidacion", apiParams],
-    queryFn: () => getTecnicos(apiParams as Record<string, string>),
+    queryKey: ["personas-tecnicos-liquidacion", apiParams],
+    queryFn: () =>
+      getPersonas({
+        tipo_empleado: "Técnico",
+        ...apiParams,
+      } as Record<string, string | undefined>),
     enabled,
     refetchOnWindowFocus: false,
   });

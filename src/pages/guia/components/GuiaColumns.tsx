@@ -9,18 +9,17 @@ import {
 } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
-import type { GuiaResource } from "../lib/guia.interface";
+import type { GuiaListResource } from "../lib/guia.interface";
 import { openPdf } from "../lib/guia.actions";
-import { GuiaProductosModal } from "./GuiaProductosModal";
 import { Button } from "@/components/ui/button";
 import { parse } from "date-fns";
 
 interface ColumnActions {
-  onView: (row: GuiaResource) => void;
-  onEdit: (row: GuiaResource) => void;
-  onDelete: (row: GuiaResource) => void;
-  onRestore: (row: GuiaResource) => void;
-  onConfirm: (row: GuiaResource) => void;
+  onView: (row: GuiaListResource) => void;
+  onEdit: (row: GuiaListResource) => void;
+  onDelete: (row: GuiaListResource) => void;
+  onRestore: (row: GuiaListResource) => void;
+  onConfirm: (row: GuiaListResource) => void;
 }
 
 export const getGuiaColumns = ({
@@ -29,7 +28,7 @@ export const getGuiaColumns = ({
   onDelete,
   onRestore,
   onConfirm,
-}: ColumnActions): ColumnDef<GuiaResource>[] => [
+}: ColumnActions): ColumnDef<GuiaListResource>[] => [
   {
     accessorKey: "numero",
     header: "Número",
@@ -49,24 +48,22 @@ export const getGuiaColumns = ({
     },
   },
   {
-    id: "usuario",
-    header: "Usuario",
-    cell: ({ row }) => {
-      const { persona, nombre_usuario } = row.original.usuario;
-      if (persona) {
-        return `${persona.nombre} ${persona.apellido_paterno}`;
-      }
-      return nombre_usuario;
-    },
+    accessorKey: "almacen",
+    header: "Almacén",
+    cell: ({ row }) => row.original.almacen ?? "-",
   },
   {
-    id: "productos",
-    header: "Productos",
+    accessorKey: "usuario",
+    header: "Usuario",
+    cell: ({ row }) => row.original.usuario,
+  },
+  {
+    id: "cantidades",
+    header: "Mat. | Series",
     cell: ({ row }) => (
-      <GuiaProductosModal
-        productos={row.original.productos ?? []}
-        guiaNumero={row.original.numero}
-      />
+      <span className="text-xs tabular-nums">
+        {row.original.cantidad_materiales} | {row.original.cantidad_series}
+      </span>
     ),
   },
   {

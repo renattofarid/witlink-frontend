@@ -29,6 +29,7 @@ const EMPTY_PRODUCTO: DespachoProductoFormValues = {
   producto_id: "",
   nombre: null,
   sap: null,
+  tipo: null,
   cantidad: 1,
   series: [],
 };

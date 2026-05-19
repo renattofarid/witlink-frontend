@@ -22,7 +22,7 @@ import { deleteGuia, restoreGuia, confirmarDisponibilidad } from "../lib/guia.ac
 import { GuiaComplete, GUIA_ROUTE_VIEW, GUIA_EQUIPO_RETIRADO_ROUTE_EDIT } from "../lib/guia.constants";
 import { getGuiaColumns } from "../components/GuiaColumns";
 import GuiaFilters from "../components/GuiaFilters";
-import type { GuiaResource } from "../lib/guia.interface";
+import type { GuiaListResource } from "../lib/guia.interface";
 
 import { useEquiposRetiradosQuery } from "@/pages/equipos-retirados/lib/equipos-retirados.hook";
 import {
@@ -50,9 +50,9 @@ export default function GuiaPage() {
     fecha_fin: format(today, "yyyy-MM-dd"),
   });
   const [guiaDeleteOpen, setGuiaDeleteOpen] = useState(false);
-  const [guiaToDelete, setGuiaToDelete] = useState<GuiaResource | null>(null);
+  const [guiaToDelete, setGuiaToDelete] = useState<GuiaListResource | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [toConfirm, setToConfirm] = useState<GuiaResource | null>(null);
+  const [toConfirm, setToConfirm] = useState<GuiaListResource | null>(null);
 
   // ── Equipo Retirado state ──────────────────────────────────────────────────
   const [erParams, setErParams] = useState<Record<string, string>>({

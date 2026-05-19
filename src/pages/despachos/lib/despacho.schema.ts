@@ -9,6 +9,7 @@ export const despachoProductoSchema = z.object({
   producto_id: z.string().min(1, "Seleccione un producto"),
   nombre: z.string().optional().nullable(),
   sap: z.string().optional().nullable(),
+  tipo: z.enum(["MATERIAL", "EQUIPO"]).optional().nullable(),
   cantidad: z.coerce.number().min(1, "Mínimo 1"),
   series: z.array(despachoSerieSchema).optional().nullable(),
 });

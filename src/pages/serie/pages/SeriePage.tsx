@@ -6,14 +6,10 @@ import ActionsWrapper from "@/components/ActionsWrapper";
 import { DataTable } from "@/components/DataTable";
 import DataTablePagination from "@/components/DataTablePagination";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
-import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 import { successToast, errorToast, ERROR_MESSAGE } from "@/lib/core.function";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import { useSerieQuery } from "../lib/serie.hook";
-import {
-  deleteSerie,
-  confirmarDisponibilidadSerie,
-} from "../lib/serie.actions";
+import { deleteSerie } from "../lib/serie.actions";
 import { SerieComplete } from "../lib/serie.constants";
 import { getSerieColumns } from "../components/SerieColumns";
 import SerieFilters from "../components/SerieFilters";
@@ -34,23 +30,7 @@ export default function SeriePage() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [toDelete, setToDelete] = useState<SerieResource | null>(null);
 
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [toConfirm, setToConfirm] = useState<SerieResource | null>(null);
-
   const { data, isLoading } = useSerieQuery(params);
-
-  const confirmMutation = useMutation({
-    mutationFn: () => confirmarDisponibilidadSerie(toConfirm!.id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [SerieComplete.QUERY_KEY] });
-      successToast("Disponibilidad confirmada correctamente.");
-    },
-    onError: (error: any) => {
-      errorToast(
-        error.response?.data?.message ?? "Error al confirmar disponibilidad.",
-      );
-    },
-  });
 
   const deleteMutation = useMutation({
     mutationFn: () => deleteSerie(toDelete!.id),
@@ -73,11 +53,6 @@ export default function SeriePage() {
     setDeleteOpen(true);
   };
 
-  const handleConfirm = (row: SerieResource) => {
-    setToConfirm(row);
-    setConfirmOpen(true);
-  };
-
   const handlePageChange = (page: number) =>
     setParams((prev) => ({ ...prev, page: String(page) }));
 
@@ -90,7 +65,6 @@ export default function SeriePage() {
 
   const columns = getSerieColumns({
     onDelete: handleDelete,
-    onConfirm: handleConfirm,
   });
 
   return (
@@ -123,18 +97,6 @@ export default function SeriePage() {
       />
 
       <SerieModal open={modalOpen} onClose={() => setModalOpen(false)} />
-
-      <ConfirmationDialog
-        open={confirmOpen}
-        onOpenChange={setConfirmOpen}
-        title="Confirmar disponibilidad"
-        description={`¿Confirmas que la serie "${toConfirm?.serie}" está disponible?`}
-        confirmText="Confirmar disponibilidad"
-        isLoading={confirmMutation.isPending}
-        onConfirm={async () => {
-          await confirmMutation.mutateAsync();
-        }}
-      />
 
       <SimpleDeleteDialog
         open={deleteOpen}

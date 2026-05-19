@@ -1,7 +1,7 @@
 import { ButtonAction } from "@/components/ButtonAction";
 import { Badge } from "@/components/ui/badge";
 import type { BadgeColor } from "@/components/ui/badge";
-import { Trash2, CheckCircle } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { SerieResource } from "../lib/serie.interface";
 
@@ -40,12 +40,10 @@ function SituacionBadge({ situacion }: { situacion: string }) {
 
 interface ColumnActions {
   onDelete: (row: SerieResource) => void;
-  onConfirm: (row: SerieResource) => void;
 }
 
 export const getSerieColumns = ({
   onDelete,
-  onConfirm,
 }: ColumnActions): ColumnDef<SerieResource>[] => [
   {
     accessorKey: "id",
@@ -82,12 +80,6 @@ export const getSerieColumns = ({
     header: "Acciones",
     cell: ({ row }) => (
       <div className="flex gap-1">
-        <ButtonAction
-          icon={CheckCircle}
-          color="green"
-          canRender={row.original.situacion_label === SITUACION.PENDIENTE}
-          onClick={() => onConfirm(row.original)}
-        />
         <ButtonAction
           icon={Trash2}
           canRender={true}

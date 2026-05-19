@@ -63,9 +63,14 @@ export default function InventarioTecnicoPage() {
   };
 
   const handleConfirmDevolverMaterial = async (cantidad: number) => {
-    await devolverMaterial(Number(tecnicoId), selected!.id, { cantidad });
-    invalidate();
-    successToast("Material devuelto al almacén correctamente.");
+    try {
+      await devolverMaterial(Number(tecnicoId), selected!.id, { cantidad });
+      invalidate();
+      successToast("Material devuelto al almacén correctamente.");
+    } catch (error: any) {
+      errorToast(error.response?.data?.message ?? "Error al devolver el material.");
+      throw error;
+    }
   };
 
   const materialColumns = getMaterialColumns({ onDevolverMaterial: handleDevolverMaterial });

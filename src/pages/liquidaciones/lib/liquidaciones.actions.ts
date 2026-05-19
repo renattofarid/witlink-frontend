@@ -84,6 +84,6 @@ export const getActaBySot = async (sot: string) => {
 };
 
 export const getActaBlob = async (rutaArchivo: string): Promise<Blob> => {
-  const { data } = await api.post("/archivos", { ruta: rutaArchivo }, { responseType: "blob" });
+  const { data } = await api.post("/archivos", { ruta_pdf: rutaArchivo }, { responseType: "blob" });
   return data;
 };

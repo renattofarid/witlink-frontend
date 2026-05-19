@@ -27,11 +27,11 @@ export const getInventarioTecnico = async (
   const series: InventarioTecnicoResource[] = data.series.map((s) => ({
     id: s.id,
     tipo: "serie",
-    producto: s.serie.producto.nombre,
-    sap: s.serie.producto.sap,
+    producto: s.nombre,
+    sap: s.sap,
     cantidad: null,
-    serie: s.serie.serie,
-    fecha: s.created_at,
+    serie: s.serie,
+    fecha: s.fecha,
   }));
 
   return [...materiales, ...series];
@@ -54,7 +54,7 @@ export const devolverSerie = async (
   inventarioId: number,
 ) => {
   const { data } = await api.post(
-    `/tecnicos/${tecnicoId}/inventario/${inventarioId}/devolerSerie`,
+    `/tecnicos/${tecnicoId}/inventario/${inventarioId}/devolverSerie`,
   );
   return data;
 };

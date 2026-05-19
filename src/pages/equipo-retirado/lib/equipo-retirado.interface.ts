@@ -51,6 +51,16 @@ export type EquipoRetiradoResponse = PaginationResponse<EquipoRetiradoResource>;
 
 // ── Body types ────────────────────────────────────────────────────────────────
 
+/** Usado en el endpoint de creación principal */
+export interface EquipoRetiradoSerieCreateBody {
+  serie?: string | null;
+  mac?: string | null;
+  emta_mac?: string | null;
+  ua?: string | null;
+  observaciones?: string | null;
+}
+
+/** Usado en el endpoint de agregar series en modo edición */
 export interface EquipoRetiradoSerieBody {
   serie_id: number;
   observaciones?: string | null;
@@ -58,13 +68,8 @@ export interface EquipoRetiradoSerieBody {
 
 export interface EquipoRetiradoProductoBody {
   producto_id: number;
-  origen?: string;
-  necesita_serie?: boolean;
-  necesita_mac?: boolean;
-  necesita_emta_mac?: boolean;
-  necesita_ua?: boolean;
   cantidad: number;
-  series: EquipoRetiradoSerieBody[] | null;
+  series: EquipoRetiradoSerieCreateBody[] | null;
 }
 
 export interface EquipoRetiradoCreateBody {

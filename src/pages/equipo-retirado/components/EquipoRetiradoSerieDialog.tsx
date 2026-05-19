@@ -11,6 +11,8 @@ const EMPTY_SERIE: ErSerieFormValues = {
   serie_id: null,
   serie: "",
   mac: "",
+  emta_mac: null,
+  ua: null,
   observaciones: null,
 };
 
@@ -57,6 +59,8 @@ export function EquipoRetiradoSerieDialog({
                 if (item) {
                   serieSubForm.setValue("serie", item.serie);
                   serieSubForm.setValue("mac", item.mac ?? null);
+                  serieSubForm.setValue("emta_mac", item.emta_mac ?? null);
+                  serieSubForm.setValue("ua", item.ua ?? null);
                   if (!isEditing) onSubmit();
                 }
               }}

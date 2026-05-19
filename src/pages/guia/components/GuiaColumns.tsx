@@ -37,7 +37,7 @@ export const getGuiaColumns = ({
     accessorKey: "fecha",
     header: "Fecha",
     cell: ({ row }) => {
-      const fecha = row.original.fecha;
+      const fecha = row.original.fecha.split("T")[0]; // Obtener solo la parte de la fecha
       if (!fecha) return "-";
       const parsedDate = parse(fecha, "yyyy-MM-dd", new Date());
       return parsedDate.toLocaleDateString("es-PE", {

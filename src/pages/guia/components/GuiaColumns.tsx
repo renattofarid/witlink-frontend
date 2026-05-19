@@ -16,6 +16,7 @@ import { parse } from "date-fns";
 
 interface ColumnActions {
   onView: (row: GuiaListResource) => void;
+  onViewRetirado: (row: GuiaListResource) => void;
   onEdit: (row: GuiaListResource) => void;
   onEditRetirado: (row: GuiaListResource) => void;
   onDelete: (row: GuiaListResource) => void;
@@ -25,6 +26,7 @@ interface ColumnActions {
 
 export const getGuiaColumns = ({
   onView,
+  onViewRetirado,
   onEdit,
   onEditRetirado,
   onDelete,
@@ -139,6 +141,11 @@ export const getGuiaColumns = ({
             icon={Eye}
             canRender={!isDeleted && !isRetirado}
             onClick={() => onView(item)}
+          />
+          <ButtonAction
+            icon={Eye}
+            canRender={!isDeleted && isRetirado}
+            onClick={() => onViewRetirado(item)}
           />
           <ButtonAction
             icon={Pencil}

@@ -17,7 +17,7 @@ import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 
 import { useGuiaQuery } from "../lib/guia.hook";
 import { deleteGuia, restoreGuia, confirmarDisponibilidad } from "../lib/guia.actions";
-import { GuiaComplete, GUIA_ROUTE_VIEW, GUIA_EQUIPO_RETIRADO_ROUTE_EDIT } from "../lib/guia.constants";
+import { GuiaComplete, GUIA_ROUTE_VIEW, GUIA_EQUIPO_RETIRADO_ROUTE_EDIT, GUIA_EQUIPO_RETIRADO_ROUTE_VIEW } from "../lib/guia.constants";
 import { getGuiaColumns } from "../components/GuiaColumns";
 import GuiaFilters from "../components/GuiaFilters";
 import type { GuiaListResource } from "../lib/guia.interface";
@@ -89,6 +89,7 @@ export default function GuiaPage() {
 
   const columns = getGuiaColumns({
     onView: (row) => navigate(`${GUIA_ROUTE_VIEW}/${row.id}`),
+    onViewRetirado: (row) => navigate(`${GUIA_EQUIPO_RETIRADO_ROUTE_VIEW}/${row.id}`),
     onEdit: (row) => navigate(`${GuiaComplete.ROUTE_UPDATE}/${row.id}`),
     onEditRetirado: (row) => navigate(`${GUIA_EQUIPO_RETIRADO_ROUTE_EDIT}/${row.id}`),
     onDelete: (row) => { setToDelete(row); setDeleteOpen(true); },

@@ -17,6 +17,7 @@ import { parse } from "date-fns";
 interface ColumnActions {
   onView: (row: GuiaListResource) => void;
   onEdit: (row: GuiaListResource) => void;
+  onEditRetirado: (row: GuiaListResource) => void;
   onDelete: (row: GuiaListResource) => void;
   onRestore: (row: GuiaListResource) => void;
   onConfirm: (row: GuiaListResource) => void;
@@ -25,19 +26,40 @@ interface ColumnActions {
 export const getGuiaColumns = ({
   onView,
   onEdit,
+  onEditRetirado,
   onDelete,
   onRestore,
   onConfirm,
 }: ColumnActions): ColumnDef<GuiaListResource>[] => [
   {
-    accessorKey: "numero",
-    header: "Número",
+    id: "tipo",
+    header: "Tipo",
+    cell: ({ row }) =>
+      row.original.type === "retirado" ? (
+        <Badge variant="ghost" color="amber">
+          Retirado
+        </Badge>
+      ) : (
+        <Badge variant="ghost" color="blue">
+          Guía
+        </Badge>
+      ),
+  },
+  {
+    id: "numero_sot",
+    header: "N° / SOT",
+    cell: ({ row }) => {
+      const { type, numero, sot } = row.original;
+      if (type === "retirado")
+        return <span className="text-xs tabular-nums">{sot ?? "-"}</span>;
+      return <span className="font-medium text-xs">{numero || "-"}</span>;
+    },
   },
   {
     accessorKey: "fecha",
     header: "Fecha",
     cell: ({ row }) => {
-      const fecha = row.original.fecha.split("T")[0]; // Obtener solo la parte de la fecha
+      const fecha = row.original.fecha.split("T")[0];
       if (!fecha) return "-";
       const parsedDate = parse(fecha, "yyyy-MM-dd", new Date());
       return parsedDate.toLocaleDateString("es-PE", {
@@ -51,6 +73,11 @@ export const getGuiaColumns = ({
     accessorKey: "almacen",
     header: "Almacén",
     cell: ({ row }) => row.original.almacen ?? "-",
+  },
+  {
+    accessorKey: "motivo",
+    header: "Motivo",
+    cell: ({ row }) => row.original.motivo ?? "-",
   },
   {
     accessorKey: "usuario",
@@ -71,10 +98,7 @@ export const getGuiaColumns = ({
     header: "PDF",
     cell: ({ row }) => {
       const url = row.original.ruta_pdf_guia;
-      if (!url)
-        return (
-          <span className="text-muted-foreground text-xs">Sin archivo</span>
-        );
+      if (!url) return <span className="text-muted-foreground text-xs">-</span>;
       return (
         <Button size="xs" onClick={() => openPdf(url)}>
           <FileText className="size-3.5" />
@@ -85,17 +109,22 @@ export const getGuiaColumns = ({
   },
   {
     id: "confirmado",
-    header: "Confirmado",
-    cell: ({ row }) =>
-      row.original.confirmado ? (
-        <Badge variant="default" color="green" className="text-xs">
+    header: "Estado",
+    cell: ({ row }) => {
+      if (row.original.type === "retirado") return null;
+      return row.original.confirmado ? (
+        <Badge
+          variant="default"
+          className="text-xs bg-green-600 hover:bg-green-700"
+        >
           Confirmado
         </Badge>
       ) : (
-        <Badge color="gray" className="text-xs">
+        <Badge variant="outline" className="text-xs">
           Pendiente
         </Badge>
-      ),
+      );
+    },
   },
   {
     id: "acciones",
@@ -103,21 +132,27 @@ export const getGuiaColumns = ({
     cell: ({ row }) => {
       const item = row.original;
       const isDeleted = !!item.deleted_at;
+      const isRetirado = item.type === "retirado";
       return (
         <div className="flex gap-1">
           <ButtonAction
             icon={Eye}
-            canRender={!isDeleted}
+            canRender={!isDeleted && !isRetirado}
             onClick={() => onView(item)}
           />
           <ButtonAction
             icon={Pencil}
-            canRender={!isDeleted}
+            canRender={!isDeleted && !isRetirado}
             onClick={() => onEdit(item)}
           />
           <ButtonAction
+            icon={Pencil}
+            canRender={!isDeleted && isRetirado}
+            onClick={() => onEditRetirado(item)}
+          />
+          <ButtonAction
             icon={CheckCircle}
-            canRender={!isDeleted && !item.confirmado}
+            canRender={!isDeleted && !isRetirado && !item.confirmado}
             onClick={() => onConfirm(item)}
           />
           <ButtonAction

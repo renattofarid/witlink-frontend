@@ -57,10 +57,19 @@ export function DespachoProductoDialog({
     name: "producto_id",
   });
 
+  const watchedTipo = useWatch({
+    control: productSubForm.control,
+    name: "tipo",
+  });
+
+  const isMaterial = watchedTipo === "MATERIAL";
+
   useEffect(() => {
-    productSubForm.setValue("cantidad", watchedSeries.length || 0);
+    if (!isMaterial) {
+      productSubForm.setValue("cantidad", watchedSeries.length || 0);
+    }
     if (watchedSeries.length > 0) setSeriesError("");
-  }, [watchedSeries.length, productSubForm]);
+  }, [watchedSeries.length, productSubForm, isMaterial]);
 
   useEffect(() => {
     if (!open) {
@@ -172,7 +181,7 @@ export function DespachoProductoDialog({
 
   // ── Submit del producto ────────────────────────────────────────────────────
   const handleDialogSubmit = () => {
-    if (watchedSeries.length === 0) {
+    if (!isMaterial && watchedSeries.length === 0) {
       setSeriesError("Debe agregar al menos una serie");
       return;
     }
@@ -218,6 +227,7 @@ export function DespachoProductoDialog({
             if (item) {
               productSubForm.setValue("nombre", item.nombre ?? null);
               productSubForm.setValue("sap", item.sap ?? null);
+              productSubForm.setValue("tipo", item.tipo ?? null);
             }
           }}
           required
@@ -228,12 +238,12 @@ export function DespachoProductoDialog({
           label="Cantidad"
           control={productSubForm.control}
           type="number"
-          disabled
+          disabled={!isMaterial}
         />
       </div>
 
-      {/* Series */}
-      <div className="space-y-2">
+      {/* Series — solo para EQUIPO */}
+      {!isMaterial && <div className="space-y-2">
         <Separator />
         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
           Series ({watchedSeries.length})
@@ -364,7 +374,7 @@ export function DespachoProductoDialog({
         {seriesError && (
           <p className="text-xs text-destructive">{seriesError}</p>
         )}
-      </div>
+      </div>}
 
       {/* Acciones */}
       <div className="flex justify-end gap-2 pt-1">

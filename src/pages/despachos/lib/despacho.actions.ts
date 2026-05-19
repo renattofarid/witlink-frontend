@@ -39,7 +39,7 @@ export const validateSerieDisponible = async (params: {
   serie: string;
   producto_id: number | string;
 }): Promise<SerieResource> => {
-  const { data } = await api.get(`/series/${encodeURIComponent(params.serie)}/validar`);
+  const { data } = await api.get(`/series/${params.producto_id}/${encodeURIComponent(params.serie)}/validar`);
   return data;
 };
 

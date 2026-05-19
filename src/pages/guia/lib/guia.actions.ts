@@ -12,7 +12,7 @@ import type { AxiosRequestConfig } from "axios";
 
 export async function openPdf(ruta: string) {
   const promise = api
-    .post("/archivos", { ruta }, { responseType: "blob" })
+    .post("/archivos", { ruta_pdf: ruta }, { responseType: "blob" })
     .then((response) => {
       const blob = response.data as Blob;
       const url = window.URL.createObjectURL(blob);

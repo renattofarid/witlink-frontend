@@ -60,12 +60,28 @@ export interface GuiaUsuarioResource {
   persona: GuiaPersonaResource;
 }
 
+export interface GuiaListResource {
+  type: string;
+  id: number;
+  numero: string;
+  fecha: string;
+  almacen: string | null;
+  sot: string | null;
+  motivo: string | null;
+  cantidad_materiales: number;
+  cantidad_series: number;
+  usuario: string;
+  ruta_pdf_guia: string | null;
+  confirmado: number;
+  deleted_at?: string | null;
+}
+
 export interface GuiaResource {
   id: number;
   numero: string;
   fecha: string;
   ruta_pdf_guia: string | null;
-  confirmado: boolean;
+  confirmado: number;
   usuario: GuiaUsuarioResource;
   productos?: GuiaProductoResource[];
   created_at: string;
@@ -73,7 +89,7 @@ export interface GuiaResource {
   deleted_at?: string | null;
 }
 
-export type GuiaResponse = PaginationResponse<GuiaResource>;
+export type GuiaResponse = PaginationResponse<GuiaListResource>;
 
 export interface GuiaSerieBody {
   serie_id?: number | null;

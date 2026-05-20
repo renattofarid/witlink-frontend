@@ -4,6 +4,8 @@ export const erSerieSchema = z.object({
   serie_id: z.union([z.string(), z.number()]).nullable(),
   serie: z.string().optional().nullable(),
   mac: z.string().optional().nullable(),
+  emta_mac: z.string().optional().nullable(),
+  ua: z.string().optional().nullable(),
   observaciones: z.string().optional().nullable(),
 });
 

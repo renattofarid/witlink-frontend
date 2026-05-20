@@ -17,6 +17,8 @@ const EMPTY_SERIE: ErSerieFormValues = {
   serie_id: null,
   serie: "",
   mac: "",
+  emta_mac: null,
+  ua: null,
   observaciones: null,
 };
 
@@ -119,6 +121,8 @@ export function EquipoRetiradoProductoDialog({
                       serie_id: String(item.id),
                       serie: item.serie,
                       mac: item.mac ?? null,
+                      emta_mac: item.emta_mac ?? null,
+                      ua: item.ua ?? null,
                       observaciones: serieSubForm.getValues("observaciones"),
                     });
                     serieSubForm.reset(EMPTY_SERIE);

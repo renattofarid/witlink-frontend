@@ -18,3 +18,4 @@ export const GuiaComplete: ModelComplete = {
 
 export const GUIA_ROUTE_VIEW = "/guias/ver";
 export const GUIA_EQUIPO_RETIRADO_ROUTE_EDIT = "/guias/equipo-retirado/editar";
+export const GUIA_EQUIPO_RETIRADO_ROUTE_VIEW = "/guias/equipo-retirado/ver";

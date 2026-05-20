@@ -41,14 +41,16 @@ import { EquipoRetiradoSerieDialog } from "./EquipoRetiradoSerieDialog";
 
 const TIPO_OPTIONS = [
   { value: "P", label: "Post Venta" },
-  { value: "C", label: "Comercial" },
-  { value: "O", label: "Operaciones" },
+  { value: "C", label: "Cambio" },
+  { value: "O", label: "Otro" },
 ];
 
 const EMPTY_SERIE: ErSerieFormValues = {
   serie_id: null,
   serie: "",
   mac: "",
+  emta_mac: null,
+  ua: null,
   observaciones: null,
 };
 
@@ -242,17 +244,19 @@ export default function EquipoRetiradoForm({
         tipo: values.tipo,
         productos: values.productos.map((p) => ({
           producto_id: Number(p.producto_id),
-          origen: p.origen ?? "",
-          necesita_serie: p.necesita_serie ?? false,
-          necesita_mac: p.necesita_mac ?? false,
-          necesita_emta_mac: p.necesita_emta_mac ?? false,
-          necesita_ua: p.necesita_ua ?? false,
           cantidad: p.cantidad,
           series:
-            p.series?.map((s) => ({
-              serie_id: Number(s.serie_id),
-              observaciones: s.observaciones ?? null,
-            })) ?? [],
+            p.tipo === "EQUIPO"
+              ? (p.series
+                  ?.filter((s) => s.serie_id !== null && s.serie_id !== "")
+                  .map((s) => ({
+                    serie: s.serie ?? null,
+                    mac: s.mac ?? null,
+                    emta_mac: s.emta_mac ?? null,
+                    ua: s.ua ?? null,
+                    observaciones: s.observaciones ?? null,
+                  })) ?? null)
+              : null,
         })),
       }),
     onSuccess: () => {

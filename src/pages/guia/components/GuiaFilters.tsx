@@ -27,7 +27,7 @@ export default function GuiaFilters({ params, setParams }: GuiaFiltersProps) {
         value={params.almacen ?? "todos"}
         onValueChange={(v) =>
           setParams((prev) => {
-            const next = { ...prev, page: "1" };
+            const next: Record<string, string> = { ...prev, page: "1" };
             if (v === "todos") delete next.almacen;
             else next.almacen = v;
             return next;

@@ -1,15 +1,27 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { successToast, errorToast } from "@/lib/core.function";
-import { createGuia, updateGuia, deleteProductoGuia } from "./guia.actions";
+import {
+  createGuia,
+  updateGuia,
+  deleteProductoGuia,
+  getGuia,
+  crearDetalleSerie,
+  eliminarDetalleSerie,
+} from "./guia.actions";
 import { GuiaComplete } from "./guia.constants";
 import type {
   GuiaCreateBody,
   GuiaEditBody,
   GuiaProductoBody,
   GuiaResource,
+  SerieLocal,
 } from "./guia.interface";
-import type { GuiaCreateFormValues } from "./guia.schema";
+import type {
+  GuiaCreateFormValues,
+  ProductoFormValues,
+  QuickAddSerieFormValues,
+} from "./guia.schema";
 
 // ── Body builders ──────────────────────────────────────────────────────────
 
@@ -219,5 +231,319 @@ export function useGuiaDeleteProducto(removeProducto: (index: number) => void) {
     setDeleteConfirmInfo,
     handleDeleteProducto,
     handleForceDeleteProducto,
+  };
+}
+
+// ── useGuiaAddProductoInEdit ───────────────────────────────────────────────
+
+export function useGuiaAddProductoInEdit(guiaId: number | undefined) {
+  const queryClient = useQueryClient();
+  const [isSaving, setIsSaving] = useState(false);
+
+  const addProducto = async (
+    values: ProductoFormValues,
+    currentProductoIds: number[],
+  ): Promise<number | null> => {
+    if (!guiaId) return null;
+    setIsSaving(true);
+    try {
+      const isEquipo = values.tipo === "EQUIPO";
+      await updateGuia(guiaId, {
+        productos: { añadir: [buildProductoNuevo(values, isEquipo)] },
+      });
+
+      const freshGuia = await queryClient.fetchQuery({
+        queryKey: [GuiaComplete.QUERY_KEY, "detail", guiaId],
+        queryFn: () => getGuia(guiaId),
+        staleTime: 0,
+      });
+
+      const newProducto = freshGuia.productos?.find(
+        (p) => !currentProductoIds.includes(p.id),
+      );
+      return newProducto?.id ?? null;
+    } catch (error: any) {
+      errorToast(
+        error.response?.data?.message ?? "Error al guardar el producto.",
+      );
+      return null;
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const updateProducto = async (
+    id: number,
+    values: ProductoFormValues,
+  ): Promise<void> => {
+    if (!guiaId) return;
+    setIsSaving(true);
+    try {
+      await updateGuia(guiaId, {
+        productos: {
+          actualizar: [
+            {
+              id,
+              cantidad: values.cantidad,
+              observaciones: values.observaciones ?? null,
+              series: null,
+            },
+          ],
+        },
+      });
+    } catch (error: any) {
+      errorToast(
+        error.response?.data?.message ?? "Error al actualizar el producto.",
+      );
+      throw error;
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return { addProducto, updateProducto, isSaving };
+}
+
+// ── useSeriesConcurrentes ──────────────────────────────────────────────────
+
+export function useSeriesConcurrentes(guiaId: number | undefined) {
+  const queryClient = useQueryClient();
+  const [seriesLocales, setSeriesLocales] = useState<
+    Record<string, SerieLocal>
+  >({});
+  const [deletingIds, setDeletingIds] = useState<Set<number>>(new Set());
+  const [initialized, setInitialized] = useState(false);
+
+  useEffect(() => {
+    if (!guiaId || initialized) return;
+
+    queryClient
+      .fetchQuery({
+        queryKey: [GuiaComplete.QUERY_KEY, "detail", guiaId],
+        queryFn: () => getGuia(guiaId),
+      })
+      .then((guia) => {
+        const initial: Record<string, SerieLocal> = {};
+        for (const producto of guia.productos ?? []) {
+          for (const entry of producto.series ?? []) {
+            if (!entry.serie) continue;
+            const srv = entry.serie;
+            const id = crypto.randomUUID();
+            initial[id] = {
+              localId: id,
+              productoGuiaId: producto.id,
+              serie: srv.serie ?? "",
+              mac: srv.mac ?? "",
+              emtaMac: srv.emta_mac ?? "",
+              ua: srv.ua ?? "",
+              servidorId: srv.id,
+              status: "confirmed",
+            };
+          }
+        }
+        setSeriesLocales(initial);
+        setInitialized(true);
+      })
+      .catch(() => setInitialized(true));
+  }, [guiaId, initialized, queryClient]);
+
+  const reconcile = (guia: GuiaResource) => {
+    setSeriesLocales((prev) => {
+      const next = { ...prev };
+      const serverIds = new Set<number>();
+
+      for (const producto of guia.productos ?? []) {
+        for (const entry of producto.series ?? []) {
+          if (!entry.serie) continue;
+          const srv = entry.serie;
+          serverIds.add(srv.id);
+
+          const byServerId = Object.keys(next).find(
+            (k) => next[k].servidorId === srv.id,
+          );
+          if (byServerId) {
+            if (next[byServerId].status === "pending") {
+              next[byServerId] = {
+                ...next[byServerId],
+                status: "confirmed",
+                servidorId: srv.id,
+              };
+            }
+            continue;
+          }
+
+          const pendingKey = Object.keys(next).find((k) => {
+            const loc = next[k];
+            return (
+              loc.productoGuiaId === producto.id &&
+              loc.status === "pending" &&
+              (!loc.serie || loc.serie === (srv.serie ?? "")) &&
+              (!loc.mac || loc.mac === (srv.mac ?? ""))
+            );
+          });
+
+          if (pendingKey) {
+            next[pendingKey] = {
+              ...next[pendingKey],
+              status: "confirmed",
+              servidorId: srv.id,
+            };
+          } else {
+            const newId = crypto.randomUUID();
+            next[newId] = {
+              localId: newId,
+              productoGuiaId: producto.id,
+              serie: srv.serie ?? "",
+              mac: srv.mac ?? "",
+              emtaMac: srv.emta_mac ?? "",
+              ua: srv.ua ?? "",
+              servidorId: srv.id,
+              status: "confirmed",
+            };
+          }
+        }
+      }
+
+      // Remove confirmed entries no longer on server
+      for (const key of Object.keys(next)) {
+        const loc = next[key];
+        if (loc.servidorId && !serverIds.has(loc.servidorId)) {
+          delete next[key];
+        }
+      }
+
+      return next;
+    });
+  };
+
+  const refreshFromServer = async (): Promise<void> => {
+    const guia = await queryClient.fetchQuery({
+      queryKey: [GuiaComplete.QUERY_KEY, "detail", guiaId!],
+      queryFn: () => getGuia(guiaId!),
+      staleTime: 0,
+    });
+    reconcile(guia);
+  };
+
+  const agregarSerie = async (
+    productoGuiaId: number,
+    fields: QuickAddSerieFormValues,
+  ): Promise<void> => {
+    const localId = crypto.randomUUID();
+
+    setSeriesLocales((prev) => ({
+      ...prev,
+      [localId]: {
+        localId,
+        productoGuiaId,
+        serie: fields.serie ?? "",
+        mac: fields.mac ?? "",
+        emtaMac: fields.emta_mac ?? "",
+        ua: fields.ua ?? "",
+        status: "pending",
+      },
+    }));
+
+    try {
+      await crearDetalleSerie({
+        producto_guia_id: productoGuiaId,
+        series: [
+          {
+            serie: fields.serie || undefined,
+            mac: fields.mac || undefined,
+            emta_mac: fields.emta_mac || undefined,
+            ua: fields.ua || undefined,
+          },
+        ],
+      });
+      await refreshFromServer();
+    } catch (error: any) {
+      setSeriesLocales((prev) => ({
+        ...prev,
+        [localId]: {
+          ...prev[localId],
+          status: "error",
+          errorMessage:
+            error.response?.data?.message ?? "Error al guardar la serie.",
+        },
+      }));
+    }
+  };
+
+  const eliminarSerie = async (
+    productoGuiaId: number,
+    serieId: number,
+    localId: string,
+  ): Promise<void> => {
+    setDeletingIds((prev) => new Set([...prev, serieId]));
+    try {
+      await eliminarDetalleSerie(productoGuiaId, serieId);
+      setSeriesLocales((prev) => {
+        const next = { ...prev };
+        delete next[localId];
+        return next;
+      });
+      await refreshFromServer();
+    } catch (error: any) {
+      errorToast(
+        error.response?.data?.message ?? "Error al eliminar la serie.",
+      );
+    } finally {
+      setDeletingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(serieId);
+        return next;
+      });
+    }
+  };
+
+  const retryAgregar = async (localId: string): Promise<void> => {
+    const entry = seriesLocales[localId];
+    if (!entry) return;
+
+    setSeriesLocales((prev) => ({
+      ...prev,
+      [localId]: { ...prev[localId], status: "pending", errorMessage: undefined },
+    }));
+
+    try {
+      await crearDetalleSerie({
+        producto_guia_id: entry.productoGuiaId,
+        series: [
+          {
+            serie: entry.serie || undefined,
+            mac: entry.mac || undefined,
+            emta_mac: entry.emtaMac || undefined,
+            ua: entry.ua || undefined,
+          },
+        ],
+      });
+      await refreshFromServer();
+    } catch (error: any) {
+      setSeriesLocales((prev) => ({
+        ...prev,
+        [localId]: {
+          ...prev[localId],
+          status: "error",
+          errorMessage:
+            error.response?.data?.message ?? "Error al guardar la serie.",
+        },
+      }));
+    }
+  };
+
+  const isPendingEliminar = (serieId: number) => deletingIds.has(serieId);
+
+  const addProductoSeries = (_productoGuiaId: number) => {
+    void refreshFromServer();
+  };
+
+  return {
+    seriesLocales,
+    agregarSerie,
+    eliminarSerie,
+    retryAgregar,
+    isPendingEliminar,
+    addProductoSeries,
   };
 }

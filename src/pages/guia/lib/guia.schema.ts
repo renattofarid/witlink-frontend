@@ -133,3 +133,45 @@ export type SerieFormValues = z.infer<typeof serieSchema>;
 export type ProductoFormValues = z.infer<typeof productoSchema>;
 export type GuiaCreateFormValues = z.infer<typeof guiaCreateSchema>;
 export type GuiaEditFormValues = GuiaCreateFormValues;
+
+const macRegexQuick = /^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$/;
+
+export const quickAddSerieSchema = z
+  .object({
+    serie: z.string().optional().nullable(),
+    mac: z.string().optional().nullable(),
+    emta_mac: z.string().optional().nullable(),
+    ua: z.string().optional().nullable(),
+  })
+  .superRefine((data, ctx) => {
+    if (!data.serie && !data.mac && !data.emta_mac && !data.ua) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Ingrese al menos un campo",
+        path: ["serie"],
+      });
+    }
+    if (data.mac && !macRegexQuick.test(data.mac)) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Formato inválido (ej. 00:1A:2B:3C:4D:5E)",
+        path: ["mac"],
+      });
+    }
+    if (data.emta_mac && !macRegexQuick.test(data.emta_mac)) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Formato inválido (ej. 00:1A:2B:3C:4D:5E)",
+        path: ["emta_mac"],
+      });
+    }
+    if (data.ua && data.ua.length !== 17) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Debe tener 17 caracteres",
+        path: ["ua"],
+      });
+    }
+  });
+
+export type QuickAddSerieFormValues = z.infer<typeof quickAddSerieSchema>;

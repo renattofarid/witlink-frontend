@@ -14,12 +14,19 @@ import {
   type ProductoFormValues,
 } from "../lib/guia.schema";
 import type { GuiaResource } from "../lib/guia.interface";
-import { useGuiaMutation, useGuiaDeleteProducto } from "../lib/guia.form.hook";
+import {
+  useGuiaMutation,
+  useGuiaDeleteProducto,
+  useSeriesConcurrentes,
+  useGuiaAddProductoInEdit,
+} from "../lib/guia.form.hook";
 import { getGuiaProductoColumns } from "./GuiaProductoColumns";
 import type { SeriesDetailData } from "./GuiaProductoColumns";
 import { GuiaDatosSection } from "./GuiaDatosSection";
 import { GuiaProductoDialog } from "./GuiaProductoDialog";
 import { GuiaSeriesDetailModal } from "./GuiaSeriesDetailModal";
+import { GuiaProductoRow } from "./GuiaProductoRow";
+import { GuiaQuickAddSeriePanel } from "./GuiaQuickAddSeriePanel";
 import { format } from "date-fns";
 
 // Evitar que TS se queje de imports no usados directamente
@@ -125,17 +132,58 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
 
   const watchedSeries = productSubForm.watch("series") ?? [];
 
+  // ── Concurrent series (edit mode only) ────────────────────────────────────
+  const seriesConcurrentes = useSeriesConcurrentes(
+    mode === "edit" ? guia?.id : undefined,
+  );
+  const { addProducto: addProductoInEdit, updateProducto: updateProductoInEdit, isSaving: isProductoSaving } =
+    useGuiaAddProductoInEdit(mode === "edit" ? guia?.id : undefined);
+
   // ── Handlers: producto dialog ──────────────────────────────────────────────
-  const handleAddOrUpdateProducto = productSubForm.control.handleSubmit((values) => {
-    if (editingProductoIndex === null) {
-      appendProducto(values);
-    } else {
-      updateProductoField(editingProductoIndex, values);
-      setEditingProductoIndex(null);
-    }
-    productSubForm.reset(EMPTY_PRODUCTO);
-    setProductoDialogOpen(false);
-  });
+  const handleAddOrUpdateProducto = productSubForm.control.handleSubmit(
+    async (values) => {
+      if (mode === "edit" && guia) {
+        if (editingProductoIndex === null) {
+          // NEW product in edit mode: save to server immediately
+          const currentIds = form
+            .getValues("productos")
+            .map((p) => p.productos_guia_id)
+            .filter((id): id is number => !!id);
+
+          const newId = await addProductoInEdit(values, currentIds);
+          if (newId === null) return;
+
+          appendProducto({ ...values, productos_guia_id: newId, series: [] });
+          // Trigger series reconciliation for the new product
+          seriesConcurrentes.addProductoSeries(newId);
+        } else {
+          // EDIT existing product: save changes immediately
+          const existingId = form.getValues(
+            `productos.${editingProductoIndex}`,
+          ).productos_guia_id;
+          if (existingId) {
+            try {
+              await updateProductoInEdit(existingId, values);
+            } catch {
+              return;
+            }
+          }
+          updateProductoField(editingProductoIndex, values);
+          setEditingProductoIndex(null);
+        }
+      } else {
+        // CREATE mode: just update local state
+        if (editingProductoIndex === null) {
+          appendProducto(values);
+        } else {
+          updateProductoField(editingProductoIndex, values);
+          setEditingProductoIndex(null);
+        }
+      }
+      productSubForm.reset(EMPTY_PRODUCTO);
+      setProductoDialogOpen(false);
+    },
+  );
 
   const handleOpenProductoDialog = () => {
     productSubForm.reset(EMPTY_PRODUCTO);
@@ -170,7 +218,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
     handleForceDeleteProducto,
   } = useGuiaDeleteProducto(removeProducto);
 
-  // ── Columns ────────────────────────────────────────────────────────────────
+  // ── Columns (create mode) ──────────────────────────────────────────────────
   const watchedProductos = form.watch("productos");
 
   const productoColumns = getGuiaProductoColumns({
@@ -229,13 +277,80 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
           onRemoveSerie={removeSerie}
         />
 
-        {watchedProductos.length > 0 && (
+        {/* ── Product list: create mode uses DataTable, edit mode uses live list */}
+        {watchedProductos.length > 0 && mode === "create" && (
           <DataTable
             columns={productoColumns}
             data={watchedProductos}
             variant="outline"
             isVisibleColumnFilter={false}
           />
+        )}
+
+        {watchedProductos.length > 0 && mode === "edit" && (
+          <div className="space-y-2">
+            {watchedProductos.map((producto, index) => {
+              const pgId = producto.productos_guia_id;
+              const isEquipoWithPanel =
+                producto.tipo === "EQUIPO" &&
+                !!pgId &&
+                (producto.necesita_serie ||
+                  producto.necesita_mac ||
+                  producto.necesita_emta_mac ||
+                  producto.necesita_ua);
+
+              const seriesForProducto = pgId
+                ? Object.values(seriesConcurrentes.seriesLocales).filter(
+                    (s) => s.productoGuiaId === pgId,
+                  )
+                : [];
+
+              const confirmedCount = seriesForProducto.filter(
+                (s) => s.status === "confirmed",
+              ).length;
+
+              return (
+                <div
+                  key={pgId ?? `new-${index}`}
+                  className="border rounded-lg overflow-hidden"
+                >
+                  <GuiaProductoRow
+                    producto={producto}
+                    index={index}
+                    editingIndex={editingProductoIndex}
+                    confirmedSeriesCount={
+                      isEquipoWithPanel ? confirmedCount : undefined
+                    }
+                    isSaving={isProductoSaving && !pgId}
+                    onEdit={handleEditProducto}
+                    onDelete={(i) =>
+                      handleDeleteProducto(i, producto.productos_guia_id)
+                    }
+                    onViewSeries={setSeriesDetail}
+                    onCloseEditDialog={handleCloseProductoDialog}
+                  />
+
+                  {isEquipoWithPanel && (
+                    <GuiaQuickAddSeriePanel
+                      productoGuiaId={pgId!}
+                      productoNombre={producto.nombre}
+                      necesitaSerie={!!producto.necesita_serie}
+                      necesitaMac={!!producto.necesita_mac}
+                      necesitaEmtaMac={!!producto.necesita_emta_mac}
+                      necesitaUa={!!producto.necesita_ua}
+                      seriesLocales={seriesForProducto}
+                      onAgregar={(fields) =>
+                        seriesConcurrentes.agregarSerie(pgId!, fields)
+                      }
+                      onEliminar={seriesConcurrentes.eliminarSerie}
+                      onRetry={seriesConcurrentes.retryAgregar}
+                      isPendingEliminar={seriesConcurrentes.isPendingEliminar}
+                    />
+                  )}
+                </div>
+              );
+            })}
+          </div>
         )}
 
         {form.formState.errors.productos &&
@@ -290,16 +405,14 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
         </ul>
       </ConfirmationDialog>
 
-      {/* ── Submit ─────────────────────────────────────────────────────────── */}
-      <div className="flex justify-end">
-        <Button type="submit" disabled={mutation.isPending}>
-          {mutation.isPending
-            ? "Guardando..."
-            : mode === "edit"
-              ? "Actualizar guía"
-              : "Crear guía"}
-        </Button>
-      </div>
+      {/* ── Submit: solo en modo crear ──────────────────────────────────────── */}
+      {mode === "create" && (
+        <div className="flex justify-end">
+          <Button type="submit" disabled={mutation.isPending}>
+            {mutation.isPending ? "Guardando..." : "Crear guía"}
+          </Button>
+        </div>
+      )}
     </form>
   );
 }

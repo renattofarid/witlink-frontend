@@ -33,6 +33,38 @@ import { format } from "date-fns";
 void productoSchema;
 void serieSchema;
 
+function guiaToFormValues(guia: GuiaResource): GuiaCreateFormValues {
+  return {
+    numero: guia.numero,
+    fecha: guia.fecha?.split("T")[0] ?? format(new Date(), "yyyy-MM-dd"),
+    archivo: null,
+    productos: (guia.productos ?? []).map((p) => ({
+      productos_guia_id: p.id,
+      producto_id: String(p.producto.id),
+      categoria_id: String(p.producto.categoria_id),
+      sap: p.producto.sap ?? null,
+      nombre: p.producto.nombre ?? null,
+      tipo: (p.producto.tipo as "MATERIAL" | "EQUIPO") ?? null,
+      origen: (p.producto.origen as "CLARO" | "WITLINK") ?? null,
+      necesita_serie: p.producto.necesita_serie ?? null,
+      necesita_mac: p.producto.necesita_mac ?? null,
+      necesita_emta_mac: p.producto.necesita_emta_mac ?? null,
+      necesita_ua: p.producto.necesita_ua ?? null,
+      cantidad: Number(p.cantidad),
+      observaciones: p.observaciones ?? null,
+      series:
+        p.series?.map((s) => ({
+          serie_id: s.serie?.id ?? null,
+          serie: s.serie?.serie ?? null,
+          mac: s.serie?.mac ?? null,
+          emta_mac: s.serie?.emta_mac ?? null,
+          ua: s.serie?.ua ?? null,
+          observaciones: s.observaciones ?? null,
+        })) ?? [],
+    })),
+  };
+}
+
 const EMPTY_PRODUCTO: ProductoFormValues = {
   producto_id: null,
   categoria_id: null,
@@ -60,9 +92,6 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
     number | null
   >(null);
   const [productoDialogOpen, setProductoDialogOpen] = useState(false);
-  const [productoDialogTab, setProductoDialogTab] = useState<
-    "catalogo" | "manual"
-  >("catalogo");
   const [seriesDetail, setSeriesDetail] = useState<SeriesDetailData | null>(
     null,
   );
@@ -87,34 +116,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
 
   useEffect(() => {
     if (mode === "edit" && guia) {
-      form.reset({
-        numero: guia.numero,
-        fecha: guia.fecha?.split("T")[0] ?? format(new Date(), "yyyy-MM-dd"),
-        productos: (guia.productos ?? []).map((p) => ({
-          productos_guia_id: p.id,
-          producto_id: String(p.producto.id),
-          categoria_id: String(p.producto.categoria_id),
-          sap: p.producto.sap ?? null,
-          nombre: p.producto.nombre ?? null,
-          tipo: (p.producto.tipo as "MATERIAL" | "EQUIPO") ?? null,
-          origen: (p.producto.origen as "CLARO" | "WITLINK") ?? null,
-          necesita_serie: p.producto.necesita_serie ?? null,
-          necesita_mac: p.producto.necesita_mac ?? null,
-          necesita_emta_mac: p.producto.necesita_emta_mac ?? null,
-          necesita_ua: p.producto.necesita_ua ?? null,
-          cantidad: Number(p.cantidad),
-          observaciones: p.observaciones ?? null,
-          series:
-            p.series?.map((s) => ({
-              serie_id: s.serie?.id ?? null,
-              serie: s.serie?.serie ?? null,
-              mac: s.serie?.mac ?? null,
-              emta_mac: s.serie?.emta_mac ?? null,
-              ua: s.serie?.ua ?? null,
-              observaciones: s.observaciones ?? null,
-            })) ?? [],
-        })),
-      });
+      form.reset(guiaToFormValues(guia));
     }
   }, [guia, mode, form]);
 
@@ -144,18 +146,12 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
     async (values) => {
       if (mode === "edit" && guia) {
         if (editingProductoIndex === null) {
-          // NEW product in edit mode: save to server immediately
-          const currentIds = form
-            .getValues("productos")
-            .map((p) => p.productos_guia_id)
-            .filter((id): id is number => !!id);
+          // NEW product in edit mode: save to server, reset form from fresh data
+          const freshGuia = await addProductoInEdit(values);
+          if (freshGuia === null) return;
 
-          const newId = await addProductoInEdit(values, currentIds);
-          if (newId === null) return;
-
-          appendProducto({ ...values, productos_guia_id: newId, series: [] });
-          // Trigger series reconciliation for the new product
-          seriesConcurrentes.addProductoSeries(newId);
+          form.reset(guiaToFormValues(freshGuia));
+          await seriesConcurrentes.refreshFromServer();
         } else {
           // EDIT existing product: save changes immediately
           const existingId = form.getValues(
@@ -188,7 +184,6 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
   const handleOpenProductoDialog = () => {
     productSubForm.reset(EMPTY_PRODUCTO);
     setEditingProductoIndex(null);
-    setProductoDialogTab("catalogo");
     setProductoDialogOpen(true);
   };
 
@@ -196,7 +191,6 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
     const producto = form.getValues(`productos.${index}`);
     setEditingProductoIndex(index);
     productSubForm.reset(producto);
-    setProductoDialogTab(producto.producto_id ? "catalogo" : "manual");
     setProductoDialogOpen(true);
   };
 
@@ -267,12 +261,10 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
         <GuiaProductoDialog
           open={productoDialogOpen}
           editingIndex={editingProductoIndex}
-          tab={productoDialogTab}
           productSubForm={productSubForm}
           watchedSeries={watchedSeries}
           onClose={handleCloseProductoDialog}
           onSubmit={handleAddOrUpdateProducto}
-          onTabChange={setProductoDialogTab}
           onAppendSerie={appendSerie}
           onRemoveSerie={removeSerie}
         />

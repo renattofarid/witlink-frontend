@@ -21,12 +21,10 @@ const EMPTY_SERIE: SerieFormValues = {
 interface GuiaProductoDialogProps {
   open: boolean;
   editingIndex: number | null;
-  tab: "catalogo" | "manual";
   productSubForm: UseFormReturn<ProductoFormValues>;
   watchedSeries: SerieFormValues[];
   onClose: () => void;
   onSubmit: () => void;
-  onTabChange: (tab: "catalogo" | "manual") => void;
   onAppendSerie: (serie: SerieFormValues) => void;
   onRemoveSerie: (index: number) => void;
 }
@@ -34,12 +32,10 @@ interface GuiaProductoDialogProps {
 export function GuiaProductoDialog({
   open,
   editingIndex,
-  tab,
   productSubForm,
   watchedSeries,
   onClose,
   onSubmit,
-  onTabChange,
   onAppendSerie,
   onRemoveSerie,
 }: GuiaProductoDialogProps) {
@@ -129,14 +125,11 @@ export function GuiaProductoDialog({
     <div className="border rounded-lg p-3 space-y-2 bg-muted/20">
       <GuiaProductoDialogHeader
         editingIndex={editingIndex}
-        tab={tab}
         productSubForm={productSubForm}
-        onTabChange={onTabChange}
         onClose={onClose}
       />
 
       <GuiaProductoSelector
-        tab={tab}
         productSubForm={productSubForm}
         readonlyCantidad={isEquipo && needsSeries}
       />

@@ -242,8 +242,7 @@ export function useGuiaAddProductoInEdit(guiaId: number | undefined) {
 
   const addProducto = async (
     values: ProductoFormValues,
-    currentProductoIds: number[],
-  ): Promise<number | null> => {
+  ): Promise<GuiaResource | null> => {
     if (!guiaId) return null;
     setIsSaving(true);
     try {
@@ -258,10 +257,7 @@ export function useGuiaAddProductoInEdit(guiaId: number | undefined) {
         staleTime: 0,
       });
 
-      const newProducto = freshGuia.productos?.find(
-        (p) => !currentProductoIds.includes(p.id),
-      );
-      return newProducto?.id ?? null;
+      return freshGuia;
     } catch (error: any) {
       errorToast(
         error.response?.data?.message ?? "Error al guardar el producto.",
@@ -545,5 +541,6 @@ export function useSeriesConcurrentes(guiaId: number | undefined) {
     retryAgregar,
     isPendingEliminar,
     addProductoSeries,
+    refreshFromServer,
   };
 }

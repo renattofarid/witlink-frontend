@@ -128,7 +128,6 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
   // Product dialog state
   const [editingProductoIndex, setEditingProductoIndex] = useState<number | null>(null);
   const [productoDialogOpen, setProductoDialogOpen] = useState(false);
-  const [productoDialogTab, setProductoDialogTab] = useState<"catalogo" | "manual">("catalogo");
 
   // Edit mode: which product detail id is getting a new serie
   const [addSerieForDetailId, setAddSerieForDetailId] = useState<number | null>(null);
@@ -213,7 +212,6 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
   const handleOpenProductoDialog = () => {
     productSubForm.reset(EMPTY_PRODUCTO);
     setEditingProductoIndex(null);
-    setProductoDialogTab("catalogo");
     setProductoDialogOpen(true);
   };
 
@@ -221,7 +219,6 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
     const producto = createForm.getValues(`productos.${index}`);
     setEditingProductoIndex(index);
     productSubForm.reset(producto);
-    setProductoDialogTab(producto.producto_id ? "catalogo" : "manual");
     setProductoDialogOpen(true);
   };
 
@@ -493,12 +490,10 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
           <GuiaProductoDialog
             open={productoDialogOpen}
             editingIndex={null}
-            tab={productoDialogTab}
             productSubForm={productSubForm}
             watchedSeries={watchedSeries}
             onClose={handleCloseProductoDialog}
             onSubmit={productSubForm.handleSubmit((v) => addProductoEditMutation.mutate(v))}
-            onTabChange={setProductoDialogTab}
             onAppendSerie={appendSerie}
             onRemoveSerie={removeSerie}
           />
@@ -726,12 +721,10 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
         <GuiaProductoDialog
           open={productoDialogOpen}
           editingIndex={editingProductoIndex}
-          tab={productoDialogTab}
           productSubForm={productSubForm}
           watchedSeries={watchedSeries}
           onClose={handleCloseProductoDialog}
           onSubmit={handleAddOrUpdateProducto}
-          onTabChange={setProductoDialogTab}
           onAppendSerie={(s) => appendSerie(s)}
           onRemoveSerie={removeSerie}
         />

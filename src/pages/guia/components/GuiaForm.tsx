@@ -244,18 +244,16 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
             </h3>
             <Separator className="flex-1" />
           </div>
-          {!productoDialogOpen && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="ml-2 h-6 text-xs px-2"
-              onClick={handleOpenProductoDialog}
-            >
-              <PackagePlus className="size-3 mr-1" />
-              Agregar
-            </Button>
-          )}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="ml-2 h-6 text-xs px-2"
+            onClick={handleOpenProductoDialog}
+          >
+            <PackagePlus className="size-3 mr-1" />
+            Agregar
+          </Button>
         </div>
 
         <GuiaProductoDialog
@@ -326,6 +324,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
                     <GuiaQuickAddSeriePanel
                       productoGuiaId={pgId!}
                       productoNombre={producto.nombre}
+                      cantidad={producto.cantidad}
                       necesitaSerie={!!producto.necesita_serie}
                       necesitaMac={!!producto.necesita_mac}
                       necesitaEmtaMac={!!producto.necesita_emta_mac}

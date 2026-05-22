@@ -198,7 +198,7 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
   });
 
   // ── Handlers: producto dialog ──────────────────────────────────────────────
-  const handleAddOrUpdateProducto = productSubForm.handleSubmit((values) => {
+  const handleAddOrUpdateProducto = productSubForm.whandleSubmit((values) => {
     if (editingProductoIndex === null) {
       appendProducto(values);
     } else {
@@ -431,7 +431,7 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
       <div className="space-y-4">
         {/* Header form */}
         <form
-          onSubmit={editForm.handleSubmit((v) => editMutation.mutate(v))}
+          onSubmit={editForm.whandleSubmit((v) => editMutation.mutate(v))}
           className="space-y-2"
         >
           <div className="flex items-center gap-2">
@@ -493,7 +493,7 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
             productSubForm={productSubForm}
             watchedSeries={watchedSeries}
             onClose={handleCloseProductoDialog}
-            onSubmit={productSubForm.handleSubmit((v) => addProductoEditMutation.mutate(v))}
+            onSubmit={productSubForm.whandleSubmit((v) => addProductoEditMutation.mutate(v))}
             onAppendSerie={appendSerie}
             onRemoveSerie={removeSerie}
           />
@@ -615,7 +615,7 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
                             type="button"
                             size="sm"
                             disabled={addSerieMutation.isPending}
-                            onClick={serieForm.handleSubmit((v) =>
+                            onClick={serieForm.whandleSubmit((v) =>
                               addSerieMutation.mutate(v),
                             )}
                           >
@@ -664,7 +664,7 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
   // ── CREATE MODE ────────────────────────────────────────────────────────────
   return (
     <form
-      onSubmit={createForm.handleSubmit((v) => createMutation.mutate(v))}
+      onSubmit={createForm.whandleSubmit((v) => createMutation.mutate(v))}
       className="space-y-4"
     >
       {/* Datos del equipo retirado */}

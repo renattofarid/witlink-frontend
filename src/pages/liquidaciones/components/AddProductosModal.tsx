@@ -82,7 +82,7 @@ export default function AddProductosModal({
   const filteredSeries = useMemo(
     () =>
       series.filter((s) =>
-        (s.producto.nombre + s.serie)
+        (s.serie.producto.nombre + s.serie.serie)
           .toLowerCase()
           .includes(equipSearch.toLowerCase()),
       ),
@@ -102,7 +102,7 @@ export default function AddProductosModal({
   const filteredOtrosEquipos = useMemo(
     () =>
       series.filter((s) =>
-        (s.producto.nombre + s.serie)
+        (s.serie.producto.nombre + s.serie.serie)
           .toLowerCase()
           .includes(otrosEquipSearch.toLowerCase()),
       ),
@@ -174,20 +174,20 @@ export default function AddProductosModal({
       { series: Array<{ id: number; serie: string }>; item: SerieInventarioItem }
     > = {};
     Object.values(serieSelections).forEach((s) => {
-      const pid = s.producto.id;
+      const pid = s.serie.producto.id;
       if (!seriesByProducto[pid]) {
         seriesByProducto[pid] = { series: [], item: s };
       }
-      seriesByProducto[pid].series.push({ id: s.id, serie: s.serie });
+      seriesByProducto[pid].series.push({ id: s.id, serie: s.serie.serie });
     });
 
     Object.values(seriesByProducto).forEach(({ series: ss, item }) => {
       cartItems.push({
-        tempId: `eq-${item.producto.id}-${Date.now()}-${Math.random()}`,
+        tempId: `eq-${item.serie.producto.id}-${Date.now()}-${Math.random()}`,
         tipo: "serie",
-        producto_id: item.producto.id,
-        producto_nombre: item.producto.nombre,
-        producto_sap: item.producto.sap,
+        producto_id: item.serie.producto.id,
+        producto_nombre: item.serie.producto.nombre,
+        producto_sap: item.serie.producto.sap,
         tecnico_id: Number(tecnicoId),
         tecnico_nombre: tecnicoNombre,
         cantidad: ss.length,
@@ -599,10 +599,10 @@ function SerieCard({
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium leading-tight truncate">
-            {item.producto.nombre}
+            {item.serie.producto.nombre}
           </p>
           <p className="text-xs text-muted-foreground font-mono">
-            Serie: {item.serie}
+            Serie: {item.serie.serie}
           </p>
         </div>
         <div
@@ -617,15 +617,15 @@ function SerieCard({
         </div>
       </div>
       <div className="flex flex-wrap gap-1">
-        {item.mac && (
+        {item.serie.mac && (
           <span className="text-xs text-muted-foreground">
             MAC:{" "}
-            <span className="font-mono text-foreground">{item.mac}</span>
+            <span className="font-mono text-foreground">{item.serie.mac}</span>
           </span>
         )}
-        {item.situacion && (
+        {item.serie.situacion && (
           <Badge variant="outline" className="text-xs">
-            {item.situacion}
+            {item.serie.situacion}
           </Badge>
         )}
       </div>

@@ -26,20 +26,19 @@ export function GuiaSerieLocalRow({
   onRetry,
   isDeleting,
 }: GuiaSerieLocalRowProps) {
-  const containerClass = cn(
-    "flex items-start gap-2 rounded px-2 py-1.5 border text-xs font-mono",
-    serie.status === "pending" &&
-      "border-dashed border-amber-400/70 bg-amber-50/40 dark:bg-amber-950/20",
-    serie.status === "confirmed" &&
-      "border-solid border-green-400/60 bg-green-50/30 dark:bg-green-950/20",
-    serie.status === "error" &&
-      "border-solid border-destructive/60 bg-destructive/5",
-  );
-
   return (
-    <div className={containerClass}>
-      {/* Status icon */}
-      <div className="mt-0.5 shrink-0">
+    <div
+      className={cn(
+        "flex items-center gap-2 rounded px-2 py-0.5 border text-xs font-mono",
+        serie.status === "pending" &&
+          "border-dashed border-amber-400/70 bg-amber-50/40 dark:bg-amber-950/20",
+        serie.status === "confirmed" &&
+          "border-green-400/60 bg-green-50/30 dark:bg-green-950/20",
+        serie.status === "error" &&
+          "border-destructive/60 bg-destructive/5",
+      )}
+    >
+      <div className="shrink-0 w-3.5 flex justify-center">
         {serie.status === "pending" && (
           <Loader2 className="size-3 text-amber-500 animate-spin" />
         )}
@@ -51,43 +50,36 @@ export function GuiaSerieLocalRow({
         )}
       </div>
 
-      {/* Index */}
-      <span className="shrink-0 text-muted-foreground w-4 text-right mt-0.5">
+      <span className="shrink-0 text-muted-foreground w-5 text-right tabular-nums">
         {index + 1}.
       </span>
 
-      {/* Fields */}
-      <div className="flex flex-wrap gap-x-3 gap-y-0.5 flex-1 min-w-0">
+      <div className="flex gap-x-3 flex-1 min-w-0 overflow-hidden">
         {necesitaSerie && serie.serie && (
-          <span>
-            <span className="text-muted-foreground">S/N:</span>{" "}
-            <span>{serie.serie}</span>
+          <span className="whitespace-nowrap">
+            <span className="text-muted-foreground">S/N:</span> {serie.serie}
           </span>
         )}
         {necesitaMac && serie.mac && (
-          <span>
-            <span className="text-muted-foreground">MAC:</span>{" "}
-            <span>{serie.mac}</span>
+          <span className="whitespace-nowrap">
+            <span className="text-muted-foreground">MAC:</span> {serie.mac}
           </span>
         )}
         {necesitaEmtaMac && serie.emtaMac && (
-          <span>
-            <span className="text-muted-foreground">EMTA:</span>{" "}
-            <span>{serie.emtaMac}</span>
+          <span className="whitespace-nowrap">
+            <span className="text-muted-foreground">EMTA:</span> {serie.emtaMac}
           </span>
         )}
         {necesitaUa && serie.ua && (
-          <span>
-            <span className="text-muted-foreground">UA:</span>{" "}
-            <span>{serie.ua}</span>
+          <span className="whitespace-nowrap">
+            <span className="text-muted-foreground">UA:</span> {serie.ua}
           </span>
         )}
         {serie.status === "error" && serie.errorMessage && (
-          <span className="text-destructive w-full">{serie.errorMessage}</span>
+          <span className="text-destructive truncate">{serie.errorMessage}</span>
         )}
       </div>
 
-      {/* Actions */}
       <div className="shrink-0 flex gap-1">
         {serie.status === "error" && (
           <Button

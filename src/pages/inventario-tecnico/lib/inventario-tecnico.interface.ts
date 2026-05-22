@@ -26,30 +26,28 @@ export interface MaterialInventarioItem {
   material: MaterialDetalle;
 }
 
-export interface SerieInventarioItem {
+interface SerieDetalle {
   id: number;
-  despacho_id: number;
   producto_id: number;
-  cantidad: string;
-  created_at: string;
-  updated_at: string;
-  deleted_at: string | null;
-  categoria_id: number;
-  sap: string;
-  nombre: string;
-  tipo: string;
-  tecnico_id: number;
-  numero: string;
-  fecha: string;
-  almacen_id: number;
-  serie_id: number;
-  detalle_productos_despacho_id: number;
   serie: string;
   situacion: string;
   mac: string | null;
   ua: string | null;
+  created_at: string;
+  updated_at: string;
+  almacen_id: number;
   emta_mac: string | null;
+  deleted_at: string | null;
   producto: ProductoInventario;
+}
+
+export interface SerieInventarioItem {
+  id: number;
+  tecnico_id: number;
+  serie_id: number;
+  created_at: string;
+  updated_at: string;
+  serie: SerieDetalle;
 }
 
 export interface InventarioTecnicoApiResponse {

@@ -27,11 +27,11 @@ export const getInventarioTecnico = async (
   const series: InventarioTecnicoResource[] = data.series.map((s) => ({
     id: s.id,
     tipo: "serie",
-    producto: s.nombre,
-    sap: s.sap,
+    producto: s.serie.producto.nombre,
+    sap: s.serie.producto.sap,
     cantidad: null,
-    serie: s.serie,
-    fecha: s.fecha,
+    serie: s.serie.serie,
+    fecha: s.created_at,
   }));
 
   return [...materiales, ...series];

@@ -1,5 +1,6 @@
-import { useState, useMemo } from "react";
-import { Search, Minus, Plus, Check, Package, Wrench, List } from "lucide-react";
+import { useState, useMemo, useRef, useEffect } from "react";
+import { Search, Minus, Plus, Package, Wrench, List, Loader2, X, MapPin } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { GeneralModal } from "@/components/GeneralModal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -19,10 +20,8 @@ import type {
   LiquidacionCartItem,
   LiquidacionResource,
 } from "../lib/liquidaciones.interface";
-import type {
-  MaterialInventarioItem,
-  SerieInventarioItem,
-} from "@/pages/inventario-tecnico/lib/inventario-tecnico.interface";
+import type { MaterialInventarioItem } from "@/pages/inventario-tecnico/lib/inventario-tecnico.interface";
+import { getSeries } from "@/pages/serie/lib/serie.actions";
 import TecnicoSelector from "./TecnicoSelector";
 
 interface AddProductosModalProps {
@@ -38,6 +37,16 @@ interface MaterialSelection {
   cantidad: number;
 }
 
+interface SelectedExternSerie {
+  serie_id: number;
+  serie_str: string;
+  producto_id: number;
+  producto_nombre: string;
+  producto_sap: string;
+  situacion_label: string;
+  mac: string | null;
+}
+
 export default function AddProductosModal({
   open,
   onClose,
@@ -49,27 +58,19 @@ export default function AddProductosModal({
     initialTecnicoId ?? (liquidacion.tecnico1 ? String(liquidacion.tecnico1) : ""),
   );
   const [tecnicoNombre, setTecnicoNombre] = useState("");
+  const [selfTecnicoNombre, setSelfTecnicoNombre] = useState("");
 
   const [materialSearch, setMaterialSearch] = useState("");
-  const [equipSearch, setEquipSearch] = useState("");
-
-  const [materialSelections, setMaterialSelections] = useState<
-    Record<number, MaterialSelection>
-  >({});
-  const [serieSelections, setSerieSelections] = useState<
-    Record<number, SerieInventarioItem>
-  >({});
+  const [materialSelections, setMaterialSelections] = useState<Record<number, MaterialSelection>>({});
+  const [selectedExternSeries, setSelectedExternSeries] = useState<SelectedExternSerie[]>([]);
 
   const [showOtrosMateriales, setShowOtrosMateriales] = useState(false);
   const [otrosMaterialSearch, setOtrosMaterialSearch] = useState("");
-  const [showOtrosEquipos, setShowOtrosEquipos] = useState(false);
-  const [otrosEquipSearch, setOtrosEquipSearch] = useState("");
 
   const { data: inventario, isLoading } =
     useInventarioTecnicoLiquidacionQuery(tecnicoId || null);
 
   const materiales: MaterialInventarioItem[] = inventario?.materiales ?? [];
-  const series: SerieInventarioItem[] = inventario?.series ?? [];
 
   const filteredMateriales = useMemo(
     () =>
@@ -79,16 +80,6 @@ export default function AddProductosModal({
           .includes(materialSearch.toLowerCase()),
       ),
     [materiales, materialSearch],
-  );
-
-  const filteredSeries = useMemo(
-    () =>
-      series.filter((s) =>
-        (s.serie.producto.nombre + s.serie.serie)
-          .toLowerCase()
-          .includes(equipSearch.toLowerCase()),
-      ),
-    [series, equipSearch],
   );
 
   const filteredOtrosMateriales = useMemo(
@@ -101,21 +92,10 @@ export default function AddProductosModal({
     [materiales, otrosMaterialSearch],
   );
 
-  const filteredOtrosEquipos = useMemo(
-    () =>
-      series.filter((s) =>
-        (s.serie.producto.nombre + s.serie.serie)
-          .toLowerCase()
-          .includes(otrosEquipSearch.toLowerCase()),
-      ),
-    [series, otrosEquipSearch],
-  );
-
   const handleTecnicoChange = (id: string, nombre: string) => {
     setTecnicoId(id);
     setTecnicoNombre(nombre);
     setMaterialSelections({});
-    setSerieSelections({});
   };
 
   const handleMaterialQty = (item: MaterialInventarioItem, delta: number) => {
@@ -130,10 +110,7 @@ export default function AddProductosModal({
     });
   };
 
-  const handleMaterialQtyInput = (
-    item: MaterialInventarioItem,
-    val: string,
-  ) => {
+  const handleMaterialQtyInput = (item: MaterialInventarioItem, val: string) => {
     const n = Math.min(Math.max(0, Number(val) || 0), item.cantidad);
     setMaterialSelections((prev) => {
       if (n === 0) {
@@ -144,18 +121,20 @@ export default function AddProductosModal({
     });
   };
 
-  const toggleSerie = (item: SerieInventarioItem) => {
-    setSerieSelections((prev) => {
-      if (prev[item.id]) {
-        const { [item.id]: _, ...rest } = prev;
-        return rest;
-      }
-      return { ...prev, [item.id]: item };
+  const addExternSerie = (serie: SelectedExternSerie) => {
+    setSelectedExternSeries((prev) => {
+      if (prev.some((s) => s.serie_id === serie.serie_id)) return prev;
+      return [...prev, serie];
     });
+  };
+
+  const removeExternSerie = (serieId: number) => {
+    setSelectedExternSeries((prev) => prev.filter((s) => s.serie_id !== serieId));
   };
 
   const handleConfirm = () => {
     const cartItems: LiquidacionCartItem[] = [];
+    const selfId = Number(initialTecnicoId ?? tecnicoId);
 
     Object.values(materialSelections).forEach(({ material, cantidad }) => {
       cartItems.push({
@@ -173,25 +152,28 @@ export default function AddProductosModal({
 
     const seriesByProducto: Record<
       number,
-      { series: Array<{ id: number; serie: string }>; item: SerieInventarioItem }
+      { series: Array<{ id: number; serie: string }>; nombre: string; sap: string }
     > = {};
-    Object.values(serieSelections).forEach((s) => {
-      const pid = s.serie.producto.id;
-      if (!seriesByProducto[pid]) {
-        seriesByProducto[pid] = { series: [], item: s };
+    selectedExternSeries.forEach((s) => {
+      if (!seriesByProducto[s.producto_id]) {
+        seriesByProducto[s.producto_id] = {
+          series: [],
+          nombre: s.producto_nombre,
+          sap: s.producto_sap,
+        };
       }
-      seriesByProducto[pid].series.push({ id: s.id, serie: s.serie.serie });
+      seriesByProducto[s.producto_id].series.push({ id: s.serie_id, serie: s.serie_str });
     });
 
-    Object.values(seriesByProducto).forEach(({ series: ss, item }) => {
+    Object.entries(seriesByProducto).forEach(([pid, { series: ss, nombre, sap }]) => {
       cartItems.push({
-        tempId: `eq-${item.serie.producto.id}-${Date.now()}-${Math.random()}`,
+        tempId: `eq-${pid}-${Date.now()}-${Math.random()}`,
         tipo: "serie",
-        producto_id: item.serie.producto.id,
-        producto_nombre: item.serie.producto.nombre,
-        producto_sap: item.serie.producto.sap,
-        tecnico_id: Number(tecnicoId),
-        tecnico_nombre: tecnicoNombre,
+        producto_id: Number(pid),
+        producto_nombre: nombre,
+        producto_sap: sap,
+        tecnico_id: selfId,
+        tecnico_nombre: selfTecnicoNombre,
         cantidad: ss.length,
         series: ss,
       });
@@ -199,13 +181,18 @@ export default function AddProductosModal({
 
     onConfirm(cartItems);
     setMaterialSelections({});
-    setSerieSelections({});
+    setSelectedExternSeries([]);
     onClose();
   };
 
   const matCount = Object.keys(materialSelections).length;
-  const eqCount = Object.keys(serieSelections).length;
+  const eqCount = selectedExternSeries.length;
   const totalSeleccionado = matCount + eqCount;
+
+  const selectedSerieIds = useMemo(
+    () => new Set(selectedExternSeries.map((s) => s.serie_id)),
+    [selectedExternSeries],
+  );
 
   return (
     <>
@@ -213,7 +200,7 @@ export default function AddProductosModal({
         open={open}
         onClose={onClose}
         title="Agregar productos"
-        subtitle="Selecciona materiales o equipos del inventario del técnico"
+        subtitle="Busca equipos por serie o selecciona materiales del inventario"
         icon="PackagePlus"
         size="4xl"
         childrenFooter={
@@ -223,14 +210,18 @@ export default function AddProductosModal({
                 "Sin selección"
               ) : (
                 <>
-                  {matCount > 0 && (
-                    <span>{matCount} material{matCount !== 1 ? "es" : ""}</span>
+                  {eqCount > 0 && (
+                    <span>
+                      {eqCount} equipo{eqCount !== 1 ? "s" : ""} seleccionado{eqCount !== 1 ? "s" : ""}
+                    </span>
                   )}
                   {matCount > 0 && eqCount > 0 && (
                     <span className="mx-1.5 opacity-40">|</span>
                   )}
-                  {eqCount > 0 && (
-                    <span>{eqCount} equipo{eqCount !== 1 ? "s" : ""} seleccionado{eqCount !== 1 ? "s" : ""}</span>
+                  {matCount > 0 && (
+                    <span>
+                      {matCount} material{matCount !== 1 ? "es" : ""}
+                    </span>
                   )}
                 </>
               )}
@@ -247,32 +238,28 @@ export default function AddProductosModal({
         }
       >
         <div className="space-y-4">
-          {/* Selector de técnico */}
+          {/* Selector de técnico — para inventario de materiales */}
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">
-              Inventario a mostrar
+              Inventario a mostrar (materiales)
             </Label>
             <TecnicoSelector
               value={tecnicoId}
               onChange={handleTecnicoChange}
               onNameResolved={(nombre) => {
-                if (!tecnicoNombre) setTecnicoNombre(nombre);
+                if (!tecnicoNombre) {
+                  setTecnicoNombre(nombre);
+                  setSelfTecnicoNombre(nombre);
+                }
               }}
             />
             <p className="text-xs text-muted-foreground">
-              Puede ver el inventario de otra persona para tomar materiales o equipos.
+              Cambia el técnico para ver otro inventario en el tab de materiales.
             </p>
           </div>
 
-          <Tabs defaultValue="materiales">
+          <Tabs defaultValue="equipos">
             <TabsList className="w-full">
-              <TabsTrigger value="materiales" className="flex-1 gap-1">
-                <Package className="size-3.5" />
-                Materiales
-                {matCount > 0 && (
-                  <Badge className="ml-1 text-xs h-4 px-1">{matCount}</Badge>
-                )}
-              </TabsTrigger>
               <TabsTrigger value="equipos" className="flex-1 gap-1">
                 <Wrench className="size-3.5" />
                 Equipos / Series
@@ -280,7 +267,37 @@ export default function AddProductosModal({
                   <Badge className="ml-1 text-xs h-4 px-1">{eqCount}</Badge>
                 )}
               </TabsTrigger>
+              <TabsTrigger value="materiales" className="flex-1 gap-1">
+                <Package className="size-3.5" />
+                Materiales
+                {matCount > 0 && (
+                  <Badge className="ml-1 text-xs h-4 px-1">{matCount}</Badge>
+                )}
+              </TabsTrigger>
             </TabsList>
+
+            {/* ── Tab Equipos ───────────────────────────────────────────────── */}
+            <TabsContent value="equipos" className="mt-3 space-y-3">
+              <p className="text-xs text-muted-foreground">
+                Busca cualquier serie disponible en el sistema. Al agregarla se registrará a tu nombre.
+              </p>
+              <SerieAsyncSearch onSelect={addExternSerie} selectedIds={selectedSerieIds} />
+              {selectedExternSeries.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-6">
+                  Sin equipos seleccionados. Usa el buscador para agregar.
+                </p>
+              ) : (
+                <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
+                  {selectedExternSeries.map((s) => (
+                    <ExternSerieCard
+                      key={s.serie_id}
+                      item={s}
+                      onRemove={() => removeExternSerie(s.serie_id)}
+                    />
+                  ))}
+                </div>
+              )}
+            </TabsContent>
 
             {/* ── Tab Materiales ────────────────────────────────────────────── */}
             <TabsContent value="materiales" className="mt-3">
@@ -330,58 +347,6 @@ export default function AddProductosModal({
                   >
                     <List className="size-3 mr-1.5" />
                     Otros materiales ({materiales.length} disponibles)
-                  </Button>
-                </>
-              )}
-            </TabsContent>
-
-            {/* ── Tab Equipos ───────────────────────────────────────────────── */}
-            <TabsContent value="equipos" className="mt-3">
-              <div className="relative mb-3">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
-                <Input
-                  className="pl-8 h-8 text-xs"
-                  placeholder="Buscar equipo o serie..."
-                  value={equipSearch}
-                  onChange={(e) => setEquipSearch(e.target.value)}
-                />
-              </div>
-
-              {!tecnicoId ? (
-                <p className="text-sm text-muted-foreground text-center py-8">
-                  Selecciona un técnico para ver sus equipos.
-                </p>
-              ) : isLoading ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {Array.from({ length: 4 }).map((_, i) => (
-                    <Skeleton key={i} className="h-20 rounded-lg" />
-                  ))}
-                </div>
-              ) : filteredSeries.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-8">
-                  Sin equipos disponibles.
-                </p>
-              ) : (
-                <>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-70 overflow-y-auto pr-1">
-                    {filteredSeries.map((item) => (
-                      <SerieCard
-                        key={item.id}
-                        item={item}
-                        selected={!!serieSelections[item.id]}
-                        onToggle={() => toggleSerie(item)}
-                      />
-                    ))}
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="mt-2 h-7 text-xs w-full text-muted-foreground hover:text-foreground"
-                    onClick={() => setShowOtrosEquipos(true)}
-                  >
-                    <List className="size-3 mr-1.5" />
-                    Otros equipos ({series.length} disponibles)
                   </Button>
                 </>
               )}
@@ -444,65 +409,153 @@ export default function AddProductosModal({
           </div>
         </SheetContent>
       </Sheet>
-
-      {/* ── Sheet: Otros equipos ────────────────────────────────────────────── */}
-      <Sheet open={showOtrosEquipos} onOpenChange={setShowOtrosEquipos}>
-        <SheetContent
-          side="right"
-          className="w-full sm:max-w-lg flex flex-col gap-0 p-0"
-        >
-          <SheetHeader className="px-4 pt-4 pb-3 border-b">
-            <SheetTitle className="text-sm flex items-center gap-2">
-              <Wrench className="size-4" />
-              Todos los equipos
-            </SheetTitle>
-            <div className="relative mt-2">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
-              <Input
-                className="pl-8 h-8 text-xs"
-                placeholder="Buscar equipo o serie..."
-                value={otrosEquipSearch}
-                onChange={(e) => setOtrosEquipSearch(e.target.value)}
-              />
-            </div>
-          </SheetHeader>
-          <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2">
-            {filteredOtrosEquipos.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">
-                Sin resultados.
-              </p>
-            ) : (
-              filteredOtrosEquipos.map((item) => (
-                <SerieCard
-                  key={item.id}
-                  item={item}
-                  selected={!!serieSelections[item.id]}
-                  onToggle={() => toggleSerie(item)}
-                />
-              ))
-            )}
-          </div>
-          <div className="px-4 py-3 border-t flex items-center justify-between">
-            <p className="text-xs text-muted-foreground">
-              {eqCount > 0
-                ? `${eqCount} equipo${eqCount !== 1 ? "s" : ""} seleccionado${eqCount !== 1 ? "s" : ""}`
-                : "Sin selección"}
-            </p>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowOtrosEquipos(false)}
-            >
-              Cerrar
-            </Button>
-          </div>
-        </SheetContent>
-      </Sheet>
     </>
   );
 }
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
+
+function SerieAsyncSearch({
+  onSelect,
+  selectedIds,
+}: {
+  onSelect: (serie: SelectedExternSerie) => void;
+  selectedIds: Set<number>;
+}) {
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["series-search-liquidacion", debouncedSearch],
+    queryFn: () =>
+      getSeries({ search: debouncedSearch, por_pagina: "10", pagina: "1" }),
+    enabled: debouncedSearch.length >= 2,
+  });
+
+  useEffect(() => {
+    clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => setDebouncedSearch(search), 400);
+    return () => clearTimeout(timerRef.current);
+  }, [search]);
+
+  const results = data?.data ?? [];
+  const showDropdown = debouncedSearch.length >= 2;
+
+  return (
+    <div>
+      <div className="relative">
+        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
+        <Input
+          className="pl-8 pr-8 h-8 text-xs"
+          placeholder="Buscar por número de serie, producto, MAC..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        {isLoading && (
+          <Loader2 className="absolute right-2.5 top-1/2 -translate-y-1/2 size-3.5 animate-spin text-muted-foreground" />
+        )}
+      </div>
+
+      {showDropdown && (
+        <div className="mt-1 border rounded-lg overflow-hidden max-h-52 overflow-y-auto">
+          {results.length === 0 && !isLoading ? (
+            <p className="text-xs text-muted-foreground text-center py-3">
+              Sin resultados para &ldquo;{debouncedSearch}&rdquo;
+            </p>
+          ) : (
+            results.map((serie) => {
+              const isSelected = selectedIds.has(serie.id);
+              return (
+                <button
+                  key={serie.id}
+                  type="button"
+                  disabled={isSelected}
+                  onClick={() =>
+                    onSelect({
+                      serie_id: serie.id,
+                      serie_str: serie.serie ?? "",
+                      producto_id: serie.producto.id,
+                      producto_nombre: serie.producto.nombre,
+                      producto_sap: serie.producto.sap,
+                      situacion_label: serie.situacion_label,
+                      mac: serie.mac ?? null,
+                    })
+                  }
+                  className={cn(
+                    "w-full text-left px-3 py-2 text-xs border-b last:border-b-0 transition-colors",
+                    isSelected
+                      ? "opacity-50 cursor-not-allowed bg-muted"
+                      : "hover:bg-accent",
+                  )}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium truncate">{serie.producto?.nombre}</p>
+                      <p className="text-muted-foreground font-mono">
+                        Serie: {serie.serie}
+                      </p>
+                      {serie.mac && (
+                        <p className="text-muted-foreground">MAC: {serie.mac}</p>
+                      )}
+                    </div>
+                    <div className="shrink-0 flex flex-col items-end gap-1">
+                      <Badge variant="outline" className="text-xs">
+                        {serie.situacion_label}
+                      </Badge>
+                      {isSelected && (
+                        <span className="text-xs text-primary font-medium">Agregado</span>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              );
+            })
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ExternSerieCard({
+  item,
+  onRemove,
+}: {
+  item: SelectedExternSerie;
+  onRemove: () => void;
+}) {
+  return (
+    <div className="border border-primary bg-primary/5 rounded-lg p-3 flex items-start gap-2">
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium leading-tight truncate">
+          {item.producto_nombre}
+        </p>
+        <p className="text-xs text-muted-foreground font-mono">
+          Serie: {item.serie_str}
+        </p>
+        {item.mac && (
+          <p className="text-xs text-muted-foreground">MAC: {item.mac}</p>
+        )}
+        <div className="flex items-center gap-1 mt-1">
+          <MapPin className="size-3 text-muted-foreground" />
+          <Badge variant="outline" className="text-xs">
+            {item.situacion_label}
+          </Badge>
+        </div>
+      </div>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="size-6 shrink-0 text-muted-foreground hover:text-destructive"
+        onClick={onRemove}
+      >
+        <X className="size-3.5" />
+      </Button>
+    </div>
+  );
+}
 
 function MaterialCard({
   item,
@@ -575,62 +628,5 @@ function MaterialCard({
         )}
       </div>
     </div>
-  );
-}
-
-function SerieCard({
-  item,
-  selected,
-  onToggle,
-}: {
-  item: SerieInventarioItem;
-  selected: boolean;
-  onToggle: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onToggle}
-      className={cn(
-        "border rounded-lg p-3 text-left flex flex-col gap-1.5 transition-colors w-full",
-        selected
-          ? "border-primary bg-primary/5 ring-1 ring-primary"
-          : "border-border bg-card hover:border-primary/50",
-      )}
-    >
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium leading-tight truncate">
-            {item.serie.producto.nombre}
-          </p>
-          <p className="text-xs text-muted-foreground font-mono">
-            Serie: {item.serie.serie}
-          </p>
-        </div>
-        <div
-          className={cn(
-            "size-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5",
-            selected
-              ? "border-primary bg-primary text-primary-foreground"
-              : "border-muted-foreground",
-          )}
-        >
-          {selected && <Check className="size-3" />}
-        </div>
-      </div>
-      <div className="flex flex-wrap gap-1">
-        {item.serie.mac && (
-          <span className="text-xs text-muted-foreground">
-            MAC:{" "}
-            <span className="font-mono text-foreground">{item.serie.mac}</span>
-          </span>
-        )}
-        {item.serie.situacion && (
-          <Badge variant="outline" className="text-xs">
-            {item.serie.situacion}
-          </Badge>
-        )}
-      </div>
-    </button>
   );
 }

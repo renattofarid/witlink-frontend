@@ -117,6 +117,8 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
     },
   });
 
+  const tecnico1Value = form.watch("tecnico1");
+
   const handleSave = form.control.handleSubmit(() => {
     saveMutation.mutate();
   });
@@ -202,6 +204,7 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
           onClose={closeProductModal}
           liquidacion={liquidacion}
           onConfirm={handleAddItems}
+          initialTecnicoId={tecnico1Value || undefined}
         />
       )}
     </div>

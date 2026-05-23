@@ -30,6 +30,7 @@ interface AddProductosModalProps {
   onClose: () => void;
   liquidacion: LiquidacionResource;
   onConfirm: (items: LiquidacionCartItem[]) => void;
+  initialTecnicoId?: string;
 }
 
 interface MaterialSelection {
@@ -42,9 +43,10 @@ export default function AddProductosModal({
   onClose,
   liquidacion,
   onConfirm,
+  initialTecnicoId,
 }: AddProductosModalProps) {
   const [tecnicoId, setTecnicoId] = useState(
-    liquidacion.tecnico1 ? String(liquidacion.tecnico1) : "",
+    initialTecnicoId ?? (liquidacion.tecnico1 ? String(liquidacion.tecnico1) : ""),
   );
   const [tecnicoNombre, setTecnicoNombre] = useState("");
 

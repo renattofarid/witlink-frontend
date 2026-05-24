@@ -95,7 +95,7 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
           producto_id: number;
           tecnico_id: number;
           cantidad: number;
-          series: number[];
+          series: string[];
         }
       > = {};
       items.forEach((item) => {
@@ -109,7 +109,7 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
           };
         }
         grouped[key].cantidad += item.cantidad;
-        grouped[key].series.push(...item.series.map((s) => s.id));
+        grouped[key].series.push(...item.series.map((s) => s.serie));
       });
 
       const totalCantidad = Object.values(grouped).reduce(

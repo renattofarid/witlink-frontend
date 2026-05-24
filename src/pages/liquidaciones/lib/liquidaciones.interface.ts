@@ -158,7 +158,7 @@ export interface SaveProductosBody {
     cantidad: number;
     tecnico_id: number;
     producto_id: number;
-    series: number[];
+    series: string[];
   }>;
 }
 

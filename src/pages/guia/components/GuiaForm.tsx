@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,7 @@ import { GuiaProductoDialog } from "./GuiaProductoDialog";
 import { GuiaSeriesDetailModal } from "./GuiaSeriesDetailModal";
 import { GuiaProductoRow } from "./GuiaProductoRow";
 import { GuiaQuickAddSeriePanel } from "./GuiaQuickAddSeriePanel";
+import { useGuiaDraftStore } from "../lib/guia-draft.store";
 import { format } from "date-fns";
 
 // Evitar que TS se queje de imports no usados directamente
@@ -96,6 +97,15 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
     null,
   );
 
+  const { almacenDraft, setAlmacenDraft } = useGuiaDraftStore();
+  const submittedRef = useRef(false);
+
+  // Wrap onSuccess to mark submission before navigating away
+  const wrappedOnSuccess = () => {
+    submittedRef.current = true;
+    onSuccess?.();
+  };
+
   // ── Main form ──────────────────────────────────────────────────────────────
   const form = useForm<GuiaCreateFormValues>({
     resolver: zodResolver(guiaCreateSchema) as any,
@@ -119,6 +129,26 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
       form.reset(guiaToFormValues(guia));
     }
   }, [guia, mode, form]);
+
+  // Restore draft on mount (create mode only)
+  useEffect(() => {
+    if (mode === "create" && almacenDraft) {
+      form.reset({ ...almacenDraft, archivo: null });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Save draft on unmount (create mode only, skip if submitted successfully)
+  useEffect(() => {
+    if (mode !== "create") return;
+    return () => {
+      if (!submittedRef.current) {
+        const { numero, fecha, productos } = form.getValues();
+        setAlmacenDraft({ numero, fecha, productos });
+      }
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── Product sub-form ───────────────────────────────────────────────────────
   const productSubForm = useForm<ProductoFormValues>({
@@ -201,7 +231,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
   };
 
   // ── Mutation + delete ──────────────────────────────────────────────────────
-  const mutation = useGuiaMutation(mode, guia, onSuccess);
+  const mutation = useGuiaMutation(mode, guia, wrappedOnSuccess);
   const {
     pendingDeleteInfo,
     setPendingDeleteInfo,

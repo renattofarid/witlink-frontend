@@ -66,6 +66,8 @@ import {
 } from "../pages/liquidaciones/lib/liquidaciones.constants";
 import TrasladosPage from "../pages/traslados/pages/TrasladosPage";
 import { TrasladoComplete } from "../pages/traslados/lib/traslado.constants";
+import GenerarCargasPage from "../pages/generar-cargas/pages/GenerarCargasPage";
+import { GenerarCargasComplete } from "../pages/generar-cargas/lib/generar-cargas.constants";
 
 function ProtectedRoute({ children }: { children: JSX.Element }) {
   const { token, allowedRoutes, almacen_id } = useAuthStore();
@@ -389,6 +391,15 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <TrasladosPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path={GenerarCargasComplete.ROUTE}
+        element={
+          <ProtectedRoute>
+            <GenerarCargasPage />
           </ProtectedRoute>
         }
       />

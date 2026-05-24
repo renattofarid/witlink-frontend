@@ -30,6 +30,7 @@ import {
   ShieldCheck,
   BarChart3,
   Blocks,
+  FileDown,
 } from "lucide-react";
 import {
   Sidebar,
@@ -78,6 +79,7 @@ const iconMap: Record<string, LucideIcon> = {
 
   BarChart3: BarChart3,
   Blocks: Blocks,
+  FileDown: FileDown,
 };
 
 export const getIcon = (name: string): LucideIcon => iconMap[name] ?? LayoutGrid;

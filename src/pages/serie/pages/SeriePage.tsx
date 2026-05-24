@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTabParams } from "@/hooks/useTabParams";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import PageWrapper from "@/components/PageWrapper";
 import TitleComponent from "@/components/TitleComponent";
@@ -20,7 +21,7 @@ import type { SerieResource } from "../lib/serie.interface";
 export default function SeriePage() {
   const queryClient = useQueryClient();
 
-  const [params, setParams] = useState<Record<string, string>>({
+  const [params, setParams] = useTabParams(SerieComplete.ABSOLUTE_ROUTE, {
     page: "1",
     per_page: String(DEFAULT_PER_PAGE),
   });

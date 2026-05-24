@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useTabParams } from "@/hooks/useTabParams";
 import PageWrapper from "@/components/PageWrapper";
 import TitleComponent from "@/components/TitleComponent";
 import { DataTable } from "@/components/DataTable";
@@ -19,13 +19,13 @@ const materialesColumns = getInventarioMaterialesColumns();
 export default function InventarioPage() {
   const { almacen_id } = useAuthStore();
 
-  const [seriesParams, setSeriesParams] = useState<Record<string, string>>({
+  const [seriesParams, setSeriesParams] = useTabParams("/inventario/series-tab", {
     page: "1",
     per_page: String(DEFAULT_PER_PAGE),
     ...(almacen_id ? { almacen_id: String(almacen_id) } : {}),
   });
 
-  const [materialesParams, setMaterialesParams] = useState<Record<string, string>>({
+  const [materialesParams, setMaterialesParams] = useTabParams("/inventario/materiales-tab", {
     page: "1",
     per_page: String(DEFAULT_PER_PAGE),
     ...(almacen_id ? { almacen_id: String(almacen_id) } : {}),

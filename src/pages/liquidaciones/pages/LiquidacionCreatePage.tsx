@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import FormWrapper from "@/components/FormWrapper";
 import TitleFormComponent from "@/components/TitleFormComponent";
@@ -19,17 +18,14 @@ export default function LiquidacionCreatePage() {
     setCurrentSot,
     setSotNotFound,
     setSotSearched,
+    setSavedFormValues,
     reset,
   } = useLiquidacionStore();
 
   const [isSearching, setIsSearching] = useState(false);
 
-  // Limpiar store al desmontar
-  useEffect(() => {
-    return () => reset();
-  }, [reset]);
-
   const handleSearch = async (sot: string) => {
+    setSavedFormValues(null);
     setSotSearched(sot);
     setSotNotFound(false);
     setCurrentSot(null);
@@ -52,6 +48,7 @@ export default function LiquidacionCreatePage() {
   };
 
   const handleSuccess = () => {
+    reset();
     navigate(LiquidacionesComplete.ABSOLUTE_ROUTE);
   };
 

@@ -80,7 +80,7 @@ const iconMap: Record<string, LucideIcon> = {
   Blocks: Blocks,
 };
 
-const getIcon = (name: string): LucideIcon => iconMap[name] ?? LayoutGrid;
+export const getIcon = (name: string): LucideIcon => iconMap[name] ?? LayoutGrid;
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuthStore();

@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { useTabParams } from "@/hooks/useTabParams";
 import { useNavigate } from "react-router-dom";
 import { Plus, Upload } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -29,8 +30,6 @@ export default function LiquidacionesPage() {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [search, setSearch] = useState("");
-  const [estado, setEstado] = useState("");
   const [actasDialogOpen, setActasDialogOpen] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [pdfSot, setPdfSot] = useState<string>("");
@@ -60,29 +59,24 @@ export default function LiquidacionesPage() {
     }
   };
 
-  const [params, setParams] = useState<Record<string, string>>({
+  const [params, setParams] = useTabParams(LiquidacionesComplete.ABSOLUTE_ROUTE, {
     page: "1",
     per_page: String(DEFAULT_PER_PAGE),
+    search: "",
+    estado: "",
   });
 
-  const buildQueryParams = (): Record<string, string> => {
-    const p = { ...params };
-    if (search) p.search = search;
-    if (estado) p.estado = estado;
-    return p;
-  };
+  const queryParams = Object.fromEntries(
+    Object.entries(params).filter(([, v]) => v !== ""),
+  );
 
-  const { data, isLoading } = useLiquidacionesQuery(buildQueryParams());
+  const { data, isLoading } = useLiquidacionesQuery(queryParams);
 
-  const handleSearchChange = (v: string) => {
-    setSearch(v);
-    setParams((prev) => ({ ...prev, page: "1" }));
-  };
+  const handleSearchChange = (v: string) =>
+    setParams((prev) => ({ ...prev, search: v, page: "1" }));
 
-  const handleEstadoChange = (v: string) => {
-    setEstado(v);
-    setParams((prev) => ({ ...prev, page: "1" }));
-  };
+  const handleEstadoChange = (v: string) =>
+    setParams((prev) => ({ ...prev, estado: v, page: "1" }));
 
   const handlePageChange = (page: number) =>
     setParams((prev) => ({ ...prev, page: String(page) }));
@@ -165,8 +159,8 @@ export default function LiquidacionesPage() {
         isLoading={isLoading}
       >
         <LiquidacionFilters
-          search={search}
-          estado={estado}
+          search={params.search ?? ""}
+          estado={params.estado ?? ""}
           onSearchChange={handleSearchChange}
           onEstadoChange={handleEstadoChange}
         />

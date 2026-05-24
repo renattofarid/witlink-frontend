@@ -15,6 +15,7 @@ export default function SearchInput({
 }) {
   const [inputValue, setInputValue] = useState(value);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isFirstRenderRef = useRef(true);
 
   const onChangeRef = useRef(onChange);
   useEffect(() => {
@@ -22,6 +23,10 @@ export default function SearchInput({
   }, [onChange]);
 
   useEffect(() => {
+    if (isFirstRenderRef.current) {
+      isFirstRenderRef.current = false;
+      return;
+    }
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       onChangeRef.current(inputValue);

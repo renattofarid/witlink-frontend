@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -31,13 +31,19 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
   const queryClient = useQueryClient();
   const {
     currentSot,
+    sotSearched,
     items,
     isProductModalOpen,
+    savedFormValues,
+    setSavedFormValues,
     addItems,
     removeItem,
     openProductModal,
     closeProductModal,
   } = useLiquidacionStore();
+
+  // Captura el SOT al momento de montar para identificar los valores guardados
+  const sotAtMountRef = useRef(sotSearched);
 
   const liquidacion = currentSot?.liquidacion;
 
@@ -51,15 +57,31 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
     mode: "onChange",
   });
 
+  // Guarda los valores del formulario al desmontar, identificados por el SOT capturado al montar
   useEffect(() => {
-    if (liquidacion) {
+    const sot = sotAtMountRef.current;
+    return () => {
+      if (sot) {
+        setSavedFormValues({ sot, values: form.getValues() as Record<string, string> });
+      }
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Restaura desde el store si corresponde al mismo SOT, si no usa los valores de la API
+  useEffect(() => {
+    if (!liquidacion) return;
+    if (savedFormValues && savedFormValues.sot === sotAtMountRef.current) {
+      form.setValue("observaciones", savedFormValues.values.observaciones ?? "");
+      form.setValue("tecnico1", savedFormValues.values.tecnico1 ?? "");
+      form.setValue("tecnico2", savedFormValues.values.tecnico2 ?? "");
+    } else {
       form.setValue("observaciones", liquidacion.observaciones ?? "");
-      if (liquidacion.tecnico1)
-        form.setValue("tecnico1", String(liquidacion.tecnico1));
-      if (liquidacion.tecnico2)
-        form.setValue("tecnico2", String(liquidacion.tecnico2));
+      if (liquidacion.tecnico1) form.setValue("tecnico1", String(liquidacion.tecnico1));
+      if (liquidacion.tecnico2) form.setValue("tecnico2", String(liquidacion.tecnico2));
     }
-  }, [liquidacion, form]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liquidacion]);
 
   const saveMutation = useMutation({
     mutationFn: () => {

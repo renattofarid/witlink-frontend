@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useTabParams } from "@/hooks/useTabParams";
 import PageWrapper from "@/components/PageWrapper";
 import TitleComponent from "@/components/TitleComponent";
 import ActionsWrapper from "@/components/ActionsWrapper";
@@ -14,7 +14,7 @@ import TrasladoButtons from "../components/TrasladoButtons";
 const columns = getTrasladoListColumns();
 
 export default function TrasladosPage() {
-  const [params, setParams] = useState<Record<string, string>>({
+  const [params, setParams] = useTabParams(TrasladoComplete.ABSOLUTE_ROUTE, {
     page: "1",
     per_page: String(DEFAULT_PER_PAGE),
   });

@@ -20,10 +20,14 @@ interface LiquidacionStore {
   materialSearchQuery: string;
   equipmentSearchQuery: string;
 
+  // Valores del formulario guardados entre navegaciones
+  savedFormValues: { sot: string; values: Record<string, string> } | null;
+
   // Acciones SOT
   setCurrentSot: (sot: SotSearchResponse | null) => void;
   setSotNotFound: (v: boolean) => void;
   setSotSearched: (sot: string | null) => void;
+  setSavedFormValues: (v: { sot: string; values: Record<string, string> } | null) => void;
 
   // Acciones carrito
   addItem: (item: LiquidacionCartItem) => void;
@@ -56,6 +60,7 @@ const INITIAL: Pick<
   | "selectedInventoryTecnicoId"
   | "materialSearchQuery"
   | "equipmentSearchQuery"
+  | "savedFormValues"
 > = {
   currentSot: null,
   sotNotFound: false,
@@ -65,6 +70,7 @@ const INITIAL: Pick<
   selectedInventoryTecnicoId: "",
   materialSearchQuery: "",
   equipmentSearchQuery: "",
+  savedFormValues: null,
 };
 
 export const useLiquidacionStore = create<LiquidacionStore>((set) => ({
@@ -73,6 +79,7 @@ export const useLiquidacionStore = create<LiquidacionStore>((set) => ({
   setCurrentSot: (sot) => set({ currentSot: sot, sotNotFound: false }),
   setSotNotFound: (v) => set({ sotNotFound: v }),
   setSotSearched: (sot) => set({ sotSearched: sot }),
+  setSavedFormValues: (v) => set({ savedFormValues: v }),
 
   addItem: (item) =>
     set((state) => ({ items: [...state.items, item] })),

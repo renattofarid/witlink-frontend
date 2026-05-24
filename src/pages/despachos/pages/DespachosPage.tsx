@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTabParams } from "@/hooks/useTabParams";
 import { format } from "date-fns";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
@@ -26,25 +27,23 @@ export default function DespachosPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const [tecnicoId, setTecnicoId] = useState("");
-  const [params, setParams] = useState<Record<string, string>>(() => {
-    const today = new Date();
-    return {
-      page: "1",
-      per_page: String(DEFAULT_PER_PAGE),
-      fecha_inicio: format(new Date(today.getFullYear(), 0, 1), "yyyy-MM-dd"),
-      fecha_fin: format(today, "yyyy-MM-dd"),
-    };
+  const today = new Date();
+  const [params, setParams] = useTabParams(DespachoComplete.ABSOLUTE_ROUTE, {
+    page: "1",
+    per_page: String(DEFAULT_PER_PAGE),
+    fecha_inicio: format(new Date(today.getFullYear(), 0, 1), "yyyy-MM-dd"),
+    fecha_fin: format(today, "yyyy-MM-dd"),
+    tecnico_id: "",
   });
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [toDelete, setToDelete] = useState<DespachoResource | null>(null);
   const [masivoOpen, setMasivoOpen] = useState(false);
 
-  const { fecha_inicio, fecha_fin, ...restParams } = params;
+  const { fecha_inicio, fecha_fin, tecnico_id, ...restParams } = params;
   const queryParams: Record<string, any> = {
     ...restParams,
-    ...(tecnicoId ? { tecnico_id: tecnicoId } : {}),
+    ...(tecnico_id ? { tecnico_id } : {}),
   };
   if (fecha_inicio || fecha_fin) {
     queryParams["fecha[]"] = [fecha_inicio ?? "", fecha_fin ?? ""].filter(Boolean);
@@ -75,10 +74,8 @@ export default function DespachosPage() {
     setDeleteOpen(true);
   };
 
-  const handleTecnicoChange = (value: string) => {
-    setTecnicoId(value);
-    setParams((prev) => ({ ...prev, page: "1" }));
-  };
+  const handleTecnicoChange = (value: string) =>
+    setParams((prev) => ({ ...prev, tecnico_id: value, page: "1" }));
 
   const handlePageChange = (page: number) =>
     setParams((prev) => ({ ...prev, page: String(page) }));
@@ -112,7 +109,7 @@ export default function DespachosPage() {
         <DespachoFilters
           params={params}
           setParams={setParams}
-          tecnicoId={tecnicoId}
+          tecnicoId={params.tecnico_id ?? ""}
           onTecnicoChange={handleTecnicoChange}
         />
       </DataTable>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTabParams } from "@/hooks/useTabParams";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -32,7 +33,7 @@ export default function GuiaPage() {
   const queryClient = useQueryClient();
 
   const today = new Date();
-  const [params, setParams] = useState<Record<string, string>>({
+  const [params, setParams] = useTabParams(GuiaComplete.ABSOLUTE_ROUTE, {
     page: "1",
     per_page: String(DEFAULT_PER_PAGE),
     fecha_inicio: format(new Date(today.getFullYear(), 0, 1), "yyyy-MM-dd"),

@@ -103,7 +103,7 @@ export function GuiaQuickAddSeriePanel({
 
   const {
     register,
-    whandleSubmit: handleSubmit,
+    handleSubmit,
     reset,
     setValue,
     formState: { errors },

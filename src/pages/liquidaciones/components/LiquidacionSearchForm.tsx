@@ -1,11 +1,7 @@
 import { useState } from "react";
-import { Search, AlertCircle } from "lucide-react";
+import { Search, AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 
 interface LiquidacionSearchFormProps {
   isLoading: boolean;
@@ -29,60 +25,41 @@ export default function LiquidacionSearchForm({
   };
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-sm font-semibold flex items-center gap-2">
-          <Search className="size-4 text-primary" />
-          Buscar SOT
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="flex flex-wrap gap-3 items-end">
-          <div className="flex flex-col gap-1 min-w-55">
-            <Label className="text-xs text-muted-foreground">
-              Número de SOT <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              value={value}
-              onChange={(e) => setValue(e.target.value.toUpperCase())}
-              placeholder="Ej: SOT-00123"
-              className="uppercase"
-              disabled={isLoading}
-            />
-          </div>
-          <Button type="submit" disabled={isLoading || !value.trim()}>
-            {isLoading ? (
-              <>
-                <span className="animate-spin mr-2">⏳</span>
-                Buscando...
-              </>
-            ) : (
-              <>
-                <Search className="size-4 mr-1" />
-                Aceptar
-              </>
-            )}
-          </Button>
-        </form>
+    <div className="flex flex-col gap-2">
+      <form onSubmit={handleSubmit} className="flex gap-2 items-center">
+        <div className="relative w-72">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
+          <Input
+            value={value}
+            onChange={(e) => setValue(e.target.value.toUpperCase())}
+            placeholder="Ej: SOT-00123"
+            className="pl-9 uppercase font-mono tracking-wide"
+            disabled={isLoading}
+          />
+        </div>
+        <Button type="submit" disabled={isLoading || !value.trim()}>
+          {isLoading ? (
+            <>
+              <Loader2 className="size-4 mr-1.5 animate-spin" />
+              Buscando...
+            </>
+          ) : (
+            <>
+              <Search className="size-4 mr-1.5" />
+              Buscar
+            </>
+          )}
+        </Button>
+      </form>
 
-        {isLoading && (
-          <div className="mt-4 space-y-2">
-            <Skeleton className="h-4 w-3/4" />
-            <Skeleton className="h-4 w-1/2" />
-          </div>
-        )}
-
-        {!isLoading && notFound && (
-          <Alert variant="destructive" className="mt-4">
-            <AlertCircle className="size-4" />
-            <AlertTitle>SOT no encontrada</AlertTitle>
-            <AlertDescription>
-              No se encontró ninguna orden con el número <strong>{currentSot}</strong>.
-              Verifique el número e intente nuevamente.
-            </AlertDescription>
-          </Alert>
-        )}
-      </CardContent>
-    </Card>
+      {!isLoading && notFound && (
+        <p className="flex items-center gap-1.5 text-xs text-destructive">
+          <AlertCircle className="size-3.5 shrink-0" />
+          No se encontró ninguna orden con el número{" "}
+          <span className="font-mono font-semibold">{currentSot}</span>.
+          Verifique e intente nuevamente.
+        </p>
+      )}
+    </div>
   );
 }

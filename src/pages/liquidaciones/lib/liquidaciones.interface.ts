@@ -1,5 +1,30 @@
 import type { PaginationResponse } from "@/lib/core.interface";
 
+// ── Personas anidadas ─────────────────────────────────────────────────────────
+
+export interface TecnicoPersona {
+  id: number;
+  favorito: boolean | null;
+  persona: {
+    id: number | null;
+    nombre: string | null;
+    apellido_paterno: string | null;
+    apellido_materno: string | null;
+    dni: string | null;
+  };
+}
+
+export interface UsuarioLiquidacion {
+  id: number;
+  nombre_usuario: string;
+  persona: {
+    id: number;
+    nombre: string;
+    apellido_paterno: string;
+    apellido_materno: string;
+  };
+}
+
 // ── SOT / Liquidación principal ───────────────────────────────────────────────
 
 export interface LiquidacionResource {
@@ -17,17 +42,15 @@ export interface LiquidacionResource {
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
-  usuario_id: number;
   almacen_id: number;
   nombre: string;
-  tecnico1: number | null;
-  tecnico2: number | null;
+  tecnico1: TecnicoPersona | null;
+  tecnico2: TecnicoPersona | null;
   estado_liquidacion: string | null;
   observaciones: string | null;
+  usuario: UsuarioLiquidacion;
   acta: ActaResource | null;
   productos?: ProductoLiquidacionItem[];
-  tecnico_uno?: TecnicoLiquidacion | null;
-  tecnico_dos?: TecnicoLiquidacion | null;
 }
 
 // ── Documentos / equipos retirados ────────────────────────────────────────────
@@ -120,6 +143,47 @@ export interface SotSearchResponse {
   documentos_equipos_retirados: DocumentoEquiposRetirados[];
 }
 
+// ── Productos guardados en la liquidación ─────────────────────────────────────
+
+export interface ProductoInfo {
+  id: number;
+  sap: string;
+  nombre: string;
+  tipo: string;
+  necesita_serie: boolean;
+  necesita_mac: boolean;
+  necesita_emta_mac: boolean;
+  necesita_ua: boolean;
+  origen: string;
+}
+
+export interface ProductoLiquidacionItem {
+  id: number;
+  liquidacion_id: number;
+  tecnico_id: number;
+  cantidad: string;
+  // Presente en el formato con serie (equipos)
+  series: Array<{
+    serie: {
+      id: number;
+      situacion?: string;
+      situacion_label?: string;
+      serie: string;
+      emta_mac: string | null;
+      mac: string | null;
+      ua: string | null;
+      producto?: ProductoInfo;
+      created_at: string;
+      updated_at: string;
+    };
+    created_at: string;
+    updated_at: string;
+  }>;
+  // Presente en formato directo (materiales sin serie)
+  producto_id?: number;
+  producto?: ProductoInfo;
+}
+
 // ── Detalle de liquidación (response del guardado) ────────────────────────────
 
 export interface DetalleProductoLiquidacionItem {
@@ -142,6 +206,7 @@ export interface SaveProductosResponse {
 
 export interface LiquidacionCartItem {
   tempId: string;
+  detalle_id?: number;
   tipo: "material" | "serie";
   producto_id: number;
   producto_nombre: string;
@@ -165,50 +230,14 @@ export interface SaveProductosBody {
   }>;
 }
 
-// ── Técnico resumido (incluido en la respuesta de liquidación) ────────────────
-
-export interface TecnicoLiquidacion {
-  id: number;
-  nombre: string;
-  apellido_paterno: string;
-  apellido_materno: string;
-  nombre_completo: string;
-}
-
-// ── Productos ya guardados en la liquidación ──────────────────────────────────
-
-export interface ProductoLiquidacionItem {
-  id: number;
-  producto_id: number;
-  movimiento_id: number | null;
-  tecnico_id: number;
+export interface UpdateProductosBody {
   liquidacion_id: number;
-  cantidad: string;
-  deleted_at: string | null;
-  producto: {
-    id: number;
-    sap: string;
-    nombre: string;
-    tipo: string;
-    necesita_serie: boolean;
-    necesita_mac: boolean;
-    necesita_emta_mac: boolean;
-    necesita_ua: boolean;
-    origen: string;
-  };
-  series: Array<{
-    serie_id: number;
-    origen_tecnico_id: number | null;
-    detalle_productos_liquidacion_id: number;
-    serie: {
-      id: number;
-      producto_id: number;
-      serie: string;
-      situacion: string;
-      mac: string | null;
-      ua: string | null;
-      emta_mac: string | null;
-    };
+  productos: Array<{
+    id?: number;
+    producto_id: number;
+    tecnico_id: number;
+    cantidad?: number;
+    series: string[];
   }>;
 }
 

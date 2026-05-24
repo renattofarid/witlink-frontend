@@ -1,10 +1,8 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { Trash2 } from "lucide-react";
+import { Trash2, PackagePlus, Save, Package } from "lucide-react";
 import { DataTable } from "@/components/DataTable";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { PackagePlus } from "lucide-react";
 import type { LiquidacionCartItem } from "../lib/liquidaciones.interface";
 
 interface LiquidacionDetailTableProps {
@@ -97,41 +95,78 @@ export default function LiquidacionDetailTable({
   ];
 
   return (
-    <div className="space-y-3">
-      {/* Header sección */}
-      <div className="flex items-center gap-2">
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground whitespace-nowrap">
-          Detalle de liquidación
-        </h3>
-        <Separator className="flex-1" />
-        <div className="flex gap-2">
+    <div className="rounded-lg border bg-card overflow-hidden shadow-sm">
+      <div className="flex items-center justify-between px-4 py-2.5 bg-muted/40 border-b">
+        <div className="flex items-center gap-3">
+          <div className="size-8 rounded-md bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+            <Package className="size-4 text-emerald-600 dark:text-emerald-400" />
+          </div>
+          <div>
+            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest leading-none mb-0.5">
+              Detalle
+            </p>
+            <div className="flex items-center gap-2 leading-none">
+              <p className="text-sm font-semibold text-foreground">
+                Liquidación
+              </p>
+              {items.length > 0 && (
+                <Badge
+                  variant="secondary"
+                  className="text-[10px] h-4 px-1.5 rounded-full"
+                >
+                  {items.length} {items.length === 1 ? "ítem" : "ítems"}
+                </Badge>
+              )}
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
           <Button
             type="button"
             variant="outline"
             size="sm"
-            className="h-7 text-xs"
+            className="h-8 text-xs gap-1.5"
             onClick={onAddProducts}
           >
-            <PackagePlus className="size-3 mr-1" />
+            <PackagePlus className="size-3.5" />
             Agregar producto
           </Button>
           <Button
             type="button"
             size="sm"
-            className="h-7 text-xs"
+            className="h-8 text-xs gap-1.5"
             onClick={onSave}
             disabled={isSaving || items.length === 0}
           >
-            {isSaving ? "Guardando..." : "Guardar liquidación"}
+            <Save className="size-3.5" />
+            {isSaving ? "Guardando..." : "Guardar"}
           </Button>
         </div>
       </div>
 
       {items.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-10 border border-dashed rounded-lg text-muted-foreground gap-2">
-          <PackagePlus className="size-8 opacity-40" />
-          <p className="text-sm">Sin productos agregados</p>
-          <p className="text-xs">Haz clic en "Agregar producto" para comenzar</p>
+        <div className="flex flex-col items-center justify-center py-12 text-muted-foreground gap-3">
+          <div className="size-14 rounded-full bg-muted flex items-center justify-center">
+            <PackagePlus className="size-6 opacity-40" />
+          </div>
+          <div className="text-center space-y-1">
+            <p className="text-sm font-medium text-foreground/80">
+              Sin productos agregados
+            </p>
+            <p className="text-xs">
+              Agrega productos para registrar el detalle de la liquidación
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-8 text-xs gap-1.5 mt-1"
+            onClick={onAddProducts}
+          >
+            <PackagePlus className="size-3.5" />
+            Agregar primer producto
+          </Button>
         </div>
       ) : (
         <DataTable

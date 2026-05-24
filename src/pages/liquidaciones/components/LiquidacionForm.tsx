@@ -13,7 +13,7 @@ import {
   liquidacionFormSchema,
   type LiquidacionFormValues,
 } from "../lib/liquidaciones.schema";
-import { saveProductosLiquidacion } from "../lib/liquidaciones.actions";
+import { saveProductosLiquidacion, updateProductosLiquidacion } from "../lib/liquidaciones.actions";
 import { LiquidacionesComplete } from "../lib/liquidaciones.constants";
 import { useLiquidacionStore } from "../lib/liquidaciones.store";
 import { useTecnicosLiquidacionQuery } from "../lib/liquidaciones.hook";
@@ -63,24 +63,30 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
     if (useLiquidacionStore.getState().items.length > 0) return;
 
     const techMap: Record<number, string> = {};
-    if (liquidacion.tecnico_uno) {
-      techMap[liquidacion.tecnico_uno.id] = liquidacion.tecnico_uno.nombre_completo;
+    const t1 = liquidacion.tecnico1;
+    const t2 = liquidacion.tecnico2;
+    if (t1?.id && t1.persona.nombre) {
+      techMap[t1.id] = [t1.persona.nombre, t1.persona.apellido_paterno].filter(Boolean).join(" ");
     }
-    if (liquidacion.tecnico_dos) {
-      techMap[liquidacion.tecnico_dos.id] = liquidacion.tecnico_dos.nombre_completo;
+    if (t2?.id && t2.persona.nombre) {
+      techMap[t2.id] = [t2.persona.nombre, t2.persona.apellido_paterno].filter(Boolean).join(" ");
     }
 
-    const cartItems: LiquidacionCartItem[] = liquidacion.productos.map((item) => ({
-      tempId: `api-${item.id}`,
-      tipo: item.producto.necesita_serie ? "serie" : "material",
-      producto_id: item.producto_id,
-      producto_nombre: item.producto.nombre,
-      producto_sap: item.producto.sap,
-      tecnico_id: item.tecnico_id,
-      tecnico_nombre: techMap[item.tecnico_id] ?? `Técnico ${item.tecnico_id}`,
-      cantidad: Number(item.cantidad),
-      series: item.series.map((s) => ({ id: s.serie.id, serie: s.serie.serie })),
-    }));
+    const cartItems: LiquidacionCartItem[] = liquidacion.productos.map((item) => {
+      const prod = item.producto ?? item.series[0]?.serie?.producto;
+      return {
+        tempId: `api-${item.id}`,
+        detalle_id: item.id,
+        tipo: prod?.necesita_serie ? "serie" : "material",
+        producto_id: prod?.id ?? item.producto_id ?? 0,
+        producto_nombre: prod?.nombre ?? "Desconocido",
+        producto_sap: prod?.sap ?? "",
+        tecnico_id: item.tecnico_id,
+        tecnico_nombre: techMap[item.tecnico_id] ?? `Técnico ${item.tecnico_id}`,
+        cantidad: Number(item.cantidad),
+        series: item.series.map((s) => ({ id: s.serie.id, serie: s.serie.serie })),
+      };
+    });
 
     addItems(cartItems);
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -106,8 +112,8 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
       form.setValue("tecnico2", savedFormValues.values.tecnico2 ?? "");
     } else {
       form.setValue("observaciones", liquidacion.observaciones ?? "");
-      if (liquidacion.tecnico1) form.setValue("tecnico1", String(liquidacion.tecnico1));
-      if (liquidacion.tecnico2) form.setValue("tecnico2", String(liquidacion.tecnico2));
+      if (liquidacion.tecnico1?.id) form.setValue("tecnico1", String(liquidacion.tecnico1.id));
+      if (liquidacion.tecnico2?.id) form.setValue("tecnico2", String(liquidacion.tecnico2.id));
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [liquidacion]);
@@ -117,6 +123,19 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
       if (!liquidacion) throw new Error("No hay SOT cargada");
       if (items.length === 0)
         throw new Error("Debe agregar al menos un producto");
+
+      if (liquidacion.estado_liquidacion === "liquidada") {
+        return updateProductosLiquidacion({
+          liquidacion_id: liquidacion.id,
+          productos: items.map((item) => ({
+            ...(item.detalle_id ? { id: item.detalle_id } : {}),
+            producto_id: item.producto_id,
+            tecnico_id: item.tecnico_id,
+            cantidad: item.cantidad,
+            series: item.series.map((s) => s.serie),
+          })),
+        });
+      }
 
       const grouped: Record<
         string,
@@ -184,62 +203,70 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
     <div className="space-y-4">
       <LiquidacionHeaderInfo liquidacion={liquidacion} />
 
-      <GroupFormSection
-        title="Personal asignado"
-        icon={Users}
-        cols={{ sm: 1, md: 2 }}
-      >
-        <FormSelectAsync
-          name="tecnico1"
-          label="Personal 1"
-          control={form.control}
-          placeholder="Seleccionar técnico..."
-          useQueryHook={useTecnicosLiquidacionQuery}
-          mapOptionFn={(item: PersonaResource) => ({
-            value: String(item.id),
-            label: `${item.nombre} ${item.apellido_paterno}`,
-            description: `DNI: ${item.dni}`,
-          })}
-          perPage={20}
-          required
-        />
-        <FormSelectAsync
-          name="tecnico2"
-          label="Personal 2"
-          control={form.control}
-          placeholder="Seleccionar técnico (opcional)..."
-          useQueryHook={useTecnicosLiquidacionQuery}
-          mapOptionFn={(item: PersonaResource) => ({
-            value: String(item.id),
-            label: `${item.nombre} ${item.apellido_paterno}`,
-            description: `DNI: ${item.dni}`,
-          })}
-          perPage={20}
-        />
-      </GroupFormSection>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+        <GroupFormSection
+          title="Personal asignado"
+          icon={Users}
+          cols={{ sm: 1, lg: 2 }}
+          iconColor="text-blue-600 dark:text-blue-400"
+          bgColor="bg-blue-50 dark:bg-blue-950/20"
+          className="h-full"
+        >
+          <FormSelectAsync
+            name="tecnico1"
+            label="Personal 1"
+            control={form.control}
+            placeholder="Seleccionar técnico..."
+            useQueryHook={useTecnicosLiquidacionQuery}
+            mapOptionFn={(item: PersonaResource) => ({
+              value: String(item.id),
+              label: `${item.nombre} ${item.apellido_paterno}`,
+              description: `DNI: ${item.dni}`,
+            })}
+            perPage={20}
+            required
+          />
+          <FormSelectAsync
+            name="tecnico2"
+            label="Personal 2"
+            control={form.control}
+            placeholder="Seleccionar técnico (opcional)..."
+            useQueryHook={useTecnicosLiquidacionQuery}
+            mapOptionFn={(item: PersonaResource) => ({
+              value: String(item.id),
+              label: `${item.nombre} ${item.apellido_paterno}`,
+              description: `DNI: ${item.dni}`,
+            })}
+            perPage={20}
+          />
+        </GroupFormSection>
 
-      <GroupFormSection
-        title="Observaciones"
-        icon={MessageSquare}
-        cols={{ sm: 1, md: 1 }}
-      >
-        <Controller
-          control={form.control}
-          name="observaciones"
-          render={({ field }) => (
-            <div className="flex flex-col gap-1">
-              <Label className="text-xs text-muted-foreground">
-                Observación
-              </Label>
-              <Textarea
-                {...field}
-                placeholder="Ingrese observaciones opcionales..."
-                rows={3}
-              />
-            </div>
-          )}
-        />
-      </GroupFormSection>
+        <GroupFormSection
+          title="Observaciones"
+          icon={MessageSquare}
+          cols={{ sm: 1, md: 1 }}
+          iconColor="text-amber-600 dark:text-amber-400"
+          bgColor="bg-amber-50 dark:bg-amber-950/20"
+          className="h-full"
+        >
+          <Controller
+            control={form.control}
+            name="observaciones"
+            render={({ field }) => (
+              <div className="flex flex-col gap-1">
+                <Label className="text-xs text-muted-foreground">
+                  Observación
+                </Label>
+                <Textarea
+                  {...field}
+                  placeholder="Ingrese observaciones opcionales..."
+                  rows={3}
+                />
+              </div>
+            )}
+          />
+        </GroupFormSection>
+      </div>
 
       <LiquidacionDetailTable
         items={items}

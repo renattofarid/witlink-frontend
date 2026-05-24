@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import FormWrapper from "@/components/FormWrapper";
 import TitleFormComponent from "@/components/TitleFormComponent";
 import LiquidacionSearchForm from "../components/LiquidacionSearchForm";
+import LiquidacionLiquidadaView from "../components/LiquidacionLiquidadaView";
 import LiquidacionForm from "../components/LiquidacionForm";
 import { useLiquidacionStore } from "../lib/liquidaciones.store";
 import { LiquidacionesComplete } from "../lib/liquidaciones.constants";
@@ -69,7 +70,12 @@ export default function LiquidacionCreatePage() {
         currentSot={sotSearched ?? undefined}
       />
 
-      {/* Sección 2-4: Formulario (solo si hay SOT) */}
+      {/* Resumen cuando ya está liquidada */}
+      {currentSot?.liquidacion.estado_liquidacion === "liquidada" && (
+        <LiquidacionLiquidadaView liquidacion={currentSot.liquidacion} />
+      )}
+
+      {/* Formulario (pendiente → POST, liquidada → PUT) */}
       {currentSot && <LiquidacionForm onSuccess={handleSuccess} />}
     </FormWrapper>
   );

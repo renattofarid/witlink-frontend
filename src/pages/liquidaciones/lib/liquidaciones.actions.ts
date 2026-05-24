@@ -5,6 +5,7 @@ import type {
   LiquidacionesResponse,
   SaveProductosBody,
   SaveProductosResponse,
+  UpdateProductosBody,
   ActaResource,
 } from "./liquidaciones.interface";
 
@@ -26,6 +27,13 @@ export const saveProductosLiquidacion = async (
   body: SaveProductosBody,
 ): Promise<SaveProductosResponse> => {
   const { data } = await api.post("/detalle-productos-liquidacion", body);
+  return data;
+};
+
+export const updateProductosLiquidacion = async (
+  body: UpdateProductosBody,
+): Promise<SaveProductosResponse> => {
+  const { data } = await api.put("/detalle-productos-liquidacion", body);
   return data;
 };
 

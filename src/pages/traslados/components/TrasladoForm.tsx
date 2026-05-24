@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -22,20 +22,13 @@ import {
   trasladoCreateSchema,
   type TrasladoCreateFormValues,
 } from "../lib/traslado.schema";
+import {
+  useTrasladoDraftStore,
+  type TrasladoSerieCartItem as SerieCartItem,
+  type TrasladoMaterialCartItem as MaterialCartItem,
+} from "../lib/traslado-draft.store";
 import type { SerieResource } from "@/pages/serie/lib/serie.interface";
 import type { MaterialResource } from "@/pages/materiales/lib/materiales.interface";
-
-interface SerieCartItem {
-  serie_id: number;
-  label: string;
-  producto?: string;
-}
-
-interface MaterialCartItem {
-  material_id: number;
-  label: string;
-  cantidad: number;
-}
 
 interface TrasladoFormProps {
   onSuccess?: () => void;
@@ -44,9 +37,11 @@ interface TrasladoFormProps {
 export default function TrasladoForm({ onSuccess }: TrasladoFormProps) {
   const queryClient = useQueryClient();
   const almacen_id = useAuthStore((s) => s.almacen_id);
+  const { draft, setDraft, clearDraft } = useTrasladoDraftStore();
+  const submittedRef = useRef(false);
 
-  const [seriesCart, setSeriesCart] = useState<SerieCartItem[]>([]);
-  const [materialsCart, setMaterialsCart] = useState<MaterialCartItem[]>([]);
+  const [seriesCart, setSeriesCart] = useState<SerieCartItem[]>(draft?.seriesCart ?? []);
+  const [materialsCart, setMaterialsCart] = useState<MaterialCartItem[]>(draft?.materialsCart ?? []);
   const [cartError, setCartError] = useState<string | null>(null);
 
   const [serieInput, setSerieInput] = useState("");
@@ -68,14 +63,35 @@ export default function TrasladoForm({ onSuccess }: TrasladoFormProps) {
   const form = useForm<TrasladoCreateFormValues>({
     resolver: zodResolver(trasladoCreateSchema),
     defaultValues: {
-      tipo: "serie",
+      tipo: draft?.tipo ?? "serie",
       serie_id: "",
-      destino_almacen_id: "",
+      destino_almacen_id: draft?.destino_almacen_id ?? "",
       modo_retirados: false,
       material_id: "",
       cantidad: "",
     },
   });
+
+  // Mirror cart state to refs for cleanup
+  const seriesCartRef = useRef(seriesCart);
+  seriesCartRef.current = seriesCart;
+  const materialsCartRef = useRef(materialsCart);
+  materialsCartRef.current = materialsCart;
+
+  // Save draft on unmount (skip if submitted successfully)
+  useEffect(() => {
+    return () => {
+      if (!submittedRef.current) {
+        setDraft({
+          tipo: form.getValues("tipo"),
+          destino_almacen_id: form.getValues("destino_almacen_id"),
+          seriesCart: seriesCartRef.current,
+          materialsCart: materialsCartRef.current,
+        });
+      }
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const tipo = form.watch("tipo");
 
@@ -107,6 +123,8 @@ export default function TrasladoForm({ onSuccess }: TrasladoFormProps) {
       });
     },
     onSuccess: () => {
+      submittedRef.current = true;
+      clearDraft();
       queryClient.invalidateQueries({ queryKey: [TrasladoComplete.QUERY_KEY] });
       successToast("Traslado creado correctamente.");
       onSuccess?.();

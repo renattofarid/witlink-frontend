@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useInventarioTecnicoFiltersStore } from "../lib/inventario-tecnico-filters.store";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import PageWrapper from "@/components/PageWrapper";
 import TitleComponent from "@/components/TitleComponent";
@@ -18,8 +19,7 @@ import type { InventarioTecnicoResource } from "../lib/inventario-tecnico.interf
 export default function InventarioTecnicoPage() {
   const queryClient = useQueryClient();
 
-  const [tecnicoId, setTecnicoId] = useState("");
-  const [fecha, setFecha] = useState("");
+  const { tecnicoId, fecha, setTecnicoId, setFecha } = useInventarioTecnicoFiltersStore();
 
   const [devolverMaterialOpen, setDevolverMaterialOpen] = useState(false);
   const [devolverSerieOpen, setDevolverSerieOpen] = useState(false);
@@ -51,6 +51,7 @@ export default function InventarioTecnicoPage() {
     setTecnicoId(value);
     setFecha("");
   };
+
 
   const handleDevolverMaterial = (row: InventarioTecnicoResource) => {
     setSelected(row);

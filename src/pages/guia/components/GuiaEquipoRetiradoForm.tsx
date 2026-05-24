@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -26,6 +26,7 @@ import {
   EquiposRetiradosComplete,
   TIPO_EQUIPO_RETIRADO_OPTIONS,
 } from "@/pages/equipos-retirados/lib/equipos-retirados.constants";
+import { useGuiaDraftStore } from "../lib/guia-draft.store";
 import {
   createEquipoRetirado,
   updateEquipoRetirado,
@@ -124,6 +125,8 @@ interface Props {
 
 export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Props) {
   const queryClient = useQueryClient();
+  const { equipoRetiradoDraft, setEquipoRetiradoDraft, clearDrafts } = useGuiaDraftStore();
+  const submittedRef = useRef(false);
 
   // Product dialog state
   const [editingProductoIndex, setEditingProductoIndex] = useState<number | null>(null);
@@ -155,6 +158,21 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
     remove: removeProducto,
     update: updateProductoField,
   } = useFieldArray({ control: createForm.control, name: "productos" });
+
+  // Restore draft on mount (create mode only)
+  useEffect(() => {
+    if (mode === "create" && equipoRetiradoDraft) createForm.reset(equipoRetiradoDraft);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Save draft on unmount (create mode only, skip if submitted successfully)
+  useEffect(() => {
+    if (mode !== "create") return;
+    return () => {
+      if (!submittedRef.current) setEquipoRetiradoDraft(createForm.getValues());
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── Edit header form ───────────────────────────────────────────────────────
   const editForm = useForm<HeaderEditFormValues>({
@@ -238,6 +256,8 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
         productos: values.productos.map(mapProducto),
       }),
     onSuccess: () => {
+      submittedRef.current = true;
+      clearDrafts();
       queryClient.invalidateQueries({ queryKey: [EquiposRetiradosComplete.QUERY_KEY] });
       successToast("Equipo retirado creado correctamente.");
       onSuccess?.();

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -19,6 +19,7 @@ import {
 import { createDespacho } from "../lib/despacho.actions";
 import { DespachoComplete } from "../lib/despacho.constants";
 import { useTecnicoDespachoQuery } from "../lib/despacho.hook";
+import { useDespachosDraftStore } from "../lib/despacho-draft.store";
 import type { PersonaResource } from "@/pages/persona/lib/persona.interface";
 import { DespachoProductoDialog } from "./DespachoProductoDialog";
 import { despachoProductoSchema } from "../lib/despacho.schema";
@@ -40,6 +41,8 @@ interface DespachoFormProps {
 
 export default function DespachoForm({ onSuccess }: DespachoFormProps) {
   const queryClient = useQueryClient();
+  const { draft, setDraft, clearDraft } = useDespachosDraftStore();
+  const submittedRef = useRef(false);
 
   const [editingProductoIndex, setEditingProductoIndex] = useState<
     number | null
@@ -58,6 +61,20 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
     remove: removeProducto,
     update: updateProductoField,
   } = useFieldArray({ control: form.control, name: "productos" });
+
+  // Restore draft on mount
+  useEffect(() => {
+    if (draft) form.reset(draft);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Save draft on unmount (skip if submitted successfully)
+  useEffect(() => {
+    return () => {
+      if (!submittedRef.current) setDraft(form.getValues());
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── Product sub-form ───────────────────────────────────────────────────────
   const productSubForm = useForm<DespachoProductoFormValues>({
@@ -128,6 +145,8 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
       });
     },
     onSuccess: () => {
+      submittedRef.current = true;
+      clearDraft();
       queryClient.invalidateQueries({ queryKey: [DespachoComplete.QUERY_KEY] });
       successToast("Despacho creado correctamente.");
       onSuccess?.();

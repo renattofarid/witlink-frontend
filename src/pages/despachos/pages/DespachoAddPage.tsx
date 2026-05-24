@@ -7,6 +7,10 @@ import { DespachoComplete } from "../lib/despacho.constants";
 export default function DespachoAddPage() {
   const navigate = useNavigate();
 
+  const handleSuccess = () => {
+    navigate(DespachoComplete.ABSOLUTE_ROUTE);
+  };
+
   return (
     <FormWrapper>
       <TitleFormComponent
@@ -15,9 +19,7 @@ export default function DespachoAddPage() {
         icon="List"
         backRoute={DespachoComplete.ABSOLUTE_ROUTE}
       />
-      <DespachoForm
-        onSuccess={() => navigate(DespachoComplete.ABSOLUTE_ROUTE)}
-      />
+      <DespachoForm onSuccess={handleSuccess} />
     </FormWrapper>
   );
 }

@@ -5,23 +5,26 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { DataTable } from "@/components/DataTable";
 import { Badge } from "@/components/ui/badge";
 import { successToast, errorToast } from "@/lib/core.function";
-import { Trash2, Pencil, PackagePlus } from "lucide-react";
+import { Trash2, Pencil, PackagePlus, Package, ListPlus } from "lucide-react";
 import {
   despachoCreateSchema,
   type DespachoCreateFormValues,
   type DespachoProductoFormValues,
   type DespachoSerieFormValues,
 } from "../lib/despacho.schema";
-import { createDespacho } from "../lib/despacho.actions";
+import { createDespacho, createDespachoMasivoSeries } from "../lib/despacho.actions";
 import { DespachoComplete } from "../lib/despacho.constants";
 import { useTecnicoDespachoQuery } from "../lib/despacho.hook";
 import { useDespachosDraftStore } from "../lib/despacho-draft.store";
 import type { PersonaResource } from "@/pages/persona/lib/persona.interface";
+import type { MasivoSerieValidadaItem } from "../lib/despacho.interface";
 import { DespachoProductoDialog } from "./DespachoProductoDialog";
+import { DespachoMasivoSeriesInput } from "./DespachoMasivoSeriesInput";
 import { despachoProductoSchema } from "../lib/despacho.schema";
 
 void despachoProductoSchema;
@@ -41,8 +44,22 @@ interface DespachoFormProps {
 
 export default function DespachoForm({ onSuccess }: DespachoFormProps) {
   const queryClient = useQueryClient();
-  const { draft, setDraft, clearDraft } = useDespachosDraftStore();
+  const {
+    draft,
+    formMode: draftFormMode,
+    masivoSeries: draftMasivoSeries,
+    setDraft,
+    setFormMode: setDraftFormMode,
+    setMasivoSeries: setDraftMasivoSeries,
+    clearDraft,
+  } = useDespachosDraftStore();
   const submittedRef = useRef(false);
+  const formModeRef = useRef<"producto" | "masivo">(draftFormMode);
+  const masivoSeriesRef = useRef<MasivoSerieValidadaItem[]>(draftMasivoSeries);
+
+  const [formMode, setFormMode] = useState<"producto" | "masivo">(draftFormMode);
+  const [masivoSeries, setMasivoSeries] = useState<MasivoSerieValidadaItem[]>(draftMasivoSeries);
+  const [masivoError, setMasivoError] = useState("");
 
   const [editingProductoIndex, setEditingProductoIndex] = useState<
     number | null
@@ -71,7 +88,11 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
   // Save draft on unmount (skip if submitted successfully)
   useEffect(() => {
     return () => {
-      if (!submittedRef.current) setDraft(form.getValues());
+      if (!submittedRef.current) {
+        setDraft(form.getValues());
+        setDraftFormMode(formModeRef.current);
+        setDraftMasivoSeries(masivoSeriesRef.current);
+      }
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -130,7 +151,7 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
     productSubForm.reset(EMPTY_PRODUCTO);
   };
 
-  // ── Mutation ───────────────────────────────────────────────────────────────
+  // ── Mutations ──────────────────────────────────────────────────────────────
   const mutation = useMutation({
     mutationFn: (values: DespachoCreateFormValues) => {
       return createDespacho({
@@ -157,6 +178,48 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
       );
     },
   });
+
+  const masivoMutation = useMutation({
+    mutationFn: (values: { tecnico_id: string; series: string[] }) => {
+      return createDespachoMasivoSeries({
+        tecnico_id: Number(values.tecnico_id),
+        series: values.series,
+      });
+    },
+    onSuccess: () => {
+      submittedRef.current = true;
+      clearDraft();
+      queryClient.invalidateQueries({ queryKey: [DespachoComplete.QUERY_KEY] });
+      successToast("Despacho masivo creado correctamente.");
+      onSuccess?.();
+    },
+    onError: (error: any) => {
+      errorToast(
+        error.response?.data?.message ?? "Error al crear el despacho masivo.",
+      );
+    },
+  });
+
+  // ── Submit handler ─────────────────────────────────────────────────────────
+  const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (formMode === "masivo") {
+      const isTecnicoValid = await form.trigger("tecnico_id");
+      if (!isTecnicoValid) return;
+      if (masivoSeries.length === 0) {
+        setMasivoError("Ingrese al menos una serie");
+        return;
+      }
+      setMasivoError("");
+      masivoMutation.mutate({
+        tecnico_id: form.getValues("tecnico_id"),
+        series: masivoSeries.map((s) => s.serie),
+      });
+    } else {
+      form.handleSubmit((v) => mutation.mutate(v))();
+    }
+  };
 
   // ── Columns: tabla resumen de productos ────────────────────────────────────
   const watchedProductos = form.watch("productos");
@@ -241,11 +304,10 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
     },
   ];
 
+  const isPending = mutation.isPending || masivoMutation.isPending;
+
   return (
-    <form
-      onSubmit={form.control.handleSubmit((v) => mutation.mutate(v))}
-      className="space-y-4"
-    >
+    <form onSubmit={handleFormSubmit} className="space-y-4">
       {/* ── Sección 1: Técnico ─────────────────────────────────────────────── */}
       <div className="space-y-2">
         <div className="flex items-center gap-2">
@@ -272,62 +334,115 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
         </div>
       </div>
 
-      {/* ── Sección 2: Productos ────────────────────────────────────────────── */}
+      {/* ── Sección 2: Productos (tabs) ─────────────────────────────────────── */}
       <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 flex-1">
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground whitespace-nowrap">
-              Productos
-            </h3>
-            <Separator className="flex-1" />
-          </div>
-          {!productoDialogOpen && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="ml-2 h-6 text-xs px-2"
-              onClick={handleOpenProductoDialog}
-            >
-              <PackagePlus className="size-3 mr-1" />
-              Agregar
-            </Button>
-          )}
+        <div className="flex items-center gap-2">
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground whitespace-nowrap">
+            Productos
+          </h3>
+          <Separator className="flex-1" />
         </div>
 
-        <DespachoProductoDialog
-          open={productoDialogOpen}
-          editingIndex={editingProductoIndex}
-          productSubForm={productSubForm}
-          watchedSeries={watchedSeries as DespachoSerieFormValues[]}
-          onClose={handleCloseProductoDialog}
-          onSubmit={handleAddOrUpdateProducto}
-          onAppendSerie={appendSerie}
-          onRemoveSerie={removeSerie}
-          onUpdateSerie={updateSerie}
-        />
+        <Tabs
+          value={formMode}
+          onValueChange={(v) => {
+            const mode = v as "producto" | "masivo";
+            formModeRef.current = mode;
+            setFormMode(mode);
+          }}
+        >
+          <TabsList className="w-full">
+            <TabsTrigger value="producto" className="flex-1 gap-1.5">
+              <Package className="size-3.5" />
+              Por producto
+            </TabsTrigger>
+            <TabsTrigger value="masivo" className="flex-1 gap-1.5">
+              <ListPlus className="size-3.5" />
+              Por series
+            </TabsTrigger>
+          </TabsList>
 
-        {watchedProductos.length > 0 && (
-          <DataTable
-            columns={productoColumns}
-            data={watchedProductos}
-            variant="outline"
-            isVisibleColumnFilter={false}
-          />
-        )}
+          {/* Tab: Por producto ─────────────────────────────────────────────── */}
+          <TabsContent value="producto" className="space-y-2 mt-3">
+            <div className="flex justify-end">
+              {!productoDialogOpen && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-6 text-xs px-2"
+                  onClick={handleOpenProductoDialog}
+                >
+                  <PackagePlus className="size-3 mr-1" />
+                  Agregar producto
+                </Button>
+              )}
+            </div>
 
-        {form.formState.errors.productos &&
-          !Array.isArray(form.formState.errors.productos) && (
-            <p className="text-xs text-destructive">
-              {form.formState.errors.productos.message}
-            </p>
-          )}
+            <DespachoProductoDialog
+              open={productoDialogOpen}
+              editingIndex={editingProductoIndex}
+              productSubForm={productSubForm}
+              watchedSeries={watchedSeries as DespachoSerieFormValues[]}
+              onClose={handleCloseProductoDialog}
+              onSubmit={handleAddOrUpdateProducto}
+              onAppendSerie={appendSerie}
+              onRemoveSerie={removeSerie}
+              onUpdateSerie={updateSerie}
+            />
+
+            {watchedProductos.length > 0 && (
+              <DataTable
+                columns={productoColumns}
+                data={watchedProductos}
+                variant="outline"
+                isVisibleColumnFilter={false}
+              />
+            )}
+
+            {form.formState.errors.productos &&
+              !Array.isArray(form.formState.errors.productos) && (
+                <p className="text-xs text-destructive">
+                  {form.formState.errors.productos.message}
+                </p>
+              )}
+          </TabsContent>
+
+          {/* Tab: Por series (masivo) ────────────────────────────────────────── */}
+          <TabsContent value="masivo" className="space-y-2 mt-3">
+            <DespachoMasivoSeriesInput
+              items={masivoSeries}
+              onAdd={(item) => {
+                setMasivoSeries((prev) => {
+                  const next = [...prev, item];
+                  masivoSeriesRef.current = next;
+                  return next;
+                });
+                setMasivoError("");
+              }}
+              onRemove={(id) =>
+                setMasivoSeries((prev) => {
+                  const next = prev.filter((s) => s.id !== id);
+                  masivoSeriesRef.current = next;
+                  return next;
+                })
+              }
+            />
+            {masivoError && (
+              <p className="text-xs text-destructive">{masivoError}</p>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* ── Submit ─────────────────────────────────────────────────────────── */}
       <div className="flex justify-end">
-        <Button type="submit" disabled={mutation.isPending}>
-          {mutation.isPending ? "Guardando..." : "Crear despacho"}
+        <Button type="submit" disabled={isPending}>
+          {isPending
+            ? "Guardando..."
+            : formMode === "masivo"
+            ? "Crear despacho masivo"
+            : "Crear despacho"}
         </Button>
       </div>
     </form>

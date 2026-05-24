@@ -17,11 +17,8 @@ import { DespachoComplete } from "../lib/despacho.constants";
 import { getDespachoColumns } from "../components/DespachoColumns";
 import DespachoFilters from "../components/DespachoFilters";
 import DespachoButtons from "../components/DespachoButtons";
-import { DespachoMasivoDialog } from "../components/DespachoMasivoDialog";
 import type { DespachoResource } from "../lib/despacho.interface";
 import { DESPACHO_ROUTE_VIEW } from "../lib/despacho.constants";
-import { Button } from "@/components/ui/button";
-import { ListPlus } from "lucide-react";
 
 export default function DespachosPage() {
   const navigate = useNavigate();
@@ -38,7 +35,6 @@ export default function DespachosPage() {
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [toDelete, setToDelete] = useState<DespachoResource | null>(null);
-  const [masivoOpen, setMasivoOpen] = useState(false);
 
   const { fecha_inicio, fecha_fin, tecnico_id, ...restParams } = params;
   const queryParams: Record<string, any> = {
@@ -93,10 +89,6 @@ export default function DespachosPage() {
         icon="List"
       >
         <ActionsWrapper>
-          <Button variant="outline" onClick={() => setMasivoOpen(true)}>
-            <ListPlus className="size-4 mr-1" />
-            Masivo
-          </Button>
           <DespachoButtons />
         </ActionsWrapper>
       </TitleComponent>
@@ -133,7 +125,6 @@ export default function DespachosPage() {
         }}
       />
 
-      <DespachoMasivoDialog open={masivoOpen} onOpenChange={setMasivoOpen} />
     </PageWrapper>
   );
 }

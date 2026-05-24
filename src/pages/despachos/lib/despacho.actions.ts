@@ -5,6 +5,7 @@ import type {
   DespachoResource,
   DespachoCreateBody,
   DespachoMasivoSeriesBody,
+  MasivoSerieValidacionResponse,
 } from "./despacho.interface";
 import type { SerieResource } from "@/pages/serie/lib/serie.interface";
 
@@ -50,5 +51,12 @@ export const createDespachoMasivoSeries = async (
     `${DespachoComplete.ENDPOINT}/masivo-series`,
     body,
   );
+  return data;
+};
+
+export const validateSerieMasivoDisponible = async (
+  serie: string,
+): Promise<MasivoSerieValidacionResponse> => {
+  const { data } = await api.get(`/series/${encodeURIComponent(serie)}/validar`);
   return data;
 };

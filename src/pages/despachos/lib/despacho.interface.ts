@@ -89,3 +89,31 @@ export interface DespachoMasivoSeriesBody {
   tecnico_id: number;
   series: string[];
 }
+
+export interface MasivoSerieValidadaItem {
+  id: number;
+  serie: string;
+  producto_id: number;
+  producto_nombre: string;
+  producto_sap: string;
+  producto_tipo: string;
+}
+
+export interface MasivoSerieValidacionResponse {
+  serie: {
+    id: number;
+    producto_id: number;
+    serie: string;
+    situacion: string;
+    mac: string | null;
+    ua: string | null;
+    almacen_id: number;
+    deleted_at: string | null;
+    producto: {
+      id: number;
+      sap: string;
+      nombre: string;
+      tipo: string;
+    };
+  };
+}

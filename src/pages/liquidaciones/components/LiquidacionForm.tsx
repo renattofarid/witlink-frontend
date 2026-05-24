@@ -178,6 +178,7 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
   });
 
   const tecnico1Value = form.watch("tecnico1");
+  const hasUnsaved = items.some((item) => !item.detalle_id);
 
   const handleSave = form.control.handleSubmit(() => {
     saveMutation.mutate();
@@ -264,6 +265,7 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
         onAddProducts={openProductModal}
         onSave={handleSave}
         isSaving={saveMutation.isPending}
+        hasUnsaved={hasUnsaved}
       />
 
       {isProductModalOpen && (

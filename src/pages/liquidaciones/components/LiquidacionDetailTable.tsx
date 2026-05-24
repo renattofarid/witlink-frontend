@@ -3,6 +3,7 @@ import { Trash2, PackagePlus, Save, Package } from "lucide-react";
 import { DataTable } from "@/components/DataTable";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import type { LiquidacionCartItem } from "../lib/liquidaciones.interface";
 
 interface LiquidacionDetailTableProps {
@@ -11,6 +12,7 @@ interface LiquidacionDetailTableProps {
   onAddProducts: () => void;
   onSave: () => void;
   isSaving: boolean;
+  hasUnsaved: boolean;
 }
 
 export default function LiquidacionDetailTable({
@@ -19,6 +21,7 @@ export default function LiquidacionDetailTable({
   onAddProducts,
   onSave,
   isSaving,
+  hasUnsaved,
 }: LiquidacionDetailTableProps) {
   const columns: ColumnDef<LiquidacionCartItem>[] = [
     {
@@ -117,6 +120,15 @@ export default function LiquidacionDetailTable({
                   {items.length} {items.length === 1 ? "ítem" : "ítems"}
                 </Badge>
               )}
+              {hasUnsaved && (
+                <Badge
+                  variant="outline"
+                  className="text-[10px] h-4 px-1.5 rounded-full gap-1 border-amber-500/50 text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30"
+                >
+                  <span className="size-1.5 rounded-full bg-amber-500 animate-pulse shrink-0" />
+                  Sin guardar
+                </Badge>
+              )}
             </div>
           </div>
         </div>
@@ -134,7 +146,11 @@ export default function LiquidacionDetailTable({
           <Button
             type="button"
             size="sm"
-            className="h-8 text-xs gap-1.5"
+            className={cn(
+              "h-8 text-xs gap-1.5 transition-colors",
+              hasUnsaved && !isSaving &&
+                "bg-amber-500 hover:bg-amber-600 text-white border-amber-500",
+            )}
             onClick={onSave}
             disabled={isSaving || items.length === 0}
           >

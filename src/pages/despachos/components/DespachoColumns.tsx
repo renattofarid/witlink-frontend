@@ -2,6 +2,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { ButtonAction } from "@/components/ButtonAction";
 import { Trash2, Eye } from "lucide-react";
+import ExportButtons from "@/components/ExportButtons";
 import type { DespachoResource } from "../lib/despacho.interface";
 
 interface ColumnActions {
@@ -61,10 +62,12 @@ export const getDespachoColumns = ({
       const item = row.original;
       const isDeleted = !!item.deleted_at;
       return (
-        <div className="flex gap-1">
-          <ButtonAction
-            icon={Eye}
-            onClick={() => onView(item)}
+        <div className="flex gap-1 items-center">
+          <ButtonAction icon={Eye} onClick={() => onView(item)} />
+          <ExportButtons
+            pdfEndpoint={`/despachos/${item.id}/pdf`}
+            pdfFileName={`despacho-${item.numero ?? item.id}.pdf`}
+            variant="separate"
           />
           <ButtonAction
             icon={Trash2}

@@ -45,7 +45,8 @@ export default function LiquidacionLiquidadaView({
 
   const usuarioNombre = formatPersona(liquidacion.usuario?.persona ?? null);
   const usuarioPrimerNombre = liquidacion.usuario?.persona?.nombre ?? "—";
-  const tecnico1Nombre = formatPersona(liquidacion.tecnico1?.persona ?? null);
+  const tecnico1Nombre =
+    productos.find((p) => p.tecnico_id === liquidacion.tecnico1?.id)?.tecnico ?? "—";
 
   return (
     <div className="rounded-lg border border-emerald-200 dark:border-emerald-800 bg-card overflow-hidden shadow-sm">

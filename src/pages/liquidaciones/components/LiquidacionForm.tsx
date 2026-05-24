@@ -62,16 +62,6 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
     if (!liquidacion?.productos?.length) return;
     if (useLiquidacionStore.getState().items.length > 0) return;
 
-    const techMap: Record<number, string> = {};
-    const t1 = liquidacion.tecnico1;
-    const t2 = liquidacion.tecnico2;
-    if (t1?.id && t1.persona.nombre) {
-      techMap[t1.id] = [t1.persona.nombre, t1.persona.apellido_paterno].filter(Boolean).join(" ");
-    }
-    if (t2?.id && t2.persona.nombre) {
-      techMap[t2.id] = [t2.persona.nombre, t2.persona.apellido_paterno].filter(Boolean).join(" ");
-    }
-
     const cartItems: LiquidacionCartItem[] = liquidacion.productos.map((item) => {
       const prod = item.producto ?? item.series[0]?.serie?.producto;
       return {
@@ -82,7 +72,7 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
         producto_nombre: prod?.nombre ?? "Desconocido",
         producto_sap: prod?.sap ?? "",
         tecnico_id: item.tecnico_id,
-        tecnico_nombre: techMap[item.tecnico_id] ?? `Técnico ${item.tecnico_id}`,
+        tecnico_nombre: item.tecnico ?? `Técnico ${item.tecnico_id}`,
         cantidad: Number(item.cantidad),
         series: item.series.map((s) => ({ id: s.serie.id, serie: s.serie.serie })),
       };

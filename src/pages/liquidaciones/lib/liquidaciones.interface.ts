@@ -5,13 +5,8 @@ import type { PaginationResponse } from "@/lib/core.interface";
 export interface TecnicoPersona {
   id: number;
   favorito: boolean | null;
-  persona: {
-    id: number | null;
-    nombre: string | null;
-    apellido_paterno: string | null;
-    apellido_materno: string | null;
-    dni: string | null;
-  };
+  created_at: string;
+  updated_at: string;
 }
 
 export interface UsuarioLiquidacion {
@@ -58,6 +53,7 @@ export interface LiquidacionResource {
 export interface SerieProducto {
   id: number;
   situacion: string;
+  situacion_label?: string;
   serie: string;
   emta_mac: string | null;
   mac: string | null;
@@ -161,6 +157,7 @@ export interface ProductoLiquidacionItem {
   id: number;
   liquidacion_id: number;
   tecnico_id: number;
+  tecnico?: string;
   cantidad: string;
   // Presente en el formato con serie (equipos)
   series: Array<{

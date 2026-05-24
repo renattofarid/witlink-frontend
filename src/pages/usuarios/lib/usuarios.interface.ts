@@ -11,7 +11,7 @@ export interface PersonaResource {
   direccion: string;
   telefono: string | null;
   correo: string | null;
-  tipo_empleado: string;
+  tipo_empleado: string | null;
   cuadrilla_id: number | null;
   estado: string;
   created_at: string;
@@ -27,12 +27,20 @@ export interface OficinaResource {
   updated_at: string;
 }
 
+export interface TipoUsuarioResource {
+  id: number;
+  nombre: string;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+}
+
 export interface UsuariosResource {
   id: number;
   nombre_usuario: string;
-  oficina_id: number;
   persona: PersonaResource;
   oficina: OficinaResource;
+  tipoUsuario: TipoUsuarioResource;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;

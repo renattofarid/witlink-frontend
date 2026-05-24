@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from "react";
-import { Search, Minus, Plus, Package, Wrench, List, Loader2, X, MapPin } from "lucide-react";
+import { Search, Minus, Plus, Package, Wrench, List, Loader2, X, MapPin, AlertTriangle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { GeneralModal } from "@/components/GeneralModal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,6 +14,16 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { useInventarioTecnicoLiquidacionQuery } from "../lib/liquidaciones.hook";
 import type {
@@ -45,6 +55,7 @@ interface SelectedExternSerie {
   producto_sap: string;
   situacion_label: string;
   mac: string | null;
+  tecnico_nombre?: string | null;
 }
 
 export default function AddProductosModal({
@@ -279,9 +290,13 @@ export default function AddProductosModal({
             {/* ── Tab Equipos ───────────────────────────────────────────────── */}
             <TabsContent value="equipos" className="mt-3 space-y-3">
               <p className="text-xs text-muted-foreground">
-                Busca cualquier serie disponible en el sistema. Al agregarla se registrará a tu nombre.
+                Busca cualquier serie en el sistema. Si pertenece a otro técnico se te avisará antes de agregar.
               </p>
-              <SerieAsyncSearch onSelect={addExternSerie} selectedIds={selectedSerieIds} />
+              <SerieAsyncSearch
+                onSelect={addExternSerie}
+                selectedIds={selectedSerieIds}
+                initialTecnicoId={initialTecnicoId}
+              />
               {selectedExternSeries.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-6">
                   Sin equipos seleccionados. Usa el buscador para agregar.
@@ -301,6 +316,16 @@ export default function AddProductosModal({
 
             {/* ── Tab Materiales ────────────────────────────────────────────── */}
             <TabsContent value="materiales" className="mt-3">
+              {initialTecnicoId && tecnicoId && tecnicoId !== initialTecnicoId && tecnicoNombre && (
+                <div className="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-700 px-3 py-2 mb-3 text-xs text-amber-800 dark:text-amber-300">
+                  <AlertTriangle className="size-3.5 mt-0.5 shrink-0" />
+                  <span>
+                    Estás agregando materiales del inventario de{" "}
+                    <span className="font-semibold">{tecnicoNombre}</span>, no
+                    del técnico principal asignado. Se registrarán a su nombre.
+                  </span>
+                </div>
+              )}
               <div className="relative mb-3">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
                 <Input
@@ -418,13 +443,16 @@ export default function AddProductosModal({
 function SerieAsyncSearch({
   onSelect,
   selectedIds,
+  initialTecnicoId,
 }: {
   onSelect: (serie: SelectedExternSerie) => void;
   selectedIds: Set<number>;
+  initialTecnicoId?: string;
 }) {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const [pendingSerie, setPendingSerie] = useState<SelectedExternSerie | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["series-search-liquidacion", debouncedSearch],
@@ -442,79 +470,149 @@ function SerieAsyncSearch({
   const results = data?.data ?? [];
   const showDropdown = debouncedSearch.length >= 2;
 
+  const handleSerieClick = (serie: typeof results[number]) => {
+    const item: SelectedExternSerie = {
+      serie_id: serie.id,
+      serie_str: serie.serie ?? "",
+      producto_id: serie.producto.id,
+      producto_nombre: serie.producto.nombre,
+      producto_sap: serie.producto.sap,
+      situacion_label: serie.situacion_label,
+      mac: serie.mac ?? null,
+      tecnico_nombre: serie.tecnico
+        ? `${serie.tecnico.nombre} ${serie.tecnico.apellido_paterno}`
+        : null,
+    };
+
+    const isOtraTecnico =
+      serie.tecnico &&
+      initialTecnicoId &&
+      String(serie.tecnico.id) !== initialTecnicoId;
+
+    const isOtraPersonaSinId = !serie.tecnico && serie.situacion_label === "DESPACHADO";
+
+    if (isOtraTecnico || isOtraPersonaSinId) {
+      setPendingSerie(item);
+    } else {
+      onSelect(item);
+    }
+  };
+
   return (
-    <div>
-      <div className="relative">
-        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
-        <Input
-          className="pl-8 pr-8 h-8 text-xs"
-          placeholder="Buscar por número de serie, producto, MAC..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        {isLoading && (
-          <Loader2 className="absolute right-2.5 top-1/2 -translate-y-1/2 size-3.5 animate-spin text-muted-foreground" />
+    <>
+      <div>
+        <div className="relative">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
+          <Input
+            className="pl-8 pr-8 h-8 text-xs"
+            placeholder="Buscar por número de serie, producto, MAC..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          {isLoading && (
+            <Loader2 className="absolute right-2.5 top-1/2 -translate-y-1/2 size-3.5 animate-spin text-muted-foreground" />
+          )}
+        </div>
+
+        {showDropdown && (
+          <div className="mt-1 border rounded-lg overflow-hidden max-h-52 overflow-y-auto">
+            {results.length === 0 && !isLoading ? (
+              <p className="text-xs text-muted-foreground text-center py-3">
+                Sin resultados para &ldquo;{debouncedSearch}&rdquo;
+              </p>
+            ) : (
+              results.map((serie) => {
+                const isSelected = selectedIds.has(serie.id);
+                const ownerName = serie.tecnico
+                  ? `${serie.tecnico.nombre} ${serie.tecnico.apellido_paterno}`
+                  : null;
+                const isDifferentOwner =
+                  (serie.tecnico && initialTecnicoId && String(serie.tecnico.id) !== initialTecnicoId) ||
+                  (!serie.tecnico && serie.situacion_label === "DESPACHADO");
+
+                return (
+                  <button
+                    key={serie.id}
+                    type="button"
+                    disabled={isSelected}
+                    onClick={() => handleSerieClick(serie)}
+                    className={cn(
+                      "w-full text-left px-3 py-2 text-xs border-b last:border-b-0 transition-colors",
+                      isSelected
+                        ? "opacity-50 cursor-not-allowed bg-muted"
+                        : "hover:bg-accent",
+                    )}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium truncate">{serie.producto?.nombre}</p>
+                        <p className="text-muted-foreground font-mono">
+                          Serie: {serie.serie}
+                        </p>
+                        {serie.mac && (
+                          <p className="text-muted-foreground">MAC: {serie.mac}</p>
+                        )}
+                        {isDifferentOwner && (
+                          <p className="text-amber-600 dark:text-amber-400 flex items-center gap-1 mt-0.5">
+                            <AlertTriangle className="size-3 shrink-0" />
+                            {ownerName ? `Pertenece a: ${ownerName}` : "Asignado a otro técnico"}
+                          </p>
+                        )}
+                      </div>
+                      <div className="shrink-0 flex flex-col items-end gap-1">
+                        <Badge variant="outline" className="text-xs">
+                          {serie.situacion_label}
+                        </Badge>
+                        {isSelected && (
+                          <span className="text-xs text-primary font-medium">Agregado</span>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })
+            )}
+          </div>
         )}
       </div>
 
-      {showDropdown && (
-        <div className="mt-1 border rounded-lg overflow-hidden max-h-52 overflow-y-auto">
-          {results.length === 0 && !isLoading ? (
-            <p className="text-xs text-muted-foreground text-center py-3">
-              Sin resultados para &ldquo;{debouncedSearch}&rdquo;
-            </p>
-          ) : (
-            results.map((serie) => {
-              const isSelected = selectedIds.has(serie.id);
-              return (
-                <button
-                  key={serie.id}
-                  type="button"
-                  disabled={isSelected}
-                  onClick={() =>
-                    onSelect({
-                      serie_id: serie.id,
-                      serie_str: serie.serie ?? "",
-                      producto_id: serie.producto.id,
-                      producto_nombre: serie.producto.nombre,
-                      producto_sap: serie.producto.sap,
-                      situacion_label: serie.situacion_label,
-                      mac: serie.mac ?? null,
-                    })
-                  }
-                  className={cn(
-                    "w-full text-left px-3 py-2 text-xs border-b last:border-b-0 transition-colors",
-                    isSelected
-                      ? "opacity-50 cursor-not-allowed bg-muted"
-                      : "hover:bg-accent",
-                  )}
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium truncate">{serie.producto?.nombre}</p>
-                      <p className="text-muted-foreground font-mono">
-                        Serie: {serie.serie}
-                      </p>
-                      {serie.mac && (
-                        <p className="text-muted-foreground">MAC: {serie.mac}</p>
-                      )}
-                    </div>
-                    <div className="shrink-0 flex flex-col items-end gap-1">
-                      <Badge variant="outline" className="text-xs">
-                        {serie.situacion_label}
-                      </Badge>
-                      {isSelected && (
-                        <span className="text-xs text-primary font-medium">Agregado</span>
-                      )}
-                    </div>
-                  </div>
-                </button>
-              );
-            })
-          )}
-        </div>
-      )}
-    </div>
+      <AlertDialog open={!!pendingSerie} onOpenChange={(open) => { if (!open) setPendingSerie(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="size-4 text-amber-500" />
+              Equipo de otro técnico
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingSerie?.tecnico_nombre ? (
+                <>
+                  Este equipo pertenece a{" "}
+                  <span className="font-semibold text-foreground">
+                    {pendingSerie.tecnico_nombre}
+                  </span>
+                  . Al agregarlo se registrará en la liquidación proveniente de esa persona.
+                </>
+              ) : (
+                <>
+                  Este equipo está actualmente <span className="font-semibold text-foreground">DESPACHADO</span> a otro técnico. Al agregarlo se registrará en la liquidación proveniente de esa persona.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (pendingSerie) onSelect(pendingSerie);
+                setPendingSerie(null);
+              }}
+            >
+              Agregar de todas formas
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
 
@@ -537,11 +635,17 @@ function ExternSerieCard({
         {item.mac && (
           <p className="text-xs text-muted-foreground">MAC: {item.mac}</p>
         )}
-        <div className="flex items-center gap-1 mt-1">
+        <div className="flex items-center gap-1 mt-1 flex-wrap">
           <MapPin className="size-3 text-muted-foreground" />
           <Badge variant="outline" className="text-xs">
             {item.situacion_label}
           </Badge>
+          {item.tecnico_nombre && (
+            <span className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-0.5">
+              <AlertTriangle className="size-3" />
+              {item.tecnico_nombre}
+            </span>
+          )}
         </div>
       </div>
       <Button

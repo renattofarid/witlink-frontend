@@ -76,7 +76,7 @@ const INITIAL: Pick<
 export const useLiquidacionStore = create<LiquidacionStore>((set) => ({
   ...INITIAL,
 
-  setCurrentSot: (sot) => set({ currentSot: sot, sotNotFound: false }),
+  setCurrentSot: (sot) => set({ currentSot: sot, sotNotFound: false, items: [] }),
   setSotNotFound: (v) => set({ sotNotFound: v }),
   setSotSearched: (sot) => set({ sotSearched: sot }),
   setSavedFormValues: (v) => set({ savedFormValues: v }),

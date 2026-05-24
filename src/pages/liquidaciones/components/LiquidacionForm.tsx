@@ -57,6 +57,35 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
     mode: "onChange",
   });
 
+  // Carga los productos ya guardados en la liquidación como items del carrito
+  useEffect(() => {
+    if (!liquidacion?.productos?.length) return;
+    if (useLiquidacionStore.getState().items.length > 0) return;
+
+    const techMap: Record<number, string> = {};
+    if (liquidacion.tecnico_uno) {
+      techMap[liquidacion.tecnico_uno.id] = liquidacion.tecnico_uno.nombre_completo;
+    }
+    if (liquidacion.tecnico_dos) {
+      techMap[liquidacion.tecnico_dos.id] = liquidacion.tecnico_dos.nombre_completo;
+    }
+
+    const cartItems: LiquidacionCartItem[] = liquidacion.productos.map((item) => ({
+      tempId: `api-${item.id}`,
+      tipo: item.producto.necesita_serie ? "serie" : "material",
+      producto_id: item.producto_id,
+      producto_nombre: item.producto.nombre,
+      producto_sap: item.producto.sap,
+      tecnico_id: item.tecnico_id,
+      tecnico_nombre: techMap[item.tecnico_id] ?? `Técnico ${item.tecnico_id}`,
+      cantidad: Number(item.cantidad),
+      series: item.series.map((s) => ({ id: s.serie.id, serie: s.serie.serie })),
+    }));
+
+    addItems(cartItems);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liquidacion]);
+
   // Guarda los valores del formulario al desmontar, identificados por el SOT capturado al montar
   useEffect(() => {
     const sot = sotAtMountRef.current;

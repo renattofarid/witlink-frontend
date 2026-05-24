@@ -25,6 +25,9 @@ export interface LiquidacionResource {
   estado_liquidacion: string | null;
   observaciones: string | null;
   acta: ActaResource | null;
+  productos?: ProductoLiquidacionItem[];
+  tecnico_uno?: TecnicoLiquidacion | null;
+  tecnico_dos?: TecnicoLiquidacion | null;
 }
 
 // ── Documentos / equipos retirados ────────────────────────────────────────────
@@ -159,6 +162,53 @@ export interface SaveProductosBody {
     tecnico_id: number;
     producto_id: number;
     series: string[];
+  }>;
+}
+
+// ── Técnico resumido (incluido en la respuesta de liquidación) ────────────────
+
+export interface TecnicoLiquidacion {
+  id: number;
+  nombre: string;
+  apellido_paterno: string;
+  apellido_materno: string;
+  nombre_completo: string;
+}
+
+// ── Productos ya guardados en la liquidación ──────────────────────────────────
+
+export interface ProductoLiquidacionItem {
+  id: number;
+  producto_id: number;
+  movimiento_id: number | null;
+  tecnico_id: number;
+  liquidacion_id: number;
+  cantidad: string;
+  deleted_at: string | null;
+  producto: {
+    id: number;
+    sap: string;
+    nombre: string;
+    tipo: string;
+    necesita_serie: boolean;
+    necesita_mac: boolean;
+    necesita_emta_mac: boolean;
+    necesita_ua: boolean;
+    origen: string;
+  };
+  series: Array<{
+    serie_id: number;
+    origen_tecnico_id: number | null;
+    detalle_productos_liquidacion_id: number;
+    serie: {
+      id: number;
+      producto_id: number;
+      serie: string;
+      situacion: string;
+      mac: string | null;
+      ua: string | null;
+      emta_mac: string | null;
+    };
   }>;
 }
 

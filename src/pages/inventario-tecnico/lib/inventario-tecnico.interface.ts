@@ -70,3 +70,43 @@ export interface InventarioTecnicoResource {
 export interface DevolverMaterialBody {
   cantidad: number;
 }
+
+export interface DevolverSerieResponse {
+  message: string;
+  devolucion_id: number;
+}
+
+export interface DevolverMaterialResponse {
+  message: string;
+  devolucion_id: number;
+}
+
+export interface DevolucionSerieItem {
+  id: number;
+  devolucion_id: number;
+  serie_id: number;
+  serie: {
+    id: number;
+    serie: string;
+    producto: { id: number; nombre: string; sap: string };
+  };
+}
+
+export interface DevolucionMaterialItem {
+  id: number;
+  devolucion_id: number;
+  producto_id: number;
+  cantidad: string;
+  producto: { id: number; nombre: string; sap: string };
+}
+
+export interface DevolucionResource {
+  id: number;
+  numero: string;
+  fecha: string;
+  tecnico_id: number;
+  almacen_id: number;
+  usuario_id: number;
+  series: DevolucionSerieItem[];
+  materiales: DevolucionMaterialItem[];
+}

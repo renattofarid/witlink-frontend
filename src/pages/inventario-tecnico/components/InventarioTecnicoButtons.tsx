@@ -1,4 +1,4 @@
-import { FileText, Loader2, Sheet } from "lucide-react";
+import { FileText, History, Loader2, Sheet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -11,6 +11,7 @@ import { errorToast, successToast } from "@/lib/core.function";
 
 interface InventarioTecnicoButtonsProps {
   tecnicoId: string;
+  onOpenHistorial: () => void;
 }
 
 function downloadFromBase64(file_base64: string, file_name: string, mime_type: string) {
@@ -31,6 +32,7 @@ function downloadFromBase64(file_base64: string, file_name: string, mime_type: s
 
 export default function InventarioTecnicoButtons({
   tecnicoId,
+  onOpenHistorial,
 }: InventarioTecnicoButtonsProps) {
   const [loadingCarga, setLoadingCarga] = useState(false);
   const [loadingExcel, setLoadingExcel] = useState(false);
@@ -94,6 +96,15 @@ export default function InventarioTecnicoButtons({
           </TooltipContent>
         </Tooltip>
       </div>
+
+      <Button
+        variant="outline"
+        onClick={onOpenHistorial}
+        disabled={!tecnicoId}
+      >
+        <History className="size-4 mr-1" />
+        Historial
+      </Button>
 
       <Button
         variant="outline"

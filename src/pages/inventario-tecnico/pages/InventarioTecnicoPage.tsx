@@ -6,7 +6,7 @@ import TitleComponent from "@/components/TitleComponent";
 import ActionsWrapper from "@/components/ActionsWrapper";
 import { DataTable } from "@/components/DataTable";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
-import { successToast, errorToast } from "@/lib/core.function";
+import { errorToast } from "@/lib/core.function";
 import { InventarioTecnicoComplete } from "../lib/inventario-tecnico.constants";
 import { useInventarioTecnicoQuery } from "../lib/inventario-tecnico.hook";
 import { devolverMaterial, devolverSerie } from "../lib/inventario-tecnico.actions";
@@ -14,6 +14,8 @@ import { getMaterialColumns, getSerieColumns } from "../components/InventarioTec
 import InventarioTecnicoFilters from "../components/InventarioTecnicoFilters";
 import InventarioTecnicoButtons from "../components/InventarioTecnicoButtons";
 import DevolverMaterialDialog from "../components/DevolverMaterialDialog";
+import DevolucionSuccessDialog from "../components/DevolucionSuccessDialog";
+import HistorialDevolucionesDialog from "../components/HistorialDevolucionesDialog";
 import type { InventarioTecnicoResource } from "../lib/inventario-tecnico.interface";
 
 export default function InventarioTecnicoPage() {
@@ -24,6 +26,9 @@ export default function InventarioTecnicoPage() {
   const [devolverMaterialOpen, setDevolverMaterialOpen] = useState(false);
   const [devolverSerieOpen, setDevolverSerieOpen] = useState(false);
   const [selected, setSelected] = useState<InventarioTecnicoResource | null>(null);
+  const [lastDevolucionId, setLastDevolucionId] = useState<number | null>(null);
+  const [devolucionSuccessOpen, setDevolucionSuccessOpen] = useState(false);
+  const [historialOpen, setHistorialOpen] = useState(false);
 
   const queryParams: Record<string, string> = fecha ? { fecha } : {};
   const { data = [], isLoading } = useInventarioTecnicoQuery(tecnicoId, queryParams);
@@ -36,11 +41,17 @@ export default function InventarioTecnicoPage() {
       queryKey: [InventarioTecnicoComplete.QUERY_KEY, tecnicoId],
     });
 
+  const handleDevolucionSuccess = (devolucionId: number) => {
+    setLastDevolucionId(devolucionId);
+    setDevolucionSuccessOpen(true);
+  };
+
   const devolverSerieMutation = useMutation({
     mutationFn: () => devolverSerie(Number(tecnicoId), selected!.id),
-    onSuccess: () => {
+    onSuccess: (data) => {
       invalidate();
-      successToast("Serie devuelta al almacén correctamente.");
+      setDevolverSerieOpen(false);
+      handleDevolucionSuccess(data.devolucion_id);
     },
     onError: (error: any) => {
       errorToast(error.response?.data?.message ?? "Error al devolver la serie.");
@@ -52,7 +63,6 @@ export default function InventarioTecnicoPage() {
     setFecha("");
   };
 
-
   const handleDevolverMaterial = (row: InventarioTecnicoResource) => {
     setSelected(row);
     setDevolverMaterialOpen(true);
@@ -63,15 +73,10 @@ export default function InventarioTecnicoPage() {
     setDevolverSerieOpen(true);
   };
 
-  const handleConfirmDevolverMaterial = async (cantidad: number) => {
-    try {
-      await devolverMaterial(Number(tecnicoId), selected!.id, { cantidad });
-      invalidate();
-      successToast("Material devuelto al almacén correctamente.");
-    } catch (error: any) {
-      errorToast(error.response?.data?.message ?? "Error al devolver el material.");
-      throw error;
-    }
+  const handleConfirmDevolverMaterial = async (cantidad: number): Promise<number> => {
+    const result = await devolverMaterial(Number(tecnicoId), selected!.id, { cantidad });
+    invalidate();
+    return result.devolucion_id;
   };
 
   const materialColumns = getMaterialColumns({ onDevolverMaterial: handleDevolverMaterial });
@@ -94,7 +99,10 @@ export default function InventarioTecnicoPage() {
             fecha={fecha}
             onFechaChange={setFecha}
           />
-          <InventarioTecnicoButtons tecnicoId={tecnicoId} />
+          <InventarioTecnicoButtons
+            tecnicoId={tecnicoId}
+            onOpenHistorial={() => setHistorialOpen(true)}
+          />
         </ActionsWrapper>
       </TitleComponent>
 
@@ -137,6 +145,7 @@ export default function InventarioTecnicoPage() {
         onOpenChange={setDevolverMaterialOpen}
         maxCantidad={selected?.cantidad ?? 1}
         onConfirm={handleConfirmDevolverMaterial}
+        onSuccess={handleDevolucionSuccess}
       />
 
       <SimpleDeleteDialog
@@ -148,6 +157,18 @@ export default function InventarioTecnicoPage() {
         onConfirm={async () => {
           await devolverSerieMutation.mutateAsync();
         }}
+      />
+
+      <DevolucionSuccessDialog
+        open={devolucionSuccessOpen}
+        onOpenChange={setDevolucionSuccessOpen}
+        devolucionId={lastDevolucionId}
+      />
+
+      <HistorialDevolucionesDialog
+        open={historialOpen}
+        onOpenChange={setHistorialOpen}
+        tecnicoId={tecnicoId}
       />
     </PageWrapper>
   );

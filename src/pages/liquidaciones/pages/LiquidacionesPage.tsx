@@ -64,6 +64,7 @@ export default function LiquidacionesPage() {
     per_page: String(DEFAULT_PER_PAGE),
     search: "",
     estado: "",
+    estado_liquidacion: "",
   });
 
   const queryParams = Object.fromEntries(
@@ -77,6 +78,9 @@ export default function LiquidacionesPage() {
 
   const handleEstadoChange = (v: string) =>
     setParams((prev) => ({ ...prev, estado: v, page: "1" }));
+
+  const handleEstadoLiquidacionChange = (v: string) =>
+    setParams((prev) => ({ ...prev, estado_liquidacion: v, page: "1" }));
 
   const handlePageChange = (page: number) =>
     setParams((prev) => ({ ...prev, page: String(page) }));
@@ -161,8 +165,10 @@ export default function LiquidacionesPage() {
         <LiquidacionFilters
           search={params.search ?? ""}
           estado={params.estado ?? ""}
+          estadoLiquidacion={params.estado_liquidacion ?? ""}
           onSearchChange={handleSearchChange}
           onEstadoChange={handleEstadoChange}
+          onEstadoLiquidacionChange={handleEstadoLiquidacionChange}
         />
       </DataTable>
 

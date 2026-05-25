@@ -14,7 +14,8 @@ interface DevolverMaterialDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   maxCantidad: number;
-  onConfirm: (cantidad: number) => Promise<void>;
+  onConfirm: (cantidad: number) => Promise<number>;
+  onSuccess: (devolucionId: number) => void;
 }
 
 export default function DevolverMaterialDialog({
@@ -22,6 +23,7 @@ export default function DevolverMaterialDialog({
   onOpenChange,
   maxCantidad,
   onConfirm,
+  onSuccess,
 }: DevolverMaterialDialogProps) {
   const [cantidad, setCantidad] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -30,9 +32,10 @@ export default function DevolverMaterialDialog({
     if (cantidad < 1 || cantidad > maxCantidad) return;
     setLoading(true);
     try {
-      await onConfirm(cantidad);
+      const devolucionId = await onConfirm(cantidad);
       onOpenChange(false);
       setCantidad(1);
+      onSuccess(devolucionId);
     } finally {
       setLoading(false);
     }

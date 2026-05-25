@@ -3,7 +3,7 @@ import { useTabParams } from "@/hooks/useTabParams";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Archive } from "lucide-react";
+import { Plus } from "lucide-react";
 import PageWrapper from "@/components/PageWrapper";
 import TitleComponent from "@/components/TitleComponent";
 import ActionsWrapper from "@/components/ActionsWrapper";
@@ -17,8 +17,17 @@ import { successToast, errorToast } from "@/lib/core.function";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 
 import { useGuiaQuery } from "../lib/guia.hook";
-import { deleteGuia, restoreGuia, confirmarDisponibilidad } from "../lib/guia.actions";
-import { GuiaComplete, GUIA_ROUTE_VIEW, GUIA_EQUIPO_RETIRADO_ROUTE_EDIT, GUIA_EQUIPO_RETIRADO_ROUTE_VIEW } from "../lib/guia.constants";
+import {
+  deleteGuia,
+  restoreGuia,
+  confirmarDisponibilidad,
+} from "../lib/guia.actions";
+import {
+  GuiaComplete,
+  GUIA_ROUTE_VIEW,
+  GUIA_EQUIPO_RETIRADO_ROUTE_EDIT,
+  GUIA_EQUIPO_RETIRADO_ROUTE_VIEW,
+} from "../lib/guia.constants";
 import { getGuiaColumns } from "../components/GuiaColumns";
 import GuiaFilters from "../components/GuiaFilters";
 import type { GuiaListResource } from "../lib/guia.interface";
@@ -61,19 +70,25 @@ export default function GuiaPage() {
       );
     },
     onError: (error: any) => {
-      errorToast(error.response?.data?.message ?? "Error al eliminar el registro.");
+      errorToast(
+        error.response?.data?.message ?? "Error al eliminar el registro.",
+      );
     },
   });
 
   const restoreMutation = useMutation({
     mutationFn: (row: GuiaListResource) =>
-      row.type === "retirado" ? restoreEquipoRetirado(row.id) : restoreGuia(row.id),
+      row.type === "retirado"
+        ? restoreEquipoRetirado(row.id)
+        : restoreGuia(row.id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [GuiaComplete.QUERY_KEY] });
       successToast("Registro restaurado correctamente.");
     },
     onError: (error: any) => {
-      errorToast(error.response?.data?.message ?? "Error al restaurar el registro.");
+      errorToast(
+        error.response?.data?.message ?? "Error al restaurar el registro.",
+      );
     },
   });
 
@@ -84,18 +99,28 @@ export default function GuiaPage() {
       successToast("Guía confirmada correctamente.");
     },
     onError: (error: any) => {
-      errorToast(error.response?.data?.message ?? "Error al confirmar la guía.");
+      errorToast(
+        error.response?.data?.message ?? "Error al confirmar la guía.",
+      );
     },
   });
 
   const columns = getGuiaColumns({
     onView: (row) => navigate(`${GUIA_ROUTE_VIEW}/${row.id}`),
-    onViewRetirado: (row) => navigate(`${GUIA_EQUIPO_RETIRADO_ROUTE_VIEW}/${row.id}`),
+    onViewRetirado: (row) =>
+      navigate(`${GUIA_EQUIPO_RETIRADO_ROUTE_VIEW}/${row.id}`),
     onEdit: (row) => navigate(`${GuiaComplete.ROUTE_UPDATE}/${row.id}`),
-    onEditRetirado: (row) => navigate(`${GUIA_EQUIPO_RETIRADO_ROUTE_EDIT}/${row.id}`),
-    onDelete: (row) => { setToDelete(row); setDeleteOpen(true); },
+    onEditRetirado: (row) =>
+      navigate(`${GUIA_EQUIPO_RETIRADO_ROUTE_EDIT}/${row.id}`),
+    onDelete: (row) => {
+      setToDelete(row);
+      setDeleteOpen(true);
+    },
     onRestore: (row) => restoreMutation.mutate(row),
-    onConfirm: (row) => { setToConfirm(row); setConfirmOpen(true); },
+    onConfirm: (row) => {
+      setToConfirm(row);
+      setConfirmOpen(true);
+    },
   });
 
   const exportParams = Object.fromEntries(
@@ -105,7 +130,7 @@ export default function GuiaPage() {
   return (
     <PageWrapper>
       <TitleComponent
-        title={GuiaComplete.MODEL.plural ?? GuiaComplete.MODEL.name}
+        title="Ingresos"
         subtitle="Gestión centralizada de guías y equipos retirados"
         icon="ClipboardList"
       >
@@ -117,21 +142,25 @@ export default function GuiaPage() {
             params={exportParams}
           />
           <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate(`${GuiaComplete.ROUTE_ADD}?tipo=equipo_retirado`)}
+            onClick={() =>
+              navigate(`${GuiaComplete.ROUTE_ADD}?tipo=equipo_retirado`)
+            }
           >
-            <Archive className="size-4 mr-1" />
-            Equipo Retirado
+            <Plus />
+            Equipos Retirados
           </Button>
           <Button onClick={() => navigate(GuiaComplete.ROUTE_ADD!)}>
-            <Plus className="size-4 mr-1" />
-            Nueva Guía
+            <Plus />
+            Guía
           </Button>
         </ActionsWrapper>
       </TitleComponent>
 
-      <DataTable columns={columns} data={data?.data ?? []} isLoading={isLoading}>
+      <DataTable
+        columns={columns}
+        data={data?.data ?? []}
+        isLoading={isLoading}
+      >
         <GuiaFilters params={params} setParams={setParams} />
       </DataTable>
 
@@ -140,7 +169,9 @@ export default function GuiaPage() {
         per_page={Number(params.per_page)}
         totalPages={data?.meta.last_page ?? 1}
         totalData={data?.meta.total ?? 0}
-        onPageChange={(p) => setParams((prev) => ({ ...prev, page: String(p) }))}
+        onPageChange={(p) =>
+          setParams((prev) => ({ ...prev, page: String(p) }))
+        }
         setPerPage={(pp) =>
           setParams((prev) => ({ ...prev, per_page: String(pp), page: "1" }))
         }
@@ -149,9 +180,15 @@ export default function GuiaPage() {
       <SimpleDeleteDialog
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
-        title={toDelete?.type === "retirado" ? "Eliminar Equipo Retirado" : "Eliminar Guía"}
+        title={
+          toDelete?.type === "retirado"
+            ? "Eliminar Equipo Retirado"
+            : "Eliminar Guía"
+        }
         description="¿Estás seguro de que deseas eliminar este registro? Esta acción no se puede deshacer."
-        onConfirm={async () => { await deleteMutation.mutateAsync(); }}
+        onConfirm={async () => {
+          await deleteMutation.mutateAsync();
+        }}
       />
 
       <ConfirmationDialog
@@ -160,7 +197,9 @@ export default function GuiaPage() {
         title="Confirmar disponibilidad"
         description={`¿Confirmas la disponibilidad de la guía "${toConfirm?.numero}"?`}
         confirmText="Confirmar"
-        onConfirm={async () => { await confirmarMutation.mutateAsync(); }}
+        onConfirm={async () => {
+          await confirmarMutation.mutateAsync();
+        }}
       />
     </PageWrapper>
   );

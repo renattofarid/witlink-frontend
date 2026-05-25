@@ -101,7 +101,7 @@ export function DespachoProductoDialog({
         serie: trimmed,
         producto_id: watchedProductoId,
       });
-      onAppendSerie({ serie: result.serie ?? trimmed, serie_id: result.id });
+      onAppendSerie({ serie: result.serie.serie ?? trimmed, serie_id: result.serie.id });
       setSerieInput("");
       inputRef.current?.focus();
     } catch (error: any) {
@@ -155,7 +155,7 @@ export function DespachoProductoDialog({
         serie: trimmed,
         producto_id: watchedProductoId,
       });
-      onUpdateSerie(index, { serie: result.serie ?? trimmed, serie_id: result.id });
+      onUpdateSerie(index, { serie: result.serie.serie ?? trimmed, serie_id: result.serie.id });
       setEditingSerieIndex(null);
       setEditingSerieValue("");
     } catch (error: any) {

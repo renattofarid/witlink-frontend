@@ -10,6 +10,7 @@ import { DataTable } from "@/components/DataTable";
 import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 import { FormInput } from "@/components/FormInput";
 import { FormSelect } from "@/components/FormSelect";
+import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import { Badge } from "@/components/ui/badge";
 import { PackagePlus, Trash2, Pencil, ListPlus } from "lucide-react";
@@ -26,7 +27,16 @@ import {
   EquiposRetiradosComplete,
   TIPO_EQUIPO_RETIRADO_OPTIONS,
 } from "@/pages/equipos-retirados/lib/equipos-retirados.constants";
+import { useLiquidacionesForSelectQuery } from "@/pages/liquidaciones/lib/liquidaciones.hook";
+import type { LiquidacionResource } from "@/pages/liquidaciones/lib/liquidaciones.interface";
+import type { Option } from "@/lib/core.interface";
 import { useGuiaDraftStore } from "../lib/guia-draft.store";
+
+const mapLiquidacionOption = (item: LiquidacionResource): Option => ({
+  value: item.sot,
+  label: item.sot,
+  description: item.nombre,
+});
 import {
   createEquipoRetirado,
   updateEquipoRetirado,
@@ -461,13 +471,15 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
             <Separator className="flex-1" />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <FormInput
+            <FormSelectAsync
               name="sot"
               label="SOT"
               control={editForm.control}
-              placeholder="Número de SOT"
+              placeholder="Buscar SOT..."
               required
-              uppercase
+              useQueryHook={useLiquidacionesForSelectQuery}
+              mapOptionFn={mapLiquidacionOption}
+              defaultOption={equipo ? { value: equipo.sot, label: equipo.sot } : undefined}
             />
             <DatePickerFormField name="fecha" label="Fecha" control={editForm.control} />
             <FormSelect
@@ -696,13 +708,14 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
           <Separator className="flex-1" />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <FormInput
+          <FormSelectAsync
             name="sot"
             label="SOT"
             control={createForm.control}
-            placeholder="Número de SOT"
+            placeholder="Buscar SOT..."
             required
-            uppercase
+            useQueryHook={useLiquidacionesForSelectQuery}
+            mapOptionFn={mapLiquidacionOption}
           />
           <DatePickerFormField name="fecha" label="Fecha" control={createForm.control} />
           <FormSelect

@@ -24,7 +24,7 @@ export default function GuiaEditPage() {
   return (
     <FormWrapper>
       <TitleFormComponent
-        title={GuiaComplete.MODEL.name}
+        title="Ingreso"
         mode="edit"
         icon="ClipboardList"
         backRoute={GuiaComplete.ABSOLUTE_ROUTE}

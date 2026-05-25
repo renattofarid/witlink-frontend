@@ -38,10 +38,6 @@ import SeriePage from "../pages/serie/pages/SeriePage";
 import { SerieComplete } from "../pages/serie/lib/serie.constants";
 import MaterialesPage from "../pages/materiales/pages/MaterialesPage";
 import { MaterialesComplete } from "../pages/materiales/lib/materiales.constants";
-import EquiposRetiradosPage from "../pages/equipos-retirados/pages/EquiposRetiradosPage";
-import EquiposRetiradosAddPage from "../pages/equipos-retirados/pages/EquiposRetiradosAddPage";
-import EquiposRetiradosEditPage from "../pages/equipos-retirados/pages/EquiposRetiradosEditPage";
-import { EquiposRetiradosComplete } from "../pages/equipos-retirados/lib/equipos-retirados.constants";
 import InventarioPage from "../pages/inventario/pages/InventarioPage";
 import { InventarioComplete } from "../pages/inventario/lib/inventario.constants";
 import DespachosPage from "../pages/despachos/pages/DespachosPage";
@@ -272,31 +268,6 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <MaterialesPage />
-          </ProtectedRoute>
-        }
-      />
-
-      <Route
-        path={EquiposRetiradosComplete.ROUTE}
-        element={
-          <ProtectedRoute>
-            <EquiposRetiradosPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path={EquiposRetiradosComplete.ROUTE_ADD}
-        element={
-          <ProtectedRoute>
-            <EquiposRetiradosAddPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path={`${EquiposRetiradosComplete.ROUTE_UPDATE}/:id`}
-        element={
-          <ProtectedRoute>
-            <EquiposRetiradosEditPage />
           </ProtectedRoute>
         }
       />

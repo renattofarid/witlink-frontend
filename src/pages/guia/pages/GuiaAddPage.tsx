@@ -35,7 +35,7 @@ export default function GuiaAddPage() {
   return (
     <FormWrapper>
       <TitleFormComponent
-        title="Nueva guía"
+        title="Ingreso"
         mode="create"
         icon="ClipboardList"
         backRoute={GuiaComplete.ABSOLUTE_ROUTE}

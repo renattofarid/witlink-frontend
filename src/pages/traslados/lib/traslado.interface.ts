@@ -12,20 +12,33 @@ export interface TrasladoResource {
   usuario: string;
 }
 
+export interface TrasladoProducto {
+  id: number;
+  producto_id: number;
+  producto: string;
+  tipo: string;
+  cantidad: number;
+  movimiento_pendiente_id: number;
+  movimiento_confirmado_id: number | null;
+  series: string[];
+}
+
 export interface TrasladoListItem {
   id: number;
-  fecha: string;
-  codigo: string;
-  producto: string;
-  tipo_producto: string;
-  cantidad: number;
+  fecha: string | null;
+  numero: string;
+  confirmado: boolean;
   almacen_origen_id: number;
   almacen_origen: string;
   almacen_destino_id: number;
   almacen_destino: string;
-  serie: string | null;
+  cantidad_materiales: number;
+  cantidad_series: number;
   usuario: string;
-  registro: string;
+  usuario_confirmo: string | null;
+  productos: TrasladoProducto[];
+  "fecha_envío": string;
+  "fecha_confirmación": string | null;
 }
 
 export type TrasladoListResponse = PaginationResponse<TrasladoListItem>;

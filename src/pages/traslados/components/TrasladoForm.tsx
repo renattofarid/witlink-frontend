@@ -2,10 +2,19 @@ import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { X, Loader2 } from "lucide-react";
+import {
+  X,
+  Loader2,
+  Package,
+  Boxes,
+  ArrowRight,
+  CheckCircle2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { FormSelect } from "@/components/FormSelect";
 import { successToast, errorToast } from "@/lib/core.function";
@@ -40,8 +49,12 @@ export default function TrasladoForm({ onSuccess }: TrasladoFormProps) {
   const { draft, setDraft, clearDraft } = useTrasladoDraftStore();
   const submittedRef = useRef(false);
 
-  const [seriesCart, setSeriesCart] = useState<SerieCartItem[]>(draft?.seriesCart ?? []);
-  const [materialsCart, setMaterialsCart] = useState<MaterialCartItem[]>(draft?.materialsCart ?? []);
+  const [seriesCart, setSeriesCart] = useState<SerieCartItem[]>(
+    draft?.seriesCart ?? [],
+  );
+  const [materialsCart, setMaterialsCart] = useState<MaterialCartItem[]>(
+    draft?.materialsCart ?? [],
+  );
   const [cartError, setCartError] = useState<string | null>(null);
 
   const [serieInput, setSerieInput] = useState("");
@@ -52,9 +65,12 @@ export default function TrasladoForm({ onSuccess }: TrasladoFormProps) {
 
   const [materialInput, setMaterialInput] = useState("");
   const [materialSearching, setMaterialSearching] = useState(false);
-  const [materialMatches, setMaterialMatches] = useState<MaterialResource[]>([]);
+  const [materialMatches, setMaterialMatches] = useState<MaterialResource[]>(
+    [],
+  );
   const [materialError, setMaterialError] = useState<string | null>(null);
-  const [pendingMaterial, setPendingMaterial] = useState<MaterialResource | null>(null);
+  const [pendingMaterial, setPendingMaterial] =
+    useState<MaterialResource | null>(null);
   const [cantidadInput, setCantidadInput] = useState("");
   const [cantidadError, setCantidadError] = useState<string | null>(null);
   const materialInputRef = useRef<HTMLInputElement>(null);
@@ -72,13 +88,11 @@ export default function TrasladoForm({ onSuccess }: TrasladoFormProps) {
     },
   });
 
-  // Mirror cart state to refs for cleanup
   const seriesCartRef = useRef(seriesCart);
   seriesCartRef.current = seriesCart;
   const materialsCartRef = useRef(materialsCart);
   materialsCartRef.current = materialsCart;
 
-  // Save draft on unmount (skip if submitted successfully)
   useEffect(() => {
     return () => {
       if (!submittedRef.current) {
@@ -90,7 +104,7 @@ export default function TrasladoForm({ onSuccess }: TrasladoFormProps) {
         });
       }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const tipo = form.watch("tipo");
@@ -162,7 +176,9 @@ export default function TrasladoForm({ onSuccess }: TrasladoFormProps) {
     serieInputRef.current?.focus();
   };
 
-  const handleSerieKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleSerieKeyDown = async (
+    e: React.KeyboardEvent<HTMLInputElement>,
+  ) => {
     if (e.key !== "Enter") return;
     e.preventDefault();
     const val = serieInput.trim();
@@ -210,7 +226,9 @@ export default function TrasladoForm({ onSuccess }: TrasladoFormProps) {
     materialInputRef.current?.focus();
   };
 
-  const handleMaterialKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleMaterialKeyDown = async (
+    e: React.KeyboardEvent<HTMLInputElement>,
+  ) => {
     if (e.key !== "Enter") return;
     e.preventDefault();
     const val = materialInput.trim();
@@ -268,21 +286,61 @@ export default function TrasladoForm({ onSuccess }: TrasladoFormProps) {
     mutation.mutate(values);
   });
 
+  const currentCartCount =
+    tipo === "serie" ? seriesCart.length : materialsCart.length;
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      <div className="bg-muted/40 rounded-lg p-4 border">
+        <FormSelect
+          name="destino_almacen_id"
+          label="Almacén destino"
+          control={form.control}
+          placeholder={
+            loadingAlmacenes
+              ? "Cargando almacenes..."
+              : "Seleccionar almacén destino..."
+          }
+          options={almacenOptions}
+          disabled={loadingAlmacenes}
+          required
+        />
+      </div>
+
+      <Separator />
+
       <Tabs value={tipo} onValueChange={handleTabChange}>
-        <TabsList className="w-fit min-w-72">
-          <TabsTrigger value="serie" className="flex-1">
-            Serie
+        <TabsList className="w-full">
+          <TabsTrigger value="serie" className="flex-1 gap-2">
+            <Package className="size-4" />
+            Series
+            {seriesCart.length > 0 && (
+              <Badge
+                variant="secondary"
+                className="h-5 min-w-5 px-1.5 text-xs"
+              >
+                {seriesCart.length}
+              </Badge>
+            )}
           </TabsTrigger>
-          <TabsTrigger value="material" className="flex-1">
-            Material
+          <TabsTrigger value="material" className="flex-1 gap-2">
+            <Boxes className="size-4" />
+            Materiales
+            {materialsCart.length > 0 && (
+              <Badge
+                variant="secondary"
+                className="h-5 min-w-5 px-1.5 text-xs"
+              >
+                {materialsCart.length}
+              </Badge>
+            )}
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="serie" className="mt-4 space-y-4">
+        {/* ─── Series ─── */}
+        <TabsContent value="serie" className="mt-4 space-y-3">
           <div className="space-y-1.5">
-            <Label>Serie</Label>
+            <Label className="text-sm font-medium">Buscar serie</Label>
             <div className="relative">
               <Input
                 ref={serieInputRef}
@@ -293,8 +351,9 @@ export default function TrasladoForm({ onSuccess }: TrasladoFormProps) {
                   setSerieMatches([]);
                 }}
                 onKeyDown={handleSerieKeyDown}
-                placeholder="Escribir código de serie y presionar Enter..."
+                placeholder="Código de serie → Enter para agregar"
                 disabled={serieSearching}
+                className="pr-9"
               />
               {serieSearching && (
                 <Loader2 className="absolute right-3 top-2.5 h-4 w-4 animate-spin text-muted-foreground" />
@@ -303,42 +362,68 @@ export default function TrasladoForm({ onSuccess }: TrasladoFormProps) {
             {serieError && (
               <p className="text-xs text-destructive">{serieError}</p>
             )}
-            {serieMatches.length > 0 && (
-              <div className="border rounded-md divide-y text-sm shadow-sm">
-                {serieMatches.map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    className="w-full text-left px-3 py-2 hover:bg-muted flex flex-col"
-                    onClick={() => addSerie(item)}
-                  >
-                    <span className="font-medium">
-                      {item.serie ?? `Serie #${item.id}`}
-                    </span>
-                    {item.producto?.nombre && (
-                      <span className="text-xs text-muted-foreground">
-                        {item.producto.nombre}
-                      </span>
-                    )}
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
 
-          {seriesCart.length > 0 && (
-            <div className="border rounded-md divide-y text-sm">
-              {seriesCart.map((item) => (
+          {serieMatches.length > 0 && (
+            <div className="border rounded-md overflow-hidden shadow-sm">
+              <div className="px-3 py-1.5 bg-muted/50 border-b">
+                <p className="text-xs text-muted-foreground">
+                  {serieMatches.length} resultado
+                  {serieMatches.length !== 1 ? "s" : ""} — seleccione uno
+                </p>
+              </div>
+              {serieMatches.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  className="w-full text-left px-3 py-2.5 hover:bg-muted flex items-center gap-3 border-b last:border-0 transition-colors"
+                  onClick={() => addSerie(item)}
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm">
+                      {item.serie ?? `Serie #${item.id}`}
+                    </p>
+                    {item.producto?.nombre && (
+                      <p className="text-xs text-muted-foreground truncate">
+                        {item.producto.nombre}
+                      </p>
+                    )}
+                  </div>
+                  <ArrowRight className="size-3.5 text-muted-foreground shrink-0" />
+                </button>
+              ))}
+            </div>
+          )}
+
+          {seriesCart.length > 0 ? (
+            <div className="border rounded-md overflow-hidden">
+              <div className="px-3 py-1.5 bg-muted/50 border-b flex items-center justify-between">
+                <p className="text-xs font-medium text-muted-foreground">
+                  {seriesCart.length} serie{seriesCart.length !== 1 ? "s" : ""}{" "}
+                  en la lista
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setSeriesCart([])}
+                  className="text-xs text-muted-foreground hover:text-destructive transition-colors"
+                >
+                  Limpiar todo
+                </button>
+              </div>
+              {seriesCart.map((item, idx) => (
                 <div
                   key={item.serie_id}
-                  className="flex items-center justify-between px-3 py-2"
+                  className="flex items-center gap-3 px-3 py-2.5 border-b last:border-0 hover:bg-muted/30"
                 >
-                  <div className="flex flex-col min-w-0">
-                    <span className="font-medium truncate">{item.label}</span>
+                  <span className="text-xs text-muted-foreground w-5 text-center font-mono shrink-0">
+                    {idx + 1}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{item.label}</p>
                     {item.producto && (
-                      <span className="text-xs text-muted-foreground truncate">
+                      <p className="text-xs text-muted-foreground truncate">
                         {item.producto}
-                      </span>
+                      </p>
                     )}
                   </div>
                   <Button
@@ -352,72 +437,63 @@ export default function TrasladoForm({ onSuccess }: TrasladoFormProps) {
                       )
                     }
                   >
-                    <X className="h-4 w-4" />
+                    <X className="h-3.5 w-3.5" />
                   </Button>
                 </div>
               ))}
             </div>
+          ) : (
+            <div className="border border-dashed rounded-md py-8 flex flex-col items-center gap-2 text-muted-foreground">
+              <Package className="size-8 opacity-30" />
+              <p className="text-sm">Ninguna serie agregada</p>
+              <p className="text-xs">Busque por código y presione Enter</p>
+            </div>
           )}
-
         </TabsContent>
 
-        <TabsContent value="material" className="mt-4 space-y-4">
-          <div className="space-y-1.5">
-            <Label>Material</Label>
-            <div className="relative">
-              <Input
-                ref={materialInputRef}
-                value={materialInput}
-                onChange={(e) => {
-                  setMaterialInput(e.target.value);
-                  setMaterialError(null);
-                  setMaterialMatches([]);
-                  if (pendingMaterial) setPendingMaterial(null);
-                }}
-                onKeyDown={handleMaterialKeyDown}
-                placeholder="Buscar material y presionar Enter..."
-                disabled={materialSearching}
-              />
-              {materialSearching && (
-                <Loader2 className="absolute right-3 top-2.5 h-4 w-4 animate-spin text-muted-foreground" />
+        {/* ─── Materiales ─── */}
+        <TabsContent value="material" className="mt-4 space-y-3">
+          {!pendingMaterial ? (
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Buscar material</Label>
+              <div className="relative">
+                <Input
+                  ref={materialInputRef}
+                  value={materialInput}
+                  onChange={(e) => {
+                    setMaterialInput(e.target.value);
+                    setMaterialError(null);
+                    setMaterialMatches([]);
+                  }}
+                  onKeyDown={handleMaterialKeyDown}
+                  placeholder="Nombre del material → Enter para buscar"
+                  disabled={materialSearching}
+                  className="pr-9"
+                />
+                {materialSearching && (
+                  <Loader2 className="absolute right-3 top-2.5 h-4 w-4 animate-spin text-muted-foreground" />
+                )}
+              </div>
+              {materialError && (
+                <p className="text-xs text-destructive">{materialError}</p>
               )}
             </div>
-            {materialError && (
-              <p className="text-xs text-destructive">{materialError}</p>
-            )}
-            {materialMatches.length > 0 && (
-              <div className="border rounded-md divide-y text-sm shadow-sm">
-                {materialMatches.map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    className="w-full text-left px-3 py-2 hover:bg-muted flex flex-col"
-                    onClick={() => handleSelectMaterialMatch(item)}
-                  >
-                    <span className="font-medium">
-                      {item.producto?.nombre ?? `Material #${item.id}`}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      Stock disponible: {item.cantidad}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {pendingMaterial && (
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-md text-sm">
-                <span className="flex-1 font-medium">
-                  {pendingMaterial.producto?.nombre ?? `Material #${pendingMaterial.id}`}
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  Stock: {pendingMaterial.cantidad}
-                </span>
+          ) : (
+            <div className="space-y-3">
+              <div className="flex items-center gap-3 px-3 py-2.5 bg-primary/5 border border-primary/20 rounded-md">
+                <CheckCircle2 className="size-4 text-primary shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">
+                    {pendingMaterial.producto?.nombre ??
+                      `Material #${pendingMaterial.id}`}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Stock disponible: {pendingMaterial.cantidad}
+                  </p>
+                </div>
                 <button
                   type="button"
-                  className="text-muted-foreground hover:text-destructive"
+                  className="text-muted-foreground hover:text-destructive shrink-0"
                   onClick={() => {
                     setPendingMaterial(null);
                     setCantidadInput("");
@@ -425,41 +501,90 @@ export default function TrasladoForm({ onSuccess }: TrasladoFormProps) {
                     materialInputRef.current?.focus();
                   }}
                 >
-                  <X className="h-3.5 w-3.5" />
+                  <X className="h-4 w-4" />
                 </button>
               </div>
-              <Label>Cantidad</Label>
-              <Input
-                ref={cantidadInputRef}
-                type="number"
-                value={cantidadInput}
-                onChange={(e) => {
-                  setCantidadInput(e.target.value);
-                  setCantidadError(null);
-                }}
-                onKeyDown={handleCantidadKeyDown}
-                placeholder="Ingresar cantidad y presionar Enter..."
-                step="0.01"
-                min="0.01"
-              />
-              {cantidadError && (
-                <p className="text-xs text-destructive">{cantidadError}</p>
-              )}
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium">
+                  Cantidad a trasladar
+                </Label>
+                <Input
+                  ref={cantidadInputRef}
+                  type="number"
+                  value={cantidadInput}
+                  onChange={(e) => {
+                    setCantidadInput(e.target.value);
+                    setCantidadError(null);
+                  }}
+                  onKeyDown={handleCantidadKeyDown}
+                  placeholder="Cantidad → Enter para agregar"
+                  step="0.01"
+                  min="0.01"
+                />
+                {cantidadError && (
+                  <p className="text-xs text-destructive">{cantidadError}</p>
+                )}
+              </div>
             </div>
           )}
 
-          {materialsCart.length > 0 && (
-            <div className="border rounded-md divide-y text-sm">
-              {materialsCart.map((item) => (
+          {materialMatches.length > 0 && (
+            <div className="border rounded-md overflow-hidden shadow-sm">
+              <div className="px-3 py-1.5 bg-muted/50 border-b">
+                <p className="text-xs text-muted-foreground">
+                  {materialMatches.length} resultado
+                  {materialMatches.length !== 1 ? "s" : ""} — seleccione uno
+                </p>
+              </div>
+              {materialMatches.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  className="w-full text-left px-3 py-2.5 hover:bg-muted flex items-center gap-3 border-b last:border-0 transition-colors"
+                  onClick={() => handleSelectMaterialMatch(item)}
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm">
+                      {item.producto?.nombre ?? `Material #${item.id}`}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Stock: {item.cantidad}
+                    </p>
+                  </div>
+                  <ArrowRight className="size-3.5 text-muted-foreground shrink-0" />
+                </button>
+              ))}
+            </div>
+          )}
+
+          {materialsCart.length > 0 ? (
+            <div className="border rounded-md overflow-hidden">
+              <div className="px-3 py-1.5 bg-muted/50 border-b flex items-center justify-between">
+                <p className="text-xs font-medium text-muted-foreground">
+                  {materialsCart.length} material
+                  {materialsCart.length !== 1 ? "es" : ""} en la lista
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setMaterialsCart([])}
+                  className="text-xs text-muted-foreground hover:text-destructive transition-colors"
+                >
+                  Limpiar todo
+                </button>
+              </div>
+              {materialsCart.map((item, idx) => (
                 <div
                   key={item.material_id}
-                  className="flex items-center justify-between px-3 py-2"
+                  className="flex items-center gap-3 px-3 py-2.5 border-b last:border-0 hover:bg-muted/30"
                 >
-                  <div className="flex flex-col min-w-0">
-                    <span className="font-medium truncate">{item.label}</span>
-                    <span className="text-xs text-muted-foreground">
+                  <span className="text-xs text-muted-foreground w-5 text-center font-mono shrink-0">
+                    {idx + 1}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{item.label}</p>
+                    <p className="text-xs text-muted-foreground">
                       Cantidad: {item.cantidad}
-                    </span>
+                    </p>
                   </div>
                   <Button
                     type="button"
@@ -468,38 +593,55 @@ export default function TrasladoForm({ onSuccess }: TrasladoFormProps) {
                     className="h-7 w-7 shrink-0 text-muted-foreground hover:text-destructive"
                     onClick={() =>
                       setMaterialsCart((prev) =>
-                        prev.filter((i) => i.material_id !== item.material_id),
+                        prev.filter(
+                          (i) => i.material_id !== item.material_id,
+                        ),
                       )
                     }
                   >
-                    <X className="h-4 w-4" />
+                    <X className="h-3.5 w-3.5" />
                   </Button>
                 </div>
               ))}
             </div>
+          ) : (
+            !pendingMaterial && (
+              <div className="border border-dashed rounded-md py-8 flex flex-col items-center gap-2 text-muted-foreground">
+                <Boxes className="size-8 opacity-30" />
+                <p className="text-sm">Ningún material agregado</p>
+                <p className="text-xs">Busque por nombre y presione Enter</p>
+              </div>
+            )
           )}
         </TabsContent>
       </Tabs>
 
-      {cartError && <p className="text-sm text-destructive">{cartError}</p>}
+      {cartError && (
+        <p className="text-sm text-destructive font-medium">{cartError}</p>
+      )}
 
-      <FormSelect
-        name="destino_almacen_id"
-        label="Almacén destino"
-        control={form.control}
-        placeholder={
-          loadingAlmacenes ? "Cargando..." : "Seleccionar almacén..."
-        }
-        options={almacenOptions}
-        disabled={loadingAlmacenes}
-        required
-      />
-
-      <div className="flex justify-end">
-        <Button type="submit" disabled={mutation.isPending}>
-          {mutation.isPending ? "Guardando..." : "Crear traslado"}
-        </Button>
-      </div>
+      <Button
+        type="submit"
+        disabled={mutation.isPending}
+        className="w-full"
+        size="lg"
+      >
+        {mutation.isPending ? (
+          <>
+            <Loader2 className="size-4 mr-2 animate-spin" />
+            Creando traslado...
+          </>
+        ) : (
+          <>
+            Crear traslado
+            {currentCartCount > 0 && (
+              <Badge variant="secondary" className="ml-2 h-5 px-1.5 text-xs">
+                {currentCartCount}
+              </Badge>
+            )}
+          </>
+        )}
+      </Button>
     </form>
   );
 }

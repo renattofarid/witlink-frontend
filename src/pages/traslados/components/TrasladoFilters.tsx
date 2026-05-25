@@ -12,9 +12,15 @@ interface TrasladoFiltersProps {
 }
 
 const TIPO_OPTIONS = [
-  { value: "all", label: "Todos" },
+  { value: "all", label: "Todos los tipos" },
   { value: "serie", label: "Equipos" },
   { value: "material", label: "Materiales" },
+];
+
+const CONFIRMADO_OPTIONS = [
+  { value: "all", label: "Todos los estados" },
+  { value: "false", label: "Pendientes" },
+  { value: "true", label: "Confirmados" },
 ];
 
 export default function TrasladoFilters({ params, setParams }: TrasladoFiltersProps) {
@@ -69,8 +75,20 @@ export default function TrasladoFilters({ params, setParams }: TrasladoFiltersPr
       <SearchableSelect
         placeholder="Almacén origen"
         options={almacenOptions}
-        value={params.almacen_id || "all"}
-        onChange={(v) => set("almacen_id", v)}
+        value={params.almacen_origen_id || "all"}
+        onChange={(v) => set("almacen_origen_id", v)}
+      />
+      <SearchableSelect
+        placeholder="Almacén destino"
+        options={almacenOptions}
+        value={params.almacen_destino_id || "all"}
+        onChange={(v) => set("almacen_destino_id", v)}
+      />
+      <SearchableSelect
+        placeholder="Estado"
+        options={CONFIRMADO_OPTIONS}
+        value={params.confirmado || "all"}
+        onChange={(v) => set("confirmado", v)}
       />
       <SearchableSelect
         placeholder="Tipo"

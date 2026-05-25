@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { GeneralModal } from "@/components/GeneralModal";
+import GeneralSheet from "@/components/GeneralSheet";
 import TrasladoForm from "./TrasladoForm";
 
 export default function TrasladoButtons() {
@@ -14,15 +14,17 @@ export default function TrasladoButtons() {
         Agregar
       </Button>
 
-      <GeneralModal
+      <GeneralSheet
         open={open}
         onClose={() => setOpen(false)}
         title="Nuevo traslado"
+        subtitle="Busque y agregue series o materiales para trasladar"
         icon="ArrowLeftRight"
-        size="lg"
+        size="xl"
+        preventAutoClose
       >
         <TrasladoForm onSuccess={() => setOpen(false)} />
-      </GeneralModal>
+      </GeneralSheet>
     </>
   );
 }

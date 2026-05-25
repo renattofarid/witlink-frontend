@@ -65,11 +65,11 @@ export default function InventarioPage() {
     setDevolverSerieOpen(true);
   };
 
-  const handleConfirmDevolverMaterial = async (cantidad: number) => {
+  const handleConfirmDevolverMaterial = async (cantidad: number): Promise<number> => {
     try {
-      await devolverInventarioMaterial(selectedMaterial!.producto_id, cantidad);
+      const data = await devolverInventarioMaterial(selectedMaterial!.producto_id, cantidad);
       queryClient.invalidateQueries({ queryKey: [INVENTARIO_MATERIALES_QUERY_KEY] });
-      successToast("Material devuelto al almacén correctamente.");
+      return data?.id ?? 0;
     } catch (error: any) {
       errorToast(error.response?.data?.message ?? "Error al devolver el material.");
       throw error;
@@ -155,6 +155,7 @@ export default function InventarioPage() {
         onOpenChange={setDevolverMaterialOpen}
         maxCantidad={Number(selectedMaterial?.cantidad ?? 1) || 1}
         onConfirm={handleConfirmDevolverMaterial}
+        onSuccess={() => successToast("Material devuelto al almacén correctamente.")}
       />
 
       <SimpleDeleteDialog

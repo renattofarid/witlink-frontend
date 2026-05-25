@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { Button, type ButtonColors } from "@/components/ui/button";
 
 interface ConfirmationDialogProps {
   open: boolean;
@@ -17,6 +17,7 @@ interface ConfirmationDialogProps {
   children?: React.ReactNode;
   confirmText?: string;
   cancelText?: string;
+  confirmColor?: ButtonColors;
   onConfirm: () => Promise<void> | void;
   isLoading?: boolean;
 }
@@ -29,6 +30,7 @@ export function ConfirmationDialog({
   children,
   confirmText = "Confirmar",
   cancelText = "Cancelar",
+  confirmColor,
   onConfirm,
   isLoading,
 }: ConfirmationDialogProps) {
@@ -66,7 +68,7 @@ export function ConfirmationDialog({
           >
             {cancelText}
           </Button>
-          <Button onClick={handleConfirm} disabled={loading}>
+          <Button color={confirmColor} onClick={handleConfirm} disabled={loading}>
             {loading ? "Procesando..." : confirmText}
           </Button>
         </DialogFooter>

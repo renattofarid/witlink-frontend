@@ -316,7 +316,7 @@ export default function TrasladoForm({ onSuccess }: TrasladoFormProps) {
             Series
             {seriesCart.length > 0 && (
               <Badge
-                variant="secondary"
+                color="secondary"
                 className="h-5 min-w-5 px-1.5 text-xs"
               >
                 {seriesCart.length}
@@ -328,7 +328,7 @@ export default function TrasladoForm({ onSuccess }: TrasladoFormProps) {
             Materiales
             {materialsCart.length > 0 && (
               <Badge
-                variant="secondary"
+                color="secondary"
                 className="h-5 min-w-5 px-1.5 text-xs"
               >
                 {materialsCart.length}
@@ -635,7 +635,7 @@ export default function TrasladoForm({ onSuccess }: TrasladoFormProps) {
           <>
             Crear traslado
             {currentCartCount > 0 && (
-              <Badge variant="secondary" className="ml-2 h-5 px-1.5 text-xs">
+              <Badge color="secondary" className="ml-2 h-5 px-1.5 text-xs">
                 {currentCartCount}
               </Badge>
             )}

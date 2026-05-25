@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTabParams } from "@/hooks/useTabParams";
 import PageWrapper from "@/components/PageWrapper";
@@ -5,6 +6,7 @@ import TitleComponent from "@/components/TitleComponent";
 import ActionsWrapper from "@/components/ActionsWrapper";
 import { DataTable } from "@/components/DataTable";
 import DataTablePagination from "@/components/DataTablePagination";
+import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import { successToast, errorToast } from "@/lib/core.function";
 import { TrasladoComplete } from "../lib/traslado.constants";
@@ -19,6 +21,7 @@ import type { TrasladoListItem } from "../lib/traslado.interface";
 export default function TrasladosPage() {
   const queryClient = useQueryClient();
   const almacen_id = useAuthStore((s) => s.almacen_id);
+  const [selectedItem, setSelectedItem] = useState<TrasladoListItem | null>(null);
 
   const [params, setParams] = useTabParams(TrasladoComplete.ABSOLUTE_ROUTE, {
     page: "1",
@@ -42,7 +45,7 @@ export default function TrasladosPage() {
 
   const columns = getTrasladoListColumns({
     almacen_id,
-    onConfirmar: (item) => confirmMutation.mutate(item),
+    onConfirmar: (item) => setSelectedItem(item),
   });
 
   const handlePageChange = (page: number) =>
@@ -78,6 +81,19 @@ export default function TrasladosPage() {
         totalData={data?.meta.total ?? 0}
         onPageChange={handlePageChange}
         setPerPage={handlePerPageChange}
+      />
+
+      <ConfirmationDialog
+        open={!!selectedItem}
+        onOpenChange={(open) => !open && setSelectedItem(null)}
+        title="Confirmar traslado"
+        description="¿Estás seguro de que deseas confirmar este traslado? Esta acción no se puede deshacer."
+        confirmText="Confirmar"
+        confirmColor="green"
+        isLoading={confirmMutation.isPending}
+        onConfirm={async () => {
+          if (selectedItem) await confirmMutation.mutateAsync(selectedItem);
+        }}
       />
     </PageWrapper>
   );

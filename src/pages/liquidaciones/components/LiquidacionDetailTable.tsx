@@ -114,7 +114,7 @@ export default function LiquidacionDetailTable({
               </p>
               {items.length > 0 && (
                 <Badge
-                  variant="secondary"
+                  color="secondary"
                   className="text-[10px] h-4 px-1.5 rounded-full"
                 >
                   {items.length} {items.length === 1 ? "ítem" : "ítems"}

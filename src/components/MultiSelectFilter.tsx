@@ -86,7 +86,7 @@ export function MultiSelectFilter({
           selectedLabels[0]
         ) : (
           <span className="flex items-center gap-1">
-            <Badge variant="secondary" className="text-xs px-1.5 py-0 h-5 shrink-0">
+            <Badge color="secondary" className="text-xs px-1.5 py-0 h-5 shrink-0">
               {values.length}
             </Badge>
             <span className="truncate">{selectedLabels.join(", ")}</span>

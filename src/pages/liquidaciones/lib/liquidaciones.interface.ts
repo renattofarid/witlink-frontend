@@ -179,6 +179,8 @@ export interface ProductoLiquidacionItem {
   // Presente en formato directo (materiales sin serie)
   producto_id?: number;
   producto?: ProductoInfo;
+  // La API también devuelve el objeto producto como "productos" (plural) para materiales
+  productos?: ProductoInfo;
 }
 
 // ── Detalle de liquidación (response del guardado) ────────────────────────────

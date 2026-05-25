@@ -63,7 +63,7 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
     if (useLiquidacionStore.getState().items.length > 0) return;
 
     const cartItems: LiquidacionCartItem[] = liquidacion.productos.map((item) => {
-      const prod = item.producto ?? item.series[0]?.serie?.producto;
+      const prod = item.productos ?? item.producto ?? item.series[0]?.serie?.producto;
       return {
         tempId: `api-${item.id}`,
         detalle_id: item.id,

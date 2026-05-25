@@ -47,6 +47,11 @@ export default function InventarioMaterialesFilters({
         }
       />
       <SearchInput
+        value={params.search ?? ""}
+        onChange={(v) => setParams((prev) => ({ ...prev, search: v, page: "1" }))}
+        placeholder="Buscar material..."
+      />
+      <SearchInput
         value={params.sot ?? ""}
         onChange={(v) => setParams((prev) => ({ ...prev, sot: v, page: "1" }))}
         placeholder="Buscar por SOT..."

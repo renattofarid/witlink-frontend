@@ -13,7 +13,7 @@ import { FormSelect } from "@/components/FormSelect";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import { Badge } from "@/components/ui/badge";
-import { PackagePlus, Trash2, Pencil, ListPlus } from "lucide-react";
+import { PackagePlus, Trash2, Pencil, ListPlus, User } from "lucide-react";
 import { successToast, errorToast } from "@/lib/core.function";
 import { format } from "date-fns";
 
@@ -27,7 +27,7 @@ import {
   EquiposRetiradosComplete,
   TIPO_EQUIPO_RETIRADO_OPTIONS,
 } from "@/pages/equipos-retirados/lib/equipos-retirados.constants";
-import { useLiquidacionesForSelectQuery } from "@/pages/liquidaciones/lib/liquidaciones.hook";
+import { useLiquidacionesForSelectQuery, useSotSearchQuery } from "@/pages/liquidaciones/lib/liquidaciones.hook";
 import type { LiquidacionResource } from "@/pages/liquidaciones/lib/liquidaciones.interface";
 import type { Option } from "@/lib/core.interface";
 import { useGuiaDraftStore } from "../lib/guia-draft.store";
@@ -137,6 +137,17 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
   const queryClient = useQueryClient();
   const { equipoRetiradoDraft, setEquipoRetiradoDraft, clearDrafts } = useGuiaDraftStore();
   const submittedRef = useRef(false);
+
+  // Cliente display
+  const [selectedCliente, setSelectedCliente] = useState<string | null>(null);
+  const { data: initialSotData } = useSotSearchQuery(
+    mode === "edit" && equipo?.sot ? equipo.sot : null,
+  );
+  useEffect(() => {
+    if (mode === "edit" && initialSotData?.liquidacion) {
+      setSelectedCliente(initialSotData.liquidacion.nombre);
+    }
+  }, [initialSotData, mode]);
 
   // Product dialog state
   const [editingProductoIndex, setEditingProductoIndex] = useState<number | null>(null);
@@ -480,6 +491,7 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
               useQueryHook={useLiquidacionesForSelectQuery}
               mapOptionFn={mapLiquidacionOption}
               defaultOption={equipo ? { value: equipo.sot, label: equipo.sot } : undefined}
+              onValueChange={(value, item: LiquidacionResource) => setSelectedCliente(value ? (item?.nombre ?? null) : null)}
             />
             <DatePickerFormField name="fecha" label="Fecha" control={editForm.control} />
             <FormSelect
@@ -490,6 +502,13 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
               options={TIPO_EQUIPO_RETIRADO_OPTIONS}
             />
           </div>
+          {selectedCliente && (
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <User className="size-3" />
+              <span>Cliente:</span>
+              <span className="font-medium text-foreground">{selectedCliente}</span>
+            </div>
+          )}
           <div className="flex justify-end">
             <Button type="submit" size="sm" disabled={editMutation.isPending}>
               {editMutation.isPending ? "Guardando..." : "Guardar cambios"}
@@ -716,6 +735,7 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
             required
             useQueryHook={useLiquidacionesForSelectQuery}
             mapOptionFn={mapLiquidacionOption}
+            onValueChange={(value, item: LiquidacionResource) => setSelectedCliente(value ? (item?.nombre ?? null) : null)}
           />
           <DatePickerFormField name="fecha" label="Fecha" control={createForm.control} />
           <FormSelect
@@ -726,6 +746,13 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
             options={TIPO_EQUIPO_RETIRADO_OPTIONS}
           />
         </div>
+        {selectedCliente && (
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <User className="size-3" />
+            <span>Cliente:</span>
+            <span className="font-medium text-foreground">{selectedCliente}</span>
+          </div>
+        )}
       </div>
 
       {/* Productos */}

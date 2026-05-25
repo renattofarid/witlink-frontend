@@ -27,3 +27,13 @@ export const getInventarioMateriales = async (
   const { data } = await api.get("/inventarios/materiales", { params: buildParams(params) });
   return data;
 };
+
+export const devolverInventarioMaterial = async (productoId: number, cantidad: number) => {
+  const { data } = await api.post(`/inventarios/materiales/${productoId}/devolver`, { cantidad });
+  return data;
+};
+
+export const devolverInventarioSerie = async (inventarioTecnicoId: number) => {
+  const { data } = await api.post(`/inventarios/series/${inventarioTecnicoId}/devolver`);
+  return data;
+};

@@ -1,6 +1,11 @@
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { getAlmacenes } from "@/pages/auth/lib/auth.actions";
 import FilterWrapper from "@/components/FilterWrapper";
+import { MultiSelectFilter } from "@/components/MultiSelectFilter";
 import { SearchableSelect } from "@/components/SearchableSelect";
 import SearchInput from "@/components/SearchInput";
+
 interface InventarioSeriesFiltersProps {
   params: Record<string, string>;
   setParams: React.Dispatch<React.SetStateAction<Record<string, string>>>;
@@ -10,6 +15,21 @@ export default function InventarioSeriesFilters({
   params,
   setParams,
 }: InventarioSeriesFiltersProps) {
+  const { data: almacenes = [] } = useQuery({
+    queryKey: ["almacenes-list"],
+    queryFn: getAlmacenes,
+    refetchOnWindowFocus: false,
+  });
+
+  const almacenOptions = useMemo(
+    () => almacenes.map((a) => ({ value: String(a.id), label: a.nombre })),
+    [almacenes],
+  );
+
+  const selectedAlmacenes = params.almacen_id
+    ? params.almacen_id.split(",").filter(Boolean)
+    : [];
+
   const set = (key: string, value: string) =>
     setParams((prev) => ({
       ...prev,
@@ -19,6 +39,14 @@ export default function InventarioSeriesFilters({
 
   return (
     <FilterWrapper>
+      <MultiSelectFilter
+        placeholder="Almacenes"
+        options={almacenOptions}
+        values={selectedAlmacenes}
+        onChange={(ids) =>
+          setParams((prev) => ({ ...prev, almacen_id: ids.join(","), page: "1" }))
+        }
+      />
       <SearchInput
         value={params.producto ?? ""}
         onChange={(v) =>

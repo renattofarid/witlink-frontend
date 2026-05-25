@@ -3,6 +3,9 @@ import type {
   InventarioTecnicoResource,
   InventarioTecnicoApiResponse,
   DevolverMaterialBody,
+  DevolverSerieResponse,
+  DevolverMaterialResponse,
+  DevolucionResource,
 } from "./inventario-tecnico.interface";
 
 export const getInventarioTecnico = async (
@@ -27,11 +30,11 @@ export const getInventarioTecnico = async (
   const series: InventarioTecnicoResource[] = data.series.map((s) => ({
     id: s.id,
     tipo: "serie",
-    producto: s.nombre,
-    sap: s.sap,
+    producto: s.serie.producto.nombre,
+    sap: s.serie.producto.sap,
     cantidad: null,
-    serie: s.serie,
-    fecha: s.fecha,
+    serie: s.serie.serie,
+    fecha: s.created_at,
   }));
 
   return [...materiales, ...series];
@@ -41,7 +44,7 @@ export const devolverMaterial = async (
   tecnicoId: number,
   inventarioId: number,
   body: DevolverMaterialBody,
-) => {
+): Promise<DevolverMaterialResponse> => {
   const { data } = await api.post(
     `/tecnicos/${tecnicoId}/inventario/${inventarioId}/devolverMaterial`,
     body,
@@ -52,10 +55,24 @@ export const devolverMaterial = async (
 export const devolverSerie = async (
   tecnicoId: number,
   inventarioId: number,
-) => {
+): Promise<DevolverSerieResponse> => {
   const { data } = await api.post(
     `/tecnicos/${tecnicoId}/inventario/${inventarioId}/devolverSerie`,
   );
+  return data;
+};
+
+export const getHistorialDevoluciones = async (
+  tecnicoId: number,
+): Promise<DevolucionResource[]> => {
+  const { data } = await api.get(`/tecnicos/${tecnicoId}/devoluciones`);
+  return data;
+};
+
+export const descargarPdfDevolucion = async (devolucionId: number): Promise<Blob> => {
+  const { data } = await api.get(`/devoluciones/${devolucionId}/pdf`, {
+    responseType: "blob",
+  });
   return data;
 };
 

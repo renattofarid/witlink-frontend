@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -10,9 +10,10 @@ import { DataTable } from "@/components/DataTable";
 import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 import { FormInput } from "@/components/FormInput";
 import { FormSelect } from "@/components/FormSelect";
+import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import { Badge } from "@/components/ui/badge";
-import { PackagePlus, Trash2, Pencil, ListPlus } from "lucide-react";
+import { PackagePlus, Trash2, Pencil, ListPlus, User } from "lucide-react";
 import { successToast, errorToast } from "@/lib/core.function";
 import { format } from "date-fns";
 
@@ -26,6 +27,16 @@ import {
   EquiposRetiradosComplete,
   TIPO_EQUIPO_RETIRADO_OPTIONS,
 } from "@/pages/equipos-retirados/lib/equipos-retirados.constants";
+import { useLiquidacionesForSelectQuery, useSotSearchQuery } from "@/pages/liquidaciones/lib/liquidaciones.hook";
+import type { LiquidacionResource } from "@/pages/liquidaciones/lib/liquidaciones.interface";
+import type { Option } from "@/lib/core.interface";
+import { useGuiaDraftStore } from "../lib/guia-draft.store";
+
+const mapLiquidacionOption = (item: LiquidacionResource): Option => ({
+  value: item.sot,
+  label: item.sot,
+  description: item.nombre,
+});
 import {
   createEquipoRetirado,
   updateEquipoRetirado,
@@ -124,11 +135,23 @@ interface Props {
 
 export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Props) {
   const queryClient = useQueryClient();
+  const { equipoRetiradoDraft, setEquipoRetiradoDraft, clearDrafts } = useGuiaDraftStore();
+  const submittedRef = useRef(false);
+
+  // Cliente display
+  const [selectedCliente, setSelectedCliente] = useState<string | null>(null);
+  const { data: initialSotData } = useSotSearchQuery(
+    mode === "edit" && equipo?.sot ? equipo.sot : null,
+  );
+  useEffect(() => {
+    if (mode === "edit" && initialSotData?.liquidacion) {
+      setSelectedCliente(initialSotData.liquidacion.nombre);
+    }
+  }, [initialSotData, mode]);
 
   // Product dialog state
   const [editingProductoIndex, setEditingProductoIndex] = useState<number | null>(null);
   const [productoDialogOpen, setProductoDialogOpen] = useState(false);
-  const [productoDialogTab, setProductoDialogTab] = useState<"catalogo" | "manual">("catalogo");
 
   // Edit mode: which product detail id is getting a new serie
   const [addSerieForDetailId, setAddSerieForDetailId] = useState<number | null>(null);
@@ -156,6 +179,21 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
     remove: removeProducto,
     update: updateProductoField,
   } = useFieldArray({ control: createForm.control, name: "productos" });
+
+  // Restore draft on mount (create mode only)
+  useEffect(() => {
+    if (mode === "create" && equipoRetiradoDraft) createForm.reset(equipoRetiradoDraft);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Save draft on unmount (create mode only, skip if submitted successfully)
+  useEffect(() => {
+    if (mode !== "create") return;
+    return () => {
+      if (!submittedRef.current) setEquipoRetiradoDraft(createForm.getValues());
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── Edit header form ───────────────────────────────────────────────────────
   const editForm = useForm<HeaderEditFormValues>({
@@ -213,7 +251,6 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
   const handleOpenProductoDialog = () => {
     productSubForm.reset(EMPTY_PRODUCTO);
     setEditingProductoIndex(null);
-    setProductoDialogTab("catalogo");
     setProductoDialogOpen(true);
   };
 
@@ -221,7 +258,6 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
     const producto = createForm.getValues(`productos.${index}`);
     setEditingProductoIndex(index);
     productSubForm.reset(producto);
-    setProductoDialogTab(producto.producto_id ? "catalogo" : "manual");
     setProductoDialogOpen(true);
   };
 
@@ -241,6 +277,8 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
         productos: values.productos.map(mapProducto),
       }),
     onSuccess: () => {
+      submittedRef.current = true;
+      clearDrafts();
       queryClient.invalidateQueries({ queryKey: [EquiposRetiradosComplete.QUERY_KEY] });
       successToast("Equipo retirado creado correctamente.");
       onSuccess?.();
@@ -444,13 +482,16 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
             <Separator className="flex-1" />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <FormInput
+            <FormSelectAsync
               name="sot"
               label="SOT"
               control={editForm.control}
-              placeholder="Número de SOT"
+              placeholder="Buscar SOT..."
               required
-              uppercase
+              useQueryHook={useLiquidacionesForSelectQuery}
+              mapOptionFn={mapLiquidacionOption}
+              defaultOption={equipo ? { value: equipo.sot, label: equipo.sot } : undefined}
+              onValueChange={(value, item: LiquidacionResource) => setSelectedCliente(value ? (item?.nombre ?? null) : null)}
             />
             <DatePickerFormField name="fecha" label="Fecha" control={editForm.control} />
             <FormSelect
@@ -461,6 +502,13 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
               options={TIPO_EQUIPO_RETIRADO_OPTIONS}
             />
           </div>
+          {selectedCliente && (
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <User className="size-3" />
+              <span>Cliente:</span>
+              <span className="font-medium text-foreground">{selectedCliente}</span>
+            </div>
+          )}
           <div className="flex justify-end">
             <Button type="submit" size="sm" disabled={editMutation.isPending}>
               {editMutation.isPending ? "Guardando..." : "Guardar cambios"}
@@ -493,12 +541,10 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
           <GuiaProductoDialog
             open={productoDialogOpen}
             editingIndex={null}
-            tab={productoDialogTab}
             productSubForm={productSubForm}
             watchedSeries={watchedSeries}
             onClose={handleCloseProductoDialog}
             onSubmit={productSubForm.handleSubmit((v) => addProductoEditMutation.mutate(v))}
-            onTabChange={setProductoDialogTab}
             onAppendSerie={appendSerie}
             onRemoveSerie={removeSerie}
           />
@@ -681,13 +727,15 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
           <Separator className="flex-1" />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <FormInput
+          <FormSelectAsync
             name="sot"
             label="SOT"
             control={createForm.control}
-            placeholder="Número de SOT"
+            placeholder="Buscar SOT..."
             required
-            uppercase
+            useQueryHook={useLiquidacionesForSelectQuery}
+            mapOptionFn={mapLiquidacionOption}
+            onValueChange={(value, item: LiquidacionResource) => setSelectedCliente(value ? (item?.nombre ?? null) : null)}
           />
           <DatePickerFormField name="fecha" label="Fecha" control={createForm.control} />
           <FormSelect
@@ -698,6 +746,13 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
             options={TIPO_EQUIPO_RETIRADO_OPTIONS}
           />
         </div>
+        {selectedCliente && (
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <User className="size-3" />
+            <span>Cliente:</span>
+            <span className="font-medium text-foreground">{selectedCliente}</span>
+          </div>
+        )}
       </div>
 
       {/* Productos */}
@@ -726,12 +781,10 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
         <GuiaProductoDialog
           open={productoDialogOpen}
           editingIndex={editingProductoIndex}
-          tab={productoDialogTab}
           productSubForm={productSubForm}
           watchedSeries={watchedSeries}
           onClose={handleCloseProductoDialog}
           onSubmit={handleAddOrUpdateProducto}
-          onTabChange={setProductoDialogTab}
           onAppendSerie={(s) => appendSerie(s)}
           onRemoveSerie={removeSerie}
         />

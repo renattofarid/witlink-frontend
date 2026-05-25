@@ -30,6 +30,7 @@ import {
   ShieldCheck,
   BarChart3,
   Blocks,
+  FileDown,
 } from "lucide-react";
 import {
   Sidebar,
@@ -78,9 +79,10 @@ const iconMap: Record<string, LucideIcon> = {
 
   BarChart3: BarChart3,
   Blocks: Blocks,
+  FileDown: FileDown,
 };
 
-const getIcon = (name: string): LucideIcon => iconMap[name] ?? LayoutGrid;
+export const getIcon = (name: string): LucideIcon => iconMap[name] ?? LayoutGrid;
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuthStore();

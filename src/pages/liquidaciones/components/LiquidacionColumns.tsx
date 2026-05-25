@@ -90,9 +90,17 @@ export function getLiquidacionColumns(
         const estado = row.original.estado_liquidacion;
         if (!estado)
           return <span className="text-muted-foreground text-xs">—</span>;
+        const colorMap: Record<
+          string,
+          "green" | "yellow" | "red" | "blue" | "muted"
+        > = {
+          LIQUIDADA: "green",
+          PENDIENTE: "yellow",
+        };
+        const upper = estado.toUpperCase();
         return (
-          <Badge color="blue" variant="outline" className="text-xs">
-            {estado}
+          <Badge color={colorMap[upper] ?? "muted"} className="text-xs">
+            {upper}
           </Badge>
         );
       },

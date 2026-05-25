@@ -38,10 +38,6 @@ import SeriePage from "../pages/serie/pages/SeriePage";
 import { SerieComplete } from "../pages/serie/lib/serie.constants";
 import MaterialesPage from "../pages/materiales/pages/MaterialesPage";
 import { MaterialesComplete } from "../pages/materiales/lib/materiales.constants";
-import EquiposRetiradosPage from "../pages/equipos-retirados/pages/EquiposRetiradosPage";
-import EquiposRetiradosAddPage from "../pages/equipos-retirados/pages/EquiposRetiradosAddPage";
-import EquiposRetiradosEditPage from "../pages/equipos-retirados/pages/EquiposRetiradosEditPage";
-import { EquiposRetiradosComplete } from "../pages/equipos-retirados/lib/equipos-retirados.constants";
 import InventarioPage from "../pages/inventario/pages/InventarioPage";
 import { InventarioComplete } from "../pages/inventario/lib/inventario.constants";
 import DespachosPage from "../pages/despachos/pages/DespachosPage";
@@ -66,6 +62,8 @@ import {
 } from "../pages/liquidaciones/lib/liquidaciones.constants";
 import TrasladosPage from "../pages/traslados/pages/TrasladosPage";
 import { TrasladoComplete } from "../pages/traslados/lib/traslado.constants";
+import GenerarCargasPage from "../pages/generar-cargas/pages/GenerarCargasPage";
+import { GenerarCargasComplete } from "../pages/generar-cargas/lib/generar-cargas.constants";
 
 function ProtectedRoute({ children }: { children: JSX.Element }) {
   const { token, allowedRoutes, almacen_id } = useAuthStore();
@@ -275,31 +273,6 @@ export default function AppRoutes() {
       />
 
       <Route
-        path={EquiposRetiradosComplete.ROUTE}
-        element={
-          <ProtectedRoute>
-            <EquiposRetiradosPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path={EquiposRetiradosComplete.ROUTE_ADD}
-        element={
-          <ProtectedRoute>
-            <EquiposRetiradosAddPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path={`${EquiposRetiradosComplete.ROUTE_UPDATE}/:id`}
-        element={
-          <ProtectedRoute>
-            <EquiposRetiradosEditPage />
-          </ProtectedRoute>
-        }
-      />
-
-      <Route
         path={InventarioComplete.ROUTE}
         element={
           <ProtectedRoute>
@@ -389,6 +362,15 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <TrasladosPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path={GenerarCargasComplete.ROUTE}
+        element={
+          <ProtectedRoute>
+            <GenerarCargasPage />
           </ProtectedRoute>
         }
       />

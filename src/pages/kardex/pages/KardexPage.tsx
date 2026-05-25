@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useTabParams } from "@/hooks/useTabParams";
 import PageWrapper from "@/components/PageWrapper";
 import TitleComponent from "@/components/TitleComponent";
 import ActionsWrapper from "@/components/ActionsWrapper";
@@ -14,7 +14,7 @@ import KardexFilters from "../components/KardexFilters";
 const columns = getKardexColumns();
 
 export default function KardexPage() {
-  const [params, setParams] = useState<Record<string, string>>({
+  const [params, setParams] = useTabParams(KardexComplete.ABSOLUTE_ROUTE, {
     page: "1",
     per_page: String(DEFAULT_PER_PAGE),
   });

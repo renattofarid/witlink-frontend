@@ -16,6 +16,7 @@ import {
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
 import { Link, useLocation } from "react-router-dom";
+import { useTabsStore } from "@/store/tabs.store";
 
 export function NavMain({
   items,
@@ -33,6 +34,7 @@ export function NavMain({
   }[];
 }) {
   const location = useLocation();
+  const getLastPath = useTabsStore((s) => s.getLastPath);
 
   const isItemActive = (item: (typeof items)[0]): boolean => {
     if (!item.items) {
@@ -79,7 +81,7 @@ export function NavMain({
                           asChild
                           isActive={isSubItemActive(subItem.url)}
                         >
-                          <Link to={subItem.url}>
+                          <Link to={getLastPath(subItem.url) ?? subItem.url}>
                             {subItem.icon && <subItem.icon />}
                             <span>{subItem.title}</span>
                           </Link>

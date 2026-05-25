@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -13,7 +13,7 @@ import {
   liquidacionFormSchema,
   type LiquidacionFormValues,
 } from "../lib/liquidaciones.schema";
-import { saveProductosLiquidacion } from "../lib/liquidaciones.actions";
+import { saveProductosLiquidacion, updateProductosLiquidacion } from "../lib/liquidaciones.actions";
 import { LiquidacionesComplete } from "../lib/liquidaciones.constants";
 import { useLiquidacionStore } from "../lib/liquidaciones.store";
 import { useTecnicosLiquidacionQuery } from "../lib/liquidaciones.hook";
@@ -31,13 +31,19 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
   const queryClient = useQueryClient();
   const {
     currentSot,
+    sotSearched,
     items,
     isProductModalOpen,
+    savedFormValues,
+    setSavedFormValues,
     addItems,
     removeItem,
     openProductModal,
     closeProductModal,
   } = useLiquidacionStore();
+
+  // Captura el SOT al momento de montar para identificar los valores guardados
+  const sotAtMountRef = useRef(sotSearched);
 
   const liquidacion = currentSot?.liquidacion;
 
@@ -51,15 +57,56 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
     mode: "onChange",
   });
 
+  // Carga los productos ya guardados en la liquidación como items del carrito
   useEffect(() => {
-    if (liquidacion) {
+    if (!liquidacion?.productos?.length) return;
+    if (useLiquidacionStore.getState().items.length > 0) return;
+
+    const cartItems: LiquidacionCartItem[] = liquidacion.productos.map((item) => {
+      const prod = item.productos ?? item.producto ?? item.series[0]?.serie?.producto;
+      return {
+        tempId: `api-${item.id}`,
+        detalle_id: item.id,
+        tipo: prod?.necesita_serie ? "serie" : "material",
+        producto_id: prod?.id ?? item.producto_id ?? 0,
+        producto_nombre: prod?.nombre ?? "Desconocido",
+        producto_sap: prod?.sap ?? "",
+        tecnico_id: item.tecnico_id,
+        tecnico_nombre: item.tecnico ?? `Técnico ${item.tecnico_id}`,
+        cantidad: Number(item.cantidad),
+        series: item.series.map((s) => ({ id: s.serie.id, serie: s.serie.serie })),
+      };
+    });
+
+    addItems(cartItems);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liquidacion]);
+
+  // Guarda los valores del formulario al desmontar, identificados por el SOT capturado al montar
+  useEffect(() => {
+    const sot = sotAtMountRef.current;
+    return () => {
+      if (sot) {
+        setSavedFormValues({ sot, values: form.getValues() as Record<string, string> });
+      }
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Restaura desde el store si corresponde al mismo SOT, si no usa los valores de la API
+  useEffect(() => {
+    if (!liquidacion) return;
+    if (savedFormValues && savedFormValues.sot === sotAtMountRef.current) {
+      form.setValue("observaciones", savedFormValues.values.observaciones ?? "");
+      form.setValue("tecnico1", savedFormValues.values.tecnico1 ?? "");
+      form.setValue("tecnico2", savedFormValues.values.tecnico2 ?? "");
+    } else {
       form.setValue("observaciones", liquidacion.observaciones ?? "");
-      if (liquidacion.tecnico1)
-        form.setValue("tecnico1", String(liquidacion.tecnico1));
-      if (liquidacion.tecnico2)
-        form.setValue("tecnico2", String(liquidacion.tecnico2));
+      if (liquidacion.tecnico1?.id) form.setValue("tecnico1", String(liquidacion.tecnico1.id));
+      if (liquidacion.tecnico2?.id) form.setValue("tecnico2", String(liquidacion.tecnico2.id));
     }
-  }, [liquidacion, form]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liquidacion]);
 
   const saveMutation = useMutation({
     mutationFn: () => {
@@ -67,13 +114,26 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
       if (items.length === 0)
         throw new Error("Debe agregar al menos un producto");
 
+      if (liquidacion.estado_liquidacion === "liquidada") {
+        return updateProductosLiquidacion({
+          liquidacion_id: liquidacion.id,
+          productos: items.map((item) => ({
+            ...(item.detalle_id ? { id: item.detalle_id } : {}),
+            producto_id: item.producto_id,
+            tecnico_id: item.tecnico_id,
+            cantidad: item.cantidad,
+            series: item.series.map((s) => s.serie),
+          })),
+        });
+      }
+
       const grouped: Record<
         string,
         {
           producto_id: number;
           tecnico_id: number;
           cantidad: number;
-          series: number[];
+          series: string[];
         }
       > = {};
       items.forEach((item) => {
@@ -87,7 +147,7 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
           };
         }
         grouped[key].cantidad += item.cantidad;
-        grouped[key].series.push(...item.series.map((s) => s.id));
+        grouped[key].series.push(...item.series.map((s) => s.serie));
       });
 
       const totalCantidad = Object.values(grouped).reduce(
@@ -117,6 +177,9 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
     },
   });
 
+  const tecnico1Value = form.watch("tecnico1");
+  const hasUnsaved = items.some((item) => !item.detalle_id);
+
   const handleSave = form.control.handleSubmit(() => {
     saveMutation.mutate();
   });
@@ -131,62 +194,70 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
     <div className="space-y-4">
       <LiquidacionHeaderInfo liquidacion={liquidacion} />
 
-      <GroupFormSection
-        title="Personal asignado"
-        icon={Users}
-        cols={{ sm: 1, md: 2 }}
-      >
-        <FormSelectAsync
-          name="tecnico1"
-          label="Personal 1"
-          control={form.control}
-          placeholder="Seleccionar técnico..."
-          useQueryHook={useTecnicosLiquidacionQuery}
-          mapOptionFn={(item: PersonaResource) => ({
-            value: String(item.id),
-            label: `${item.nombre} ${item.apellido_paterno}`,
-            description: `DNI: ${item.dni}`,
-          })}
-          perPage={20}
-          required
-        />
-        <FormSelectAsync
-          name="tecnico2"
-          label="Personal 2"
-          control={form.control}
-          placeholder="Seleccionar técnico (opcional)..."
-          useQueryHook={useTecnicosLiquidacionQuery}
-          mapOptionFn={(item: PersonaResource) => ({
-            value: String(item.id),
-            label: `${item.nombre} ${item.apellido_paterno}`,
-            description: `DNI: ${item.dni}`,
-          })}
-          perPage={20}
-        />
-      </GroupFormSection>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+        <GroupFormSection
+          title="Personal asignado"
+          icon={Users}
+          cols={{ sm: 1, lg: 2 }}
+          iconColor="text-blue-600 dark:text-blue-400"
+          bgColor="bg-blue-50 dark:bg-blue-950/20"
+          className="h-full"
+        >
+          <FormSelectAsync
+            name="tecnico1"
+            label="Personal 1"
+            control={form.control}
+            placeholder="Seleccionar técnico..."
+            useQueryHook={useTecnicosLiquidacionQuery}
+            mapOptionFn={(item: PersonaResource) => ({
+              value: String(item.id),
+              label: `${item.nombre} ${item.apellido_paterno}`,
+              description: `DNI: ${item.dni}`,
+            })}
+            perPage={20}
+            required
+          />
+          <FormSelectAsync
+            name="tecnico2"
+            label="Personal 2"
+            control={form.control}
+            placeholder="Seleccionar técnico (opcional)..."
+            useQueryHook={useTecnicosLiquidacionQuery}
+            mapOptionFn={(item: PersonaResource) => ({
+              value: String(item.id),
+              label: `${item.nombre} ${item.apellido_paterno}`,
+              description: `DNI: ${item.dni}`,
+            })}
+            perPage={20}
+          />
+        </GroupFormSection>
 
-      <GroupFormSection
-        title="Observaciones"
-        icon={MessageSquare}
-        cols={{ sm: 1, md: 1 }}
-      >
-        <Controller
-          control={form.control}
-          name="observaciones"
-          render={({ field }) => (
-            <div className="flex flex-col gap-1">
-              <Label className="text-xs text-muted-foreground">
-                Observación
-              </Label>
-              <Textarea
-                {...field}
-                placeholder="Ingrese observaciones opcionales..."
-                rows={3}
-              />
-            </div>
-          )}
-        />
-      </GroupFormSection>
+        <GroupFormSection
+          title="Observaciones"
+          icon={MessageSquare}
+          cols={{ sm: 1, md: 1 }}
+          iconColor="text-amber-600 dark:text-amber-400"
+          bgColor="bg-amber-50 dark:bg-amber-950/20"
+          className="h-full"
+        >
+          <Controller
+            control={form.control}
+            name="observaciones"
+            render={({ field }) => (
+              <div className="flex flex-col gap-1">
+                <Label className="text-xs text-muted-foreground">
+                  Observación
+                </Label>
+                <Textarea
+                  {...field}
+                  placeholder="Ingrese observaciones opcionales..."
+                  rows={3}
+                />
+              </div>
+            )}
+          />
+        </GroupFormSection>
+      </div>
 
       <LiquidacionDetailTable
         items={items}
@@ -194,6 +265,7 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
         onAddProducts={openProductModal}
         onSave={handleSave}
         isSaving={saveMutation.isPending}
+        hasUnsaved={hasUnsaved}
       />
 
       {isProductModalOpen && (
@@ -202,6 +274,7 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
           onClose={closeProductModal}
           liquidacion={liquidacion}
           onConfirm={handleAddItems}
+          initialTecnicoId={tecnico1Value || undefined}
         />
       )}
     </div>

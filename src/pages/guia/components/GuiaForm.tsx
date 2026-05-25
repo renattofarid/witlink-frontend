@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -14,17 +14,57 @@ import {
   type ProductoFormValues,
 } from "../lib/guia.schema";
 import type { GuiaResource } from "../lib/guia.interface";
-import { useGuiaMutation, useGuiaDeleteProducto } from "../lib/guia.form.hook";
+import {
+  useGuiaMutation,
+  useGuiaDeleteProducto,
+  useSeriesConcurrentes,
+  useGuiaAddProductoInEdit,
+} from "../lib/guia.form.hook";
 import { getGuiaProductoColumns } from "./GuiaProductoColumns";
 import type { SeriesDetailData } from "./GuiaProductoColumns";
 import { GuiaDatosSection } from "./GuiaDatosSection";
 import { GuiaProductoDialog } from "./GuiaProductoDialog";
 import { GuiaSeriesDetailModal } from "./GuiaSeriesDetailModal";
+import { GuiaProductoRow } from "./GuiaProductoRow";
+import { GuiaQuickAddSeriePanel } from "./GuiaQuickAddSeriePanel";
+import { useGuiaDraftStore } from "../lib/guia-draft.store";
 import { format } from "date-fns";
 
 // Evitar que TS se queje de imports no usados directamente
 void productoSchema;
 void serieSchema;
+
+function guiaToFormValues(guia: GuiaResource): GuiaCreateFormValues {
+  return {
+    numero: guia.numero,
+    fecha: guia.fecha?.split("T")[0] ?? format(new Date(), "yyyy-MM-dd"),
+    archivo: null,
+    productos: (guia.productos ?? []).map((p) => ({
+      productos_guia_id: p.id,
+      producto_id: String(p.producto.id),
+      categoria_id: String(p.producto.categoria_id),
+      sap: p.producto.sap ?? null,
+      nombre: p.producto.nombre ?? null,
+      tipo: (p.producto.tipo as "MATERIAL" | "EQUIPO") ?? null,
+      origen: (p.producto.origen as "CLARO" | "WITLINK") ?? null,
+      necesita_serie: p.producto.necesita_serie ?? null,
+      necesita_mac: p.producto.necesita_mac ?? null,
+      necesita_emta_mac: p.producto.necesita_emta_mac ?? null,
+      necesita_ua: p.producto.necesita_ua ?? null,
+      cantidad: Number(p.cantidad),
+      observaciones: p.observaciones ?? null,
+      series:
+        p.series?.map((s) => ({
+          serie_id: s.serie?.id ?? null,
+          serie: s.serie?.serie ?? null,
+          mac: s.serie?.mac ?? null,
+          emta_mac: s.serie?.emta_mac ?? null,
+          ua: s.serie?.ua ?? null,
+          observaciones: s.observaciones ?? null,
+        })) ?? [],
+    })),
+  };
+}
 
 const EMPTY_PRODUCTO: ProductoFormValues = {
   producto_id: null,
@@ -53,12 +93,18 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
     number | null
   >(null);
   const [productoDialogOpen, setProductoDialogOpen] = useState(false);
-  const [productoDialogTab, setProductoDialogTab] = useState<
-    "catalogo" | "manual"
-  >("catalogo");
   const [seriesDetail, setSeriesDetail] = useState<SeriesDetailData | null>(
     null,
   );
+
+  const { almacenDraft, setAlmacenDraft } = useGuiaDraftStore();
+  const submittedRef = useRef(false);
+
+  // Wrap onSuccess to mark submission before navigating away
+  const wrappedOnSuccess = () => {
+    submittedRef.current = true;
+    onSuccess?.();
+  };
 
   // ── Main form ──────────────────────────────────────────────────────────────
   const form = useForm<GuiaCreateFormValues>({
@@ -80,36 +126,29 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
 
   useEffect(() => {
     if (mode === "edit" && guia) {
-      form.reset({
-        numero: guia.numero,
-        fecha: guia.fecha?.split("T")[0] ?? format(new Date(), "yyyy-MM-dd"),
-        productos: (guia.productos ?? []).map((p) => ({
-          productos_guia_id: p.id,
-          producto_id: String(p.producto.id),
-          categoria_id: String(p.producto.categoria_id),
-          sap: p.producto.sap ?? null,
-          nombre: p.producto.nombre ?? null,
-          tipo: (p.producto.tipo as "MATERIAL" | "EQUIPO") ?? null,
-          origen: (p.producto.origen as "CLARO" | "WITLINK") ?? null,
-          necesita_serie: p.producto.necesita_serie ?? null,
-          necesita_mac: p.producto.necesita_mac ?? null,
-          necesita_emta_mac: p.producto.necesita_emta_mac ?? null,
-          necesita_ua: p.producto.necesita_ua ?? null,
-          cantidad: Number(p.cantidad),
-          observaciones: p.observaciones ?? null,
-          series:
-            p.series?.map((s) => ({
-              serie_id: s.serie?.id ?? null,
-              serie: s.serie?.serie ?? null,
-              mac: s.serie?.mac ?? null,
-              emta_mac: s.serie?.emta_mac ?? null,
-              ua: s.serie?.ua ?? null,
-              observaciones: s.observaciones ?? null,
-            })) ?? [],
-        })),
-      });
+      form.reset(guiaToFormValues(guia));
     }
   }, [guia, mode, form]);
+
+  // Restore draft on mount (create mode only)
+  useEffect(() => {
+    if (mode === "create" && almacenDraft) {
+      form.reset({ ...almacenDraft, archivo: null });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Save draft on unmount (create mode only, skip if submitted successfully)
+  useEffect(() => {
+    if (mode !== "create") return;
+    return () => {
+      if (!submittedRef.current) {
+        const { numero, fecha, productos } = form.getValues();
+        setAlmacenDraft({ numero, fecha, productos });
+      }
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── Product sub-form ───────────────────────────────────────────────────────
   const productSubForm = useForm<ProductoFormValues>({
@@ -125,22 +164,56 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
 
   const watchedSeries = productSubForm.watch("series") ?? [];
 
+  // ── Concurrent series (edit mode only) ────────────────────────────────────
+  const seriesConcurrentes = useSeriesConcurrentes(
+    mode === "edit" ? guia?.id : undefined,
+  );
+  const { addProducto: addProductoInEdit, updateProducto: updateProductoInEdit, isSaving: isProductoSaving } =
+    useGuiaAddProductoInEdit(mode === "edit" ? guia?.id : undefined);
+
   // ── Handlers: producto dialog ──────────────────────────────────────────────
-  const handleAddOrUpdateProducto = productSubForm.control.handleSubmit((values) => {
-    if (editingProductoIndex === null) {
-      appendProducto(values);
-    } else {
-      updateProductoField(editingProductoIndex, values);
-      setEditingProductoIndex(null);
-    }
-    productSubForm.reset(EMPTY_PRODUCTO);
-    setProductoDialogOpen(false);
-  });
+  const handleAddOrUpdateProducto = productSubForm.control.handleSubmit(
+    async (values) => {
+      if (mode === "edit" && guia) {
+        if (editingProductoIndex === null) {
+          // NEW product in edit mode: save to server, reset form from fresh data
+          const freshGuia = await addProductoInEdit(values);
+          if (freshGuia === null) return;
+
+          form.reset(guiaToFormValues(freshGuia));
+          await seriesConcurrentes.refreshFromServer();
+        } else {
+          // EDIT existing product: save changes immediately
+          const existingId = form.getValues(
+            `productos.${editingProductoIndex}`,
+          ).productos_guia_id;
+          if (existingId) {
+            try {
+              await updateProductoInEdit(existingId, values);
+            } catch {
+              return;
+            }
+          }
+          updateProductoField(editingProductoIndex, values);
+          setEditingProductoIndex(null);
+        }
+      } else {
+        // CREATE mode: just update local state
+        if (editingProductoIndex === null) {
+          appendProducto(values);
+        } else {
+          updateProductoField(editingProductoIndex, values);
+          setEditingProductoIndex(null);
+        }
+      }
+      productSubForm.reset(EMPTY_PRODUCTO);
+      setProductoDialogOpen(false);
+    },
+  );
 
   const handleOpenProductoDialog = () => {
     productSubForm.reset(EMPTY_PRODUCTO);
     setEditingProductoIndex(null);
-    setProductoDialogTab("catalogo");
     setProductoDialogOpen(true);
   };
 
@@ -148,7 +221,6 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
     const producto = form.getValues(`productos.${index}`);
     setEditingProductoIndex(index);
     productSubForm.reset(producto);
-    setProductoDialogTab(producto.producto_id ? "catalogo" : "manual");
     setProductoDialogOpen(true);
   };
 
@@ -159,7 +231,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
   };
 
   // ── Mutation + delete ──────────────────────────────────────────────────────
-  const mutation = useGuiaMutation(mode, guia, onSuccess);
+  const mutation = useGuiaMutation(mode, guia, wrappedOnSuccess);
   const {
     pendingDeleteInfo,
     setPendingDeleteInfo,
@@ -170,7 +242,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
     handleForceDeleteProducto,
   } = useGuiaDeleteProducto(removeProducto);
 
-  // ── Columns ────────────────────────────────────────────────────────────────
+  // ── Columns (create mode) ──────────────────────────────────────────────────
   const watchedProductos = form.watch("productos");
 
   const productoColumns = getGuiaProductoColumns({
@@ -202,40 +274,104 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
             </h3>
             <Separator className="flex-1" />
           </div>
-          {!productoDialogOpen && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="ml-2 h-6 text-xs px-2"
-              onClick={handleOpenProductoDialog}
-            >
-              <PackagePlus className="size-3 mr-1" />
-              Agregar
-            </Button>
-          )}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="ml-2 h-6 text-xs px-2"
+            onClick={handleOpenProductoDialog}
+          >
+            <PackagePlus className="size-3 mr-1" />
+            Agregar
+          </Button>
         </div>
 
         <GuiaProductoDialog
           open={productoDialogOpen}
           editingIndex={editingProductoIndex}
-          tab={productoDialogTab}
           productSubForm={productSubForm}
           watchedSeries={watchedSeries}
           onClose={handleCloseProductoDialog}
           onSubmit={handleAddOrUpdateProducto}
-          onTabChange={setProductoDialogTab}
           onAppendSerie={appendSerie}
           onRemoveSerie={removeSerie}
         />
 
-        {watchedProductos.length > 0 && (
+        {/* ── Product list: create mode uses DataTable, edit mode uses live list */}
+        {watchedProductos.length > 0 && mode === "create" && (
           <DataTable
             columns={productoColumns}
             data={watchedProductos}
             variant="outline"
             isVisibleColumnFilter={false}
           />
+        )}
+
+        {watchedProductos.length > 0 && mode === "edit" && (
+          <div className="space-y-2">
+            {watchedProductos.map((producto, index) => {
+              const pgId = producto.productos_guia_id;
+              const isEquipoWithPanel =
+                producto.tipo === "EQUIPO" &&
+                !!pgId &&
+                (producto.necesita_serie ||
+                  producto.necesita_mac ||
+                  producto.necesita_emta_mac ||
+                  producto.necesita_ua);
+
+              const seriesForProducto = pgId
+                ? Object.values(seriesConcurrentes.seriesLocales).filter(
+                    (s) => s.productoGuiaId === pgId,
+                  )
+                : [];
+
+              const confirmedCount = seriesForProducto.filter(
+                (s) => s.status === "confirmed",
+              ).length;
+
+              return (
+                <div
+                  key={pgId ?? `new-${index}`}
+                  className="border rounded-lg overflow-hidden"
+                >
+                  <GuiaProductoRow
+                    producto={producto}
+                    index={index}
+                    editingIndex={editingProductoIndex}
+                    confirmedSeriesCount={
+                      isEquipoWithPanel ? confirmedCount : undefined
+                    }
+                    isSaving={isProductoSaving && !pgId}
+                    onEdit={handleEditProducto}
+                    onDelete={(i) =>
+                      handleDeleteProducto(i, producto.productos_guia_id)
+                    }
+                    onViewSeries={setSeriesDetail}
+                    onCloseEditDialog={handleCloseProductoDialog}
+                  />
+
+                  {isEquipoWithPanel && (
+                    <GuiaQuickAddSeriePanel
+                      productoGuiaId={pgId!}
+                      productoNombre={producto.nombre}
+                      cantidad={producto.cantidad}
+                      necesitaSerie={!!producto.necesita_serie}
+                      necesitaMac={!!producto.necesita_mac}
+                      necesitaEmtaMac={!!producto.necesita_emta_mac}
+                      necesitaUa={!!producto.necesita_ua}
+                      seriesLocales={seriesForProducto}
+                      onAgregar={(fields) =>
+                        seriesConcurrentes.agregarSerie(pgId!, fields)
+                      }
+                      onEliminar={seriesConcurrentes.eliminarSerie}
+                      onRetry={seriesConcurrentes.retryAgregar}
+                      isPendingEliminar={seriesConcurrentes.isPendingEliminar}
+                    />
+                  )}
+                </div>
+              );
+            })}
+          </div>
         )}
 
         {form.formState.errors.productos &&
@@ -290,16 +426,14 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
         </ul>
       </ConfirmationDialog>
 
-      {/* ── Submit ─────────────────────────────────────────────────────────── */}
-      <div className="flex justify-end">
-        <Button type="submit" disabled={mutation.isPending}>
-          {mutation.isPending
-            ? "Guardando..."
-            : mode === "edit"
-              ? "Actualizar guía"
-              : "Crear guía"}
-        </Button>
-      </div>
+      {/* ── Submit: solo en modo crear ──────────────────────────────────────── */}
+      {mode === "create" && (
+        <div className="flex justify-end">
+          <Button type="submit" disabled={mutation.isPending}>
+            {mutation.isPending ? "Guardando..." : "Crear guía"}
+          </Button>
+        </div>
+      )}
     </form>
   );
 }

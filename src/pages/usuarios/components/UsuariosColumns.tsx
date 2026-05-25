@@ -23,16 +23,29 @@ export const getUsuariosColumns = ({
     header: "Usuario",
   },
   {
-    accessorKey: "persona_id",
-    header: "Persona ID",
+    id: "nombre_completo",
+    header: "Nombre completo",
+    cell: ({ row }) => row.original.persona.nombre_completo,
   },
   {
-    accessorKey: "tipo_usuario_id",
-    header: "Tipo Usuario ID",
+    id: "dni",
+    header: "DNI",
+    cell: ({ row }) => row.original.persona.dni,
   },
   {
-    accessorKey: "oficina_id",
-    header: "Oficina ID",
+    id: "tipo_empleado",
+    header: "Tipo empleado",
+    cell: ({ row }) => row.original.persona.tipo_empleado,
+  },
+  {
+    id: "tipo_usuario",
+    header: "Tipo usuario",
+    cell: ({ row }) => row.original.tipoUsuario.nombre,
+  },
+  {
+    id: "oficina",
+    header: "Oficina",
+    cell: ({ row }) => row.original.oficina.nombre,
   },
   {
     id: "acciones",

@@ -5,8 +5,8 @@ import type {
   DespachoResource,
   DespachoCreateBody,
   DespachoMasivoSeriesBody,
+  MasivoSerieValidacionResponse,
 } from "./despacho.interface";
-import type { SerieResource } from "@/pages/serie/lib/serie.interface";
 
 export const getDespachos = async (
   params: Record<string, any>,
@@ -38,8 +38,10 @@ export const getSeriesDisponibles = async (params: Record<string, any>) => {
 export const validateSerieDisponible = async (params: {
   serie: string;
   producto_id: number | string;
-}): Promise<SerieResource> => {
-  const { data } = await api.get(`/series/${params.producto_id}/${encodeURIComponent(params.serie)}/validar`);
+}): Promise<MasivoSerieValidacionResponse> => {
+  const { data } = await api.get(`/series/${encodeURIComponent(params.serie)}/validar`, {
+    params: { producto_id: params.producto_id },
+  });
   return data;
 };
 
@@ -50,5 +52,12 @@ export const createDespachoMasivoSeries = async (
     `${DespachoComplete.ENDPOINT}/masivo-series`,
     body,
   );
+  return data;
+};
+
+export const validateSerieMasivoDisponible = async (
+  serie: string,
+): Promise<MasivoSerieValidacionResponse> => {
+  const { data } = await api.get(`/series/${encodeURIComponent(serie)}/validar`);
   return data;
 };

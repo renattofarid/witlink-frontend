@@ -1,27 +1,23 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import type { InventarioSerieResource } from "../lib/inventario.interface";
+import { ButtonAction } from "@/components/ButtonAction";
+import { Undo2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { parseISO, format } from "date-fns";
+import type { InventarioSerieResource } from "../lib/inventario.interface";
+
+interface ColumnActions {
+  onDevolver: (row: InventarioSerieResource) => void;
+}
 
 export const getInventarioSeriesColumns =
-  (): ColumnDef<InventarioSerieResource>[] => [
+  ({ onDevolver }: ColumnActions): ColumnDef<InventarioSerieResource>[] => [
     {
       accessorKey: "fecha",
       header: "Fecha",
       cell: (info) => {
-        const date = new Date(info.getValue() as string);
+        const raw = info.getValue() as string;
         return (
-          <div className="text-xs">
-            <p>{date.toLocaleDateString("es-ES", {
-              day: "2-digit",
-              month: "2-digit",
-              year: "numeric",
-            })}</p>
-            <p className="text-muted-foreground">{date.toLocaleTimeString("es-ES", {
-              hour: "2-digit",
-              minute: "2-digit",
-              second: "2-digit",
-            })}</p>
-          </div>
+          <p className="text-xs">{format(parseISO(raw), "dd/MM/yyyy")}</p>
         );
       },
     },
@@ -74,6 +70,11 @@ export const getInventarioSeriesColumns =
       cell: ({ row }) => <span>{row.original.ubicacion ?? "Sin Ubicación"}</span>,
     },
     {
+      accessorKey: "tecnico",
+      header: "Técnico",
+      cell: ({ row }) => <span className="text-xs">{row.original.tecnico ?? "—"}</span>,
+    },
+    {
       accessorKey: "personal",
       header: "Personal",
       cell: ({ row }) => <span>{row.original.personal ?? ""}</span>,
@@ -87,5 +88,18 @@ export const getInventarioSeriesColumns =
       accessorKey: "motivo",
       header: "Motivo",
       cell: ({ row }) => <p className="text-xs text-muted-foreground font-normal">{row.original.motivo ?? "Sin Motivo"}</p>,
+    },
+    {
+      id: "acciones",
+      header: "Acciones",
+      cell: ({ row }) => (
+        <ButtonAction
+          icon={Undo2}
+          color="red"
+          tooltip="Devolver serie"
+          canRender
+          onClick={() => onDevolver(row.original)}
+        />
+      ),
     },
   ];

@@ -1,7 +1,13 @@
 import type { ColumnDef } from "@tanstack/react-table";
+import { ButtonAction } from "@/components/ButtonAction";
+import { Undo2 } from "lucide-react";
 import type { InventarioMaterialResource } from "../lib/inventario.interface";
 
-export const getInventarioMaterialesColumns = (): ColumnDef<InventarioMaterialResource>[] => [
+interface ColumnActions {
+  onDevolver: (row: InventarioMaterialResource) => void;
+}
+
+export const getInventarioMaterialesColumns = ({ onDevolver }: ColumnActions): ColumnDef<InventarioMaterialResource>[] => [
   {
     accessorKey: "fecha",
     header: "Fecha",
@@ -33,5 +39,18 @@ export const getInventarioMaterialesColumns = (): ColumnDef<InventarioMaterialRe
   {
     accessorKey: "motivo",
     header: "Motivo",
+  },
+  {
+    id: "acciones",
+    header: "Acciones",
+    cell: ({ row }) => (
+      <ButtonAction
+        icon={Undo2}
+        color="red"
+        tooltip="Devolver material"
+        canRender
+        onClick={() => onDevolver(row.original)}
+      />
+    ),
   },
 ];

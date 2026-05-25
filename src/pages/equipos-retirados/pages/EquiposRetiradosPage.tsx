@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTabParams } from "@/hooks/useTabParams";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import PageWrapper from "@/components/PageWrapper";
@@ -24,7 +25,7 @@ export default function EquiposRetiradosPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const [params, setParams] = useState<Record<string, string>>({
+  const [params, setParams] = useTabParams(EquiposRetiradosComplete.ABSOLUTE_ROUTE, {
     pagina: "1",
     por_pagina: String(DEFAULT_PER_PAGE),
   });

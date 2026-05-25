@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getInventarioTecnico } from "./inventario-tecnico.actions";
+import { getInventarioTecnico, getHistorialDevoluciones } from "./inventario-tecnico.actions";
 import { InventarioTecnicoComplete } from "./inventario-tecnico.constants";
 import { getPersonas } from "@/pages/persona/lib/persona.actions";
 
@@ -11,6 +11,14 @@ export const useInventarioTecnicoQuery = (
     queryKey: [InventarioTecnicoComplete.QUERY_KEY, tecnicoId, params],
     queryFn: () => getInventarioTecnico(Number(tecnicoId), params),
     enabled: !!tecnicoId,
+    refetchOnWindowFocus: true,
+  });
+
+export const useHistorialDevolucionesQuery = (tecnicoId: string, enabled: boolean) =>
+  useQuery({
+    queryKey: ["historial-devoluciones", tecnicoId],
+    queryFn: () => getHistorialDevoluciones(Number(tecnicoId)),
+    enabled: !!tecnicoId && enabled,
     refetchOnWindowFocus: true,
   });
 

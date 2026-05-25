@@ -13,6 +13,7 @@ import TitleFormComponent from "@/components/TitleFormComponent";
 import { Badge, type BadgeColor } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import ExportButtons from "@/components/ExportButtons";
 import { DespachoComplete } from "../lib/despacho.constants";
 import { getDespacho } from "../lib/despacho.actions";
 import type {
@@ -228,11 +229,18 @@ export default function DespachoViewPage() {
         <CardHeader className="border-b">
           <div className="flex items-center justify-between">
             <CardTitle>Información del despacho</CardTitle>
-            {isDeleted ? (
-              <Badge color="destructive">Eliminado</Badge>
-            ) : (
-              <Badge color="green">Activo</Badge>
-            )}
+            <div className="flex items-center gap-2">
+              {isDeleted ? (
+                <Badge color="destructive">Eliminado</Badge>
+              ) : (
+                <Badge color="green">Activo</Badge>
+              )}
+              <ExportButtons
+                pdfEndpoint={`/despachos/${id}/pdf`}
+                pdfFileName={`despacho-${despacho.numero ?? id}.pdf`}
+                variant="separate"
+              />
+            </div>
           </div>
         </CardHeader>
         <CardContent>

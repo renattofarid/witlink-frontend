@@ -18,6 +18,7 @@ export interface PersonaResource {
   correo: string | null;
   tipo_empleado: TipoEmpleado | null;
   cuadrilla_id: number | null;
+  favorito?: boolean;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;

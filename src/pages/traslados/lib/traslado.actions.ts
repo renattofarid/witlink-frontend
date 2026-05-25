@@ -31,3 +31,8 @@ export const createTrasladoMateriales = async (
   const { data } = await api.post("/traslados/materiales", body);
   return data;
 };
+
+export const confirmarTraslado = async (id: number) => {
+  const { data } = await api.patch(`/traslados/${id}/confirmar`);
+  return data;
+};

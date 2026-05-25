@@ -7,6 +7,28 @@ import {
 import { LiquidacionesComplete } from "./liquidaciones.constants";
 import { getPersonas } from "@/pages/persona/lib/persona.actions";
 
+export const useLiquidacionesForSelectQuery = (params: {
+  search?: string;
+  page?: number;
+  per_page?: number;
+  enabled?: boolean;
+  [key: string]: any;
+}) => {
+  const { enabled = true, search, page, per_page } = params;
+  const apiParams: Record<string, string> = {
+    page: String(page ?? 1),
+    per_page: String(per_page ?? 10),
+  };
+  if (search) apiParams.search = search;
+
+  return useQuery({
+    queryKey: [LiquidacionesComplete.QUERY_KEY, "select", apiParams],
+    queryFn: () => getLiquidaciones(apiParams),
+    enabled,
+    refetchOnWindowFocus: false,
+  });
+};
+
 export const useLiquidacionesQuery = (params: Record<string, string>) => {
   return useQuery({
     queryKey: [LiquidacionesComplete.QUERY_KEY, params],

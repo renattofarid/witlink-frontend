@@ -60,14 +60,14 @@ export default function UsuariosForm({
   const form = useForm<UsuariosFormValues>({
     resolver: zodResolver(usuariosSchema),
     defaultValues: {
-      persona_id: defaultValues?.persona_id
-        ? String(defaultValues.persona_id)
+      persona_id: defaultValues?.persona?.id
+        ? String(defaultValues.persona.id)
         : "",
-      tipo_usuario_id: defaultValues?.tipo_usuario_id
-        ? String(defaultValues.tipo_usuario_id)
+      tipo_usuario_id: defaultValues?.tipoUsuario?.id
+        ? String(defaultValues.tipoUsuario.id)
         : "",
-      oficina_id: defaultValues?.oficina_id
-        ? String(defaultValues.oficina_id)
+      oficina_id: defaultValues?.oficina?.id
+        ? String(defaultValues.oficina.id)
         : "",
       nombre_usuario: defaultValues?.nombre_usuario ?? "",
       contraseña: "",
@@ -196,8 +196,8 @@ export default function UsuariosForm({
             label: item.nombre,
           })}
           preloadItemId={
-            defaultValues?.tipo_usuario_id
-              ? String(defaultValues.tipo_usuario_id)
+            defaultValues?.tipoUsuario?.id
+              ? String(defaultValues.tipoUsuario.id)
               : undefined
           }
           defaultOption={tipoUsuarioDefaultOption}
@@ -224,8 +224,8 @@ export default function UsuariosForm({
             label: item.nombre,
           })}
           preloadItemId={
-            defaultValues?.oficina_id
-              ? String(defaultValues.oficina_id)
+            defaultValues?.oficina?.id
+              ? String(defaultValues.oficina.id)
               : undefined
           }
           defaultOption={oficinaDefaultOption}

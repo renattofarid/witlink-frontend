@@ -7,6 +7,7 @@ import type {
   GuiaCreateBody,
   GuiaEditBody,
   GuiaProductoBody,
+  DetalleSeriesGuiaBody,
 } from "./guia.interface";
 import type { AxiosRequestConfig } from "axios";
 
@@ -177,6 +178,19 @@ function buildGuiaEditFormData(body: GuiaEditBody): FormData {
 
   return formData;
 }
+
+export const crearDetalleSerie = async (
+  body: DetalleSeriesGuiaBody,
+): Promise<void> => {
+  await api.post("/detalle-series-guia", body);
+};
+
+export const eliminarDetalleSerie = async (
+  productoGuiaId: number,
+  serieId: number,
+): Promise<void> => {
+  await api.delete(`/detalle-series-guia/${productoGuiaId}/${serieId}`);
+};
 
 export const confirmarSerie = async (
   productoGuiaId: number,

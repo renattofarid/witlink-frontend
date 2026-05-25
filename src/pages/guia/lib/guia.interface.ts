@@ -151,3 +151,27 @@ export interface GuiaEditBody {
     actualizar?: GuiaProductoActualizarBody[] | null;
   } | null;
 }
+
+export interface DetalleSeriesGuiaBody {
+  producto_guia_id: number;
+  series: Array<{
+    serie?: string | null;
+    mac?: string | null;
+    emta_mac?: string | null;
+    ua?: string | null;
+  }>;
+}
+
+export type SerieLocalStatus = "pending" | "confirmed" | "error";
+
+export interface SerieLocal {
+  localId: string;
+  productoGuiaId: number;
+  serie: string;
+  mac: string;
+  emtaMac: string;
+  ua: string;
+  servidorId?: number;
+  status: SerieLocalStatus;
+  errorMessage?: string;
+}

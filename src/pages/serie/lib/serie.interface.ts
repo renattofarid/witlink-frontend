@@ -16,6 +16,12 @@ export interface SerieResource {
   mac?: string;
   ua?: string;
   producto: ProductoResource;
+  tecnico?: {
+    id: number;
+    nombre: string;
+    apellido_paterno: string;
+    dni?: string;
+  } | null;
   created_at: string;
   updated_at: string;
 }

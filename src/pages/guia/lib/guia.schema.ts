@@ -118,16 +118,23 @@ export const productoSchema = z
     }
   });
 
-export const guiaCreateSchema = z.object({
+const guiaBaseFields = {
   numero: z.string().min(1, "Requerido"),
   fecha: z.string().min(1, "Requerido"),
-  archivo: z.any().optional().nullable(),
-  productos: z
-    .array(productoSchema)
-    .min(1, "Debe agregar al menos un producto"),
+  productos: z.array(productoSchema).min(1, "Debe agregar al menos un producto"),
+};
+
+export const guiaCreateSchema = z.object({
+  ...guiaBaseFields,
+  archivo: z
+    .any()
+    .refine((v) => v instanceof File, { message: "El archivo es requerido" }),
 });
 
-export const guiaEditSchema = guiaCreateSchema;
+export const guiaEditSchema = z.object({
+  ...guiaBaseFields,
+  archivo: z.any().optional().nullable(),
+});
 
 export type SerieFormValues = z.infer<typeof serieSchema>;
 export type ProductoFormValues = z.infer<typeof productoSchema>;

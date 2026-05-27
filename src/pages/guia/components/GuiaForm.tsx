@@ -8,6 +8,7 @@ import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 import { PackagePlus } from "lucide-react";
 import {
   guiaCreateSchema,
+  guiaEditSchema,
   productoSchema,
   serieSchema,
   type GuiaCreateFormValues,
@@ -108,7 +109,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
 
   // ── Main form ──────────────────────────────────────────────────────────────
   const form = useForm<GuiaCreateFormValues>({
-    resolver: zodResolver(guiaCreateSchema) as any,
+    resolver: zodResolver(mode === "create" ? guiaCreateSchema : guiaEditSchema) as any,
     defaultValues: {
       numero: "",
       fecha: format(new Date(), "yyyy-MM-dd"),
@@ -263,7 +264,11 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
       className="space-y-4"
     >
       {/* ── Sección 1: Datos de la guía ────────────────────────────────────── */}
-      <GuiaDatosSection control={form.control} />
+      <GuiaDatosSection
+        control={form.control}
+        mode={mode}
+        existingFileName={guia?.ruta_pdf_guia ?? null}
+      />
 
       {/* ── Sección 2: Productos ────────────────────────────────────────────── */}
       <div className="space-y-2">

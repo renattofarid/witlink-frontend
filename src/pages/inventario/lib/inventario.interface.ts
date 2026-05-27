@@ -4,6 +4,8 @@ import type { PaginationResponse } from "@/lib/core.interface";
 export interface InventarioSerieResource {
   inventario_tecnico_id: number;
   serie_id: number;
+  situacion: string;
+  situacion_label: "PENDIENTE" | "DISPONIBLE" | "DESPACHADO" | "LIQUIDADO" | "RETIRADO" | "DEVUELTO";
   fecha: string;
   guia: string;
   sap: string;
@@ -38,3 +40,16 @@ export interface InventarioMaterialResource {
 }
 
 export type InventarioMaterialResponse = PaginationResponse<InventarioMaterialResource>;
+
+// Series — Historial de movimientos
+export interface SerieMovimientoResource {
+  fecha: string;
+  guia: string | null;
+  tipo_movimiento: string;
+  movimiento: string;
+  ubicacion: string;
+  origen: string;
+  destino: string;
+  registro: string;
+  usuario: string;
+}

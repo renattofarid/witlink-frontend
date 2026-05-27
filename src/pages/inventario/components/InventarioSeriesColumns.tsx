@@ -1,16 +1,18 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { ButtonAction } from "@/components/ButtonAction";
-import { Undo2 } from "lucide-react";
+import { Undo2, History } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { parseISO, format } from "date-fns";
 import type { InventarioSerieResource } from "../lib/inventario.interface";
+import { SituacionBadge, SITUACION } from "@/pages/serie/components/SerieColumns";
 
 interface ColumnActions {
   onDevolver: (row: InventarioSerieResource) => void;
+  onHistorial: (row: InventarioSerieResource) => void;
 }
 
 export const getInventarioSeriesColumns =
-  ({ onDevolver }: ColumnActions): ColumnDef<InventarioSerieResource>[] => [
+  ({ onDevolver, onHistorial }: ColumnActions): ColumnDef<InventarioSerieResource>[] => [
     {
       accessorKey: "fecha",
       header: "Fecha",
@@ -90,16 +92,29 @@ export const getInventarioSeriesColumns =
       cell: ({ row }) => <p className="text-xs text-muted-foreground font-normal">{row.original.motivo ?? "Sin Motivo"}</p>,
     },
     {
+      id: "situacion_label",
+      header: "Situación",
+      cell: ({ row }) => <SituacionBadge situacion={row.original.situacion_label} />,
+    },
+    {
       id: "acciones",
       header: "Acciones",
       cell: ({ row }) => (
-        <ButtonAction
-          icon={Undo2}
-          color="red"
-          tooltip="Devolver serie"
-          canRender
-          onClick={() => onDevolver(row.original)}
-        />
+        <div className="flex gap-1">
+          <ButtonAction
+            icon={History}
+            tooltip="Ver historial"
+            canRender
+            onClick={() => onHistorial(row.original)}
+          />
+          <ButtonAction
+            icon={Undo2}
+            color="red"
+            tooltip="Devolver serie"
+            canRender={row.original.situacion_label === SITUACION.DESPACHADO}
+            onClick={() => onDevolver(row.original)}
+          />
+        </div>
       ),
     },
   ];

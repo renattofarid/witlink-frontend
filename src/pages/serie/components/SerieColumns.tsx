@@ -30,7 +30,7 @@ function getSituacionColor(situacion: string): BadgeColor {
   return (SITUACION_COLOR as Record<string, BadgeColor>)[situacion] ?? "muted";
 }
 
-function SituacionBadge({ situacion }: { situacion: string }) {
+export function SituacionBadge({ situacion }: { situacion: string }) {
   return (
     <Badge color={getSituacionColor(situacion)} variant="default">
       {situacion}

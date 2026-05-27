@@ -21,7 +21,6 @@ export default function TrasladoButtons() {
         subtitle="Busque y agregue series o materiales para trasladar"
         icon="ArrowLeftRight"
         size="xl"
-        preventAutoClose
       >
         <TrasladoForm onSuccess={() => setOpen(false)} />
       </GeneralSheet>

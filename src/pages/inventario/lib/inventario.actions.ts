@@ -2,6 +2,7 @@ import { api } from "@/lib/config";
 import type {
   InventarioSerieResponse,
   InventarioMaterialResponse,
+  SerieMovimientoResource,
 } from "./inventario.interface";
 
 function buildParams(params: Record<string, string>) {
@@ -35,5 +36,10 @@ export const devolverInventarioMaterial = async (productoId: number, cantidad: n
 
 export const devolverInventarioSerie = async (inventarioTecnicoId: number) => {
   const { data } = await api.post(`/inventarios/series/${inventarioTecnicoId}/devolver`);
+  return data;
+};
+
+export const getSerieMovimientos = async (serieId: number): Promise<SerieMovimientoResource[]> => {
+  const { data } = await api.get(`/series/${serieId}/movimientos`);
   return data;
 };

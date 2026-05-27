@@ -83,7 +83,7 @@ export function FormInput({
     };
 
     return (
-      <div className="flex flex-col justify-between gap-1">
+      <div className="flex flex-col justify-between items-start gap-1">
         {label && (
           <Label className="flex justify-start items-center text-xs md:text-sm leading-none h-fit font-medium text-muted-foreground">
             {required && <RequiredField />}
@@ -159,7 +159,7 @@ export function FormInput({
         };
 
         return (
-          <Field className="flex flex-col justify-between gap-1">
+          <Field className="flex flex-col  gap-1">
             <FieldLabel className="flex justify-start items-center text-xs md:text-sm leading-none h-fit dark:text-muted-foreground">
               {label}
               {required && <RequiredField />}

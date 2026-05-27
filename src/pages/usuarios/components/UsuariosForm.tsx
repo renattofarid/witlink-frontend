@@ -10,7 +10,8 @@ import FormWrapper from "@/components/FormWrapper";
 import { GeneralModal } from "@/components/GeneralModal";
 import { successToast, errorToast, ERROR_MESSAGE } from "@/lib/core.function";
 import {
-  usuariosSchema,
+  usuariosCreateSchema,
+  usuariosEditSchema,
   type UsuariosFormValues,
 } from "../lib/usuarios.schema";
 import { createUsuario, updateUsuario } from "../lib/usuarios.actions";
@@ -58,7 +59,9 @@ export default function UsuariosForm({
   >(undefined);
 
   const form = useForm<UsuariosFormValues>({
-    resolver: zodResolver(usuariosSchema),
+    resolver: zodResolver(
+      mode === "create" ? usuariosCreateSchema : usuariosEditSchema,
+    ) as any,
     defaultValues: {
       persona_id: defaultValues?.persona?.id
         ? String(defaultValues.persona.id)
@@ -90,7 +93,7 @@ export default function UsuariosForm({
         tipo_usuario_id: Number(values.tipo_usuario_id),
         oficina_id: Number(values.oficina_id),
         nombre_usuario: values.nombre_usuario,
-        contraseña: values.contraseña,
+        ...(values.contraseña ? { contraseña: values.contraseña } : {}),
       });
     },
     onSuccess: () => {
@@ -253,9 +256,13 @@ export default function UsuariosForm({
           label="Contraseña"
           control={form.control}
           type="password"
-          placeholder="Ingrese la contraseña"
+          placeholder={
+            mode === "edit"
+              ? "Dejar vacío para no cambiar"
+              : "Ingrese la contraseña"
+          }
           autoComplete="new-password"
-          required
+          required={mode === "create"}
         />
         <div className="flex justify-end pt-2">
           <Button type="submit" disabled={mutation.isPending}>

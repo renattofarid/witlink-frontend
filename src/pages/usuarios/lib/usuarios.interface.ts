@@ -60,5 +60,5 @@ export interface UsuariosEditBody {
   tipo_usuario_id: number;
   oficina_id: number;
   nombre_usuario: string;
-  contraseña: string;
+  contraseña?: string;
 }

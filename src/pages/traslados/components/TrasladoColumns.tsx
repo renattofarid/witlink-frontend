@@ -2,6 +2,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, ArrowRight } from "lucide-react";
+import ExportButtons from "@/components/ExportButtons";
 import type { TrasladoListItem } from "../lib/traslado.interface";
 
 interface ColumnActions {
@@ -50,9 +51,9 @@ export const getTrasladoListColumns = (
       const { almacen_origen, almacen_destino } = row.original;
       return (
         <div className="flex items-center gap-1 text-xs">
-          <span className="truncate max-w-[70px]">{almacen_origen}</span>
+          <span className="truncate max-w-17.5">{almacen_origen}</span>
           <ArrowRight className="size-3 shrink-0 text-muted-foreground" />
-          <span className="truncate max-w-[70px]">{almacen_destino}</span>
+          <span className="truncate max-w-17.5">{almacen_destino}</span>
         </div>
       );
     },
@@ -131,7 +132,7 @@ export const getTrasladoListColumns = (
   },
   {
     id: "acciones",
-    size: 110,
+    size: 140,
     cell: ({ row }) => {
       const item = row.original;
       const canConfirm =
@@ -139,18 +140,25 @@ export const getTrasladoListColumns = (
         actions?.almacen_id !== null &&
         item.almacen_destino_id === actions?.almacen_id;
 
-      if (!canConfirm) return null;
-
       return (
-        <Button
-          size="sm"
-          variant="outline"
-          className="h-7 gap-1.5 text-xs text-green-700 border-green-400 hover:bg-green-50"
-          onClick={() => actions!.onConfirmar(item)}
-        >
-          <CheckCircle2 className="size-3.5" />
-          Confirmar
-        </Button>
+        <div className="flex items-center gap-1">
+          <ExportButtons
+            pdfEndpoint={`/traslados/${item.id}/pdf`}
+            pdfFileName={`traslado-${item.numero ?? item.id}.pdf`}
+            variant="separate"
+          />
+          {canConfirm && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 gap-1.5 text-xs text-green-700 border-green-400 hover:bg-green-50"
+              onClick={() => actions!.onConfirmar(item)}
+            >
+              <CheckCircle2 className="size-3.5" />
+              Confirmar
+            </Button>
+          )}
+        </div>
       );
     },
   },

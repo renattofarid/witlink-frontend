@@ -10,86 +10,107 @@ import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import { successToast, errorToast } from "@/lib/core.function";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
-import { useInventarioSeriesQuery, useInventarioMaterialesQuery } from "../lib/inventario.hook";
-import { InventarioComplete, INVENTARIO_SERIES_QUERY_KEY, INVENTARIO_MATERIALES_QUERY_KEY } from "../lib/inventario.constants";
-import { devolverInventarioMaterial, devolverInventarioSerie } from "../lib/inventario.actions";
+import {
+  useInventarioSeriesQuery,
+  useInventarioMaterialesQuery,
+} from "../lib/inventario.hook";
+import {
+  InventarioComplete,
+  INVENTARIO_SERIES_QUERY_KEY,
+} from "../lib/inventario.constants";
+import { devolverInventarioSerie } from "../lib/inventario.actions";
 import { getInventarioSeriesColumns } from "../components/InventarioSeriesColumns";
 import { getInventarioMaterialesColumns } from "../components/InventarioMaterialesColumns";
 import InventarioSeriesFilters from "../components/InventarioSeriesFilters";
 import InventarioMaterialesFilters from "../components/InventarioMaterialesFilters";
-import DevolverMaterialDialog from "@/pages/inventario-tecnico/components/DevolverMaterialDialog";
-import type { InventarioSerieResource, InventarioMaterialResource } from "../lib/inventario.interface";
+import InventarioSerieHistorialSheet from "../components/InventarioSerieHistorialSheet";
+import type { InventarioSerieResource } from "../lib/inventario.interface";
 
 export default function InventarioPage() {
   const { almacen_id } = useAuthStore();
   const queryClient = useQueryClient();
 
-  const [selectedMaterial, setSelectedMaterial] = useState<InventarioMaterialResource | null>(null);
-  const [selectedSerie, setSelectedSerie] = useState<InventarioSerieResource | null>(null);
-  const [devolverMaterialOpen, setDevolverMaterialOpen] = useState(false);
+  const [selectedSerie, setSelectedSerie] =
+    useState<InventarioSerieResource | null>(null);
   const [devolverSerieOpen, setDevolverSerieOpen] = useState(false);
+  const [historialOpen, setHistorialOpen] = useState(false);
+  const [historialSerie, setHistorialSerie] =
+    useState<InventarioSerieResource | null>(null);
 
-  const [seriesParams, setSeriesParams] = useTabParams("/inventario/series-tab", {
-    page: "1",
-    per_page: String(DEFAULT_PER_PAGE),
-    ...(almacen_id ? { almacen_id: String(almacen_id) } : {}),
-  });
+  const [seriesParams, setSeriesParams] = useTabParams(
+    "/inventario/series-tab",
+    {
+      page: "1",
+      per_page: String(DEFAULT_PER_PAGE),
+      ...(almacen_id ? { almacen_id: String(almacen_id) } : {}),
+    },
+  );
 
-  const [materialesParams, setMaterialesParams] = useTabParams("/inventario/materiales-tab", {
-    page: "1",
-    per_page: String(DEFAULT_PER_PAGE),
-    ...(almacen_id ? { almacen_id: String(almacen_id) } : {}),
-  });
+  const [materialesParams, setMaterialesParams] = useTabParams(
+    "/inventario/materiales-tab",
+    {
+      page: "1",
+      per_page: String(DEFAULT_PER_PAGE),
+      ...(almacen_id ? { almacen_id: String(almacen_id) } : {}),
+    },
+  );
 
-  const { data: seriesData, isLoading: seriesLoading } = useInventarioSeriesQuery(seriesParams);
-  const { data: materialesData, isLoading: materialesLoading } = useInventarioMaterialesQuery(materialesParams);
+  const { data: seriesData, isLoading: seriesLoading } =
+    useInventarioSeriesQuery(seriesParams);
+  const { data: materialesData, isLoading: materialesLoading } =
+    useInventarioMaterialesQuery(materialesParams);
 
   const devolverSerieMutation = useMutation({
-    mutationFn: () => devolverInventarioSerie(selectedSerie!.inventario_tecnico_id),
+    mutationFn: () =>
+      devolverInventarioSerie(selectedSerie!.inventario_tecnico_id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [INVENTARIO_SERIES_QUERY_KEY] });
+      queryClient.invalidateQueries({
+        queryKey: [INVENTARIO_SERIES_QUERY_KEY],
+      });
       successToast("Serie devuelta al almacén correctamente.");
     },
     onError: (error: any) => {
-      errorToast(error.response?.data?.message ?? "Error al devolver la serie.");
+      errorToast(
+        error.response?.data?.message ?? "Error al devolver la serie.",
+      );
     },
   });
-
-  const handleDevolverMaterial = (row: InventarioMaterialResource) => {
-    setSelectedMaterial(row);
-    setDevolverMaterialOpen(true);
-  };
 
   const handleDevolverSerie = (row: InventarioSerieResource) => {
     setSelectedSerie(row);
     setDevolverSerieOpen(true);
   };
 
-  const handleConfirmDevolverMaterial = async (cantidad: number): Promise<number> => {
-    try {
-      const data = await devolverInventarioMaterial(selectedMaterial!.producto_id, cantidad);
-      queryClient.invalidateQueries({ queryKey: [INVENTARIO_MATERIALES_QUERY_KEY] });
-      return data?.id ?? 0;
-    } catch (error: any) {
-      errorToast(error.response?.data?.message ?? "Error al devolver el material.");
-      throw error;
-    }
+  const handleHistorial = (row: InventarioSerieResource) => {
+    setHistorialSerie(row);
+    setHistorialOpen(true);
   };
 
-  const seriesColumns = getInventarioSeriesColumns({ onDevolver: handleDevolverSerie });
-  const materialesColumns = getInventarioMaterialesColumns({ onDevolver: handleDevolverMaterial });
+  const seriesColumns = getInventarioSeriesColumns({
+    onDevolver: handleDevolverSerie,
+    onHistorial: handleHistorial,
+  });
+  const materialesColumns = getInventarioMaterialesColumns();
 
   const handleSeriesPageChange = (page: number) =>
     setSeriesParams((prev) => ({ ...prev, page: String(page) }));
 
   const handleSeriesPerPageChange = (perPage: number) =>
-    setSeriesParams((prev) => ({ ...prev, per_page: String(perPage), page: "1" }));
+    setSeriesParams((prev) => ({
+      ...prev,
+      per_page: String(perPage),
+      page: "1",
+    }));
 
   const handleMaterialesPageChange = (page: number) =>
     setMaterialesParams((prev) => ({ ...prev, page: String(page) }));
 
   const handleMaterialesPerPageChange = (perPage: number) =>
-    setMaterialesParams((prev) => ({ ...prev, per_page: String(perPage), page: "1" }));
+    setMaterialesParams((prev) => ({
+      ...prev,
+      per_page: String(perPage),
+      page: "1",
+    }));
 
   return (
     <PageWrapper>
@@ -150,12 +171,10 @@ export default function InventarioPage() {
         </TabsContent>
       </Tabs>
 
-      <DevolverMaterialDialog
-        open={devolverMaterialOpen}
-        onOpenChange={setDevolverMaterialOpen}
-        maxCantidad={Number(selectedMaterial?.cantidad ?? 1) || 1}
-        onConfirm={handleConfirmDevolverMaterial}
-        onSuccess={() => successToast("Material devuelto al almacén correctamente.")}
+      <InventarioSerieHistorialSheet
+        open={historialOpen}
+        onClose={() => setHistorialOpen(false)}
+        serie={historialSerie}
       />
 
       <SimpleDeleteDialog

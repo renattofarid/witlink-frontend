@@ -142,6 +142,7 @@ export default function GuiaPage() {
             params={exportParams}
           />
           <Button
+            size="sm"
             onClick={() =>
               navigate(`${GuiaComplete.ROUTE_ADD}?tipo=equipo_retirado`)
             }
@@ -149,7 +150,7 @@ export default function GuiaPage() {
             <Plus />
             Equipos Retirados
           </Button>
-          <Button onClick={() => navigate(GuiaComplete.ROUTE_ADD!)}>
+          <Button size="sm" onClick={() => navigate(GuiaComplete.ROUTE_ADD!)}>
             <Plus />
             Guía
           </Button>

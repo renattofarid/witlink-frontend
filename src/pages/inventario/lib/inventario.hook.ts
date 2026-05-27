@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getInventarioSeries, getInventarioMateriales } from "./inventario.actions";
+import { getInventarioSeries, getInventarioMateriales, getSerieMovimientos } from "./inventario.actions";
 import {
   INVENTARIO_SERIES_QUERY_KEY,
   INVENTARIO_MATERIALES_QUERY_KEY,
@@ -16,5 +16,13 @@ export const useInventarioMaterialesQuery = (params: Record<string, string>) =>
   useQuery({
     queryKey: [INVENTARIO_MATERIALES_QUERY_KEY, params],
     queryFn: () => getInventarioMateriales(params),
+    refetchOnWindowFocus: true,
+  });
+
+export const useSerieMovimientosQuery = (serieId: number | null) =>
+  useQuery({
+    queryKey: ["serie-movimientos", serieId],
+    queryFn: () => getSerieMovimientos(serieId!),
+    enabled: serieId !== null,
     refetchOnWindowFocus: true,
   });

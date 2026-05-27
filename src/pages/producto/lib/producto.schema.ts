@@ -11,6 +11,7 @@ export const productoSchema = z
     necesita_mac: z.boolean().nullable().optional(),
     necesita_emta_mac: z.boolean().nullable().optional(),
     necesita_ua: z.boolean().nullable().optional(),
+    costo: z.number().min(0, "Debe ser mayor o igual a 0").nullable(),
   })
   .superRefine((v, ctx) => {
     if (v.origen === "CLARO" && (!v.sap || v.sap.trim() === "")) {

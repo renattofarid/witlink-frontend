@@ -3,13 +3,24 @@ import { Separator } from "@/components/ui/separator";
 import { FormInput } from "@/components/FormInput";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import { Input } from "@/components/ui/input";
+import { Paperclip } from "lucide-react";
 import type { GuiaCreateFormValues } from "../lib/guia.schema";
 
 interface GuiaDatosSectionProps {
   control: Control<GuiaCreateFormValues>;
+  mode: "create" | "edit";
+  existingFileName?: string | null;
 }
 
-export function GuiaDatosSection({ control }: GuiaDatosSectionProps) {
+function getFilename(path: string): string {
+  return path.split(/[/\\]/).pop() ?? path;
+}
+
+export function GuiaDatosSection({
+  control,
+  mode,
+  existingFileName,
+}: GuiaDatosSectionProps) {
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
@@ -28,6 +39,7 @@ export function GuiaDatosSection({ control }: GuiaDatosSectionProps) {
           required
           uppercase
         />
+        
         <DatePickerFormField
           required
           name="fecha"
@@ -38,10 +50,13 @@ export function GuiaDatosSection({ control }: GuiaDatosSectionProps) {
         <Controller
           name="archivo"
           control={control}
-          render={({ field: { onChange, value: _value, ...field } }) => (
+          render={({ field: { onChange, value, ...field }, fieldState }) => (
             <div className="flex flex-col gap-1">
               <label className="text-xs font-medium text-muted-foreground">
-                Archivo adjunto (opcional)
+                Archivo adjunto
+                {mode === "create" && (
+                  <span className="text-destructive ml-0.5">*</span>
+                )}
               </label>
               <Input
                 type="file"
@@ -49,6 +64,21 @@ export function GuiaDatosSection({ control }: GuiaDatosSectionProps) {
                 onChange={(e) => onChange(e.target.files?.[0] ?? null)}
                 {...field}
               />
+              {mode === "edit" &&
+                existingFileName &&
+                !(value instanceof File) && (
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Paperclip className="h-3 w-3 shrink-0" />
+                    <span className="truncate">
+                      {getFilename(existingFileName)}
+                    </span>
+                  </div>
+                )}
+              {fieldState.error && (
+                <p className="text-xs text-destructive">
+                  {fieldState.error.message}
+                </p>
+              )}
             </div>
           )}
         />

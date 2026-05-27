@@ -20,7 +20,11 @@ export const getKardexColumns = (): ColumnDef<KardexResource>[] => [
       if (!raw) return null;
       // Replace hyphens with slashes so JS parses it as local time, not UTC
       const date = new Date(raw.replace(/-/g, "/"));
-      return date.toLocaleDateString("es-PE", { day: "2-digit", month: "2-digit", year: "numeric" });
+      return date.toLocaleDateString("es-PE", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
     },
   },
   {
@@ -41,10 +45,7 @@ export const getKardexColumns = (): ColumnDef<KardexResource>[] => [
     cell: ({ row }) => {
       const mov = row.original.movimiento;
       return (
-        <Badge
-          variant="default"
-          color={movimientoBadgeColor[mov] ?? "default"}
-        >
+        <Badge variant="default" color={movimientoBadgeColor[mov] ?? "default"}>
           {mov}
         </Badge>
       );
@@ -56,7 +57,12 @@ export const getKardexColumns = (): ColumnDef<KardexResource>[] => [
     cell: ({ row }) => {
       const cantidad = row.original.cantidad;
       return (
-        <span className={cn("font-medium", cantidad < 0 ? "text-red-600" : "text-green-600")}>
+        <span
+          className={cn(
+            "font-medium",
+            cantidad < 0 ? "text-red-600" : "text-green-600",
+          )}
+        >
           {cantidad > 0 ? `+${cantidad}` : cantidad}
         </span>
       );
@@ -65,6 +71,10 @@ export const getKardexColumns = (): ColumnDef<KardexResource>[] => [
   {
     accessorKey: "ubicacion",
     header: "Ubicación",
+    cell: ({ getValue }) => {
+      const ubicacion = getValue() as string;
+      return <span className="uppercase">{ubicacion}</span>;
+    },
   },
   {
     accessorKey: "serie",

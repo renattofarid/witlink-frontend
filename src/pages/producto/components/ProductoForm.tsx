@@ -66,6 +66,7 @@ export default function ProductoForm({
       necesita_mac: defaultValues?.necesita_mac ?? null,
       necesita_emta_mac: defaultValues?.necesita_emta_mac ?? null,
       necesita_ua: defaultValues?.necesita_ua ?? null,
+      costo: defaultValues?.costo ?? null,
     },
     mode: "onChange",
   });
@@ -86,8 +87,11 @@ export default function ProductoForm({
         origen: values.origen ?? "",
         necesita_serie: isEquipo ? (values.necesita_serie ?? false) : false,
         necesita_mac: isEquipo ? (values.necesita_mac ?? false) : false,
-        necesita_emta_mac: isEquipo ? (values.necesita_emta_mac ?? false) : false,
+        necesita_emta_mac: isEquipo
+          ? (values.necesita_emta_mac ?? false)
+          : false,
         necesita_ua: isEquipo ? (values.necesita_ua ?? false) : false,
+        costo: values.costo ?? null,
       };
       if (mode === "create") return createProducto(body);
       return updateProducto(defaultValues!.id, body);
@@ -176,6 +180,15 @@ export default function ProductoForm({
           required
           options={ORIGEN_OPTIONS}
         />
+        <FormInput
+          name="costo"
+          label="Costo"
+          control={activeControl}
+          placeholder="0.00"
+          type="number"
+          min={0}
+          step={0.01}
+        />
       </div>
       {isEquipo && (
         <>
@@ -224,7 +237,9 @@ export default function ProductoForm({
   return (
     <FormWrapper>
       <form
-        onSubmit={standaloneForm.control.handleSubmit((v) => mutation.mutate(v))}
+        onSubmit={standaloneForm.control.handleSubmit((v) =>
+          mutation.mutate(v),
+        )}
         className="space-y-4"
       >
         {fields}

@@ -55,6 +55,10 @@ export const getProductoColumns = ({
     cell: ({ row }) => row.original.categoria?.nombre ?? "-",
   },
   {
+    accessorKey: "costo",
+    header: "Costo",
+  },
+  {
     id: "necesita_serie",
     header: "Serie",
     cell: ({ row }) => <BoolCell value={row.original.necesita_serie} />,

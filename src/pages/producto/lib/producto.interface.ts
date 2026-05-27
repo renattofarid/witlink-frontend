@@ -11,6 +11,7 @@ export interface ProductoResource {
   necesita_mac: boolean;
   necesita_emta_mac: boolean;
   necesita_ua: boolean;
+  costo: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -35,6 +36,7 @@ export interface ProductoCreateBody {
   necesita_mac?: boolean | null;
   necesita_emta_mac?: boolean | null;
   necesita_ua?: boolean | null;
+  costo?: number | null;
 }
 
 export interface ProductoUpdateBody {
@@ -47,4 +49,5 @@ export interface ProductoUpdateBody {
   necesita_mac?: boolean | null;
   necesita_emta_mac?: boolean | null;
   necesita_ua?: boolean | null;
+  costo?: number | null;
 }

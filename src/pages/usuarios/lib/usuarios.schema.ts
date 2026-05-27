@@ -5,13 +5,15 @@ const baseSchema = z.object({
   tipo_usuario_id: z.string().min(1, "Requerido"),
   oficina_id: z.string().min(1, "Requerido"),
   nombre_usuario: z.string().min(1, "Requerido"),
-  contraseña: z.string().optional(),
+  contraseña: z.string(),
 });
 
 export const usuariosCreateSchema = baseSchema.extend({
   contraseña: z.string().min(1, "Requerido"),
 });
 
-export const usuariosEditSchema = baseSchema;
+export const usuariosEditSchema = baseSchema.extend({
+  contraseña: z.string().optional(),
+});
 
 export type UsuariosFormValues = z.infer<typeof baseSchema>;

@@ -59,7 +59,9 @@ export default function UsuariosForm({
   >(undefined);
 
   const form = useForm<UsuariosFormValues>({
-    resolver: zodResolver(mode === "create" ? usuariosCreateSchema : usuariosEditSchema),
+    resolver: zodResolver(
+      mode === "create" ? usuariosCreateSchema : usuariosEditSchema,
+    ) as any,
     defaultValues: {
       persona_id: defaultValues?.persona?.id
         ? String(defaultValues.persona.id)
@@ -254,7 +256,11 @@ export default function UsuariosForm({
           label="Contraseña"
           control={form.control}
           type="password"
-          placeholder={mode === "edit" ? "Dejar vacío para no cambiar" : "Ingrese la contraseña"}
+          placeholder={
+            mode === "edit"
+              ? "Dejar vacío para no cambiar"
+              : "Ingrese la contraseña"
+          }
           autoComplete="new-password"
           required={mode === "create"}
         />

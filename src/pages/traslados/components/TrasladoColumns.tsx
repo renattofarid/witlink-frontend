@@ -51,9 +51,9 @@ export const getTrasladoListColumns = (
       const { almacen_origen, almacen_destino } = row.original;
       return (
         <div className="flex items-center gap-1 text-xs">
-          <span className="truncate max-w-[70px]">{almacen_origen}</span>
+          <span className="truncate max-w-17.5">{almacen_origen}</span>
           <ArrowRight className="size-3 shrink-0 text-muted-foreground" />
-          <span className="truncate max-w-[70px]">{almacen_destino}</span>
+          <span className="truncate max-w-17.5">{almacen_destino}</span>
         </div>
       );
     },

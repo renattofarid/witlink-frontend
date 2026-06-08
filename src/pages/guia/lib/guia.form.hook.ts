@@ -51,7 +51,6 @@ function buildProductoNuevo(p: any, isEquipo: boolean): GuiaProductoBody {
     };
   }
   return {
-    categoria_id: p.categoria_id ? Number(p.categoria_id) : null,
     sap: p.sap ?? null,
     nombre: p.nombre ?? null,
     tipo: p.tipo ?? null,

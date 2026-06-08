@@ -72,7 +72,6 @@ type HeaderEditFormValues = z.infer<typeof headerEditSchema>;
 
 const EMPTY_PRODUCTO: ProductoFormValues = {
   producto_id: null,
-  categoria_id: null,
   sap: null,
   nombre: null,
   tipo: null,
@@ -111,7 +110,6 @@ function mapProducto(p: ProductoFormValues) {
     };
   }
   return {
-    categoria_id: p.categoria_id ? Number(p.categoria_id) : null,
     sap: p.sap ?? null,
     nombre: p.nombre ?? null,
     tipo: p.tipo ?? null,
@@ -645,7 +643,7 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
                             name="mac"
                             label="MAC"
                             control={serieForm.control}
-                            placeholder="00:1A:2B:3C:4D:5E"
+                            placeholder="Ingrese MAC"
                           />
                           <FormInput
                             name="observaciones"

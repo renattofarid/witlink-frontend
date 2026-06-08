@@ -59,7 +59,6 @@ function guiaToFormValues(guia: GuiaResource): GuiaCreateFormValues {
     productos: (guia.productos ?? []).map((p) => ({
       productos_guia_id: p.id,
       producto_id: String(p.producto.id),
-      categoria_id: String(p.producto.categoria_id),
       sap: p.producto.sap ?? null,
       nombre: p.producto.nombre ?? null,
       tipo: (p.producto.tipo as "MATERIAL" | "EQUIPO") ?? null,
@@ -85,7 +84,6 @@ function guiaToFormValues(guia: GuiaResource): GuiaCreateFormValues {
 
 const EMPTY_PRODUCTO: ProductoFormValues = {
   producto_id: null,
-  categoria_id: null,
   sap: null,
   nombre: null,
   tipo: null,

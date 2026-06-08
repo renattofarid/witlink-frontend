@@ -19,12 +19,6 @@ import {
 import type { SerieLocal } from "../lib/guia.interface";
 import { GuiaSerieLocalRow } from "./GuiaSerieLocalRow";
 
-function formatMac(value: string): string {
-  const clean = value.replace(/[^0-9A-Fa-f]/g, "").toUpperCase();
-  const chunks = clean.match(/.{1,2}/g) ?? [];
-  return chunks.join(":").substring(0, 17);
-}
-
 const EMPTY_QUICK: QuickAddSerieFormValues = {
   serie: null,
   mac: null,
@@ -105,7 +99,6 @@ export function GuiaQuickAddSeriePanel({
     register,
     handleSubmit,
     reset,
-    setValue,
     formState: { errors },
   } = useForm<QuickAddSerieFormValues>({
     resolver: zodResolver(quickAddSerieSchema) as any,
@@ -227,16 +220,11 @@ export function GuiaQuickAddSeriePanel({
                     macReg.ref(el);
                     macRef.current = el;
                   }}
-                  placeholder="00:1A:2B:3C:4D:5E"
+                  placeholder="Ingrese MAC"
                   className={cn(
                     "h-8 text-xs font-mono",
                     errors.mac && "border-destructive",
                   )}
-                  onChange={(e) =>
-                    setValue("mac", formatMac(e.target.value), {
-                      shouldValidate: true,
-                    })
-                  }
                   onKeyDown={handleKeyDown("mac")}
                   autoComplete="off"
                 />
@@ -259,16 +247,11 @@ export function GuiaQuickAddSeriePanel({
                     emtaMacReg.ref(el);
                     emtaMacRef.current = el;
                   }}
-                  placeholder="00:1A:2B:3C:4D:5E"
+                  placeholder="Ingrese EMTA MAC"
                   className={cn(
                     "h-8 text-xs font-mono",
                     errors.emta_mac && "border-destructive",
                   )}
-                  onChange={(e) =>
-                    setValue("emta_mac", formatMac(e.target.value), {
-                      shouldValidate: true,
-                    })
-                  }
                   onKeyDown={handleKeyDown("emta_mac")}
                   autoComplete="off"
                 />

@@ -1,5 +1,4 @@
 import { useMemo, useRef } from "react";
-import { Controller } from "react-hook-form";
 import type { UseFormReturn } from "react-hook-form";
 import type { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/DataTable";
@@ -9,12 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ProductoFormValues, SerieFormValues } from "../lib/guia.schema";
-
-function formatMac(value: string): string {
-  const clean = value.replace(/[^0-9A-Fa-f]/g, "").toUpperCase();
-  const chunks = clean.match(/.{1,2}/g) ?? [];
-  return chunks.join(":").substring(0, 17);
-}
 
 interface GuiaSeriesTableProps {
   productSubForm: UseFormReturn<ProductoFormValues>;
@@ -96,24 +89,14 @@ export function GuiaSeriesTable({
         const form = formRef.current;
         const index = row.index;
         return (
-          <Controller
+          <FormInput
+            id={`series-${index}-mac`}
+            name={`series.${index}.mac`}
             control={form.control}
-            name={`series.${index}.mac` as any}
-            render={({ field, fieldState }) => (
-              <FormInput
-                id={`series-${index}-mac`}
-                name={`series.${index}.mac`}
-                value={field.value ?? ""}
-                onChange={(e) => field.onChange(formatMac(e.target.value))}
-                onBlur={field.onBlur}
-                disabled={disabledMac}
-                placeholder="00:1A:2B:3C:4D:5E"
-                maxLength={17}
-                error={fieldState.error?.message}
-                className={cn("h-7 text-xs font-mono", disabledMac && "opacity-40 cursor-not-allowed")}
-                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onAdvanceRef.current(index, "mac"); } }}
-              />
-            )}
+            disabled={disabledMac}
+            placeholder="Ingrese MAC"
+            className={cn("h-7 text-xs font-mono", disabledMac && "opacity-40 cursor-not-allowed")}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onAdvanceRef.current(index, "mac"); } }}
           />
         );
       },
@@ -130,24 +113,14 @@ export function GuiaSeriesTable({
         const form = formRef.current;
         const index = row.index;
         return (
-          <Controller
+          <FormInput
+            id={`series-${index}-emta_mac`}
+            name={`series.${index}.emta_mac`}
             control={form.control}
-            name={`series.${index}.emta_mac` as any}
-            render={({ field, fieldState }) => (
-              <FormInput
-                id={`series-${index}-emta_mac`}
-                name={`series.${index}.emta_mac`}
-                value={field.value ?? ""}
-                onChange={(e) => field.onChange(formatMac(e.target.value))}
-                onBlur={field.onBlur}
-                disabled={disabledEmtaMac}
-                placeholder="00:1A:2B:3C:4D:5E"
-                maxLength={17}
-                error={fieldState.error?.message}
-                className={cn("h-7 text-xs font-mono", disabledEmtaMac && "opacity-40 cursor-not-allowed")}
-                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onAdvanceRef.current(index, "emta_mac"); } }}
-              />
-            )}
+            disabled={disabledEmtaMac}
+            placeholder="Ingrese EMTA MAC"
+            className={cn("h-7 text-xs font-mono", disabledEmtaMac && "opacity-40 cursor-not-allowed")}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onAdvanceRef.current(index, "emta_mac"); } }}
           />
         );
       },

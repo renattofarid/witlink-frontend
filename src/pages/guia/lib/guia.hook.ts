@@ -2,8 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import {
   getGuias,
   getProveedores,
-  getCategorias,
-  getCategoriaById,
   getSeries,
 } from "./guia.actions";
 import { GuiaComplete } from "./guia.constants";
@@ -22,27 +20,6 @@ export const useProveedoresQuery = (params: Record<string, any> = {}) => {
     queryKey: ["proveedores", apiParams],
     queryFn: () => getProveedores(apiParams),
     enabled,
-    refetchOnWindowFocus: false,
-  });
-};
-
-export const useCategoriasQuery = (params: Record<string, any> = {}) => {
-  const { enabled = true, ...apiParams } = params;
-  return useQuery({
-    queryKey: ["categorias", apiParams],
-    queryFn: () => getCategorias(apiParams),
-    enabled,
-    refetchOnWindowFocus: false,
-  });
-};
-
-export const useCategoriasQueryById = (id: string | null) => {
-  const numId = Number(id);
-  const validId = !!id && !isNaN(numId) && numId > 0;
-  return useQuery({
-    queryKey: ["categorias", "byId", id],
-    queryFn: () => getCategoriaById(numId),
-    enabled: validId,
     refetchOnWindowFocus: false,
   });
 };

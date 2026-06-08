@@ -28,7 +28,6 @@ export const useTecnicoDespachoQuery = (params: Record<string, any> = {}) => {
     queryKey: ["personas-tecnicos-despacho", apiParams],
     queryFn: () =>
       getPersonas({
-        tipo_empleado: "Técnico",
         ...apiParams,
       } as Record<string, string | undefined>),
     enabled,

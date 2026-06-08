@@ -50,13 +50,13 @@ export const getProductoColumns = ({
     },
   },
   {
-    id: "categoria",
-    header: "Categoría",
-    cell: ({ row }) => row.original.categoria?.nombre ?? "-",
-  },
-  {
     accessorKey: "costo",
     header: "Costo",
+  },
+  {
+    id: "incluir_en_carga",
+    header: "Carga",
+    cell: ({ row }) => <BoolCell value={row.original.incluir_en_carga} />,
   },
   {
     id: "necesita_serie",

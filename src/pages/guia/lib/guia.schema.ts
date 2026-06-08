@@ -11,21 +11,6 @@ export const serieSchema = z
   })
   .superRefine((data, ctx) => {
     if (data.serie_id) return; // reingreso: skip format validation
-    const macRegex = /^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$/;
-    if (data.mac && !macRegex.test(data.mac)) {
-      ctx.addIssue({
-        code: "custom",
-        message: "Formato inválido (ej. 00:1A:2B:3C:4D:5E)",
-        path: ["mac"],
-      });
-    }
-    if (data.emta_mac && !macRegex.test(data.emta_mac)) {
-      ctx.addIssue({
-        code: "custom",
-        message: "Formato inválido (ej. 00:1A:2B:3C:4D:5E)",
-        path: ["emta_mac"],
-      });
-    }
     if (data.ua && data.ua.length !== 17) {
       ctx.addIssue({
         code: "custom",
@@ -39,7 +24,6 @@ export const productoSchema = z
   .object({
     productos_guia_id: z.number().optional().nullable(),
     producto_id: z.string().optional().nullable(),
-    categoria_id: z.string().optional().nullable(),
     sap: z.string().optional().nullable(),
     nombre: z.string().optional().nullable(),
     tipo: z.enum(["MATERIAL", "EQUIPO"]).optional().nullable(),
@@ -141,8 +125,6 @@ export type ProductoFormValues = z.infer<typeof productoSchema>;
 export type GuiaCreateFormValues = z.infer<typeof guiaCreateSchema>;
 export type GuiaEditFormValues = GuiaCreateFormValues;
 
-const macRegexQuick = /^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$/;
-
 export const quickAddSerieSchema = z
   .object({
     serie: z.string().optional().nullable(),
@@ -156,20 +138,6 @@ export const quickAddSerieSchema = z
         code: "custom",
         message: "Ingrese al menos un campo",
         path: ["serie"],
-      });
-    }
-    if (data.mac && !macRegexQuick.test(data.mac)) {
-      ctx.addIssue({
-        code: "custom",
-        message: "Formato inválido (ej. 00:1A:2B:3C:4D:5E)",
-        path: ["mac"],
-      });
-    }
-    if (data.emta_mac && !macRegexQuick.test(data.emta_mac)) {
-      ctx.addIssue({
-        code: "custom",
-        message: "Formato inválido (ej. 00:1A:2B:3C:4D:5E)",
-        path: ["emta_mac"],
       });
     }
     if (data.ua && data.ua.length !== 17) {

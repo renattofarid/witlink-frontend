@@ -39,10 +39,6 @@ export function GuiaProductoSelector({
               })}
               onValueChange={(_, item: ProductoResource) => {
                 if (item) {
-                  productSubForm.setValue(
-                    "categoria_id",
-                    item.categoria?.id ? String(item.categoria.id) : null,
-                  );
                   productSubForm.setValue("sap", item.sap ?? null);
                   productSubForm.setValue("nombre", item.nombre ?? null);
                   productSubForm.setValue("tipo", item.tipo);

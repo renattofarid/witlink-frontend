@@ -19,6 +19,10 @@ export const getPersonaColumns = ({
     header: "ID",
   },
   {
+    accessorKey: "tipo_empleado",
+    header: "Tipo de Empleado",
+  },
+  {
     accessorKey: "nombre",
     header: "Nombre",
   },

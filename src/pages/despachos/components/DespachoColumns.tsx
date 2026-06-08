@@ -32,11 +32,11 @@ export const getDespachoColumns = ({
     },
   },
   {
-    accessorKey: "almacen_id",
+    accessorKey: "almacen.nombre",
     header: "Almacén",
     cell: ({ row }) => (
       <span className="text-xs text-muted-foreground">
-        #{row.original.almacen_id}
+        #{row.original.almacen.nombre}
         {/* {row.original.almacen_nombre ? ` - ${row.original.almacen_nombre}` : ""} */}
       </span>
     ),

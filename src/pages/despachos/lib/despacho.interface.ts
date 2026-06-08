@@ -1,7 +1,6 @@
 import type { PaginationResponse } from "@/lib/core.interface";
 import type { AlmacenResource } from "@/pages/auth/lib/auth.interface";
 import type {
-  PersonaResource,
   UsuariosResource,
 } from "@/pages/usuarios/lib/usuarios.interface";
 
@@ -11,7 +10,7 @@ export interface DespachoResource {
   fecha: string;
   almacen: AlmacenResource;
   usuario: UsuariosResource;
-  tecnico: PersonaResource;
+  tecnico: DespachoTecnicoResource;
   productos: DespachoProductoDetalleResource[];
   created_at: string;
   updated_at: string;
@@ -65,6 +64,21 @@ export interface DespachoProductoDetalleResource {
     origen: string | null;
   };
   series: Array<{ serie: DespachoSerieDetalleResource | null }>;
+}
+
+export interface DespachoDetailResource {
+  id: number;
+  numero: string;
+  fecha: string;
+  almacen_id: number;
+  almacen: DespachoAlmacenResource;
+  tecnico_id: number;
+  tecnico: DespachoTecnicoResource;
+  usuario: DespachoUsuarioResource;
+  productos: DespachoProductoDetalleResource[];
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
 }
 
 export type DespachoResponse = PaginationResponse<DespachoResource>;

@@ -17,8 +17,8 @@ import ExportButtons from "@/components/ExportButtons";
 import { DespachoComplete } from "../lib/despacho.constants";
 import { getDespacho } from "../lib/despacho.actions";
 import type {
-  DespachoDetailResource,
   DespachoProductoDetalleResource,
+  DespachoResource,
   DespachoSerieDetalleResource,
 } from "../lib/despacho.interface";
 
@@ -78,7 +78,8 @@ function SerieRow({ serie }: { serie: DespachoSerieDetalleResource }) {
       )}
       {serie.emta_mac && (
         <span className="text-muted-foreground">
-          EMTA: <span className="font-mono text-foreground">{serie.emta_mac}</span>
+          EMTA:{" "}
+          <span className="font-mono text-foreground">{serie.emta_mac}</span>
         </span>
       )}
       {serie.ua && (
@@ -151,7 +152,7 @@ function ProductoCard({
                 >
                   Serie no disponible
                 </div>
-              )
+              ),
             )}
           </div>
         ) : (
@@ -171,7 +172,7 @@ export default function DespachoViewPage() {
 
   const { data: despacho, isLoading } = useQuery({
     queryKey: [DespachoComplete.QUERY_KEY, "detail", id],
-    queryFn: () => getDespacho(Number(id)) as Promise<DespachoDetailResource>,
+    queryFn: () => getDespacho(Number(id)) as Promise<DespachoResource>,
     enabled: !!id,
   });
 
@@ -188,9 +189,7 @@ export default function DespachoViewPage() {
   if (!despacho) {
     return (
       <FormWrapper>
-        <p className="text-sm text-muted-foreground">
-          Despacho no encontrado.
-        </p>
+        <p className="text-sm text-muted-foreground">Despacho no encontrado.</p>
       </FormWrapper>
     );
   }
@@ -198,7 +197,7 @@ export default function DespachoViewPage() {
   const tecnico = despacho.tecnico;
   const nombreTecnico = tecnico?.persona
     ? `${tecnico.persona.nombre} ${tecnico.persona.apellido_paterno}`
-    : `Técnico #${despacho.tecnico_id}`;
+    : `Técnico #${despacho.tecnico.id}`;
 
   const usuario = despacho.usuario;
   const nombreUsuario = usuario?.persona
@@ -259,8 +258,8 @@ export default function DespachoViewPage() {
               label="Almacén"
               icon={Building2}
               value={
-                <span>
-                  {despacho.almacen?.nombre ?? `#${despacho.almacen_id}`}
+                <span>  
+                  {despacho.almacen?.nombre ?? `#${despacho.almacen.id}`}
                   {despacho.almacen?.direccion && (
                     <span className="block text-xs text-muted-foreground font-normal">
                       {despacho.almacen.direccion}
@@ -269,11 +268,7 @@ export default function DespachoViewPage() {
                 </span>
               }
             />
-            <InfoField
-              label="Técnico"
-              icon={Wrench}
-              value={nombreTecnico}
-            />
+            <InfoField label="Técnico" icon={Wrench} value={nombreTecnico} />
             <InfoField
               label="Registrado por"
               icon={User}
@@ -287,9 +282,7 @@ export default function DespachoViewPage() {
       <div className="space-y-3">
         <div className="flex items-center gap-2">
           <Package className="size-4 text-muted-foreground" />
-          <h3 className="text-sm font-semibold">
-            Productos
-          </h3>
+          <h3 className="text-sm font-semibold">Productos</h3>
           <Separator className="flex-1" />
           <span className="text-xs text-muted-foreground">
             {despacho.productos?.length ?? 0}{" "}

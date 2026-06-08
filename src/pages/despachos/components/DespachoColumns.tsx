@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { ButtonAction } from "@/components/ButtonAction";
 import { Trash2, Eye } from "lucide-react";
 import ExportButtons from "@/components/ExportButtons";
+import { DespachoProductosModal } from "./DespachoProductosModal";
 import type { DespachoResource } from "../lib/despacho.interface";
 
 interface ColumnActions {
@@ -32,13 +33,23 @@ export const getDespachoColumns = ({
     },
   },
   {
-    accessorKey: "almacen_id",
+    accessorKey: "almacen.nombre",
     header: "Almacén",
     cell: ({ row }) => (
       <span className="text-xs text-muted-foreground">
-        #{row.original.almacen_id}
+        #{row.original.almacen.nombre}
         {/* {row.original.almacen_nombre ? ` - ${row.original.almacen_nombre}` : ""} */}
       </span>
+    ),
+  },
+  {
+    id: "productos",
+    header: "Productos",
+    cell: ({ row }) => (
+      <DespachoProductosModal
+        productos={row.original.productos}
+        despachoNumero={row.original.numero}
+      />
     ),
   },
   {

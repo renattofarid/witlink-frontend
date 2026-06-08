@@ -2,7 +2,6 @@ import { z } from "zod";
 
 export const productoSchema = z
   .object({
-    categoria_id: z.string().min(1, "Requerido"),
     sap: z.string().max(50, "Máximo 50 caracteres").optional(),
     nombre: z.string().min(1, "Requerido").max(255, "Máximo 255 caracteres"),
     tipo: z.enum(["MATERIAL", "EQUIPO"], { message: "Requerido" }),
@@ -11,7 +10,8 @@ export const productoSchema = z
     necesita_mac: z.boolean().nullable().optional(),
     necesita_emta_mac: z.boolean().nullable().optional(),
     necesita_ua: z.boolean().nullable().optional(),
-    costo: z.number().min(0, "Debe ser mayor o igual a 0").nullable(),
+    incluir_en_carga: z.boolean().nullable().optional(),
+    costo: z.coerce.number().min(0, "Debe ser mayor o igual a 0").nullable(),
   })
   .superRefine((v, ctx) => {
     if (v.origen === "CLARO" && (!v.sap || v.sap.trim() === "")) {

@@ -3,7 +3,6 @@ import { GeneralModal } from "@/components/GeneralModal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { FormInput } from "@/components/FormInput";
-import { MacInput } from "@/components/MacInput";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { X, Check } from "lucide-react";
 import { useSeriesQuery } from "../lib/guia.hook";
@@ -139,18 +138,27 @@ export function GuiaSerieDialog({
               />
             )}
             {showMac && (
-              <MacInput name="mac" label="MAC" control={serieSubForm.control} />
+              <FormInput
+                name="mac"
+                label="MAC"
+                control={serieSubForm.control}
+                placeholder="Ingrese MAC"
+              />
             )}
             {showEmtaMac && (
-              <MacInput name="emta_mac" label="EMTA MAC" control={serieSubForm.control} />
+              <FormInput
+                name="emta_mac"
+                label="EMTA MAC"
+                control={serieSubForm.control}
+                placeholder="Ingrese EMTA MAC"
+              />
             )}
             {showUa && (
               <FormInput
                 name="ua"
                 label="UA"
                 control={serieSubForm.control}
-                placeholder="XX:XX:XX:XX:XX:XX"
-                maxLength={17}
+                placeholder="Ingrese UA"
                 uppercase
               />
             )}

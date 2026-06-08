@@ -17,7 +17,6 @@ export interface GuiaProductoResource {
   id: number;
   producto: {
     id: number;
-    categoria_id: number;
     sap: string;
     nombre: string;
     tipo: string;
@@ -102,7 +101,6 @@ export interface GuiaSerieBody {
 
 export interface GuiaProductoBody {
   producto_id?: number;
-  categoria_id?: number | null;
   sap?: string | null;
   nombre?: string | null;
   tipo: "MATERIAL" | "EQUIPO" | null;

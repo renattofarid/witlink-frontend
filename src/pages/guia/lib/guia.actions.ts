@@ -62,8 +62,6 @@ function appendProductoFields(
 ) {
   if (producto.producto_id !== undefined)
     formData.append(`${prefix}[producto_id]`, String(producto.producto_id));
-  if (producto.categoria_id !== undefined && producto.categoria_id !== null)
-    formData.append(`${prefix}[categoria_id]`, String(producto.categoria_id));
   if (producto.sap !== undefined && producto.sap !== null)
     formData.append(`${prefix}[sap]`, producto.sap);
   if (producto.nombre !== undefined && producto.nombre !== null)
@@ -251,12 +249,3 @@ export const getProductos = async (params: Record<string, any>) => {
   return data;
 };
 
-export const getCategorias = async (params: Record<string, any>) => {
-  const { data } = await api.get("/categorias", { params });
-  return data;
-};
-
-export const getCategoriaById = async (id: number) => {
-  const { data } = await api.get(`/categorias/${id}`);
-  return data;
-};

@@ -1,15 +1,20 @@
 import type { PaginationResponse } from "@/lib/core.interface";
+import type { AlmacenResource } from "@/pages/auth/lib/auth.interface";
+import type {
+  UsuariosResource,
+} from "@/pages/usuarios/lib/usuarios.interface";
 
 export interface DespachoResource {
   id: number;
-  usuario_id: number;
-  tecnico_id: number;
   numero: string;
   fecha: string;
+  almacen: AlmacenResource;
+  usuario: UsuariosResource;
+  tecnico: DespachoTecnicoResource;
+  productos: DespachoProductoDetalleResource[];
   created_at: string;
   updated_at: string;
-  deleted_at: null | string;
-  almacen_id: number;
+  deleted_at: string | null;
 }
 
 // ── Tipos anidados para la vista de detalle ──────────────────────────────────
@@ -61,11 +66,19 @@ export interface DespachoProductoDetalleResource {
   series: Array<{ serie: DespachoSerieDetalleResource | null }>;
 }
 
-export interface DespachoDetailResource extends DespachoResource {
-  tecnico: DespachoTecnicoResource | null;
-  usuario: DespachoUsuarioResource | null;
-  almacen: DespachoAlmacenResource | null;
+export interface DespachoDetailResource {
+  id: number;
+  numero: string;
+  fecha: string;
+  almacen_id: number;
+  almacen: DespachoAlmacenResource;
+  tecnico_id: number;
+  tecnico: DespachoTecnicoResource;
+  usuario: DespachoUsuarioResource;
   productos: DespachoProductoDetalleResource[];
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
 }
 
 export type DespachoResponse = PaginationResponse<DespachoResource>;

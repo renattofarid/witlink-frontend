@@ -274,7 +274,7 @@ export function GuiaQuickAddSeriePanel({
                     uaReg.ref(el);
                     uaRef.current = el;
                   }}
-                  placeholder="17 caracteres"
+                  placeholder="Ingrese UA"
                   className={cn(
                     "h-8 text-xs font-mono",
                     errors.ua && "border-destructive",

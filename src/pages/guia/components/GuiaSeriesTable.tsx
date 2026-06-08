@@ -142,8 +142,7 @@ export function GuiaSeriesTable({
             name={`series.${index}.ua`}
             control={form.control}
             disabled={disabledUa}
-            placeholder="XX:XX:XX:XX:XX:XX"
-            maxLength={17}
+            placeholder="Ingrese UA"
             uppercase
             className={cn("h-7 text-xs font-mono", disabledUa && "opacity-40 cursor-not-allowed")}
             onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onAdvanceRef.current(index, "ua"); } }}

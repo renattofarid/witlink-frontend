@@ -8,16 +8,6 @@ export const serieSchema = z
     emta_mac: z.string().optional().nullable(),
     ua: z.string().optional().nullable(),
     observaciones: z.string().optional().nullable(),
-  })
-  .superRefine((data, ctx) => {
-    if (data.serie_id) return; // reingreso: skip format validation
-    if (data.ua && data.ua.length !== 17) {
-      ctx.addIssue({
-        code: "custom",
-        message: "Debe tener 17 caracteres",
-        path: ["ua"],
-      });
-    }
   });
 
 export const productoSchema = z
@@ -138,13 +128,6 @@ export const quickAddSerieSchema = z
         code: "custom",
         message: "Ingrese al menos un campo",
         path: ["serie"],
-      });
-    }
-    if (data.ua && data.ua.length !== 17) {
-      ctx.addIssue({
-        code: "custom",
-        message: "Debe tener 17 caracteres",
-        path: ["ua"],
       });
     }
   });

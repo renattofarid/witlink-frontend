@@ -29,9 +29,9 @@ export interface SerieResource {
 export type SerieResponse = PaginationResponse<SerieResource>;
 
 export interface SerieBody {
-  serie: string;
-  situacion: string;
-  mac: string;
-  ua: string;
   producto_id: number;
+  serie: string;
+  mac: string;
+  emta_mac: string;
+  ua: string;
 }

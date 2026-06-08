@@ -27,7 +27,7 @@ export interface ProductoCreateBody {
   necesita_mac?: boolean | null;
   necesita_emta_mac?: boolean | null;
   necesita_ua?: boolean | null;
-  incluir_en_carga?: boolean | null;
+  incluir_en_carga?: 0 | 1;
   costo?: number | null;
 }
 
@@ -40,6 +40,6 @@ export interface ProductoUpdateBody {
   necesita_mac?: boolean | null;
   necesita_emta_mac?: boolean | null;
   necesita_ua?: boolean | null;
-  incluir_en_carga?: boolean | null;
+  incluir_en_carga?: 0 | 1;
   costo?: number | null;
 }

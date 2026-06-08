@@ -76,6 +76,7 @@ export default function ProductoForm({
           : false,
         necesita_ua: isEquipo ? (values.necesita_ua ?? false) : false,
       };
+      const incluirEnCarga = (values.incluir_en_carga ?? true) ? 1 : 0;
       if (mode === "create") {
         return createProducto({
           sap: isClaro ? values.sap : undefined,
@@ -83,7 +84,7 @@ export default function ProductoForm({
           tipo: values.tipo ?? "",
           origen: values.origen ?? "",
           ...necesitaFlags,
-          incluir_en_carga: values.incluir_en_carga ?? true,
+          incluir_en_carga: incluirEnCarga,
           costo: values.costo ?? null,
         });
       }
@@ -93,7 +94,7 @@ export default function ProductoForm({
         tipo: values.tipo ?? "",
         origen: values.origen ?? "",
         ...necesitaFlags,
-        incluir_en_carga: values.incluir_en_carga ?? true,
+        incluir_en_carga: incluirEnCarga,
         costo: values.costo ?? null,
       });
     },

@@ -13,6 +13,7 @@ import {
   serieSchema,
   type GuiaCreateFormValues,
   type ProductoFormValues,
+  type SerieFormValues,
 } from "../lib/guia.schema";
 import type { GuiaResource } from "../lib/guia.interface";
 import {
@@ -34,6 +35,21 @@ import { format } from "date-fns";
 // Evitar que TS se queje de imports no usados directamente
 void productoSchema;
 void serieSchema;
+
+// Una fila de serie solo cuenta si tiene TODOS los campos que el equipo requiere
+function isSerieComplete(
+  serie: SerieFormValues,
+  flags: Pick<
+    ProductoFormValues,
+    "necesita_serie" | "necesita_mac" | "necesita_emta_mac" | "necesita_ua"
+  >,
+): boolean {
+  if (flags.necesita_serie && !serie.serie?.trim()) return false;
+  if (flags.necesita_mac && !serie.mac?.trim()) return false;
+  if (flags.necesita_emta_mac && !serie.emta_mac?.trim()) return false;
+  if (flags.necesita_ua && !serie.ua?.trim()) return false;
+  return true;
+}
 
 function guiaToFormValues(guia: GuiaResource): GuiaCreateFormValues {
   return {
@@ -174,7 +190,33 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
 
   // ── Handlers: producto dialog ──────────────────────────────────────────────
   const handleAddOrUpdateProducto = productSubForm.control.handleSubmit(
-    async (values) => {
+    async (rawValues) => {
+      let values = rawValues;
+
+      // Descarta filas de serie incompletas (p.ej. la fila vacía que se
+      // inserta automáticamente al avanzar con Enter) antes de guardar
+      const needsSeriesRows =
+        values.tipo === "EQUIPO" &&
+        (!!values.necesita_serie ||
+          !!values.necesita_mac ||
+          !!values.necesita_emta_mac ||
+          !!values.necesita_ua);
+
+      if (needsSeriesRows) {
+        const completeSeries = (values.series ?? []).filter((s) =>
+          isSerieComplete(s, values),
+        );
+        if (completeSeries.length === 0) {
+          productSubForm.setError("series", {
+            type: "manual",
+            message:
+              "Complete todos los campos requeridos de al menos una serie.",
+          });
+          return;
+        }
+        values = { ...values, series: completeSeries, cantidad: completeSeries.length };
+      }
+
       if (mode === "edit" && guia) {
         if (editingProductoIndex === null) {
           // NEW product in edit mode: save to server, reset form from fresh data

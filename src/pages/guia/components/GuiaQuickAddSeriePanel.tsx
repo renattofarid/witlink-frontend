@@ -19,6 +19,10 @@ import {
 import type { SerieLocal } from "../lib/guia.interface";
 import { GuiaSerieLocalRow } from "./GuiaSerieLocalRow";
 
+function formatMac(value: string): string {
+  return value.replace(/[^0-9A-Fa-f]/g, "").toUpperCase().substring(0, 12);
+}
+
 const EMPTY_QUICK: QuickAddSerieFormValues = {
   serie: null,
   mac: null,
@@ -77,7 +81,7 @@ export function GuiaQuickAddSeriePanel({
     ] as const
   ).filter(Boolean) as {
     key: string;
-    ref: React.MutableRefObject<HTMLInputElement | null>;
+    ref: React.RefObject<HTMLInputElement | null>;
   }[];
 
   const confirmedCount = seriesLocales.filter(
@@ -99,13 +103,15 @@ export function GuiaQuickAddSeriePanel({
     register,
     handleSubmit,
     reset,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<QuickAddSerieFormValues>({
     resolver: zodResolver(quickAddSerieSchema) as any,
     defaultValues: EMPTY_QUICK,
-  });
+  }) as any;
 
-  const doSubmit = handleSubmit((values) => {
+  const doSubmit = handleSubmit((values: QuickAddSerieFormValues) => {
     void onAgregar(values);
     reset(EMPTY_QUICK);
     setTimeout(() => activeFields[0]?.ref.current?.focus(), 0);
@@ -220,11 +226,17 @@ export function GuiaQuickAddSeriePanel({
                     macReg.ref(el);
                     macRef.current = el;
                   }}
-                  placeholder="Ingrese MAC"
+                  value={watch("mac") ?? ""}
+                  placeholder="001A2B3C4D5E"
                   className={cn(
                     "h-8 text-xs font-mono",
                     errors.mac && "border-destructive",
                   )}
+                  onChange={(e) =>
+                    setValue("mac", formatMac(e.target.value), {
+                      shouldValidate: true,
+                    })
+                  }
                   onKeyDown={handleKeyDown("mac")}
                   autoComplete="off"
                 />
@@ -247,7 +259,7 @@ export function GuiaQuickAddSeriePanel({
                     emtaMacReg.ref(el);
                     emtaMacRef.current = el;
                   }}
-                  placeholder="Ingrese EMTA MAC"
+                  placeholder="001A2B3C4D5E"
                   className={cn(
                     "h-8 text-xs font-mono",
                     errors.emta_mac && "border-destructive",
@@ -274,7 +286,7 @@ export function GuiaQuickAddSeriePanel({
                     uaReg.ref(el);
                     uaRef.current = el;
                   }}
-                  placeholder="Ingrese UA"
+                  placeholder="17 caracteres"
                   className={cn(
                     "h-8 text-xs font-mono",
                     errors.ua && "border-destructive",

@@ -1,9 +1,13 @@
 import { useEffect } from "react";
-import { useForm, useWatch } from "react-hook-form";
+import { useForm, useWatch, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { FormInput } from "@/components/FormInput";
+
+function formatMac(value: string): string {
+  return value.replace(/[^0-9A-Fa-f]/g, "").toUpperCase().substring(0, 12);
+}
 import { FormSelect } from "@/components/FormSelect";
 import FormWrapper from "@/components/FormWrapper";
 import { successToast, errorToast, ERROR_MESSAGE } from "@/lib/core.function";
@@ -104,12 +108,22 @@ export default function SerieForm({ onSuccess }: SerieFormProps) {
           />
         )}
         {necesitaMac && (
-          <FormInput
-            name="mac"
-            label="MAC"
+          <Controller
             control={form.control}
-            placeholder="Ingrese MAC"
-            required
+            name="mac"
+            render={({ field, fieldState }) => (
+              <FormInput
+                name="mac"
+                label="MAC"
+                value={field.value ?? ""}
+                onChange={(e) => field.onChange(formatMac(e.target.value))}
+                onBlur={field.onBlur}
+                placeholder="001A2B3C4D5E"
+                className="font-mono"
+                required
+                error={fieldState.error?.message}
+              />
+            )}
           />
         )}
         {necesitaEmtaMac && (
@@ -117,7 +131,9 @@ export default function SerieForm({ onSuccess }: SerieFormProps) {
             name="emta_mac"
             label="EMTA MAC"
             control={form.control}
-            placeholder="Ingrese EMTA MAC"
+            placeholder="001A2B3C4D5E"
+            maxLength={12}
+            className="font-mono"
             required
           />
         )}

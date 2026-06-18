@@ -643,7 +643,7 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
                             name="mac"
                             label="MAC"
                             control={serieForm.control}
-                            placeholder="Ingrese MAC"
+                            placeholder="001A2B3C4D5E"
                           />
                           <FormInput
                             name="observaciones"

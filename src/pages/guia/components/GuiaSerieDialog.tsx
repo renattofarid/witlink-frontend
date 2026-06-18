@@ -1,8 +1,12 @@
-import type { UseFormReturn } from "react-hook-form";
+import { Controller, type UseFormReturn } from "react-hook-form";
 import { GeneralModal } from "@/components/GeneralModal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { FormInput } from "@/components/FormInput";
+
+function formatMac(value: string): string {
+  return value.replace(/[^0-9A-Fa-f]/g, "").toUpperCase().substring(0, 12);
+}
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { X, Check } from "lucide-react";
 import { useSeriesQuery } from "../lib/guia.hook";
@@ -138,11 +142,21 @@ export function GuiaSerieDialog({
               />
             )}
             {showMac && (
-              <FormInput
-                name="mac"
-                label="MAC"
+              <Controller
                 control={serieSubForm.control}
-                placeholder="Ingrese MAC"
+                name="mac"
+                render={({ field, fieldState }) => (
+                  <FormInput
+                    name="mac"
+                    label="MAC"
+                    value={field.value ?? ""}
+                    onChange={(e) => field.onChange(formatMac(e.target.value))}
+                    onBlur={field.onBlur}
+                    placeholder="001A2B3C4D5E"
+                    className="font-mono"
+                    error={fieldState.error?.message}
+                  />
+                )}
               />
             )}
             {showEmtaMac && (
@@ -150,7 +164,9 @@ export function GuiaSerieDialog({
                 name="emta_mac"
                 label="EMTA MAC"
                 control={serieSubForm.control}
-                placeholder="Ingrese EMTA MAC"
+                placeholder="001A2B3C4D5E"
+                maxLength={12}
+                className="font-mono"
               />
             )}
             {showUa && (

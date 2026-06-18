@@ -6,14 +6,9 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 
-// "001A2B3C4D5E" → "00:1A:2B:3C:4D:5E"
-function toMacFormat(raw: string): string {
-  return raw.match(/.{1,2}/g)?.join(":") ?? "";
-}
-
-// "00:1A:2B:3C:4D:5E" → "001A2B3C4D5E"
-function fromMacFormat(mac: string): string {
-  return mac.replace(/:/g, "");
+// Strip any separators (handles legacy colon-format values stored before this change)
+function toRawHex(mac: string): string {
+  return mac.replace(/[^0-9A-Fa-f]/g, "").toUpperCase();
 }
 
 interface MacInputProps {
@@ -28,7 +23,7 @@ export function MacInput({ name, label, control }: MacInputProps) {
       control={control}
       name={name}
       render={({ field, fieldState }) => {
-        const rawValue = fromMacFormat(field.value ?? "").toUpperCase();
+        const rawValue = toRawHex(field.value ?? "");
 
         return (
           <Field className="flex flex-col gap-1">
@@ -42,7 +37,7 @@ export function MacInput({ name, label, control }: MacInputProps) {
               pattern="^[0-9A-Fa-f]*$"
               value={rawValue}
               onChange={(val) =>
-                field.onChange(val ? toMacFormat(val.toUpperCase()) : null)
+                field.onChange(val ? val.toUpperCase() : null)
               }
               onBlur={field.onBlur}
               className="w-full!"

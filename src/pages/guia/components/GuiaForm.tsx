@@ -180,9 +180,26 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
 
   const watchedSeries = productSubForm.watch("series") ?? [];
 
+  const isEmptySerie = (s: SerieFormValues) =>
+    !s.serie?.trim() && !s.mac?.trim() && !s.emta_mac?.trim() && !s.ua?.trim();
+
+  const handleAppendSerie = useCallback(
+    (serie: SerieFormValues) => {
+      const series = productSubForm.getValues("series") ?? [];
+      const emptyIndices = series
+        .map((s, i) => (isEmptySerie(s) ? i : -1))
+        .filter((i) => i >= 0)
+        .reverse();
+      emptyIndices.forEach((i) => removeSerie(i));
+      appendSerie(serie);
+    },
+    [productSubForm, appendSerie, removeSerie],
+  );
+
   const handleGenerarSeries = useCallback(
     (newSeries: SerieFormValues[]) => {
-      productSubForm.reset({ ...productSubForm.getValues(), series: newSeries });
+      const existing = (productSubForm.getValues("series") ?? []).filter((s) => !isEmptySerie(s));
+      productSubForm.reset({ ...productSubForm.getValues(), series: [...existing, ...newSeries] });
     },
     [productSubForm],
   );
@@ -460,7 +477,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
           watchedSeries={watchedSeries}
           onClose={handleCloseProductoDialog}
           onSubmit={handleAddOrUpdateProducto}
-          onAppendSerie={appendSerie}
+          onAppendSerie={handleAppendSerie}
           onRemoveSerie={removeSerie}
           onCheckDuplicate={checkCrossProductDuplicate}
           onValidateField={validateSerieField}

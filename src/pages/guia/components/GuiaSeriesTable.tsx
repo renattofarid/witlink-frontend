@@ -6,9 +6,18 @@ import { DataTable } from "@/components/DataTable";
 import { FormInput } from "@/components/FormInput";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, Loader2, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ProductoFormValues, SerieFormValues } from "../lib/guia.schema";
+
+type FieldValidationStatus = "idle" | "loading" | "valid" | "invalid";
+
+function ValidationIcon({ status }: { status: FieldValidationStatus | undefined }) {
+  if (status === "loading") return <Loader2 className="size-3 text-amber-500 animate-spin shrink-0" />;
+  if (status === "valid") return <CheckCircle2 className="size-3 text-green-500 shrink-0" />;
+  if (status === "invalid") return <AlertCircle className="size-3 text-destructive shrink-0" />;
+  return null;
+}
 
 function formatMac(value: string): string {
   return value.replace(/[^0-9A-Fa-f]/g, "").toUpperCase().substring(0, 12);
@@ -34,6 +43,7 @@ interface GuiaSeriesTableProps {
     field: "serie" | "mac" | "emta_mac" | "ua",
     value: string | null | undefined,
   ) => Promise<void>;
+  fieldValidationStatus?: Record<string, FieldValidationStatus>;
 }
 
 export function GuiaSeriesTable({
@@ -48,6 +58,7 @@ export function GuiaSeriesTable({
   onRemoveSerie,
   onCheckDuplicate,
   onValidateField,
+  fieldValidationStatus,
 }: GuiaSeriesTableProps) {
   // Refs para evitar closures stale en useMemo de columnas
   const flagsRef = useRef({ disabledSerie, disabledMac, disabledEmtaMac, disabledUa });
@@ -62,6 +73,8 @@ export function GuiaSeriesTable({
   onCheckDuplicateRef.current = onCheckDuplicate;
   const onValidateFieldRef = useRef(onValidateField);
   onValidateFieldRef.current = onValidateField;
+  const fieldValidationStatusRef = useRef(fieldValidationStatus);
+  fieldValidationStatusRef.current = fieldValidationStatus;
   const watchedSeriesRef = useRef(watchedSeries);
   watchedSeriesRef.current = watchedSeries;
 
@@ -85,21 +98,24 @@ export function GuiaSeriesTable({
         const form = formRef.current;
         const index = row.index;
         return (
-          <FormInput
-            id={`series-${index}-serie`}
-            name={`series.${index}.serie`}
-            control={form.control}
-            disabled={disabledSerie}
-            placeholder="SN123456"
-            uppercase
-            className={cn("h-7 text-xs", disabledSerie && "opacity-40 cursor-not-allowed")}
-            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onAdvanceRef.current(index, "serie"); } }}
-            onBlur={() => {
-              const val = formRef.current.getValues(`series.${index}.serie`);
-              onCheckDuplicateRef.current?.(index, "serie", val);
-              void onValidateFieldRef.current?.(index, "serie", val);
-            }}
-          />
+          <div className="flex items-center gap-1">
+            <FormInput
+              id={`series-${index}-serie`}
+              name={`series.${index}.serie`}
+              control={form.control}
+              disabled={disabledSerie}
+              placeholder="SN123456"
+              uppercase
+              className={cn("h-7 text-xs", disabledSerie && "opacity-40 cursor-not-allowed")}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onAdvanceRef.current(index, "serie"); } }}
+              onBlur={() => {
+                const val = formRef.current.getValues(`series.${index}.serie`);
+                onCheckDuplicateRef.current?.(index, "serie", val);
+                void onValidateFieldRef.current?.(index, "serie", val);
+              }}
+            />
+            <ValidationIcon status={fieldValidationStatusRef.current?.[`${index}.serie`]} />
+          </div>
         );
       },
     },
@@ -115,28 +131,31 @@ export function GuiaSeriesTable({
         const form = formRef.current;
         const index = row.index;
         return (
-          <Controller
-            control={form.control}
-            name={`series.${index}.mac` as any}
-            render={({ field, fieldState }) => (
-              <FormInput
-                id={`series-${index}-mac`}
-                name={`series.${index}.mac`}
-                value={field.value ?? ""}
-                onChange={(e) => field.onChange(formatMac(e.target.value))}
-                onBlur={() => {
-                  field.onBlur();
-                  onCheckDuplicateRef.current?.(index, "mac", field.value);
-                  void onValidateFieldRef.current?.(index, "mac", field.value);
-                }}
-                disabled={disabledMac}
-                placeholder="001A2B3C4D5E"
-                error={fieldState.error?.message}
-                className={cn("h-7 text-xs font-mono", disabledMac && "opacity-40 cursor-not-allowed")}
-                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onAdvanceRef.current(index, "mac"); } }}
-              />
-            )}
-          />
+          <div className="flex items-center gap-1">
+            <Controller
+              control={form.control}
+              name={`series.${index}.mac` as any}
+              render={({ field, fieldState }) => (
+                <FormInput
+                  id={`series-${index}-mac`}
+                  name={`series.${index}.mac`}
+                  value={field.value ?? ""}
+                  onChange={(e) => field.onChange(formatMac(e.target.value))}
+                  onBlur={() => {
+                    field.onBlur();
+                    onCheckDuplicateRef.current?.(index, "mac", field.value);
+                    void onValidateFieldRef.current?.(index, "mac", field.value);
+                  }}
+                  disabled={disabledMac}
+                  placeholder="001A2B3C4D5E"
+                  error={fieldState.error?.message}
+                  className={cn("h-7 text-xs font-mono", disabledMac && "opacity-40 cursor-not-allowed")}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onAdvanceRef.current(index, "mac"); } }}
+                />
+              )}
+            />
+            <ValidationIcon status={fieldValidationStatusRef.current?.[`${index}.mac`]} />
+          </div>
         );
       },
     },
@@ -152,21 +171,24 @@ export function GuiaSeriesTable({
         const form = formRef.current;
         const index = row.index;
         return (
-          <FormInput
-            id={`series-${index}-emta_mac`}
-            name={`series.${index}.emta_mac`}
-            control={form.control}
-            disabled={disabledEmtaMac}
-            placeholder="001A2B3C4D5E"
-            maxLength={12}
-            className={cn("h-7 text-xs font-mono", disabledEmtaMac && "opacity-40 cursor-not-allowed")}
-            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onAdvanceRef.current(index, "emta_mac"); } }}
-            onBlur={() => {
-              const val = formRef.current.getValues(`series.${index}.emta_mac`);
-              onCheckDuplicateRef.current?.(index, "emta_mac", val);
-              void onValidateFieldRef.current?.(index, "emta_mac", val);
-            }}
-          />
+          <div className="flex items-center gap-1">
+            <FormInput
+              id={`series-${index}-emta_mac`}
+              name={`series.${index}.emta_mac`}
+              control={form.control}
+              disabled={disabledEmtaMac}
+              placeholder="001A2B3C4D5E"
+              maxLength={12}
+              className={cn("h-7 text-xs font-mono", disabledEmtaMac && "opacity-40 cursor-not-allowed")}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onAdvanceRef.current(index, "emta_mac"); } }}
+              onBlur={() => {
+                const val = formRef.current.getValues(`series.${index}.emta_mac`);
+                onCheckDuplicateRef.current?.(index, "emta_mac", val);
+                void onValidateFieldRef.current?.(index, "emta_mac", val);
+              }}
+            />
+            <ValidationIcon status={fieldValidationStatusRef.current?.[`${index}.emta_mac`]} />
+          </div>
         );
       },
     },
@@ -182,21 +204,24 @@ export function GuiaSeriesTable({
         const form = formRef.current;
         const index = row.index;
         return (
-          <FormInput
-            id={`series-${index}-ua`}
-            name={`series.${index}.ua`}
-            control={form.control}
-            disabled={disabledUa}
-            placeholder="Ingrese UA"
-            uppercase
-            className={cn("h-7 text-xs font-mono", disabledUa && "opacity-40 cursor-not-allowed")}
-            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onAdvanceRef.current(index, "ua"); } }}
-            onBlur={() => {
-              const val = formRef.current.getValues(`series.${index}.ua`);
-              onCheckDuplicateRef.current?.(index, "ua", val);
-              void onValidateFieldRef.current?.(index, "ua", val);
-            }}
-          />
+          <div className="flex items-center gap-1">
+            <FormInput
+              id={`series-${index}-ua`}
+              name={`series.${index}.ua`}
+              control={form.control}
+              disabled={disabledUa}
+              placeholder="Ingrese UA"
+              uppercase
+              className={cn("h-7 text-xs font-mono", disabledUa && "opacity-40 cursor-not-allowed")}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onAdvanceRef.current(index, "ua"); } }}
+              onBlur={() => {
+                const val = formRef.current.getValues(`series.${index}.ua`);
+                onCheckDuplicateRef.current?.(index, "ua", val);
+                void onValidateFieldRef.current?.(index, "ua", val);
+              }}
+            />
+            <ValidationIcon status={fieldValidationStatusRef.current?.[`${index}.ua`]} />
+          </div>
         );
       },
     },

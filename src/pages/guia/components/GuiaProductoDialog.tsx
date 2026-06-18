@@ -37,6 +37,7 @@ interface GuiaProductoDialogProps {
     field: "serie" | "mac" | "emta_mac" | "ua",
     value: string | null | undefined,
   ) => Promise<void>;
+  fieldValidationStatus?: Record<string, "idle" | "loading" | "valid" | "invalid">;
 }
 
 export function GuiaProductoDialog({
@@ -50,6 +51,7 @@ export function GuiaProductoDialog({
   onRemoveSerie,
   onCheckDuplicate,
   onValidateField,
+  fieldValidationStatus,
 }: GuiaProductoDialogProps) {
   const watchedTipo = useWatch({
     control: productSubForm.control,
@@ -166,6 +168,7 @@ export function GuiaProductoDialog({
           onRemoveSerie={onRemoveSerie}
           onCheckDuplicate={onCheckDuplicate}
           onValidateField={onValidateField}
+          fieldValidationStatus={fieldValidationStatus}
         />
       )}
 

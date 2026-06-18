@@ -210,18 +210,28 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
     [mode, form, editingProductoIndex, productSubForm],
   );
 
-  // Valida un campo de serie contra la API en tiempo real (solo create mode)
+  // Estado de validación por campo: "idle"|"loading"|"valid"|"invalid"
+  const [fieldValidationStatus, setFieldValidationStatus] = useState<
+    Record<string, "idle" | "loading" | "valid" | "invalid">
+  >({});
+
+  // Valida un campo de serie contra la API en tiempo real.
+  // Aplica en create mode y en edit mode cuando se agrega un producto nuevo.
   const validateSerieField = useCallback(
     async (
       rowIndex: number,
       field: "serie" | "mac" | "emta_mac" | "ua",
       value: string | null | undefined,
     ) => {
-      if (mode !== "create") return;
+      // Saltar si estamos editando un producto existente en modo edición
+      if (mode === "edit" && editingProductoIndex !== null) return;
       if (!value?.trim()) return;
+      const key = `${rowIndex}.${field}`;
+      setFieldValidationStatus((prev) => ({ ...prev, [key]: "loading" }));
       try {
         await validateSerie(value.trim());
         // 200 → serie ya existe en el sistema → no disponible
+        setFieldValidationStatus((prev) => ({ ...prev, [key]: "invalid" }));
         productSubForm.setError(`series.${rowIndex}.${field}` as any, {
           type: "manual",
           message: "Ya existe o no está disponible",
@@ -230,12 +240,14 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
         const status = error?.response?.status;
         if (status === 404) {
           // 404 → serie no existe → disponible, sin error
+          setFieldValidationStatus((prev) => ({ ...prev, [key]: "valid" }));
           productSubForm.clearErrors(`series.${rowIndex}.${field}` as any);
+        } else {
+          setFieldValidationStatus((prev) => ({ ...prev, [key]: "idle" }));
         }
-        // otros errores de red los ignoramos silenciosamente
       }
     },
-    [mode, productSubForm],
+    [mode, editingProductoIndex, productSubForm],
   );
 
   // ── Concurrent series (edit mode only) ────────────────────────────────────
@@ -356,6 +368,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
     productSubForm.reset(EMPTY_PRODUCTO);
     setEditingProductoIndex(null);
     setProductoDialogOpen(true);
+    setFieldValidationStatus({});
   };
 
   const handleEditProducto = (index: number) => {
@@ -363,12 +376,14 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
     setEditingProductoIndex(index);
     productSubForm.reset(producto);
     setProductoDialogOpen(true);
+    setFieldValidationStatus({});
   };
 
   const handleCloseProductoDialog = () => {
     setProductoDialogOpen(false);
     setEditingProductoIndex(null);
     productSubForm.reset(EMPTY_PRODUCTO);
+    setFieldValidationStatus({});
   };
 
   // ── Mutation + delete ──────────────────────────────────────────────────────
@@ -442,6 +457,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
           onRemoveSerie={removeSerie}
           onCheckDuplicate={checkCrossProductDuplicate}
           onValidateField={validateSerieField}
+          fieldValidationStatus={fieldValidationStatus}
         />
 
         {/* ── Product list: create mode uses DataTable, edit mode uses live list */}

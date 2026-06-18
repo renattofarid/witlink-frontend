@@ -68,7 +68,7 @@ export function GuiaGenerarSeriesModal({ open, onClose, onGenerar }: GuiaGenerar
   };
 
   return (
-    <GeneralModal open={open} onClose={handleClose} title="Generar Series" size="sm">
+    <GeneralModal open={open} onClose={handleClose} title="Generar Series" size="md">
       <div className="space-y-4">
         <div className="space-y-1.5">
           <Label className="text-xs">Número inicial</Label>

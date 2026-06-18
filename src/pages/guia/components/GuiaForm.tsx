@@ -182,7 +182,8 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
 
   const handleGenerarSeries = useCallback(
     (newSeries: SerieFormValues[]) => {
-      productSubForm.reset({ ...productSubForm.getValues(), series: newSeries });
+      const existing = productSubForm.getValues("series") ?? [];
+      productSubForm.reset({ ...productSubForm.getValues(), series: [...existing, ...newSeries] });
     },
     [productSubForm],
   );

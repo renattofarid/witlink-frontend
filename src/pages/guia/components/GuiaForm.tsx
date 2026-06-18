@@ -180,6 +180,13 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
 
   const watchedSeries = productSubForm.watch("series") ?? [];
 
+  const handleGenerarSeries = useCallback(
+    (newSeries: SerieFormValues[]) => {
+      productSubForm.reset({ ...productSubForm.getValues(), series: newSeries });
+    },
+    [productSubForm],
+  );
+
   // Valida en tiempo real que un valor de serie/MAC/etc. no exista en otros
   // productos ya agregados al formulario (solo aplica en modo creación).
   const checkCrossProductDuplicate = useCallback(
@@ -458,6 +465,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
           onCheckDuplicate={checkCrossProductDuplicate}
           onValidateField={validateSerieField}
           fieldValidationStatus={fieldValidationStatus}
+          onGenerarSeries={handleGenerarSeries}
         />
 
         {/* ── Product list: create mode uses DataTable, edit mode uses live list */}

@@ -38,6 +38,7 @@ interface GuiaProductoDialogProps {
     value: string | null | undefined,
   ) => Promise<void>;
   fieldValidationStatus?: Record<string, "idle" | "loading" | "valid" | "invalid">;
+  onGenerarSeries?: (series: SerieFormValues[]) => void;
 }
 
 export function GuiaProductoDialog({
@@ -52,6 +53,7 @@ export function GuiaProductoDialog({
   onCheckDuplicate,
   onValidateField,
   fieldValidationStatus,
+  onGenerarSeries,
 }: GuiaProductoDialogProps) {
   const watchedTipo = useWatch({
     control: productSubForm.control,
@@ -169,6 +171,7 @@ export function GuiaProductoDialog({
           onCheckDuplicate={onCheckDuplicate}
           onValidateField={onValidateField}
           fieldValidationStatus={fieldValidationStatus}
+          onGenerarSeries={onGenerarSeries}
         />
       )}
 

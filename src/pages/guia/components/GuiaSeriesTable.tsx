@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Controller } from "react-hook-form";
 import type { UseFormReturn } from "react-hook-form";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -6,9 +6,10 @@ import { DataTable } from "@/components/DataTable";
 import { FormInput } from "@/components/FormInput";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, CheckCircle2, Loader2, Trash2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, Loader2, Trash2, Wand2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ProductoFormValues, SerieFormValues } from "../lib/guia.schema";
+import { GuiaGenerarSeriesModal } from "./GuiaGenerarSeriesModal";
 
 type FieldValidationStatus = "idle" | "loading" | "valid" | "invalid";
 
@@ -44,6 +45,7 @@ interface GuiaSeriesTableProps {
     value: string | null | undefined,
   ) => Promise<void>;
   fieldValidationStatus?: Record<string, FieldValidationStatus>;
+  onGenerarSeries?: (series: SerieFormValues[]) => void;
 }
 
 export function GuiaSeriesTable({
@@ -59,7 +61,9 @@ export function GuiaSeriesTable({
   onCheckDuplicate,
   onValidateField,
   fieldValidationStatus,
+  onGenerarSeries,
 }: GuiaSeriesTableProps) {
+  const [generarModalOpen, setGenerarModalOpen] = useState(false);
   // Refs para evitar closures stale en useMemo de columnas
   const flagsRef = useRef({ disabledSerie, disabledMac, disabledEmtaMac, disabledUa });
   flagsRef.current = { disabledSerie, disabledMac, disabledEmtaMac, disabledUa };
@@ -255,6 +259,18 @@ export function GuiaSeriesTable({
         <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide whitespace-nowrap">
           Series · {watchedSeries.length}/{Number(watchedCantidad) || 0}
         </p>
+        {!disabledSerie && onGenerarSeries && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-5 text-[10px] px-2"
+            onClick={() => setGenerarModalOpen(true)}
+          >
+            <Wand2 className="size-2.5 mr-1" />
+            Generar
+          </Button>
+        )}
         <Separator className="flex-1" />
       </div>
 
@@ -271,6 +287,15 @@ export function GuiaSeriesTable({
           {productSubForm.formState.errors.series.message as string}
         </p>
       )}
+
+      <GuiaGenerarSeriesModal
+        open={generarModalOpen}
+        onClose={() => setGenerarModalOpen(false)}
+        onGenerar={(series) => {
+          onGenerarSeries?.(series);
+          setGenerarModalOpen(false);
+        }}
+      />
     </div>
   );
 }

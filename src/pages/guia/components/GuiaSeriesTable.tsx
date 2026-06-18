@@ -64,6 +64,7 @@ export function GuiaSeriesTable({
   onGenerarSeries,
 }: GuiaSeriesTableProps) {
   const [generarModalOpen, setGenerarModalOpen] = useState(false);
+  const skipValidationRef = useRef(false);
   // Refs para evitar closures stale en useMemo de columnas
   const flagsRef = useRef({ disabledSerie, disabledMac, disabledEmtaMac, disabledUa });
   flagsRef.current = { disabledSerie, disabledMac, disabledEmtaMac, disabledUa };
@@ -115,7 +116,7 @@ export function GuiaSeriesTable({
               onBlur={() => {
                 const val = formRef.current.getValues(`series.${index}.serie`);
                 onCheckDuplicateRef.current?.(index, "serie", val);
-                void onValidateFieldRef.current?.(index, "serie", val);
+                if (!skipValidationRef.current) void onValidateFieldRef.current?.(index, "serie", val);
               }}
             />
             <ValidationIcon status={fieldValidationStatusRef.current?.[`${index}.serie`]} />
@@ -148,7 +149,7 @@ export function GuiaSeriesTable({
                   onBlur={() => {
                     field.onBlur();
                     onCheckDuplicateRef.current?.(index, "mac", field.value);
-                    void onValidateFieldRef.current?.(index, "mac", field.value);
+                    if (!skipValidationRef.current) void onValidateFieldRef.current?.(index, "mac", field.value);
                   }}
                   disabled={disabledMac}
                   placeholder="001A2B3C4D5E"
@@ -188,7 +189,7 @@ export function GuiaSeriesTable({
               onBlur={() => {
                 const val = formRef.current.getValues(`series.${index}.emta_mac`);
                 onCheckDuplicateRef.current?.(index, "emta_mac", val);
-                void onValidateFieldRef.current?.(index, "emta_mac", val);
+                if (!skipValidationRef.current) void onValidateFieldRef.current?.(index, "emta_mac", val);
               }}
             />
             <ValidationIcon status={fieldValidationStatusRef.current?.[`${index}.emta_mac`]} />
@@ -221,7 +222,7 @@ export function GuiaSeriesTable({
               onBlur={() => {
                 const val = formRef.current.getValues(`series.${index}.ua`);
                 onCheckDuplicateRef.current?.(index, "ua", val);
-                void onValidateFieldRef.current?.(index, "ua", val);
+                if (!skipValidationRef.current) void onValidateFieldRef.current?.(index, "ua", val);
               }}
             />
             <ValidationIcon status={fieldValidationStatusRef.current?.[`${index}.ua`]} />
@@ -292,6 +293,7 @@ export function GuiaSeriesTable({
         open={generarModalOpen}
         onClose={() => setGenerarModalOpen(false)}
         onGenerar={(series) => {
+          skipValidationRef.current = true;
           onGenerarSeries?.(series);
           setGenerarModalOpen(false);
         }}

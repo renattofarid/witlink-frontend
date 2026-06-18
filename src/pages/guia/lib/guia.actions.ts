@@ -239,6 +239,11 @@ export const getSeries = async (params: Record<string, any>) => {
   return data;
 };
 
+export const validateSerie = async (serie: string) => {
+  const { data } = await api.get(`/series/${encodeURIComponent(serie)}/validar`);
+  return data;
+};
+
 export const getProveedores = async (params: Record<string, any>) => {
   const { data } = await api.get("/proveedores", { params });
   return data;

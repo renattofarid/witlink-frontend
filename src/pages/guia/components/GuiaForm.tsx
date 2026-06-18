@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import {
   type SerieFormValues,
 } from "../lib/guia.schema";
 import type { GuiaResource } from "../lib/guia.interface";
+import { validateSerie } from "../lib/guia.actions";
 import {
   useGuiaMutation,
   useGuiaDeleteProducto,
@@ -179,6 +180,64 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
 
   const watchedSeries = productSubForm.watch("series") ?? [];
 
+  // Valida en tiempo real que un valor de serie/MAC/etc. no exista en otros
+  // productos ya agregados al formulario (solo aplica en modo creación).
+  const checkCrossProductDuplicate = useCallback(
+    (
+      rowIndex: number,
+      field: "serie" | "mac" | "emta_mac" | "ua",
+      value: string | null | undefined,
+    ) => {
+      if (mode !== "create") return;
+      if (!value?.trim()) return;
+      const allProducts = form.getValues("productos");
+      const otherProducts =
+        editingProductoIndex !== null
+          ? allProducts.filter((_, i) => i !== editingProductoIndex)
+          : allProducts;
+      const exists = otherProducts.some((p) =>
+        (p.series ?? []).some(
+          (s) => s[field] && s[field]!.toUpperCase() === value.toUpperCase(),
+        ),
+      );
+      if (exists) {
+        productSubForm.setError(`series.${rowIndex}.${field}` as any, {
+          type: "manual",
+          message: "Ya existe en otro producto",
+        });
+      }
+    },
+    [mode, form, editingProductoIndex, productSubForm],
+  );
+
+  // Valida un campo de serie contra la API en tiempo real (solo create mode)
+  const validateSerieField = useCallback(
+    async (
+      rowIndex: number,
+      field: "serie" | "mac" | "emta_mac" | "ua",
+      value: string | null | undefined,
+    ) => {
+      if (mode !== "create") return;
+      if (!value?.trim()) return;
+      try {
+        await validateSerie(value.trim());
+        // 200 → serie ya existe en el sistema → no disponible
+        productSubForm.setError(`series.${rowIndex}.${field}` as any, {
+          type: "manual",
+          message: "Ya existe o no está disponible",
+        });
+      } catch (error: any) {
+        const status = error?.response?.status;
+        if (status === 404) {
+          // 404 → serie no existe → disponible, sin error
+          productSubForm.clearErrors(`series.${rowIndex}.${field}` as any);
+        }
+        // otros errores de red los ignoramos silenciosamente
+      }
+    },
+    [mode, productSubForm],
+  );
+
   // ── Concurrent series (edit mode only) ────────────────────────────────────
   const seriesConcurrentes = useSeriesConcurrentes(
     mode === "edit" ? guia?.id : undefined,
@@ -239,7 +298,48 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
           setEditingProductoIndex(null);
         }
       } else {
-        // CREATE mode: just update local state
+        // CREATE mode: validate series against other products already in the form
+        const allProducts = form.getValues("productos");
+        const otherProducts =
+          editingProductoIndex !== null
+            ? allProducts.filter((_, i) => i !== editingProductoIndex)
+            : allProducts;
+
+        const existing = {
+          serie: new Set<string>(),
+          mac: new Set<string>(),
+          emta_mac: new Set<string>(),
+          ua: new Set<string>(),
+        };
+        for (const p of otherProducts) {
+          for (const s of p.series ?? []) {
+            if (s.serie) existing.serie.add(s.serie.toUpperCase());
+            if (s.mac) existing.mac.add(s.mac.toUpperCase());
+            if (s.emta_mac) existing.emta_mac.add(s.emta_mac.toUpperCase());
+            if (s.ua) existing.ua.add(s.ua.toUpperCase());
+          }
+        }
+
+        let hasCrossConflict = false;
+        (values.series ?? []).forEach((s, i) => {
+          const fields = [
+            { key: "serie", val: s.serie },
+            { key: "mac", val: s.mac },
+            { key: "emta_mac", val: s.emta_mac },
+            { key: "ua", val: s.ua },
+          ] as const;
+          for (const { key, val } of fields) {
+            if (val && existing[key].has(val.toUpperCase())) {
+              productSubForm.setError(`series.${i}.${key}` as any, {
+                type: "manual",
+                message: "Ya existe en otro producto",
+              });
+              hasCrossConflict = true;
+            }
+          }
+        });
+        if (hasCrossConflict) return;
+
         if (editingProductoIndex === null) {
           appendProducto(values);
         } else {
@@ -340,6 +440,8 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
           onSubmit={handleAddOrUpdateProducto}
           onAppendSerie={appendSerie}
           onRemoveSerie={removeSerie}
+          onCheckDuplicate={checkCrossProductDuplicate}
+          onValidateField={validateSerieField}
         />
 
         {/* ── Product list: create mode uses DataTable, edit mode uses live list */}

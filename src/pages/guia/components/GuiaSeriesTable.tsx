@@ -24,6 +24,16 @@ interface GuiaSeriesTableProps {
   disabledUa: boolean;
   onAdvance: (rowIndex: number, field: string) => void;
   onRemoveSerie: (index: number) => void;
+  onCheckDuplicate?: (
+    rowIndex: number,
+    field: "serie" | "mac" | "emta_mac" | "ua",
+    value: string | null | undefined,
+  ) => void;
+  onValidateField?: (
+    rowIndex: number,
+    field: "serie" | "mac" | "emta_mac" | "ua",
+    value: string | null | undefined,
+  ) => Promise<void>;
 }
 
 export function GuiaSeriesTable({
@@ -36,6 +46,8 @@ export function GuiaSeriesTable({
   disabledUa,
   onAdvance,
   onRemoveSerie,
+  onCheckDuplicate,
+  onValidateField,
 }: GuiaSeriesTableProps) {
   // Refs para evitar closures stale en useMemo de columnas
   const flagsRef = useRef({ disabledSerie, disabledMac, disabledEmtaMac, disabledUa });
@@ -46,6 +58,10 @@ export function GuiaSeriesTable({
   onAdvanceRef.current = onAdvance;
   const onRemoveSerieRef = useRef(onRemoveSerie);
   onRemoveSerieRef.current = onRemoveSerie;
+  const onCheckDuplicateRef = useRef(onCheckDuplicate);
+  onCheckDuplicateRef.current = onCheckDuplicate;
+  const onValidateFieldRef = useRef(onValidateField);
+  onValidateFieldRef.current = onValidateField;
   const watchedSeriesRef = useRef(watchedSeries);
   watchedSeriesRef.current = watchedSeries;
 
@@ -78,6 +94,11 @@ export function GuiaSeriesTable({
             uppercase
             className={cn("h-7 text-xs", disabledSerie && "opacity-40 cursor-not-allowed")}
             onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onAdvanceRef.current(index, "serie"); } }}
+            onBlur={() => {
+              const val = formRef.current.getValues(`series.${index}.serie`);
+              onCheckDuplicateRef.current?.(index, "serie", val);
+              void onValidateFieldRef.current?.(index, "serie", val);
+            }}
           />
         );
       },
@@ -103,7 +124,11 @@ export function GuiaSeriesTable({
                 name={`series.${index}.mac`}
                 value={field.value ?? ""}
                 onChange={(e) => field.onChange(formatMac(e.target.value))}
-                onBlur={field.onBlur}
+                onBlur={() => {
+                  field.onBlur();
+                  onCheckDuplicateRef.current?.(index, "mac", field.value);
+                  void onValidateFieldRef.current?.(index, "mac", field.value);
+                }}
                 disabled={disabledMac}
                 placeholder="001A2B3C4D5E"
                 error={fieldState.error?.message}
@@ -136,6 +161,11 @@ export function GuiaSeriesTable({
             maxLength={12}
             className={cn("h-7 text-xs font-mono", disabledEmtaMac && "opacity-40 cursor-not-allowed")}
             onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onAdvanceRef.current(index, "emta_mac"); } }}
+            onBlur={() => {
+              const val = formRef.current.getValues(`series.${index}.emta_mac`);
+              onCheckDuplicateRef.current?.(index, "emta_mac", val);
+              void onValidateFieldRef.current?.(index, "emta_mac", val);
+            }}
           />
         );
       },
@@ -161,6 +191,11 @@ export function GuiaSeriesTable({
             uppercase
             className={cn("h-7 text-xs font-mono", disabledUa && "opacity-40 cursor-not-allowed")}
             onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onAdvanceRef.current(index, "ua"); } }}
+            onBlur={() => {
+              const val = formRef.current.getValues(`series.${index}.ua`);
+              onCheckDuplicateRef.current?.(index, "ua", val);
+              void onValidateFieldRef.current?.(index, "ua", val);
+            }}
           />
         );
       },

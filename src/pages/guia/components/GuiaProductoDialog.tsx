@@ -27,6 +27,16 @@ interface GuiaProductoDialogProps {
   onSubmit: () => void;
   onAppendSerie: (serie: SerieFormValues) => void;
   onRemoveSerie: (index: number) => void;
+  onCheckDuplicate?: (
+    rowIndex: number,
+    field: "serie" | "mac" | "emta_mac" | "ua",
+    value: string | null | undefined,
+  ) => void;
+  onValidateField?: (
+    rowIndex: number,
+    field: "serie" | "mac" | "emta_mac" | "ua",
+    value: string | null | undefined,
+  ) => Promise<void>;
 }
 
 export function GuiaProductoDialog({
@@ -38,6 +48,8 @@ export function GuiaProductoDialog({
   onSubmit,
   onAppendSerie,
   onRemoveSerie,
+  onCheckDuplicate,
+  onValidateField,
 }: GuiaProductoDialogProps) {
   const watchedTipo = useWatch({
     control: productSubForm.control,
@@ -152,6 +164,8 @@ export function GuiaProductoDialog({
           disabledUa={disabledUa}
           onAdvance={handleAdvance}
           onRemoveSerie={onRemoveSerie}
+          onCheckDuplicate={onCheckDuplicate}
+          onValidateField={onValidateField}
         />
       )}
 

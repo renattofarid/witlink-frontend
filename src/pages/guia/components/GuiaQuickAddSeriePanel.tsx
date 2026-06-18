@@ -104,6 +104,7 @@ export function GuiaQuickAddSeriePanel({
     handleSubmit,
     reset,
     setValue,
+    setError,
     watch,
     formState: { errors },
   } = useForm<QuickAddSerieFormValues>({
@@ -112,10 +113,46 @@ export function GuiaQuickAddSeriePanel({
   }) as any;
 
   const doSubmit = handleSubmit((values: QuickAddSerieFormValues) => {
+    const existing = seriesLocales.filter((s) => s.status !== "error");
+    const cmp = (a?: string | null, b?: string | null) =>
+      !!a && !!b && a.toUpperCase() === b.toUpperCase();
+
+    let dup = false;
+    if (values.serie && existing.some((s) => cmp(s.serie, values.serie))) {
+      setError("serie", { type: "manual", message: "Ya existe en este producto" });
+      dup = true;
+    }
+    if (values.mac && existing.some((s) => cmp(s.mac, values.mac))) {
+      setError("mac", { type: "manual", message: "Ya existe en este producto" });
+      dup = true;
+    }
+    if (values.emta_mac && existing.some((s) => cmp(s.emtaMac, values.emta_mac))) {
+      setError("emta_mac", { type: "manual", message: "Ya existe en este producto" });
+      dup = true;
+    }
+    if (values.ua && existing.some((s) => cmp(s.ua, values.ua))) {
+      setError("ua", { type: "manual", message: "Ya existe en este producto" });
+      dup = true;
+    }
+    if (dup) return;
+
     void onAgregar(values);
     reset(EMPTY_QUICK);
     setTimeout(() => activeFields[0]?.ref.current?.focus(), 0);
   });
+
+  const checkFieldDuplicate = (
+    field: "serie" | "mac" | "emta_mac" | "ua",
+    value: string | null | undefined,
+  ) => {
+    if (!value?.trim()) return;
+    const existing = seriesLocales.filter((s) => s.status !== "error");
+    const localKey = field === "emta_mac" ? "emtaMac" : field;
+    const cmp = (a: string, b: string) => a.toUpperCase() === b.toUpperCase();
+    if (existing.some((s) => cmp((s as any)[localKey] ?? "", value))) {
+      setError(field as any, { type: "manual", message: "Ya existe en este producto" });
+    }
+  };
 
   const handleKeyDown =
     (fieldKey: string) => (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -205,6 +242,7 @@ export function GuiaQuickAddSeriePanel({
                     errors.serie && "border-destructive",
                   )}
                   onKeyDown={handleKeyDown("serie")}
+                  onBlur={() => checkFieldDuplicate("serie", serieRef.current?.value)}
                   autoComplete="off"
                 />
                 {errors.serie && (
@@ -238,6 +276,7 @@ export function GuiaQuickAddSeriePanel({
                     })
                   }
                   onKeyDown={handleKeyDown("mac")}
+                  onBlur={() => checkFieldDuplicate("mac", macRef.current?.value)}
                   autoComplete="off"
                 />
                 {errors.mac && (
@@ -265,6 +304,7 @@ export function GuiaQuickAddSeriePanel({
                     errors.emta_mac && "border-destructive",
                   )}
                   onKeyDown={handleKeyDown("emta_mac")}
+                  onBlur={() => checkFieldDuplicate("emta_mac", emtaMacRef.current?.value)}
                   autoComplete="off"
                 />
                 {errors.emta_mac && (
@@ -292,6 +332,7 @@ export function GuiaQuickAddSeriePanel({
                     errors.ua && "border-destructive",
                   )}
                   onKeyDown={handleKeyDown("ua")}
+                  onBlur={() => checkFieldDuplicate("ua", uaRef.current?.value)}
                   autoComplete="off"
                 />
                 {errors.ua && (

@@ -395,7 +395,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
     setFieldValidationStatus({});
   };
 
-  const handleEditProducto = (index: number) => {
+  const handleEditProducto = (index: number) => { 
     const producto = form.getValues(`productos.${index}`);
     setEditingProductoIndex(index);
     productSubForm.reset(producto);

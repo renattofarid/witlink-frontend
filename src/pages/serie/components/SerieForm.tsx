@@ -132,7 +132,6 @@ export default function SerieForm({ onSuccess }: SerieFormProps) {
             label="EMTA MAC"
             control={form.control}
             placeholder="001A2B3C4D5E"
-            maxLength={12}
             className="font-mono"
             required
           />

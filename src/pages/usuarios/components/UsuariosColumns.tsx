@@ -44,7 +44,7 @@ export const getUsuariosColumns = ({
   },
   {
     id: "oficina",
-    header: "Oficina",
+    header: "Almacén",
     cell: ({ row }) => row.original.oficina.nombre,
   },
   {

@@ -3,8 +3,8 @@ import { Building } from "lucide-react";
 
 export const OficinaComplete: ModelComplete = {
   MODEL: {
-    name: "Oficina",
-    plural: "Oficinas",
+    name: "Almacen",
+    plural: "Almacenes",
     gender: true,
   },
   ICON: Building,

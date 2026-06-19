@@ -165,7 +165,6 @@ export function GuiaSerieDialog({
                 label="EMTA MAC"
                 control={serieSubForm.control}
                 placeholder="001A2B3C4D5E"
-                maxLength={12}
                 className="font-mono"
               />
             )}

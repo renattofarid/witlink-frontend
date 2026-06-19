@@ -217,9 +217,9 @@ export default function UsuariosForm({
         </FormSelectAsync>
         <FormSelectAsync
           name="oficina_id"
-          label="Oficina"
+          label="Almacén"
           control={form.control}
-          placeholder="Seleccione una oficina"
+          placeholder="Seleccione un almacén"
           required
           useQueryHook={useOficinaSelectQuery}
           mapOptionFn={(item) => ({
@@ -298,7 +298,7 @@ export default function UsuariosForm({
       <GeneralModal
         open={oficinaModalOpen}
         onClose={() => setOficinaModalOpen(false)}
-        title="Nueva Oficina"
+        title="Nuevo Almacén"
         icon="Building2"
         size="md"
       >

@@ -183,7 +183,6 @@ export function GuiaSeriesTable({
               control={form.control}
               disabled={disabledEmtaMac}
               placeholder="001A2B3C4D5E"
-              maxLength={12}
               className={cn("h-7 text-xs font-mono", disabledEmtaMac && "opacity-40 cursor-not-allowed")}
               onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onAdvanceRef.current(index, "emta_mac"); } }}
               onBlur={() => {

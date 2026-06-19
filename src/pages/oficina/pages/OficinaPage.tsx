@@ -39,7 +39,7 @@ export default function OficinaPage() {
     mutationFn: () => deleteOficina(toDelete!.id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [OficinaComplete.QUERY_KEY] });
-      successToast("Oficina eliminada correctamente.");
+      successToast("Almacén eliminada correctamente.");
     },
     onError: (error: any) => {
       errorToast(
@@ -53,7 +53,7 @@ export default function OficinaPage() {
     mutationFn: (id: number) => restoreOficina(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [OficinaComplete.QUERY_KEY] });
-      successToast("Oficina restaurada correctamente.");
+      successToast("OficiAlmacénna restaurada correctamente.");
     },
     onError: (error: any) => {
       errorToast(
@@ -147,7 +147,7 @@ export default function OficinaPage() {
       <SimpleDeleteDialog
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
-        title="Eliminar Oficina"
+        title="Eliminar Almacén"
         description="¿Estás seguro de que deseas eliminar esta oficina? Esta acción no se puede deshacer."
         onConfirm={async () => {
           await deleteMutation.mutateAsync();

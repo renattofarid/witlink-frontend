@@ -19,7 +19,7 @@ export default function OficinaModal({
     <GeneralModal
       open={open}
       onClose={onClose}
-      title={mode === "create" ? "Crear Oficina" : "Editar Oficina"}
+      title={mode === "create" ? "Crear Almacen" : "Editar Almacen"}
       icon="Building"
       size="md"
     >

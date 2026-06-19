@@ -20,7 +20,10 @@ import type { SerieLocal } from "../lib/guia.interface";
 import { GuiaSerieLocalRow } from "./GuiaSerieLocalRow";
 
 function formatMac(value: string): string {
-  return value.replace(/[^0-9A-Fa-f]/g, "").toUpperCase().substring(0, 12);
+  return value
+    .replace(/[^0-9A-Fa-f]/g, "")
+    .toUpperCase()
+    .substring(0, 12);
 }
 
 const EMPTY_QUICK: QuickAddSerieFormValues = {
@@ -119,15 +122,27 @@ export function GuiaQuickAddSeriePanel({
 
     let dup = false;
     if (values.serie && existing.some((s) => cmp(s.serie, values.serie))) {
-      setError("serie", { type: "manual", message: "Ya existe en este producto" });
+      setError("serie", {
+        type: "manual",
+        message: "Ya existe en este producto",
+      });
       dup = true;
     }
     if (values.mac && existing.some((s) => cmp(s.mac, values.mac))) {
-      setError("mac", { type: "manual", message: "Ya existe en este producto" });
+      setError("mac", {
+        type: "manual",
+        message: "Ya existe en este producto",
+      });
       dup = true;
     }
-    if (values.emta_mac && existing.some((s) => cmp(s.emtaMac, values.emta_mac))) {
-      setError("emta_mac", { type: "manual", message: "Ya existe en este producto" });
+    if (
+      values.emta_mac &&
+      existing.some((s) => cmp(s.emtaMac, values.emta_mac))
+    ) {
+      setError("emta_mac", {
+        type: "manual",
+        message: "Ya existe en este producto",
+      });
       dup = true;
     }
     if (values.ua && existing.some((s) => cmp(s.ua, values.ua))) {
@@ -150,7 +165,10 @@ export function GuiaQuickAddSeriePanel({
     const localKey = field === "emta_mac" ? "emtaMac" : field;
     const cmp = (a: string, b: string) => a.toUpperCase() === b.toUpperCase();
     if (existing.some((s) => cmp((s as any)[localKey] ?? "", value))) {
-      setError(field as any, { type: "manual", message: "Ya existe en este producto" });
+      setError(field as any, {
+        type: "manual",
+        message: "Ya existe en este producto",
+      });
     }
   };
 
@@ -242,7 +260,9 @@ export function GuiaQuickAddSeriePanel({
                     errors.serie && "border-destructive",
                   )}
                   onKeyDown={handleKeyDown("serie")}
-                  onBlur={() => checkFieldDuplicate("serie", serieRef.current?.value)}
+                  onBlur={() =>
+                    checkFieldDuplicate("serie", serieRef.current?.value)
+                  }
                   autoComplete="off"
                 />
                 {errors.serie && (
@@ -276,7 +296,9 @@ export function GuiaQuickAddSeriePanel({
                     })
                   }
                   onKeyDown={handleKeyDown("mac")}
-                  onBlur={() => checkFieldDuplicate("mac", macRef.current?.value)}
+                  onBlur={() =>
+                    checkFieldDuplicate("mac", macRef.current?.value)
+                  }
                   autoComplete="off"
                 />
                 {errors.mac && (
@@ -304,7 +326,9 @@ export function GuiaQuickAddSeriePanel({
                     errors.emta_mac && "border-destructive",
                   )}
                   onKeyDown={handleKeyDown("emta_mac")}
-                  onBlur={() => checkFieldDuplicate("emta_mac", emtaMacRef.current?.value)}
+                  onBlur={() =>
+                    checkFieldDuplicate("emta_mac", emtaMacRef.current?.value)
+                  }
                   autoComplete="off"
                 />
                 {errors.emta_mac && (
@@ -326,7 +350,7 @@ export function GuiaQuickAddSeriePanel({
                     uaReg.ref(el);
                     uaRef.current = el;
                   }}
-                  placeholder="17 caracteres"
+                  placeholder="Caracteres"
                   className={cn(
                     "h-8 text-xs font-mono",
                     errors.ua && "border-destructive",

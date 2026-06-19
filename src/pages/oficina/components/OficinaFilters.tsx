@@ -15,7 +15,7 @@ export default function OficinaFilters({
       <SearchInput
         value={search}
         onChange={onSearchChange}
-        placeholder="Buscar oficina..."
+        placeholder="Buscar Almacén..."
       />
     </FilterWrapper>
   );

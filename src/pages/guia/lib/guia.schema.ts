@@ -15,15 +15,8 @@ export const serieSchema = z
     if (data.mac && !macRegex.test(data.mac)) {
       ctx.addIssue({
         code: "custom",
-        message: "Formato inválido (12 caracteres hex, ej. 001A2B3C4D5E)",
+        message: "Formato inválido (Caracteres hex, ej. 001A2B3C4D5E)",
         path: ["mac"],
-      });
-    }
-    if (data.ua && data.ua.length !== 17) {
-      ctx.addIssue({
-        code: "custom",
-        message: "Debe tener 17 caracteres",
-        path: ["ua"],
       });
     }
   });
@@ -56,7 +49,8 @@ export const productoSchema = z
     ) {
       ctx.addIssue({
         code: "custom",
-        message: "Un equipo debe requerir al menos una serie, MAC, EMTA MAC o UA.",
+        message:
+          "Un equipo debe requerir al menos una serie, MAC, EMTA MAC o UA.",
         path: ["necesita_serie"],
       });
     }
@@ -81,7 +75,7 @@ export const productoSchema = z
     if (p.series && p.series.length > 1) {
       const markDuplicates = (
         values: (string | null | undefined)[],
-        field: string
+        field: string,
       ) => {
         const seen = new Map<string, number[]>();
         values.forEach((v, i) => {
@@ -103,17 +97,31 @@ export const productoSchema = z
           }
         });
       };
-      markDuplicates(p.series.map((s) => s.serie), "serie");
-      markDuplicates(p.series.map((s) => s.mac), "mac");
-      markDuplicates(p.series.map((s) => s.emta_mac), "emta_mac");
-      markDuplicates(p.series.map((s) => s.ua), "ua");
+      markDuplicates(
+        p.series.map((s) => s.serie),
+        "serie",
+      );
+      markDuplicates(
+        p.series.map((s) => s.mac),
+        "mac",
+      );
+      markDuplicates(
+        p.series.map((s) => s.emta_mac),
+        "emta_mac",
+      );
+      markDuplicates(
+        p.series.map((s) => s.ua),
+        "ua",
+      );
     }
   });
 
 const guiaBaseFields = {
   numero: z.string().min(1, "Requerido"),
   fecha: z.string().min(1, "Requerido"),
-  productos: z.array(productoSchema).min(1, "Debe agregar al menos un producto"),
+  productos: z
+    .array(productoSchema)
+    .min(1, "Debe agregar al menos un producto"),
 };
 
 export const guiaCreateSchema = z.object({
@@ -133,7 +141,7 @@ export type ProductoFormValues = z.infer<typeof productoSchema>;
 export type GuiaCreateFormValues = z.infer<typeof guiaCreateSchema>;
 export type GuiaEditFormValues = GuiaCreateFormValues;
 
-const macRegexQuick = /^[0-9A-Fa-f]{12}$/;
+const macRegexQuick = /^[0-9A-Fa-f]$/;
 
 export const quickAddSerieSchema = z
   .object({
@@ -153,15 +161,8 @@ export const quickAddSerieSchema = z
     if (data.mac && !macRegexQuick.test(data.mac)) {
       ctx.addIssue({
         code: "custom",
-        message: "Formato inválido (12 caracteres hex, ej. 001A2B3C4D5E)",
+        message: "Formato inválido (Caracteres hex, ej. 001A2B3C4D5E)",
         path: ["mac"],
-      });
-    }
-    if (data.ua && data.ua.length !== 17) {
-      ctx.addIssue({
-        code: "custom",
-        message: "Debe tener 17 caracteres",
-        path: ["ua"],
       });
     }
   });

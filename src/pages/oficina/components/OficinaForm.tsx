@@ -45,8 +45,8 @@ export default function OficinaForm({
       queryClient.invalidateQueries({ queryKey: ["oficinas-select"] });
       successToast(
         mode === "create"
-          ? "Oficina creada correctamente."
-          : "Oficina actualizada correctamente.",
+          ? "Almacen creado correctamente."
+          : "Almacen actualizado correctamente.",
       );
       onSuccess?.(data);
     },

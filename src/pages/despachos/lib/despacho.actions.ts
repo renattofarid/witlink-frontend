@@ -4,7 +4,6 @@ import type {
   DespachoResponse,
   DespachoResource,
   DespachoCreateBody,
-  DespachoMasivoSeriesBody,
   MasivoSerieValidacionResponse,
 } from "./despacho.interface";
 
@@ -42,16 +41,6 @@ export const validateSerieDisponible = async (params: {
   const { data } = await api.get(`/series/${encodeURIComponent(params.serie)}/validar`, {
     params: { producto_id: params.producto_id },
   });
-  return data;
-};
-
-export const createDespachoMasivoSeries = async (
-  body: DespachoMasivoSeriesBody,
-) => {
-  const { data } = await api.post(
-    `${DespachoComplete.ENDPOINT}/masivo-series`,
-    body,
-  );
   return data;
 };
 

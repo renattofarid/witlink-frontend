@@ -95,12 +95,8 @@ export interface DespachoProductoBody {
 
 export interface DespachoCreateBody {
   tecnico_id: number;
-  productos: DespachoProductoBody[];
-}
-
-export interface DespachoMasivoSeriesBody {
-  tecnico_id: number;
-  series: string[];
+  productos?: DespachoProductoBody[];
+  series?: string[];
 }
 
 export interface MasivoSerieValidadaItem {

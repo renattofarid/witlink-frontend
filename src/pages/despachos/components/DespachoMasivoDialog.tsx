@@ -12,7 +12,7 @@ import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { successToast, errorToast } from "@/lib/core.function";
-import { createDespachoMasivoSeries } from "../lib/despacho.actions";
+import { createDespacho } from "../lib/despacho.actions";
 import { DespachoComplete } from "../lib/despacho.constants";
 import { useTecnicoDespachoQuery } from "../lib/despacho.hook";
 import { despachoMasivoSchema, type DespachoMasivoFormValues } from "../lib/despacho.schema";
@@ -40,7 +40,7 @@ export function DespachoMasivoDialog({
         .split("\n")
         .map((s) => s.trim().toUpperCase())
         .filter(Boolean);
-      return createDespachoMasivoSeries({
+      return createDespacho({
         tecnico_id: Number(values.tecnico_id),
         series,
       });

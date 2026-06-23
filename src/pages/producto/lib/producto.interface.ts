@@ -12,6 +12,7 @@ export interface ProductoResource {
   necesita_ua: boolean;
   incluir_en_carga: boolean;
   costo: number | null;
+  stock: number;
   created_at: string;
   updated_at: string;
 }

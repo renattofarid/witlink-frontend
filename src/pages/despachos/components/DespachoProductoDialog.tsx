@@ -42,6 +42,8 @@ export function DespachoProductoDialog({
   const [isValidating, setIsValidating] = useState(false);
   const [inputError, setInputError] = useState("");
   const [seriesError, setSeriesError] = useState("");
+  const [stockError, setStockError] = useState("");
+  const [selectedProducto, setSelectedProducto] = useState<ProductoResource | null>(null);
   const isValidatingRef = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -76,6 +78,8 @@ export function DespachoProductoDialog({
       setSerieInput("");
       setInputError("");
       setSeriesError("");
+      setStockError("");
+      setSelectedProducto(null);
       setEditingSerieIndex(null);
       setEditingSerieValue("");
       setEditingError("");
@@ -90,6 +94,13 @@ export function DespachoProductoDialog({
 
     if (watchedSeries.some((s) => s.serie?.toUpperCase() === trimmed)) {
       setInputError("Esta serie ya fue agregada");
+      return;
+    }
+
+    if (selectedProducto != null && watchedSeries.length + 1 > selectedProducto.stock) {
+      setInputError(
+        `Stock insuficiente. Solo hay ${selectedProducto.stock} unidad${selectedProducto.stock !== 1 ? "es" : ""} disponible${selectedProducto.stock !== 1 ? "s" : ""}.`,
+      );
       return;
     }
 
@@ -185,6 +196,16 @@ export function DespachoProductoDialog({
       setSeriesError("Debe agregar al menos una serie");
       return;
     }
+    if (isMaterial && selectedProducto != null) {
+      const cantidad = Number(productSubForm.getValues("cantidad") ?? 0);
+      if (cantidad > selectedProducto.stock) {
+        setStockError(
+          `Cantidad supera el stock disponible. Solo hay ${selectedProducto.stock} unidad${selectedProducto.stock !== 1 ? "es" : ""} disponible${selectedProducto.stock !== 1 ? "s" : ""}.`,
+        );
+        return;
+      }
+    }
+    setStockError("");
     onSubmit();
   };
 
@@ -221,13 +242,15 @@ export function DespachoProductoDialog({
           mapOptionFn={(item: ProductoResource) => ({
             value: String(item.id),
             label: item.nombre,
-            description: item.sap + " | " + item.tipo,
+            description: item.sap + " | " + item.tipo + " | Stock: " + (item.stock ?? 0),
           })}
           onValueChange={(_, item: ProductoResource) => {
             if (item) {
               productSubForm.setValue("nombre", item.nombre ?? null);
               productSubForm.setValue("sap", item.sap ?? null);
               productSubForm.setValue("tipo", item.tipo ?? null);
+              setSelectedProducto(item);
+              setStockError("");
             }
           }}
           required
@@ -375,6 +398,11 @@ export function DespachoProductoDialog({
           <p className="text-xs text-destructive">{seriesError}</p>
         )}
       </div>}
+
+      {/* Error de stock */}
+      {stockError && (
+        <p className="text-xs text-destructive">{stockError}</p>
+      )}
 
       {/* Acciones */}
       <div className="flex justify-end gap-2 pt-1">

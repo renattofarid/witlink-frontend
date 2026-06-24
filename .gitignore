@@ -23,5 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 .claude/
-.env
+.env*
 .codegraph/
+public/
+logo*
+vite.svg

@@ -22,10 +22,7 @@ import { getAlmacenes } from "@/pages/auth/lib/auth.actions";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
 import { getSeries } from "@/pages/serie/lib/serie.actions";
 import { getMateriales } from "@/pages/materiales/lib/materiales.actions";
-import {
-  createTrasladoSeries,
-  createTrasladoMateriales,
-} from "../lib/traslado.actions";
+import { createTraslado } from "../lib/traslado.actions";
 import { TrasladoComplete } from "../lib/traslado.constants";
 import {
   trasladoCreateSchema,
@@ -121,19 +118,30 @@ export default function TrasladoForm({ onSuccess }: TrasladoFormProps) {
 
   const mutation = useMutation({
     mutationFn: (values: TrasladoCreateFormValues) => {
-      if (values.tipo === "serie") {
-        return createTrasladoSeries({
-          destino_almacen_id: Number(values.destino_almacen_id),
-          modo_retirados: false,
-          series: seriesCart.map((i) => i.serie_id),
-        });
-      }
-      return createTrasladoMateriales({
-        destino_almacen_id: Number(values.destino_almacen_id),
-        materiales: materialsCart.map((i) => ({
-          material_id: i.material_id,
-          cantidad: i.cantidad,
-        })),
+      const productos =
+        values.tipo === "serie"
+          ? Object.values(
+              seriesCartRef.current.reduce<
+                Record<number, { producto_id: number; series: number[] }>
+              >((acc, item) => {
+                if (!acc[item.producto_id]) {
+                  acc[item.producto_id] = {
+                    producto_id: item.producto_id,
+                    series: [],
+                  };
+                }
+                acc[item.producto_id].series.push(item.serie_id);
+                return acc;
+              }, {}),
+            ).map((g) => ({ producto_id: g.producto_id, cantidad: null, series: g.series }))
+          : materialsCartRef.current.map((i) => ({
+              producto_id: i.producto_id,
+              cantidad: i.cantidad,
+              series: null,
+            }));
+      return createTraslado({
+        almacen_destino_id: Number(values.destino_almacen_id),
+        productos,
       });
     },
     onSuccess: () => {
@@ -165,6 +173,7 @@ export default function TrasladoForm({ onSuccess }: TrasladoFormProps) {
       ...prev,
       {
         serie_id: serie.id,
+        producto_id: serie.producto.id,
         label: serie.serie ?? `Serie #${serie.id}`,
         producto: serie.producto?.nombre,
       },
@@ -212,6 +221,7 @@ export default function TrasladoForm({ onSuccess }: TrasladoFormProps) {
       ...prev,
       {
         material_id: material.id,
+        producto_id: material.producto.id,
         label: material.producto?.nombre ?? `Material #${material.id}`,
         cantidad,
       },
@@ -273,7 +283,29 @@ export default function TrasladoForm({ onSuccess }: TrasladoFormProps) {
   };
 
   const handleSubmit = form.control.handleSubmit((values) => {
-    const cart = values.tipo === "serie" ? seriesCart : materialsCart;
+    let resolvedMaterialsCart = materialsCart;
+    if (values.tipo === "material" && pendingMaterial) {
+      const n = Number(cantidadInput);
+      if (!cantidadInput || isNaN(n) || n < 0.01) {
+        setCantidadError("Ingrese una cantidad válida (mínimo 0.01)");
+        return;
+      }
+      if (!resolvedMaterialsCart.some((i) => i.material_id === pendingMaterial.id)) {
+        const newItem: MaterialCartItem = {
+          material_id: pendingMaterial.id,
+          producto_id: pendingMaterial.producto.id,
+          label: pendingMaterial.producto?.nombre ?? `Material #${pendingMaterial.id}`,
+          cantidad: n,
+        };
+        resolvedMaterialsCart = [...resolvedMaterialsCart, newItem];
+        materialsCartRef.current = resolvedMaterialsCart;
+        setMaterialsCart(resolvedMaterialsCart);
+        setPendingMaterial(null);
+        setCantidadInput("");
+        setCantidadError(null);
+      }
+    }
+    const cart = values.tipo === "serie" ? seriesCart : resolvedMaterialsCart;
     if (cart.length === 0) {
       setCartError(
         values.tipo === "serie"

@@ -2,12 +2,14 @@ import { create } from "zustand";
 
 export interface TrasladoSerieCartItem {
   serie_id: number;
+  producto_id: number;
   label: string;
   producto?: string;
 }
 
 export interface TrasladoMaterialCartItem {
   material_id: number;
+  producto_id: number;
   label: string;
   cantidad: number;
 }

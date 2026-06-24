@@ -2,8 +2,7 @@ import { api } from "@/lib/config";
 import type {
   TrasladoResource,
   TrasladoListResponse,
-  TrasladoSerieCreateBody,
-  TrasladoMaterialCreateBody,
+  TrasladoCreateBody,
 } from "./traslado.interface";
 
 export const getTraslados = async (
@@ -20,15 +19,8 @@ export const getTrasladoList = async (
   return data;
 };
 
-export const createTrasladoSeries = async (body: TrasladoSerieCreateBody) => {
-  const { data } = await api.post("/traslados/series", body);
-  return data;
-};
-
-export const createTrasladoMateriales = async (
-  body: TrasladoMaterialCreateBody,
-) => {
-  const { data } = await api.post("/traslados/materiales", body);
+export const createTraslado = async (body: TrasladoCreateBody) => {
+  const { data } = await api.post("/traslados", body);
   return data;
 };
 

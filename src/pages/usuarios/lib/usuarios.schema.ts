@@ -3,7 +3,7 @@ import { z } from "zod";
 const baseSchema = z.object({
   persona_id: z.string().min(1, "Requerido"),
   tipo_usuario_id: z.string().min(1, "Requerido"),
-  oficina_id: z.string().min(1, "Requerido"),
+  almacen_id: z.string().min(1, "Requerido"),
   nombre_usuario: z.string().min(1, "Requerido"),
   contraseña: z.string(),
 });

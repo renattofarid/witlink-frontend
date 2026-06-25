@@ -18,6 +18,10 @@ import { successToast, errorToast } from "@/lib/core.function";
 import { importarActas } from "../lib/liquidaciones.actions";
 import { DateTimePickerForm } from "@/components/DateTimePickerForm";
 
+const tryParseJson = (str: string): any => {
+  try { return JSON.parse(str); } catch { return {}; }
+};
+
 const schema = z.object({
   fecha: z.string().min(1, "La fecha es requerida"),
 });
@@ -46,8 +50,11 @@ export default function ImportarActasDialog({ open, onClose }: Props) {
       successToast("Actas importadas correctamente");
       handleClose();
     },
-    onError: () => {
-      errorToast("Error al importar las actas");
+    onError: (error: any) => {
+      const raw = error?.response?.data;
+      const data = typeof raw === "string" ? tryParseJson(raw) : raw;
+      const msg = data?.message ?? error?.message ?? "Error al importar actas";
+      errorToast(msg);
     },
   });
 
@@ -83,12 +90,11 @@ export default function ImportarActasDialog({ open, onClose }: Props) {
           <DialogTitle>Importar actas</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={control.handleSubmit(onSubmit)} className="space-y-4 py-2">
-          <DateTimePickerForm
-            control={control}
-            name="fecha"
-            label="Fecha"
-          />
+        <form
+          onSubmit={control.handleSubmit(onSubmit)}
+          className="space-y-4 py-2"
+        >
+          <DateTimePickerForm control={control} name="fecha" label="Fecha" />
 
           <div className="space-y-1.5">
             <Label>Archivos</Label>

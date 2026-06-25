@@ -8,7 +8,7 @@ export default function App() {
   return (
     <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
       <TooltipProvider>
-        <BrowserRouter>
+        <BrowserRouter basename={import.meta.env.VITE_APP_LOGIN_REDIRECT}>
           <AppRoutes />
         </BrowserRouter>
       </TooltipProvider>

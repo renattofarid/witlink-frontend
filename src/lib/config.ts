@@ -42,7 +42,8 @@ api.interceptors.response.use(
         localStorage.removeItem("token");
         errorToast("SESIÓN EXPIRADA", "Redirigiendo al inicio de sesión");
         // Redirección inmediata sin espera
-        window.location.href = "/";
+
+        window.location.href = import.meta.env.VITE_APP_LOGIN_REDIRECT
       }
       // Rechazamos con un error específico que NO debe mostrarse en los componentes
       return new Promise(() => {}); // Promesa que nunca se resuelve para detener la ejecución

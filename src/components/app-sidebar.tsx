@@ -82,7 +82,8 @@ const iconMap: Record<string, LucideIcon> = {
   FileDown: FileDown,
 };
 
-export const getIcon = (name: string): LucideIcon => iconMap[name] ?? LayoutGrid;
+export const getIcon = (name: string): LucideIcon =>
+  iconMap[name] ?? LayoutGrid;
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuthStore();
@@ -115,7 +116,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             icon: MenuComplete.ICON,
           },
         ]
-      : [];
+      : [
+          {
+            title: MenuComplete.MODEL.plural ?? MenuComplete.MODEL.name,
+            url: MenuComplete.ABSOLUTE_ROUTE,
+            icon: MenuComplete.ICON,
+          },
+        ];
 
     return [fixedItem, ...groupItems, ...devItems];
   }, [user]);
@@ -123,7 +130,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   if (!user) return null;
 
   return (
-    <Sidebar className="border-muted-foreground" collapsible="icon" variant="sidebar" {...props}>
+    <Sidebar
+      className="border-muted-foreground"
+      collapsible="icon"
+      variant="sidebar"
+      {...props}
+    >
       <SidebarHeader>
         <TeamSwitcher />
       </SidebarHeader>

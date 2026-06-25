@@ -1,5 +1,5 @@
 import { ButtonAction } from "@/components/ButtonAction";
-import { Pencil, Trash2, RotateCcw } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { UsuariosResource } from "../lib/usuarios.interface";
 
@@ -12,7 +12,6 @@ interface ColumnActions {
 export const getUsuariosColumns = ({
   onEdit,
   onDelete,
-  onRestore,
 }: ColumnActions): ColumnDef<UsuariosResource>[] => [
   {
     accessorKey: "id",
@@ -43,33 +42,19 @@ export const getUsuariosColumns = ({
     cell: ({ row }) => row.original.tipoUsuario.nombre,
   },
   {
-    id: "oficina",
+    id: "almacen",
     header: "Almacén",
-    cell: ({ row }) => row.original.oficina.nombre,
+    cell: ({ row }) => row.original.almacen?.nombre || "-",
   },
   {
     id: "acciones",
     header: "Acciones",
     cell: ({ row }) => {
       const item = row.original;
-      const isDeleted = !!item.deleted_at;
       return (
         <div className="flex gap-1">
-          <ButtonAction
-            icon={Pencil}
-            canRender={!isDeleted}
-            onClick={() => onEdit(item)}
-          />
-          <ButtonAction
-            icon={Trash2}
-            canRender={!isDeleted}
-            onClick={() => onDelete(item)}
-          />
-          <ButtonAction
-            icon={RotateCcw}
-            canRender={isDeleted}
-            onClick={() => onRestore(item)}
-          />
+          <ButtonAction icon={Pencil} onClick={() => onEdit(item)} />
+          <ButtonAction icon={Trash2} onClick={() => onDelete(item)} />
         </div>
       );
     },

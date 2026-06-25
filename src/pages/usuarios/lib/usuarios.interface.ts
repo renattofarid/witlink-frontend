@@ -1,4 +1,5 @@
 import type { PaginationResponse } from "@/lib/core.interface";
+import type { AlmacenResource } from "@/pages/almacenes/lib/almacen.interface";
 
 export interface PersonaResource {
   id: number;
@@ -39,11 +40,10 @@ export interface UsuariosResource {
   id: number;
   nombre_usuario: string;
   persona: PersonaResource;
-  oficina: OficinaResource;
+  almacen?: AlmacenResource;
   tipoUsuario: TipoUsuarioResource;
   created_at: string;
   updated_at: string;
-  deleted_at: string | null;
 }
 
 export type UsuariosResponse = PaginationResponse<UsuariosResource>;
@@ -51,14 +51,14 @@ export type UsuariosResponse = PaginationResponse<UsuariosResource>;
 export interface UsuariosCreateBody {
   persona_id: number;
   tipo_usuario_id: number;
-  oficina_id: number;
+  almacen_id: number;
   nombre_usuario: string;
   contraseña: string;
 }
 
 export interface UsuariosEditBody {
   tipo_usuario_id: number;
-  oficina_id: number;
+  almacen_id: number;
   nombre_usuario: string;
   contraseña?: string;
 }

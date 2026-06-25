@@ -25,6 +25,7 @@ dist-ssr
 .claude/
 .env*
 .codegraph/
+PROMT.md
 public/
 logo*
 vite.svg

@@ -21,14 +21,14 @@ import { usePersonaSelectQuery } from "@/pages/persona/lib/persona.hook";
 import { useTipoUsuarioSelectQuery } from "@/pages/tipo-usuario/lib/tipo-usuario.hook";
 import { TipoUsuarioComplete } from "@/pages/tipo-usuario/lib/tipo-usuario.constants";
 import { useOficinaSelectQuery } from "@/pages/oficina/lib/oficina.hook";
-import { OficinaComplete } from "@/pages/oficina/lib/oficina.constants";
 import PersonaForm from "@/pages/persona/components/PersonaForm";
 import type { PersonaResource } from "@/pages/persona/lib/persona.interface";
 import TipoUsuarioForm from "@/pages/tipo-usuario/components/TipoUsuarioForm";
 import type { TipoUsuarioResource } from "@/pages/tipo-usuario/lib/tipo-usuario.interface";
-import OficinaForm from "@/pages/oficina/components/OficinaForm";
-import type { OficinaResource } from "@/pages/oficina/lib/oficina.interface";
 import type { Option } from "@/lib/core.interface";
+import type { AlmacenResource } from "@/pages/almacenes/lib/almacen.interface";
+import { AlmacenComplete } from "@/pages/almacenes/lib/almacen.constants";
+import AlmacenForm from "@/pages/almacenes/components/AlmacenForm";
 
 interface UsuariosFormProps {
   mode: "create" | "edit";
@@ -53,8 +53,8 @@ export default function UsuariosForm({
     Option | undefined
   >(undefined);
 
-  const [oficinaModalOpen, setOficinaModalOpen] = useState(false);
-  const [oficinaDefaultOption, setOficinaDefaultOption] = useState<
+  const [almacenModalOpen, setAlmacenModalOpen] = useState(false);
+  const [almacenDefaultOption, setAlmacenDefaultOption] = useState<
     Option | undefined
   >(undefined);
 
@@ -69,8 +69,8 @@ export default function UsuariosForm({
       tipo_usuario_id: defaultValues?.tipoUsuario?.id
         ? String(defaultValues.tipoUsuario.id)
         : "",
-      oficina_id: defaultValues?.oficina?.id
-        ? String(defaultValues.oficina.id)
+      almacen_id: defaultValues?.almacen?.id
+        ? String(defaultValues.almacen.id)
         : "",
       nombre_usuario: defaultValues?.nombre_usuario ?? "",
       contraseña: "",
@@ -84,14 +84,14 @@ export default function UsuariosForm({
         return createUsuario({
           persona_id: Number(values.persona_id),
           tipo_usuario_id: Number(values.tipo_usuario_id),
-          oficina_id: Number(values.oficina_id),
+          almacen_id: Number(values.almacen_id),
           nombre_usuario: values.nombre_usuario,
           contraseña: values.contraseña,
         });
       }
       return updateUsuario(defaultValues!.id, {
         tipo_usuario_id: Number(values.tipo_usuario_id),
-        oficina_id: Number(values.oficina_id),
+        almacen_id: Number(values.almacen_id),
         nombre_usuario: values.nombre_usuario,
         ...(values.contraseña ? { contraseña: values.contraseña } : {}),
       });
@@ -143,14 +143,14 @@ export default function UsuariosForm({
     setTipoUsuarioModalOpen(false);
   };
 
-  const handleOficinaCreated = (oficina?: OficinaResource) => {
-    if (!oficina) return;
-    const option: Option = { value: String(oficina.id), label: oficina.nombre };
-    setOficinaDefaultOption(option);
-    form.setValue("oficina_id", String(oficina.id), { shouldValidate: true });
-    queryClient.invalidateQueries({ queryKey: [OficinaComplete.QUERY_KEY] });
-    queryClient.invalidateQueries({ queryKey: ["oficinas-select"] });
-    setOficinaModalOpen(false);
+  const handleAlmacenCreated = (almacen?: AlmacenResource) => {
+    if (!almacen) return;
+    const option: Option = { value: String(almacen.id), label: almacen.nombre };
+    setAlmacenDefaultOption(option);
+    form.setValue("almacen_id", String(almacen.id), { shouldValidate: true });
+    queryClient.invalidateQueries({ queryKey: [AlmacenComplete.QUERY_KEY] });
+    queryClient.invalidateQueries({ queryKey: ["almacenes-select"] });
+    setAlmacenModalOpen(false);
   };
 
   return (
@@ -216,7 +216,7 @@ export default function UsuariosForm({
           </Button>
         </FormSelectAsync>
         <FormSelectAsync
-          name="oficina_id"
+          name="almacen_id"
           label="Almacén"
           control={form.control}
           placeholder="Seleccione un almacén"
@@ -227,18 +227,18 @@ export default function UsuariosForm({
             label: item.nombre,
           })}
           preloadItemId={
-            defaultValues?.oficina?.id
-              ? String(defaultValues.oficina.id)
+            defaultValues?.almacen?.id
+              ? String(defaultValues.almacen.id)
               : undefined
           }
-          defaultOption={oficinaDefaultOption}
+          defaultOption={almacenDefaultOption}
         >
           <Button
             type="button"
             variant="outline"
             size="icon"
             className="shrink-0"
-            onClick={() => setOficinaModalOpen(true)}
+            onClick={() => setAlmacenModalOpen(true)}
           >
             <Plus className="h-4 w-4" />
           </Button>
@@ -296,13 +296,13 @@ export default function UsuariosForm({
       </GeneralModal>
 
       <GeneralModal
-        open={oficinaModalOpen}
-        onClose={() => setOficinaModalOpen(false)}
+        open={almacenModalOpen}
+        onClose={() => setAlmacenModalOpen(false)}
         title="Nuevo Almacén"
         icon="Building2"
         size="md"
       >
-        <OficinaForm mode="create" onSuccess={handleOficinaCreated} />
+        <AlmacenForm mode="create" onSuccess={handleAlmacenCreated} />
       </GeneralModal>
     </FormWrapper>
   );

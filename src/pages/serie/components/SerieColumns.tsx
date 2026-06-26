@@ -50,6 +50,10 @@ export const getSerieColumns = ({
     header: "ID",
   },
   {
+    accessorKey: "guia_numero",
+    header: "Número de Guía",
+  },
+  {
     accessorKey: "serie",
     header: "Serie",
   },
@@ -68,7 +72,9 @@ export const getSerieColumns = ({
   {
     id: "situacion_label",
     header: "Situación",
-    cell: ({ row }) => <SituacionBadge situacion={row.original.situacion_label} />,
+    cell: ({ row }) => (
+      <SituacionBadge situacion={row.original.situacion_label} />
+    ),
   },
   {
     id: "producto",

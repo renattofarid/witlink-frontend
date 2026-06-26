@@ -20,7 +20,6 @@ import type { UsuariosResource } from "../lib/usuarios.interface";
 import { usePersonaSelectQuery } from "@/pages/persona/lib/persona.hook";
 import { useTipoUsuarioSelectQuery } from "@/pages/tipo-usuario/lib/tipo-usuario.hook";
 import { TipoUsuarioComplete } from "@/pages/tipo-usuario/lib/tipo-usuario.constants";
-import { useOficinaSelectQuery } from "@/pages/oficina/lib/oficina.hook";
 import PersonaForm from "@/pages/persona/components/PersonaForm";
 import type { PersonaResource } from "@/pages/persona/lib/persona.interface";
 import TipoUsuarioForm from "@/pages/tipo-usuario/components/TipoUsuarioForm";
@@ -29,6 +28,7 @@ import type { Option } from "@/lib/core.interface";
 import type { AlmacenResource } from "@/pages/almacenes/lib/almacen.interface";
 import { AlmacenComplete } from "@/pages/almacenes/lib/almacen.constants";
 import AlmacenForm from "@/pages/almacenes/components/AlmacenForm";
+import { useAlmacenQuery } from "@/pages/almacenes/lib/almacen.hook";
 
 interface UsuariosFormProps {
   mode: "create" | "edit";
@@ -221,10 +221,11 @@ export default function UsuariosForm({
           control={form.control}
           placeholder="Seleccione un almacén"
           required
-          useQueryHook={useOficinaSelectQuery}
+          useQueryHook={useAlmacenQuery}
           mapOptionFn={(item) => ({
             value: String(item.id),
             label: item.nombre,
+            description: item.direccion,
           })}
           preloadItemId={
             defaultValues?.almacen?.id

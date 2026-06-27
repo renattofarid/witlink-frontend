@@ -1,8 +1,6 @@
 import type { PaginationResponse } from "@/lib/core.interface";
 import type { AlmacenResource } from "@/pages/auth/lib/auth.interface";
-import type {
-  UsuariosResource,
-} from "@/pages/usuarios/lib/usuarios.interface";
+import type { UsuariosResource } from "@/pages/usuarios/lib/usuarios.interface";
 
 export interface DespachoResource {
   id: number;
@@ -35,7 +33,20 @@ export interface DespachoUsuarioResource {
 
 export interface DespachoTecnicoResource {
   id: number;
-  persona: DespachoPersonaResource | null;
+  nombre: string;
+  apellido_paterno: string;
+  apellido_materno: string;
+  nombre_completo: string;
+  dni: string;
+  carnet_extranjeria: null;
+  direccion: string;
+  telefono: string;
+  correo: string;
+  tipo_empleado: string;
+  cuadrilla_id: null;
+  estado: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface DespachoAlmacenResource {

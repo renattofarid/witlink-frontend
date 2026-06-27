@@ -1,29 +1,32 @@
 import type { PaginationResponse } from "@/lib/core.interface";
 import type { ProductoResource } from "@/pages/producto/lib/producto.interface";
 
+export type SituationLabel =
+  | "PENDIENTE"
+  | "DISPONIBLE"
+  | "DESPACHADO"
+  | "LIQUIDADO"
+  | "RETIRADO"
+  | "DEVUELTO";
+
 export interface SerieResource {
   id: number;
   situacion: string;
-  situacion_label:
-    | "PENDIENTE"
-    | "DISPONIBLE"
-    | "DESPACHADO"
-    | "LIQUIDADO"
-    | "RETIRADO"
-    | "DEVUELTO";
+  situacion_label: SituationLabel;
   serie?: string;
   emta_mac?: string;
   mac?: string;
   ua?: string;
   producto: ProductoResource;
-  tecnico?: {
-    id: number;
-    nombre: string;
-    apellido_paterno: string;
-    dni?: string;
-  } | null;
+  tecnico?: Tecnico;
+  guia_numero?: string;
   created_at: string;
   updated_at: string;
+}
+
+interface Tecnico {
+  id: number;
+  nombre: string;
 }
 
 export type SerieResponse = PaginationResponse<SerieResource>;

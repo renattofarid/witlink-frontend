@@ -85,7 +85,7 @@ export default function DespachoViewPage() {
         <ExportButtons
           pdfEndpoint={`/despachos/${id}/pdf`}
           pdfFileName={`despacho-${despacho.numero ?? id}.pdf`}
-          variant="separate"
+          variant="detail"
         />
       </div>
 

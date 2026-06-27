@@ -18,9 +18,15 @@ export interface SerieResource {
   mac?: string;
   ua?: string;
   producto: ProductoResource;
+  tecnico?: Tecnico;
   guia_numero?: string;
   created_at: string;
   updated_at: string;
+}
+
+interface Tecnico {
+  id: number;
+  nombre: string;
 }
 
 export type SerieResponse = PaginationResponse<SerieResource>;

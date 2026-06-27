@@ -141,39 +141,23 @@ export default function ExportButtons({
   return (
     <>
       {excelEndpoint && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              size="sm"
-              variant="ghost"
-              className="px-2 h-8 w-8 p-0 hover:bg-green-700/5 hover:text-green-700 transition-colors"
-              onClick={handleExcelDownload}
-            >
-              <Sheet className="size-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Descargar Excel</p>
-          </TooltipContent>
-        </Tooltip>
+        <Button
+          variant="outline"
+          onClick={handleExcelDownload}
+        >
+          <Sheet className="size-4" />
+          Excel
+        </Button>
       )}
 
       {pdfEndpoint && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              size="sm"
-              variant="ghost"
-              className="px-2 h-8 w-8 p-0 hover:bg-red-700/5 hover:text-red-700 transition-colors"
-              onClick={handlePDFDownload}
-            >
-              <FileDown className="size-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Descargar PDF</p>
-          </TooltipContent>
-        </Tooltip>
+        <Button
+          variant="outline"
+          onClick={handlePDFDownload}
+        >
+          <FileDown className="size-4" />
+          PDF
+        </Button>
       )}
     </>
   );

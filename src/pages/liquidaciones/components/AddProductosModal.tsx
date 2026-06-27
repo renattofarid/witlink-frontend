@@ -1,5 +1,16 @@
 import { useState, useMemo, useRef, useEffect } from "react";
-import { Search, Minus, Plus, Package, Wrench, List, Loader2, X, MapPin, AlertTriangle } from "lucide-react";
+import {
+  Search,
+  Minus,
+  Plus,
+  Package,
+  Wrench,
+  List,
+  Loader2,
+  X,
+  MapPin,
+  AlertTriangle,
+} from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { GeneralModal } from "@/components/GeneralModal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -66,20 +77,26 @@ export default function AddProductosModal({
   initialTecnicoId,
 }: AddProductosModalProps) {
   const [tecnicoId, setTecnicoId] = useState(
-    initialTecnicoId ?? (liquidacion.tecnico1 ? String(liquidacion.tecnico1) : ""),
+    initialTecnicoId ??
+      (liquidacion.tecnico1 ? String(liquidacion.tecnico1) : ""),
   );
   const [tecnicoNombre, setTecnicoNombre] = useState("");
   const [selfTecnicoNombre, setSelfTecnicoNombre] = useState("");
 
   const [materialSearch, setMaterialSearch] = useState("");
-  const [materialSelections, setMaterialSelections] = useState<Record<number, MaterialSelection>>({});
-  const [selectedExternSeries, setSelectedExternSeries] = useState<SelectedExternSerie[]>([]);
+  const [materialSelections, setMaterialSelections] = useState<
+    Record<number, MaterialSelection>
+  >({});
+  const [selectedExternSeries, setSelectedExternSeries] = useState<
+    SelectedExternSerie[]
+  >([]);
 
   const [showOtrosMateriales, setShowOtrosMateriales] = useState(false);
   const [otrosMaterialSearch, setOtrosMaterialSearch] = useState("");
 
-  const { data: inventario, isLoading } =
-    useInventarioTecnicoLiquidacionQuery(tecnicoId || null);
+  const { data: inventario, isLoading } = useInventarioTecnicoLiquidacionQuery(
+    tecnicoId || null,
+  );
 
   const materiales: MaterialInventarioItem[] = inventario?.materiales ?? [];
 
@@ -121,7 +138,10 @@ export default function AddProductosModal({
     });
   };
 
-  const handleMaterialQtyInput = (item: MaterialInventarioItem, val: string) => {
+  const handleMaterialQtyInput = (
+    item: MaterialInventarioItem,
+    val: string,
+  ) => {
     const n = Math.min(Math.max(0, Number(val) || 0), item.cantidad);
     setMaterialSelections((prev) => {
       if (n === 0) {
@@ -140,7 +160,9 @@ export default function AddProductosModal({
   };
 
   const removeExternSerie = (serieId: number) => {
-    setSelectedExternSeries((prev) => prev.filter((s) => s.serie_id !== serieId));
+    setSelectedExternSeries((prev) =>
+      prev.filter((s) => s.serie_id !== serieId),
+    );
   };
 
   const handleConfirm = () => {
@@ -163,7 +185,11 @@ export default function AddProductosModal({
 
     const seriesByProducto: Record<
       number,
-      { series: Array<{ id: number; serie: string }>; nombre: string; sap: string }
+      {
+        series: Array<{ id: number; serie: string }>;
+        nombre: string;
+        sap: string;
+      }
     > = {};
     selectedExternSeries.forEach((s) => {
       if (!seriesByProducto[s.producto_id]) {
@@ -173,22 +199,27 @@ export default function AddProductosModal({
           sap: s.producto_sap,
         };
       }
-      seriesByProducto[s.producto_id].series.push({ id: s.serie_id, serie: s.serie_str });
-    });
-
-    Object.entries(seriesByProducto).forEach(([pid, { series: ss, nombre, sap }]) => {
-      cartItems.push({
-        tempId: `eq-${pid}-${Date.now()}-${Math.random()}`,
-        tipo: "serie",
-        producto_id: Number(pid),
-        producto_nombre: nombre,
-        producto_sap: sap,
-        tecnico_id: selfId,
-        tecnico_nombre: selfTecnicoNombre,
-        cantidad: ss.length,
-        series: ss,
+      seriesByProducto[s.producto_id].series.push({
+        id: s.serie_id,
+        serie: s.serie_str,
       });
     });
+
+    Object.entries(seriesByProducto).forEach(
+      ([pid, { series: ss, nombre, sap }]) => {
+        cartItems.push({
+          tempId: `eq-${pid}-${Date.now()}-${Math.random()}`,
+          tipo: "serie",
+          producto_id: Number(pid),
+          producto_nombre: nombre,
+          producto_sap: sap,
+          tecnico_id: selfId,
+          tecnico_nombre: selfTecnicoNombre,
+          cantidad: ss.length,
+          series: ss,
+        });
+      },
+    );
 
     onConfirm(cartItems);
     setMaterialSelections({});
@@ -223,7 +254,8 @@ export default function AddProductosModal({
                 <>
                   {eqCount > 0 && (
                     <span>
-                      {eqCount} equipo{eqCount !== 1 ? "s" : ""} seleccionado{eqCount !== 1 ? "s" : ""}
+                      {eqCount} equipo{eqCount !== 1 ? "s" : ""} seleccionado
+                      {eqCount !== 1 ? "s" : ""}
                     </span>
                   )}
                   {matCount > 0 && eqCount > 0 && (
@@ -241,7 +273,10 @@ export default function AddProductosModal({
               <Button variant="outline" onClick={onClose}>
                 Cancelar
               </Button>
-              <Button onClick={handleConfirm} disabled={totalSeleccionado === 0}>
+              <Button
+                onClick={handleConfirm}
+                disabled={totalSeleccionado === 0}
+              >
                 Confirmar
               </Button>
             </div>
@@ -265,7 +300,8 @@ export default function AddProductosModal({
               }}
             />
             <p className="text-xs text-muted-foreground">
-              Cambia el técnico para ver otro inventario en el tab de materiales.
+              Cambia el técnico para ver otro inventario en el tab de
+              materiales.
             </p>
           </div>
 
@@ -290,7 +326,8 @@ export default function AddProductosModal({
             {/* ── Tab Equipos ───────────────────────────────────────────────── */}
             <TabsContent value="equipos" className="mt-3 space-y-3">
               <p className="text-xs text-muted-foreground">
-                Busca cualquier serie en el sistema. Si pertenece a otro técnico se te avisará antes de agregar.
+                Busca cualquier serie en el sistema. Si pertenece a otro técnico
+                se te avisará antes de agregar.
               </p>
               <SerieAsyncSearch
                 onSelect={addExternSerie}
@@ -316,16 +353,20 @@ export default function AddProductosModal({
 
             {/* ── Tab Materiales ────────────────────────────────────────────── */}
             <TabsContent value="materiales" className="mt-3">
-              {initialTecnicoId && tecnicoId && tecnicoId !== initialTecnicoId && tecnicoNombre && (
-                <div className="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-700 px-3 py-2 mb-3 text-xs text-amber-800 dark:text-amber-300">
-                  <AlertTriangle className="size-3.5 mt-0.5 shrink-0" />
-                  <span>
-                    Estás agregando materiales del inventario de{" "}
-                    <span className="font-semibold">{tecnicoNombre}</span>, no
-                    del técnico principal asignado. Se registrarán a su nombre.
-                  </span>
-                </div>
-              )}
+              {initialTecnicoId &&
+                tecnicoId &&
+                tecnicoId !== initialTecnicoId &&
+                tecnicoNombre && (
+                  <div className="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-700 px-3 py-2 mb-3 text-xs text-amber-800 dark:text-amber-300">
+                    <AlertTriangle className="size-3.5 mt-0.5 shrink-0" />
+                    <span>
+                      Estás agregando materiales del inventario de{" "}
+                      <span className="font-semibold">{tecnicoNombre}</span>, no
+                      del técnico principal asignado. Se registrarán a su
+                      nombre.
+                    </span>
+                  </div>
+                )}
               <div className="relative mb-3">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
                 <Input
@@ -452,7 +493,9 @@ function SerieAsyncSearch({
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const [pendingSerie, setPendingSerie] = useState<SelectedExternSerie | null>(null);
+  const [pendingSerie, setPendingSerie] = useState<SelectedExternSerie | null>(
+    null,
+  );
 
   const { data, isLoading } = useQuery({
     queryKey: ["series-search-liquidacion", debouncedSearch],
@@ -470,7 +513,7 @@ function SerieAsyncSearch({
   const results = data?.data ?? [];
   const showDropdown = debouncedSearch.length >= 2;
 
-  const handleSerieClick = (serie: typeof results[number]) => {
+  const handleSerieClick = (serie: (typeof results)[number]) => {
     const item: SelectedExternSerie = {
       serie_id: serie.id,
       serie_str: serie.serie ?? "",
@@ -479,9 +522,7 @@ function SerieAsyncSearch({
       producto_sap: serie.producto.sap,
       situacion_label: serie.situacion_label,
       mac: serie.mac ?? null,
-      tecnico_nombre: serie.tecnico
-        ? `${serie.tecnico.nombre} ${serie.tecnico.apellido_paterno}`
-        : null,
+      tecnico_nombre: serie.tecnico ? `${serie.tecnico.nombre}` : null,
     };
 
     const isOtraTecnico =
@@ -489,7 +530,8 @@ function SerieAsyncSearch({
       initialTecnicoId &&
       String(serie.tecnico.id) !== initialTecnicoId;
 
-    const isOtraPersonaSinId = !serie.tecnico && serie.situacion_label === "DESPACHADO";
+    const isOtraPersonaSinId =
+      !serie.tecnico && serie.situacion_label === "DESPACHADO";
 
     if (isOtraTecnico || isOtraPersonaSinId) {
       setPendingSerie(item);
@@ -524,10 +566,12 @@ function SerieAsyncSearch({
               results.map((serie) => {
                 const isSelected = selectedIds.has(serie.id);
                 const ownerName = serie.tecnico
-                  ? `${serie.tecnico.nombre} ${serie.tecnico.apellido_paterno}`
+                  ? `${serie.tecnico.nombre}`
                   : null;
                 const isDifferentOwner =
-                  (serie.tecnico && initialTecnicoId && String(serie.tecnico.id) !== initialTecnicoId) ||
+                  (serie.tecnico &&
+                    initialTecnicoId &&
+                    String(serie.tecnico.id) !== initialTecnicoId) ||
                   (!serie.tecnico && serie.situacion_label === "DESPACHADO");
 
                 return (
@@ -545,17 +589,23 @@ function SerieAsyncSearch({
                   >
                     <div className="flex items-center justify-between gap-2">
                       <div className="min-w-0 flex-1">
-                        <p className="font-medium truncate">{serie.producto?.nombre}</p>
+                        <p className="font-medium truncate">
+                          {serie.producto?.nombre}
+                        </p>
                         <p className="text-muted-foreground font-mono">
                           Serie: {serie.serie}
                         </p>
                         {serie.mac && (
-                          <p className="text-muted-foreground">MAC: {serie.mac}</p>
+                          <p className="text-muted-foreground">
+                            MAC: {serie.mac}
+                          </p>
                         )}
                         {isDifferentOwner && (
                           <p className="text-amber-600 dark:text-amber-400 flex items-center gap-1 mt-0.5">
                             <AlertTriangle className="size-3 shrink-0" />
-                            {ownerName ? `Pertenece a: ${ownerName}` : "Asignado a otro técnico"}
+                            {ownerName
+                              ? `Pertenece a: ${ownerName}`
+                              : "Asignado a otro técnico"}
                           </p>
                         )}
                       </div>
@@ -564,7 +614,9 @@ function SerieAsyncSearch({
                           {serie.situacion_label}
                         </Badge>
                         {isSelected && (
-                          <span className="text-xs text-primary font-medium">Agregado</span>
+                          <span className="text-xs text-primary font-medium">
+                            Agregado
+                          </span>
                         )}
                       </div>
                     </div>
@@ -576,7 +628,12 @@ function SerieAsyncSearch({
         )}
       </div>
 
-      <AlertDialog open={!!pendingSerie} onOpenChange={(open) => { if (!open) setPendingSerie(null); }}>
+      <AlertDialog
+        open={!!pendingSerie}
+        onOpenChange={(open) => {
+          if (!open) setPendingSerie(null);
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
@@ -590,11 +647,17 @@ function SerieAsyncSearch({
                   <span className="font-semibold text-foreground">
                     {pendingSerie.tecnico_nombre}
                   </span>
-                  . Al agregarlo se registrará en la liquidación proveniente de esa persona.
+                  . Al agregarlo se registrará en la liquidación proveniente de
+                  esa persona.
                 </>
               ) : (
                 <>
-                  Este equipo está actualmente <span className="font-semibold text-foreground">DESPACHADO</span> a otro técnico. Al agregarlo se registrará en la liquidación proveniente de esa persona.
+                  Este equipo está actualmente{" "}
+                  <span className="font-semibold text-foreground">
+                    DESPACHADO
+                  </span>{" "}
+                  a otro técnico. Al agregarlo se registrará en la liquidación
+                  proveniente de esa persona.
                 </>
               )}
             </AlertDialogDescription>

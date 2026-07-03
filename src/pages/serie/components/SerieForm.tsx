@@ -6,7 +6,10 @@ import { Button } from "@/components/ui/button";
 import { FormInput } from "@/components/FormInput";
 
 function formatMac(value: string): string {
-  return value.replace(/[^0-9A-Fa-f]/g, "").toUpperCase().substring(0, 12);
+  return value
+    .replace(/[^0-9A-Fa-f]/g, "")
+    .toUpperCase()
+    .substring(0, 12);
 }
 import { FormSelect } from "@/components/FormSelect";
 import FormWrapper from "@/components/FormWrapper";
@@ -14,7 +17,7 @@ import { successToast, errorToast, ERROR_MESSAGE } from "@/lib/core.function";
 import { serieSchema, type SerieFormValues } from "../lib/serie.schema";
 import { createSerie } from "../lib/serie.actions";
 import { SerieComplete } from "../lib/serie.constants";
-import { useProductosAllQuery } from "../lib/serie.hook";
+import { useAllEquipos } from "../lib/serie.hook";
 
 interface SerieFormProps {
   onSuccess?: () => void;
@@ -22,7 +25,7 @@ interface SerieFormProps {
 
 export default function SerieForm({ onSuccess }: SerieFormProps) {
   const queryClient = useQueryClient();
-  const { data: productos = [] } = useProductosAllQuery();
+  const { data: productos = [] } = useAllEquipos();
 
   const productoOptions = productos.map((p) => ({
     value: String(p.id),
@@ -46,9 +49,15 @@ export default function SerieForm({ onSuccess }: SerieFormProps) {
   });
 
   const productoId = useWatch({ control: form.control, name: "producto_id" });
-  const necesitaSerie = useWatch({ control: form.control, name: "necesita_serie" });
+  const necesitaSerie = useWatch({
+    control: form.control,
+    name: "necesita_serie",
+  });
   const necesitaMac = useWatch({ control: form.control, name: "necesita_mac" });
-  const necesitaEmtaMac = useWatch({ control: form.control, name: "necesita_emta_mac" });
+  const necesitaEmtaMac = useWatch({
+    control: form.control,
+    name: "necesita_emta_mac",
+  });
   const necesitaUa = useWatch({ control: form.control, name: "necesita_ua" });
 
   // Al cambiar el producto, ajustar qué campos requiere (serie/mac/emta_mac/ua)
@@ -89,7 +98,10 @@ export default function SerieForm({ onSuccess }: SerieFormProps) {
 
   return (
     <FormWrapper>
-      <form onSubmit={form.control.handleSubmit(onSubmit)} className="space-y-4">
+      <form
+        onSubmit={form.control.handleSubmit(onSubmit)}
+        className="space-y-4"
+      >
         <FormSelect
           name="producto_id"
           label="Producto"

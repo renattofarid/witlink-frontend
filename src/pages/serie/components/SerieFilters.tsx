@@ -36,7 +36,7 @@ const DIRECTION_OPTIONS = [
 export default function SerieFilters({ params, setParams }: SerieFiltersProps) {
   const { data: productos = [] } = useQuery({
     queryKey: ["productos-all"],
-    queryFn: getProductosAll,
+    queryFn: () => getProductosAll(),
     refetchOnWindowFocus: false,
   });
 

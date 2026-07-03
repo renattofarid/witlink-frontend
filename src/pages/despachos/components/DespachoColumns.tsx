@@ -1,7 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { ButtonAction } from "@/components/ButtonAction";
-import { Trash2, Eye } from "lucide-react";
+import { Trash2, Eye, UserCog } from "lucide-react";
 import ExportButtons from "@/components/ExportButtons";
 import { DespachoProductosModal } from "./DespachoProductosModal";
 import type { DespachoResource } from "../lib/despacho.interface";
@@ -9,11 +9,13 @@ import type { DespachoResource } from "../lib/despacho.interface";
 interface ColumnActions {
   onDelete: (row: DespachoResource) => void;
   onView: (row: DespachoResource) => void;
+  onReassign: (row: DespachoResource) => void;
 }
 
 export const getDespachoColumns = ({
   onDelete,
   onView,
+  onReassign,
 }: ColumnActions): ColumnDef<DespachoResource>[] => [
   {
     accessorKey: "numero",
@@ -89,6 +91,12 @@ export const getDespachoColumns = ({
             pdfEndpoint={`/despachos/${item.id}/pdf`}
             pdfFileName={`despacho-${item.numero ?? item.id}.pdf`}
             variant="separate"
+          />
+          <ButtonAction
+            icon={UserCog}
+            canRender={!isDeleted}
+            onClick={() => onReassign(item)}
+            tooltip="Reasignar técnico"
           />
           <ButtonAction
             icon={Trash2}

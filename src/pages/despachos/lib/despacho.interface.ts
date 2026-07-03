@@ -119,6 +119,19 @@ export interface MasivoSerieValidadaItem {
   producto_tipo: string;
 }
 
+export interface ReasignarTecnicoResponse {
+  message: string;
+  data: {
+    id: number;
+    numero: string;
+    tecnico: {
+      id: number;
+      nombres: string;
+      apellidos: string;
+    };
+  };
+}
+
 export interface MasivoSerieValidacionResponse {
   serie: {
     id: number;

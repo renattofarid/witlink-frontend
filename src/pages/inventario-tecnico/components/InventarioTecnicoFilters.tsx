@@ -28,7 +28,8 @@ export default function InventarioTecnicoFilters({
           useQueryHook={useTecnicoInventarioQuery}
           mapOptionFn={(item: PersonaResource) => ({
             value: String(item.id),
-            label: `${item.nombre} ${item.apellido_paterno}`,
+            label: `${item.nombre} ${item.apellido_paterno} ${item.apellido_materno}`,
+            description: item.dni,
           })}
           perPage={20}
         />

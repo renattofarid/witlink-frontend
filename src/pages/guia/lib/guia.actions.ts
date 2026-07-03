@@ -30,6 +30,30 @@ export async function openPdf(ruta: string) {
   });
 }
 
+export async function exportGuiaExcel(id: number) {
+  const promise = api
+    .get(`${GuiaComplete.ENDPOINT}/${id}/exportar-excel`)
+    .then(({ data }) => {
+      const binary = atob(data.file_base64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const blob = new Blob([bytes], { type: data.mime_type });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = data.file_name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    });
+  promiseToast(promise, {
+    loading: "Generando Excel...",
+    success: "Excel descargado",
+    error: "Error al descargar el Excel",
+  });
+}
+
 export const getGuias = async (
   params: Record<string, string>,
 ): Promise<GuiaResponse> => {

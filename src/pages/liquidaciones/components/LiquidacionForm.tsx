@@ -211,7 +211,7 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
             useQueryHook={useTecnicosLiquidacionQuery}
             mapOptionFn={(item: PersonaResource) => ({
               value: String(item.id),
-              label: `${item.nombre} ${item.apellido_paterno}`,
+              label: `${item.nombre} ${item.apellido_paterno} ${item.apellido_materno}`,
               description: `DNI: ${item.dni}`,
             })}
             perPage={20}
@@ -225,7 +225,7 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
             useQueryHook={useTecnicosLiquidacionQuery}
             mapOptionFn={(item: PersonaResource) => ({
               value: String(item.id),
-              label: `${item.nombre} ${item.apellido_paterno}`,
+              label: `${item.nombre} ${item.apellido_paterno} ${item.apellido_materno}`,
               description: `DNI: ${item.dni}`,
             })}
             perPage={20}

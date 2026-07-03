@@ -5,6 +5,7 @@ import type {
   DespachoResource,
   DespachoCreateBody,
   MasivoSerieValidacionResponse,
+  ReasignarTecnicoResponse,
 } from "./despacho.interface";
 
 export const getDespachos = async (
@@ -26,6 +27,17 @@ export const createDespacho = async (body: DespachoCreateBody) => {
 
 export const deleteDespacho = async (id: number) => {
   const { data } = await api.delete(`${DespachoComplete.ENDPOINT}/${id}`);
+  return data;
+};
+
+export const reasignarTecnicoDespacho = async (
+  id: number,
+  nuevo_tecnico_id: number,
+): Promise<ReasignarTecnicoResponse> => {
+  const { data } = await api.patch(
+    `${DespachoComplete.ENDPOINT}/${id}/reasignar-tecnico`,
+    { nuevo_tecnico_id },
+  );
   return data;
 };
 

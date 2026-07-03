@@ -12,11 +12,12 @@ import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
 import { successToast, errorToast, ERROR_MESSAGE } from "@/lib/core.function";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import { useDespachoQuery } from "../lib/despacho.hook";
-import { deleteDespacho } from "../lib/despacho.actions";
+import { deleteDespacho, reasignarTecnicoDespacho } from "../lib/despacho.actions";
 import { DespachoComplete } from "../lib/despacho.constants";
 import { getDespachoColumns } from "../components/DespachoColumns";
 import DespachoFilters from "../components/DespachoFilters";
 import DespachoButtons from "../components/DespachoButtons";
+import { DespachoReasignarTecnicoDialog } from "../components/DespachoReasignarTecnicoDialog";
 import type { DespachoResource } from "../lib/despacho.interface";
 import { DESPACHO_ROUTE_VIEW } from "../lib/despacho.constants";
 
@@ -35,6 +36,9 @@ export default function DespachosPage() {
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [toDelete, setToDelete] = useState<DespachoResource | null>(null);
+
+  const [reassignOpen, setReassignOpen] = useState(false);
+  const [toReassign, setToReassign] = useState<DespachoResource | null>(null);
 
   const { fecha_inicio, fecha_fin, tecnico_id, ...restParams } = params;
   const queryParams: Record<string, any> = {
@@ -61,6 +65,22 @@ export default function DespachosPage() {
     },
   });
 
+  const reassignMutation = useMutation({
+    mutationFn: (nuevoTecnicoId: number) =>
+      reasignarTecnicoDespacho(toReassign!.id, nuevoTecnicoId),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: [DespachoComplete.QUERY_KEY] });
+      successToast(data.message ?? "Técnico reasignado correctamente.");
+      setReassignOpen(false);
+    },
+    onError: (error: any) => {
+      errorToast(
+        error.response?.data?.message ??
+          ERROR_MESSAGE(DespachoComplete.MODEL, "edit"),
+      );
+    },
+  });
+
   const handleView = (row: DespachoResource) => {
     navigate(`${DESPACHO_ROUTE_VIEW}/${row.id}`);
   };
@@ -68,6 +88,11 @@ export default function DespachosPage() {
   const handleDelete = (row: DespachoResource) => {
     setToDelete(row);
     setDeleteOpen(true);
+  };
+
+  const handleReassign = (row: DespachoResource) => {
+    setToReassign(row);
+    setReassignOpen(true);
   };
 
   const handleTecnicoChange = (value: string) =>
@@ -79,7 +104,11 @@ export default function DespachosPage() {
   const handlePerPageChange = (perPage: number) =>
     setParams((prev) => ({ ...prev, per_page: String(perPage), page: "1" }));
 
-  const columns = getDespachoColumns({ onDelete: handleDelete, onView: handleView });
+  const columns = getDespachoColumns({
+    onDelete: handleDelete,
+    onView: handleView,
+    onReassign: handleReassign,
+  });
 
   return (
     <PageWrapper>
@@ -122,6 +151,16 @@ export default function DespachosPage() {
         description="¿Estás seguro de que deseas eliminar este despacho? Esta acción no se puede deshacer."
         onConfirm={async () => {
           await deleteMutation.mutateAsync();
+        }}
+      />
+
+      <DespachoReasignarTecnicoDialog
+        open={reassignOpen}
+        onOpenChange={setReassignOpen}
+        despacho={toReassign}
+        isLoading={reassignMutation.isPending}
+        onConfirm={async (nuevoTecnicoId) => {
+          await reassignMutation.mutateAsync(nuevoTecnicoId);
         }}
       />
 

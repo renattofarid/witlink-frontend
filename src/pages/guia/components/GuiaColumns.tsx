@@ -6,11 +6,12 @@ import {
   FileText,
   Eye,
   CheckCircle,
+  Sheet,
 } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import type { GuiaListResource } from "../lib/guia.interface";
-import { openPdf } from "../lib/guia.actions";
+import { openPdf, exportGuiaExcel } from "../lib/guia.actions";
 import { Button } from "@/components/ui/button";
 import { parse } from "date-fns";
 
@@ -161,6 +162,11 @@ export const getGuiaColumns = ({
             icon={CheckCircle}
             canRender={!isDeleted && !isRetirado && !item.confirmado}
             onClick={() => onConfirm(item)}
+          />
+          <ButtonAction
+            icon={Sheet}
+            canRender={!isDeleted && !isRetirado}
+            onClick={() => exportGuiaExcel(item.id)}
           />
           <ButtonAction
             icon={Trash2}

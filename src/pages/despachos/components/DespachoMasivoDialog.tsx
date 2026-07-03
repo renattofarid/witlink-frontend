@@ -15,7 +15,10 @@ import { successToast, errorToast } from "@/lib/core.function";
 import { createDespacho } from "../lib/despacho.actions";
 import { DespachoComplete } from "../lib/despacho.constants";
 import { useTecnicoDespachoQuery } from "../lib/despacho.hook";
-import { despachoMasivoSchema, type DespachoMasivoFormValues } from "../lib/despacho.schema";
+import {
+  despachoMasivoSchema,
+  type DespachoMasivoFormValues,
+} from "../lib/despacho.schema";
 import type { PersonaResource } from "@/pages/persona/lib/persona.interface";
 
 interface DespachoMasivoDialogProps {
@@ -77,7 +80,8 @@ export function DespachoMasivoDialog({
             useQueryHook={useTecnicoDespachoQuery}
             mapOptionFn={(item: PersonaResource) => ({
               value: String(item.id),
-              label: `${item.nombre} ${item.apellido_paterno}`,
+              label: `${item.nombre} ${item.apellido_paterno} ${item.apellido_materno}`,
+              description: item.dni,
             })}
             perPage={20}
             required

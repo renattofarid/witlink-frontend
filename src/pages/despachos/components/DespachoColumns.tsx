@@ -43,6 +43,16 @@ export const getDespachoColumns = ({
     ),
   },
   {
+    accessorKey: "tecnico.nombre_completo",
+    header: "Técnico",
+    cell: ({ row }) => row.original.tecnico?.nombre_completo ?? "-",
+  },
+  {
+    accessorKey: "usuario.nombre_usuario",
+    header: "Registrado por",
+    cell: ({ row }) => row.original.usuario?.nombre_usuario ?? "-",
+  },
+  {
     id: "productos",
     header: "Productos",
     cell: ({ row }) => (

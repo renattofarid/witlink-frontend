@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useForm, useWatch, Controller } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -120,22 +120,14 @@ export default function SerieForm({ onSuccess }: SerieFormProps) {
           />
         )}
         {necesitaMac && (
-          <Controller
-            control={form.control}
+          <FormInput
             name="mac"
-            render={({ field, fieldState }) => (
-              <FormInput
-                name="mac"
-                label="MAC"
-                value={field.value ?? ""}
-                onChange={(e) => field.onChange(formatMac(e.target.value))}
-                onBlur={field.onBlur}
-                placeholder="001A2B3C4D5E"
-                className="font-mono"
-                required
-                error={fieldState.error?.message}
-              />
-            )}
+            label="MAC"
+            control={form.control}
+            transform={formatMac}
+            placeholder="001A2B3C4D5E"
+            className="font-mono"
+            required
           />
         )}
         {necesitaEmtaMac && (
@@ -146,7 +138,7 @@ export default function SerieForm({ onSuccess }: SerieFormProps) {
             placeholder="001A2B3C4D5E"
             className="font-mono"
             required
-          />
+          />  
         )}
         {necesitaUa && (
           <FormInput

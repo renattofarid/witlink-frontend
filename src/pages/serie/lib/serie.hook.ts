@@ -18,3 +18,11 @@ export const useProductosAllQuery = () => {
     refetchOnWindowFocus: false,
   });
 };
+
+export const useAllEquipos = () => {
+  return useQuery({
+    queryKey: ["productos-all-equipos"],
+    queryFn: () => getProductosAll({ tipo: "equipo" }),
+    refetchOnWindowFocus: false,
+  });
+};

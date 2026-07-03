@@ -14,8 +14,10 @@ export const getProductos = async (
   return data;
 };
 
-export const getProductosAll = async (): Promise<ProductoResource[]> => {
-  const { data } = await api.get(ProductoComplete.ENDPOINT);
+export const getProductosAll = async (
+  params?: Record<string, string>
+): Promise<ProductoResource[]> => {
+  const { data } = await api.get(ProductoComplete.ENDPOINT, { params });
   return data?.data ?? data;
 };
 

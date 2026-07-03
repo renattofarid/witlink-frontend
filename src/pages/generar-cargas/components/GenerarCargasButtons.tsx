@@ -40,7 +40,7 @@ export default function GenerarCargasButtons() {
   };
 
   return (
-    <Button onClick={handleDownloadAll} disabled={!!progress}>
+    <Button color="green" onClick={handleDownloadAll} disabled={!!progress}>
       {progress ? (
         <>
           <Loader2 className="size-4 animate-spin" />
@@ -49,7 +49,7 @@ export default function GenerarCargasButtons() {
       ) : (
         <>
           <Download className="size-4" />
-          Descargar Favoritos
+          Descargar Todos
         </>
       )}
     </Button>

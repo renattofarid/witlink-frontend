@@ -306,7 +306,8 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
             useQueryHook={useTecnicoDespachoQuery}
             mapOptionFn={(item: PersonaResource) => ({
               value: String(item.id),
-              label: `${item.nombre} ${item.apellido_paterno}`,
+              label: `${item.nombre} ${item.apellido_paterno} ${item.apellido_materno}`,
+              description: item.dni,
             })}
             perPage={20}
             required

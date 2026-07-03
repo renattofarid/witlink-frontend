@@ -47,12 +47,12 @@ export function DespachoMasivoSeriesInput({
         producto_tipo: res.serie.producto.tipo,
       });
       setInput("");
-      inputRef.current?.focus();
     } catch (err: any) {
       setError(err.response?.data?.message ?? "Serie no disponible");
     } finally {
       isValidatingRef.current = false;
       setIsValidating(false);
+      requestAnimationFrame(() => inputRef.current?.focus());
     }
   }, [input, items, onAdd]);
 

@@ -80,6 +80,10 @@ export function GuiaProductoDialog({
     name: "cantidad",
   });
 
+  const hasBlockingFieldValidation = Object.values(fieldValidationStatus ?? {}).some(
+    (status) => status === "invalid" || status === "loading",
+  );
+
   const isEquipo = watchedTipo === "EQUIPO";
   const disabledSerie = necesitaSerie !== true;
   const disabledMac = necesitaMac !== true;
@@ -180,7 +184,12 @@ export function GuiaProductoDialog({
           <X className="size-3 mr-1" />
           Cancelar
         </Button>
-        <Button type="button" size="sm" onClick={onSubmit}>
+        <Button
+          type="button"
+          size="sm"
+          onClick={onSubmit}
+          disabled={hasBlockingFieldValidation}
+        >
           <Check className="size-3 mr-1" />
           {editingIndex !== null ? "Actualizar" : "Agregar"}
         </Button>

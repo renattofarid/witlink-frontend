@@ -263,8 +263,14 @@ export const getSeries = async (params: Record<string, any>) => {
   return data;
 };
 
-export const validateSerie = async (serie: string) => {
-  const { data } = await api.get(`/series/${encodeURIComponent(serie)}/validar`);
+export const verificarDisponibilidadIngreso = async (
+  codigo: string,
+  tipo: "serie" | "mac" | "emta_mac" | "ua",
+) => {
+  const { data } = await api.get(
+    `/series/${encodeURIComponent(codigo)}/verificar-disponibilidad-ingreso`,
+    { params: { tipo } },
+  );
   return data;
 };
 

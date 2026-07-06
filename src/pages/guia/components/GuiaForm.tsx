@@ -16,7 +16,7 @@ import {
   type SerieFormValues,
 } from "../lib/guia.schema";
 import type { GuiaResource } from "../lib/guia.interface";
-import { validateSerie } from "../lib/guia.actions";
+import { verificarDisponibilidadIngreso } from "../lib/guia.actions";
 import {
   useGuiaMutation,
   useGuiaDeleteProducto,
@@ -253,19 +253,20 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
       const key = `${rowIndex}.${field}`;
       setFieldValidationStatus((prev) => ({ ...prev, [key]: "loading" }));
       try {
-        await validateSerie(value.trim());
-        // 200 → serie ya existe en el sistema → no disponible
-        setFieldValidationStatus((prev) => ({ ...prev, [key]: "invalid" }));
-        productSubForm.setError(`series.${rowIndex}.${field}` as any, {
-          type: "manual",
-          message: "Ya existe o no está disponible",
-        });
+        await verificarDisponibilidadIngreso(value.trim(), field);
+        // 200 → código libre para ingresar
+        setFieldValidationStatus((prev) => ({ ...prev, [key]: "valid" }));
+        productSubForm.clearErrors(`series.${rowIndex}.${field}` as any);
       } catch (error: any) {
         const status = error?.response?.status;
-        if (status === 404) {
-          // 404 → serie no existe → disponible, sin error
-          setFieldValidationStatus((prev) => ({ ...prev, [key]: "valid" }));
-          productSubForm.clearErrors(`series.${rowIndex}.${field}` as any);
+        if (status === 409) {
+          // 409 → ya registrado y no retirado → no disponible
+          setFieldValidationStatus((prev) => ({ ...prev, [key]: "invalid" }));
+          productSubForm.setError(`series.${rowIndex}.${field}` as any, {
+            type: "manual",
+            message:
+              error?.response?.data?.message ?? "Ya existe o no está disponible",
+          });
         } else {
           setFieldValidationStatus((prev) => ({ ...prev, [key]: "idle" }));
         }

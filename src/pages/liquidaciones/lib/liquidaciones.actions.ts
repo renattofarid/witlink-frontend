@@ -47,6 +47,28 @@ export const deleteDetalleProducto = async (
   return data;
 };
 
+export interface ImportarConsolidadoResponse {
+  creados: number;
+  actualizados: number;
+  omitidos: number;
+  mensaje?: string;
+  errores?: Array<{ sot: string; motivo: string }>;
+}
+
+export const actualizarSotsConsolidadoAtendidas = async (): Promise<ImportarConsolidadoResponse> => {
+  const hoy = new Date();
+  const desde = new Date(hoy.getFullYear(), hoy.getMonth(), 1)
+    .toISOString()
+    .slice(0, 10);
+  const hasta = hoy.toISOString().slice(0, 10);
+
+  const { data } = await api.post<ImportarConsolidadoResponse>(
+    `${LiquidacionesComplete.ENDPOINT}/importar-consolidado`,
+    { desde, hasta },
+  );
+  return data;
+};
+
 export const importarLiquidacionesCSV = async (file: File) => {
   const formData = new FormData();
   formData.append("archivo", file);

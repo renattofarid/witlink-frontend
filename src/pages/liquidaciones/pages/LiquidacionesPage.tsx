@@ -1,7 +1,7 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useTabParams } from "@/hooks/useTabParams";
 import { useNavigate } from "react-router-dom";
-import { Plus, Upload } from "lucide-react";
+import { Plus, RefreshCw, Upload } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import PageWrapper from "@/components/PageWrapper";
 import TitleComponent from "@/components/TitleComponent";
@@ -17,7 +17,7 @@ import { LiquidacionesComplete } from "../lib/liquidaciones.constants";
 import { getLiquidacionColumns } from "../components/LiquidacionColumns";
 import LiquidacionFilters from "../components/LiquidacionFilters";
 import {
-  importarLiquidacionesCSV,
+  actualizarSotsConsolidadoAtendidas,
   getActaBySot,
   getActaBlob,
 } from "../lib/liquidaciones.actions";
@@ -28,35 +28,34 @@ import type { LiquidacionResource } from "../lib/liquidaciones.interface";
 export default function LiquidacionesPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [actasDialogOpen, setActasDialogOpen] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [pdfSot, setPdfSot] = useState<string>("");
 
   const importMutation = useMutation({
-    mutationFn: (file: File) => importarLiquidacionesCSV(file),
-    onSuccess: () => {
-      successToast("Liquidaciones importadas correctamente");
+    mutationFn: () => actualizarSotsConsolidadoAtendidas(),
+    onSuccess: (data) => {
+      const total = (data.creados ?? 0) + (data.actualizados ?? 0);
+      if (total === 0) {
+        warningToast(data.mensaje ?? "No se encontraron SOT atendidas para actualizar");
+      } else {
+        successToast(
+          data.mensaje ??
+            `Actualizado: ${data.creados ?? 0} nuevas, ${data.actualizados ?? 0} actualizadas`,
+        );
+      }
       queryClient.invalidateQueries({
         queryKey: [LiquidacionesComplete.QUERY_KEY],
       });
     },
     onError: () => {
-      errorToast("Error al importar el archivo");
+      errorToast("Error al actualizar las SOT atendidas");
     },
   });
 
-  const handleImportClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      importMutation.mutate(file);
-      e.target.value = "";
-    }
+  const handleActualizarAtendidas = () => {
+    importMutation.mutate();
   };
 
   const [params, setParams] = useTabParams(LiquidacionesComplete.ABSOLUTE_ROUTE, {
@@ -123,21 +122,14 @@ export default function LiquidacionesPage() {
       >
         <ActionsWrapper>
           <LiquidacionesExportButtons />
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".csv"
-            className="hidden"
-            onChange={handleFileChange}
-          />
           <Button
             variant="outline"
             size="sm"
-            onClick={handleImportClick}
+            onClick={handleActualizarAtendidas}
             disabled={importMutation.isPending}
           >
-            <Upload className="size-4 mr-1" />
-            {importMutation.isPending ? "Importando..." : "Importar CSV"}
+            <RefreshCw className="size-4 mr-1" />
+            {importMutation.isPending ? "Actualizando..." : "Actualizar atendidas"}
           </Button>
           <Button
             variant="outline"

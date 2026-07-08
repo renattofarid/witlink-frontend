@@ -20,7 +20,7 @@ import { FormSelect } from "@/components/FormSelect";
 import { successToast, errorToast } from "@/lib/core.function";
 import { getAlmacenes } from "@/pages/auth/lib/auth.actions";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
-import { getSeries } from "@/pages/serie/lib/serie.actions";
+import { getSeries, validarSerie } from "@/pages/serie/lib/serie.actions";
 import { getMateriales } from "@/pages/materiales/lib/materiales.actions";
 import { createTraslado } from "../lib/traslado.actions";
 import { TrasladoComplete } from "../lib/traslado.constants";
@@ -118,30 +118,28 @@ export default function TrasladoForm({ onSuccess }: TrasladoFormProps) {
 
   const mutation = useMutation({
     mutationFn: (values: TrasladoCreateFormValues) => {
-      const productos =
-        values.tipo === "serie"
-          ? Object.values(
-              seriesCartRef.current.reduce<
-                Record<number, { producto_id: number; series: number[] }>
-              >((acc, item) => {
-                if (!acc[item.producto_id]) {
-                  acc[item.producto_id] = {
-                    producto_id: item.producto_id,
-                    series: [],
-                  };
-                }
-                acc[item.producto_id].series.push(item.serie_id);
-                return acc;
-              }, {}),
-            ).map((g) => ({ producto_id: g.producto_id, cantidad: null, series: g.series }))
-          : materialsCartRef.current.map((i) => ({
-              producto_id: i.producto_id,
-              cantidad: i.cantidad,
-              series: null,
-            }));
+      const seriesProductos = Object.values(
+        seriesCartRef.current.reduce<
+          Record<number, { producto_id: number; series: number[] }>
+        >((acc, item) => {
+          if (!acc[item.producto_id]) {
+            acc[item.producto_id] = {
+              producto_id: item.producto_id,
+              series: [],
+            };
+          }
+          acc[item.producto_id].series.push(item.serie_id);
+          return acc;
+        }, {}),
+      ).map((g) => ({ producto_id: g.producto_id, cantidad: null, series: g.series }));
+      const materialesProductos = materialsCartRef.current.map((i) => ({
+        producto_id: i.producto_id,
+        cantidad: i.cantidad,
+        series: null,
+      }));
       return createTraslado({
         almacen_destino_id: Number(values.destino_almacen_id),
-        productos,
+        productos: [...seriesProductos, ...materialesProductos],
       });
     },
     onSuccess: () => {
@@ -164,25 +162,37 @@ export default function TrasladoForm({ onSuccess }: TrasladoFormProps) {
     setCartError(null);
   };
 
-  const addSerie = (serie: SerieResource) => {
+  const addSerie = async (serie: SerieResource) => {
     if (seriesCart.some((i) => i.serie_id === serie.id)) {
       setSerieError("Esta serie ya está en la lista");
       return;
     }
-    setSeriesCart((prev) => [
-      ...prev,
-      {
-        serie_id: serie.id,
-        producto_id: serie.producto.id,
-        label: serie.serie ?? `Serie #${serie.id}`,
-        producto: serie.producto?.nombre,
-      },
-    ]);
-    setSerieInput("");
-    setSerieMatches([]);
+    setSerieSearching(true);
     setSerieError(null);
-    setCartError(null);
-    serieInputRef.current?.focus();
+    try {
+      const { serie: validada } = await validarSerie(
+        serie.serie ?? String(serie.id),
+      );
+      setSeriesCart((prev) => [
+        ...prev,
+        {
+          serie_id: validada.id,
+          producto_id: validada.producto_id,
+          label: validada.serie ?? `Serie #${validada.id}`,
+          producto: validada.producto?.nombre,
+        },
+      ]);
+      setSerieInput("");
+      setSerieMatches([]);
+      setCartError(null);
+      serieInputRef.current?.focus();
+    } catch (err: any) {
+      setSerieError(
+        err.response?.data?.message ?? "Esta serie no está disponible",
+      );
+    } finally {
+      setSerieSearching(false);
+    }
   };
 
   const handleSerieKeyDown = async (
@@ -200,14 +210,15 @@ export default function TrasladoForm({ onSuccess }: TrasladoFormProps) {
       const items = result.data ?? [];
       if (items.length === 0) {
         setSerieError(`No se encontró ninguna serie con "${val}"`);
+        setSerieSearching(false);
       } else if (items.length === 1) {
-        addSerie(items[0]);
+        await addSerie(items[0]);
       } else {
         setSerieMatches(items);
+        setSerieSearching(false);
       }
     } catch {
       setSerieError("Error al buscar la serie");
-    } finally {
       setSerieSearching(false);
     }
   };
@@ -305,21 +316,15 @@ export default function TrasladoForm({ onSuccess }: TrasladoFormProps) {
         setCantidadError(null);
       }
     }
-    const cart = values.tipo === "serie" ? seriesCart : resolvedMaterialsCart;
-    if (cart.length === 0) {
-      setCartError(
-        values.tipo === "serie"
-          ? "Agregue al menos una serie a la lista"
-          : "Agregue al menos un material a la lista",
-      );
+    if (seriesCart.length === 0 && resolvedMaterialsCart.length === 0) {
+      setCartError("Agregue al menos una serie o un material a la lista");
       return;
     }
     setCartError(null);
     mutation.mutate(values);
   });
 
-  const currentCartCount =
-    tipo === "serie" ? seriesCart.length : materialsCart.length;
+  const currentCartCount = seriesCart.length + materialsCart.length;
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">

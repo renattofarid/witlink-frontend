@@ -1,6 +1,11 @@
 import { api } from "@/lib/config";
 import { SerieComplete } from "./serie.constants";
-import type { SerieResponse, SerieResource, SerieBody } from "./serie.interface";
+import type {
+  SerieResponse,
+  SerieResource,
+  SerieBody,
+  SerieValidacionResponse,
+} from "./serie.interface";
 
 export interface ExcelResponse {
   file_name: string;
@@ -32,6 +37,15 @@ export const deleteSerie = async (id: number) => {
 
 export const confirmarDisponibilidadSerie = async (id: number) => {
   const { data } = await api.post(`${SerieComplete.ENDPOINT}/${id}/confirmar-disponibilidad`);
+  return data;
+};
+
+export const validarSerie = async (
+  serie: string,
+): Promise<SerieValidacionResponse> => {
+  const { data } = await api.get(
+    `${SerieComplete.ENDPOINT}/${encodeURIComponent(serie)}/validar`,
+  );
   return data;
 };
 

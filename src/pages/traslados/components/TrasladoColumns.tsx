@@ -32,7 +32,7 @@ export const getTrasladoListColumns = (
     header: "Nro.",
     size: 90,
     cell: ({ row }) => (
-      <span className="font-mono text-xs font-semibold">{row.original.numero}</span>
+      <span className="font-mono  font-semibold">{row.original.numero}</span>
     ),
   },
   {
@@ -40,7 +40,7 @@ export const getTrasladoListColumns = (
     header: "Fecha envío",
     size: 100,
     cell: ({ row }) => (
-      <span className="text-xs">{formatISODate(row.original["fecha_envío"])}</span>
+      <span className="">{formatISODate(row.original["fecha_envío"])}</span>
     ),
   },
   {
@@ -50,7 +50,7 @@ export const getTrasladoListColumns = (
     cell: ({ row }) => {
       const { almacen_origen, almacen_destino } = row.original;
       return (
-        <div className="flex items-center gap-1 text-xs">
+        <div className="flex items-center gap-1 ">
           <span className="truncate max-w-17.5">{almacen_origen}</span>
           <ArrowRight className="size-3 shrink-0 text-muted-foreground" />
           <span className="truncate max-w-17.5">{almacen_destino}</span>
@@ -73,7 +73,7 @@ export const getTrasladoListColumns = (
               >
                 {p.tipo}
               </Badge>
-              <span className="text-xs leading-tight line-clamp-1">{p.producto}</span>
+              <span className=" leading-tight line-clamp-1">{p.producto}</span>
             </div>
           ))}
         </div>
@@ -87,9 +87,16 @@ export const getTrasladoListColumns = (
     cell: ({ row }) => {
       const { cantidad_series, cantidad_materiales } = row.original;
       const parts: string[] = [];
-      if (cantidad_series > 0) parts.push(`${cantidad_series} serie${cantidad_series !== 1 ? "s" : ""}`);
+      if (cantidad_series > 0)
+        parts.push(
+          `${cantidad_series} serie${cantidad_series !== 1 ? "s" : ""}`,
+        );
       if (cantidad_materiales > 0) parts.push(`${cantidad_materiales} mat.`);
-      return <span className="text-xs text-muted-foreground whitespace-nowrap">{parts.join(" · ") || "-"}</span>;
+      return (
+        <span className=" text-muted-foreground whitespace-nowrap">
+          {parts.join(" · ") || "-"}
+        </span>
+      );
     },
   },
   {
@@ -102,12 +109,16 @@ export const getTrasladoListColumns = (
       if (confirmado) {
         return (
           <div className="flex flex-col gap-0.5">
-            <Badge variant="default" className="text-xs w-fit bg-green-600 hover:bg-green-600">
+            <Badge variant="default" color="green" className="w-fit">
               Confirmado
             </Badge>
             {(usuario_confirmo || fechaConf) && (
               <span className="text-[10px] text-muted-foreground leading-tight">
-                {usuario_confirmo && <span className="capitalize">{abbreviateName(usuario_confirmo)}</span>}
+                {usuario_confirmo && (
+                  <span className="capitalize">
+                    {abbreviateName(usuario_confirmo)}
+                  </span>
+                )}
                 {usuario_confirmo && fechaConf && " · "}
                 {fechaConf && formatISODate(fechaConf)}
               </span>
@@ -116,7 +127,7 @@ export const getTrasladoListColumns = (
         );
       }
       return (
-        <Badge variant="outline" className="text-xs text-yellow-600 border-yellow-400">
+        <Badge variant="default" color="amber">
           Pendiente
         </Badge>
       );
@@ -127,7 +138,7 @@ export const getTrasladoListColumns = (
     header: "Enviado por",
     size: 140,
     cell: ({ row }) => (
-      <span className="text-xs capitalize">{row.original.usuario}</span>
+      <span className=" capitalize">{row.original.usuario}</span>
     ),
   },
   {
@@ -151,7 +162,7 @@ export const getTrasladoListColumns = (
             <Button
               size="sm"
               variant="outline"
-              className="h-7 gap-1.5 text-xs text-green-700 border-green-400 hover:bg-green-50"
+              className="h-7 gap-1.5  text-green-700 border-green-400 hover:bg-green-50"
               onClick={() => actions!.onConfirmar(item)}
             >
               <CheckCircle2 className="size-3.5" />

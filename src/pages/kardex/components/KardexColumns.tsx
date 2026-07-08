@@ -80,4 +80,12 @@ export const getKardexColumns = (): ColumnDef<KardexResource>[] => [
     accessorKey: "serie",
     header: "Serie",
   },
+  {
+    accessorKey: "stock_anterior",
+    header: "Stock Anterior",
+  },
+  {
+    accessorKey: "stock_actual",
+    header: "Stock Actual",
+  },
 ];

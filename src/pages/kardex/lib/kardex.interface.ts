@@ -9,6 +9,8 @@ export interface KardexResource {
   cantidad: number;
   ubicacion: string;
   serie: string;
+  stock_anterior: number;
+  stock_actual: number;
 }
 
 export type KardexResponse = PaginationResponse<KardexResource>;

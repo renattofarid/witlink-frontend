@@ -105,7 +105,7 @@ export default function AddProductosModal({
   );
 
   const materiales: MaterialInventarioItem[] = inventario?.materiales ?? [];
-  const seriesInventario = inventario?.series ?? [];
+  const seriesInventario: SerieInventarioItem[] = inventario?.series ?? [];
 
   const filteredMateriales = useMemo(
     () =>

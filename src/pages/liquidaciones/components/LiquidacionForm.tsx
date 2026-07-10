@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { GroupFormSection } from "@/components/GroupFormSection";
-import { successToast, errorToast } from "@/lib/core.function";
+import { successToast, errorToast, warningToast } from "@/lib/core.function";
 import { Users, MessageSquare } from "lucide-react";
 import {
   liquidacionFormSchema,
@@ -180,9 +180,27 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
   const tecnico1Value = form.watch("tecnico1");
   const hasUnsaved = items.some((item) => !item.detalle_id);
 
-  const handleSave = form.control.handleSubmit(() => {
-    saveMutation.mutate();
-  });
+  const handleSave = form.handleSubmit(
+    () => {
+      if (items.length === 0) {
+        warningToast(
+          "No se puede guardar",
+          "Debe agregar al menos un producto antes de guardar.",
+        );
+        return;
+      }
+      saveMutation.mutate();
+    },
+    (errors) => {
+      const firstError = Object.values(errors)[0]?.message as
+        | string
+        | undefined;
+      warningToast(
+        "No se puede guardar",
+        firstError || "Revise los campos del formulario e intente nuevamente.",
+      );
+    },
+  );
 
   const handleAddItems = (newItems: LiquidacionCartItem[]) => {
     addItems(newItems);

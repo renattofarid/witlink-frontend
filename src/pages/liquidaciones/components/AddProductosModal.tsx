@@ -129,7 +129,7 @@ export default function AddProductosModal({
 
   const filteredSeriesInventario = useMemo(
     () =>
-      seriesInventario.filter((s) =>
+      seriesInventario.filter((s: any) =>
         (s.serie.producto.nombre + s.serie.producto.sap + s.serie.serie)
           .toLowerCase()
           .includes(serieSearch.toLowerCase()),
@@ -407,7 +407,7 @@ export default function AddProductosModal({
                     </p>
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-52 overflow-y-auto pr-1">
-                      {filteredSeriesInventario.map((item) => (
+                      {filteredSeriesInventario.map((item: any) => (
                         <SerieInventarioCard
                           key={item.id}
                           item={item}

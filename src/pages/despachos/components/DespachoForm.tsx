@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -19,7 +19,6 @@ import {
 import { createDespacho } from "../lib/despacho.actions";
 import { DespachoComplete } from "../lib/despacho.constants";
 import { useTecnicoDespachoQuery } from "../lib/despacho.hook";
-import { useDespachosDraftStore } from "../lib/despacho-draft.store";
 import type { PersonaResource } from "@/pages/persona/lib/persona.interface";
 import type {
   DespachoCreateBody,
@@ -46,17 +45,8 @@ interface DespachoFormProps {
 
 export default function DespachoForm({ onSuccess }: DespachoFormProps) {
   const queryClient = useQueryClient();
-  const {
-    draft,
-    masivoSeries: draftMasivoSeries,
-    setDraft,
-    setMasivoSeries: setDraftMasivoSeries,
-    clearDraft,
-  } = useDespachosDraftStore();
-  const submittedRef = useRef(false);
-  const masivoSeriesRef = useRef<MasivoSerieValidadaItem[]>(draftMasivoSeries);
 
-  const [masivoSeries, setMasivoSeries] = useState<MasivoSerieValidadaItem[]>(draftMasivoSeries);
+  const [masivoSeries, setMasivoSeries] = useState<MasivoSerieValidadaItem[]>([]);
   const [masivoError, setMasivoError] = useState("");
   const [combinedError, setCombinedError] = useState("");
 
@@ -75,23 +65,6 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
     remove: removeProducto,
     update: updateProductoField,
   } = useFieldArray({ control: form.control, name: "productos" });
-
-  // Restore draft on mount
-  useEffect(() => {
-    if (draft) form.reset(draft);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Save draft on unmount (skip if submitted successfully)
-  useEffect(() => {
-    return () => {
-      if (!submittedRef.current) {
-        setDraft(form.getValues());
-        setDraftMasivoSeries(masivoSeriesRef.current);
-      }
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   // ── Product sub-form ───────────────────────────────────────────────────────
   const productSubForm = useForm<DespachoProductoFormValues>({
@@ -152,8 +125,8 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
   const mutation = useMutation({
     mutationFn: (body: DespachoCreateBody) => createDespacho(body),
     onSuccess: () => {
-      submittedRef.current = true;
-      clearDraft();
+      form.reset({ tecnico_id: "", productos: [] });
+      setMasivoSeries([]);
       queryClient.invalidateQueries({ queryKey: [DespachoComplete.QUERY_KEY] });
       successToast("Despacho creado correctamente.");
       onSuccess?.();
@@ -370,20 +343,12 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
         <DespachoMasivoSeriesInput
           items={masivoSeries}
           onAdd={(item) => {
-            setMasivoSeries((prev) => {
-              const next = [...prev, item];
-              masivoSeriesRef.current = next;
-              return next;
-            });
+            setMasivoSeries((prev) => [...prev, item]);
             setMasivoError("");
             setCombinedError("");
           }}
           onRemove={(id) =>
-            setMasivoSeries((prev) => {
-              const next = prev.filter((s) => s.id !== id);
-              masivoSeriesRef.current = next;
-              return next;
-            })
+            setMasivoSeries((prev) => prev.filter((s) => s.id !== id))
           }
         />
         {masivoError && (

@@ -11,6 +11,7 @@ export interface ProductoResource {
   necesita_emta_mac: boolean;
   necesita_ua: boolean;
   incluir_en_carga: boolean;
+  es_liquidacion: boolean;
   costo: number | null;
   stock: number;
   created_at: string;
@@ -29,6 +30,7 @@ export interface ProductoCreateBody {
   necesita_emta_mac?: boolean | null;
   necesita_ua?: boolean | null;
   incluir_en_carga?: 0 | 1;
+  es_liquidacion?: boolean;
   costo?: number | null;
 }
 
@@ -42,5 +44,6 @@ export interface ProductoUpdateBody {
   necesita_emta_mac?: boolean | null;
   necesita_ua?: boolean | null;
   incluir_en_carga?: 0 | 1;
+  es_liquidacion?: boolean;
   costo?: number | null;
 }

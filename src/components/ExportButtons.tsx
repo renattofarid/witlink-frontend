@@ -18,6 +18,7 @@ interface ExportButtonsProps {
   variant?: "grouped" | "separate" | "detail";
   params?: Record<string, string>;
   excelResponseFormat?: "blob" | "base64";
+  pdfResponseFormat?: "blob" | "base64";
 }
 
 export default function ExportButtons({
@@ -28,6 +29,7 @@ export default function ExportButtons({
   variant = "grouped",
   params,
   excelResponseFormat = "blob",
+  pdfResponseFormat = "blob",
 }: ExportButtonsProps) {
   const handleExcelDownload = async () => {
     if (!excelEndpoint) return;
@@ -73,18 +75,34 @@ export default function ExportButtons({
     if (!pdfEndpoint) return;
 
     try {
-      const response = await api.get(pdfEndpoint, {
-        responseType: "blob",
-      });
-
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", pdfFileName);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
+      if (pdfResponseFormat === "base64") {
+        const { data } = await api.get(pdfEndpoint, { params });
+        const binary = atob(data.file_base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        const blob = new Blob([bytes], { type: data.mime_type ?? "application/pdf" });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", data.file_name ?? pdfFileName);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+      } else {
+        const response = await api.get(pdfEndpoint, {
+          responseType: "blob",
+          params,
+        });
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", pdfFileName);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+      }
 
       toast.success("PDF descargado exitosamente");
     } catch (error) {

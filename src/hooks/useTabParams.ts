@@ -1,4 +1,4 @@
-import { useState, type Dispatch, type SetStateAction } from "react";
+import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { useTabsStore } from "@/store/tabs.store";
 
 type SetParams = Dispatch<SetStateAction<Record<string, string>>>;
@@ -14,13 +14,9 @@ export function useTabParams(
     () => getParams(key) ?? defaults,
   );
 
-  const setParams: SetParams = (value) => {
-    setParamsState((prev) => {
-      const next = typeof value === "function" ? value(prev) : value;
-      saveParams(key, next);
-      return next;
-    });
-  };
+  useEffect(() => {
+    saveParams(key, params);
+  }, [key, params, saveParams]);
 
-  return [params, setParams];
+  return [params, setParamsState];
 }

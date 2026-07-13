@@ -66,6 +66,20 @@ import GenerarCargasPage from "../pages/generar-cargas/pages/GenerarCargasPage";
 import { GenerarCargasComplete } from "../pages/generar-cargas/lib/generar-cargas.constants";
 import AlmacenesPage from "../pages/almacenes/pages/AlmacenesPage";
 import { AlmacenComplete } from "../pages/almacenes/lib/almacen.constants";
+import DesasignacionesPage from "../pages/desasignaciones/pages/DesasignacionesPage";
+import DesasignacionAddPage from "../pages/desasignaciones/pages/DesasignacionAddPage";
+import DesasignacionViewPage from "../pages/desasignaciones/pages/DesasignacionViewPage";
+import {
+  DesasignacionComplete,
+  DESASIGNACION_ROUTE_VIEW,
+} from "../pages/desasignaciones/lib/desasignacion.constants";
+import SalidasAntiguamientoPage from "../pages/salidas-antiguamiento/pages/SalidasAntiguamientoPage";
+import SalidaAntiguamientoAddPage from "../pages/salidas-antiguamiento/pages/SalidaAntiguamientoAddPage";
+import SalidaAntiguamientoViewPage from "../pages/salidas-antiguamiento/pages/SalidaAntiguamientoViewPage";
+import {
+  SalidaAntiguamientoComplete,
+  SALIDA_ANTIGUAMIENTO_ROUTE_VIEW,
+} from "../pages/salidas-antiguamiento/lib/salida-antiguamiento.constants";
 
 function ProtectedRoute({ children }: { children: JSX.Element }) {
   const { token, allowedRoutes, almacen_id } = useAuthStore();
@@ -382,6 +396,56 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <AlmacenesPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path={DesasignacionComplete.ROUTE}
+        element={
+          <ProtectedRoute>
+            <DesasignacionesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={DesasignacionComplete.ROUTE_ADD}
+        element={
+          <ProtectedRoute>
+            <DesasignacionAddPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={`${DESASIGNACION_ROUTE_VIEW}/:id`}
+        element={
+          <ProtectedRoute>
+            <DesasignacionViewPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path={SalidaAntiguamientoComplete.ROUTE}
+        element={
+          <ProtectedRoute>
+            <SalidasAntiguamientoPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={SalidaAntiguamientoComplete.ROUTE_ADD}
+        element={
+          <ProtectedRoute>
+            <SalidaAntiguamientoAddPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={`${SALIDA_ANTIGUAMIENTO_ROUTE_VIEW}/:id`}
+        element={
+          <ProtectedRoute>
+            <SalidaAntiguamientoViewPage />
           </ProtectedRoute>
         }
       />

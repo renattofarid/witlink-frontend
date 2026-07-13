@@ -17,6 +17,7 @@ import { saveProductosLiquidacion, updateProductosLiquidacion } from "../lib/liq
 import { LiquidacionesComplete } from "../lib/liquidaciones.constants";
 import { useLiquidacionStore } from "../lib/liquidaciones.store";
 import { useTecnicosLiquidacionQuery } from "../lib/liquidaciones.hook";
+import { usePersonaByIdQuery } from "@/pages/persona/lib/persona.hook";
 import LiquidacionHeaderInfo from "./LiquidacionHeaderInfo";
 import LiquidacionDetailTable from "./LiquidacionDetailTable";
 import AddProductosModal from "./AddProductosModal";
@@ -227,6 +228,7 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
             control={form.control}
             placeholder="Seleccionar técnico..."
             useQueryHook={useTecnicosLiquidacionQuery}
+            useQueryByIdHook={usePersonaByIdQuery}
             mapOptionFn={(item: PersonaResource) => ({
               value: String(item.id),
               label: `${item.nombre} ${item.apellido_paterno} ${item.apellido_materno}`,
@@ -241,6 +243,7 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
             control={form.control}
             placeholder="Seleccionar técnico (opcional)..."
             useQueryHook={useTecnicosLiquidacionQuery}
+            useQueryByIdHook={usePersonaByIdQuery}
             mapOptionFn={(item: PersonaResource) => ({
               value: String(item.id),
               label: `${item.nombre} ${item.apellido_paterno} ${item.apellido_materno}`,

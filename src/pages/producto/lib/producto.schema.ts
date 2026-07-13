@@ -11,6 +11,7 @@ export const productoSchema = z
     necesita_emta_mac: z.boolean().nullable().optional(),
     necesita_ua: z.boolean().nullable().optional(),
     incluir_en_carga: z.boolean().nullable().optional(),
+    es_liquidacion: z.boolean().nullable().optional(),
     costo: z.coerce.number().min(0, "Debe ser mayor o igual a 0").nullable(),
   })
   .superRefine((v, ctx) => {

@@ -59,6 +59,11 @@ export const getProductoColumns = ({
     cell: ({ row }) => <BoolCell value={row.original.incluir_en_carga} />,
   },
   {
+    id: "es_liquidacion",
+    header: "Liquidación",
+    cell: ({ row }) => <BoolCell value={row.original.es_liquidacion} />,
+  },
+  {
     id: "necesita_serie",
     header: "Serie",
     cell: ({ row }) => <BoolCell value={row.original.necesita_serie} />,

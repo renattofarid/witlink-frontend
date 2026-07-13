@@ -115,12 +115,12 @@ export default function LiquidacionLiquidadaView({
                 return (
                   <div
                     key={item.id}
-                    className="flex items-center gap-2 text-sm"
+                    className="flex items-start gap-2 text-sm"
                   >
                     <span className="font-mono text-xs text-muted-foreground shrink-0 w-28 truncate">
                       {prod?.sap ?? "—"}
                     </span>
-                    <span className="flex-1 truncate">{prod?.nombre ?? "Desconocido"}</span>
+                    <span className="flex-1">{prod?.nombre ?? "Desconocido"}</span>
                     <span className="text-xs text-muted-foreground shrink-0">
                       ({cantidad} {cantidad === 1 ? "unidad" : "unidades"})
                     </span>
@@ -152,7 +152,7 @@ export default function LiquidacionLiquidadaView({
                       {prod?.sap ?? "—"}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm truncate">
+                      <p className="text-sm">
                         {prod?.nombre ?? "Desconocido"}
                       </p>
                       {seriesStr && (

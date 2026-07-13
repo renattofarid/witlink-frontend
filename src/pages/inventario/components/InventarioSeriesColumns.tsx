@@ -67,6 +67,11 @@ export const getInventarioSeriesColumns =
       cell: ({ row }) => <p className="text-xs text-muted-foreground">{row.original.ua ?? "-"}</p>,
     },
     {
+      accessorKey: "dias",
+      header: "Días",
+      cell: ({ row }) => <span>{row.original.dias ?? "—"}</span>,
+    },
+    {
       accessorKey: "ubicacion",
       header: "Ubicación",
       cell: ({ row }) => <span>{row.original.ubicacion ?? "Sin Ubicación"}</span>,

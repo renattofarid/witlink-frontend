@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { useTecnicoDespachoQuery } from "@/pages/despachos/lib/despacho.hook";
+import { usePersonaByIdQuery } from "@/pages/persona/lib/persona.hook";
 import type { PersonaResource } from "@/pages/persona/lib/persona.interface";
 
 interface TecnicoSelectorProps {
@@ -33,6 +34,7 @@ export default function TecnicoSelector({
       control={form.control}
       placeholder={placeholder}
       useQueryHook={useTecnicoDespachoQuery}
+      useQueryByIdHook={usePersonaByIdQuery}
       mapOptionFn={(item: PersonaResource) => ({
         value: String(item.id),
         label: `${item.nombre} ${item.apellido_paterno} ${item.apellido_materno}`,

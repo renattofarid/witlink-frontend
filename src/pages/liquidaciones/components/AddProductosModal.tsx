@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { useInventarioTecnicoLiquidacionQuery } from "../lib/liquidaciones.hook";
+import { useLiquidacionStore } from "../lib/liquidaciones.store";
 import type {
   LiquidacionCartItem,
   LiquidacionResource,
@@ -79,8 +80,12 @@ export default function AddProductosModal({
   onConfirm,
   initialTecnicoId,
 }: AddProductosModalProps) {
+  const { selectedInventoryTecnicoId, setSelectedInventoryTecnico } =
+    useLiquidacionStore();
+
   const [tecnicoId, setTecnicoId] = useState(
-    initialTecnicoId ??
+    selectedInventoryTecnicoId ||
+      initialTecnicoId ||
       (liquidacion.tecnico1 ? String(liquidacion.tecnico1.id) : ""),
   );
   const [tecnicoNombre, setTecnicoNombre] = useState("");
@@ -139,6 +144,7 @@ export default function AddProductosModal({
 
   const handleTecnicoChange = (id: string, nombre: string) => {
     setTecnicoId(id);
+    setSelectedInventoryTecnico(id);
     setTecnicoNombre(nombre);
     setMaterialSelections({});
   };

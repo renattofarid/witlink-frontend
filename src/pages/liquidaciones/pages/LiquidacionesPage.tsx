@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useTabParams } from "@/hooks/useTabParams";
 import { useNavigate } from "react-router-dom";
 import { Plus, RefreshCw, Upload } from "lucide-react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import PageWrapper from "@/components/PageWrapper";
 import TitleComponent from "@/components/TitleComponent";
 import ActionsWrapper from "@/components/ActionsWrapper";
@@ -11,52 +10,24 @@ import DataTablePagination from "@/components/DataTablePagination";
 import { Button } from "@/components/ui/button";
 import { GeneralModal } from "@/components/GeneralModal";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
-import { successToast, errorToast, warningToast } from "@/lib/core.function";
+import { errorToast, warningToast } from "@/lib/core.function";
 import { useLiquidacionesQuery } from "../lib/liquidaciones.hook";
 import { LiquidacionesComplete } from "../lib/liquidaciones.constants";
 import { getLiquidacionColumns } from "../components/LiquidacionColumns";
 import LiquidacionFilters from "../components/LiquidacionFilters";
-import {
-  actualizarSotsConsolidadoAtendidas,
-  getActaBySot,
-  getActaBlob,
-} from "../lib/liquidaciones.actions";
+import { getActaBySot, getActaBlob } from "../lib/liquidaciones.actions";
 import ImportarActasDialog from "../components/ImportarActasDialog";
+import ActualizarAtendidasDialog from "../components/ActualizarAtendidasDialog";
 import LiquidacionesExportButtons from "../components/LiquidacionesExportButtons";
 import type { LiquidacionResource } from "../lib/liquidaciones.interface";
 
 export default function LiquidacionesPage() {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
 
   const [actasDialogOpen, setActasDialogOpen] = useState(false);
+  const [atendidasDialogOpen, setAtendidasDialogOpen] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [pdfSot, setPdfSot] = useState<string>("");
-
-  const importMutation = useMutation({
-    mutationFn: () => actualizarSotsConsolidadoAtendidas(),
-    onSuccess: (data) => {
-      const total = (data.creados ?? 0) + (data.actualizados ?? 0);
-      if (total === 0) {
-        warningToast(data.mensaje ?? "No se encontraron SOT atendidas para actualizar");
-      } else {
-        successToast(
-          data.mensaje ??
-            `Actualizado: ${data.creados ?? 0} nuevas, ${data.actualizados ?? 0} actualizadas`,
-        );
-      }
-      queryClient.invalidateQueries({
-        queryKey: [LiquidacionesComplete.QUERY_KEY],
-      });
-    },
-    onError: () => {
-      errorToast("Error al actualizar las SOT atendidas");
-    },
-  });
-
-  const handleActualizarAtendidas = () => {
-    importMutation.mutate();
-  };
 
   const [params, setParams] = useTabParams(LiquidacionesComplete.ABSOLUTE_ROUTE, {
     page: "1",
@@ -125,11 +96,10 @@ export default function LiquidacionesPage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={handleActualizarAtendidas}
-            disabled={importMutation.isPending}
+            onClick={() => setAtendidasDialogOpen(true)}
           >
             <RefreshCw className="size-4 mr-1" />
-            {importMutation.isPending ? "Actualizando..." : "Actualizar atendidas"}
+            Actualizar atendidas
           </Button>
           <Button
             variant="outline"
@@ -176,6 +146,11 @@ export default function LiquidacionesPage() {
       <ImportarActasDialog
         open={actasDialogOpen}
         onClose={() => setActasDialogOpen(false)}
+      />
+
+      <ActualizarAtendidasDialog
+        open={atendidasDialogOpen}
+        onClose={() => setAtendidasDialogOpen(false)}
       />
 
       <GeneralModal

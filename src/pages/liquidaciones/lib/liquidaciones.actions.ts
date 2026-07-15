@@ -48,20 +48,19 @@ export const deleteDetalleProducto = async (
 };
 
 export interface ImportarConsolidadoResponse {
+  recibidos?: number;
   creados: number;
   actualizados: number;
   omitidos: number;
   mensaje?: string;
   errores?: Array<{ sot: string; motivo: string }>;
+  sots_no_importados?: string[];
 }
 
-export const actualizarSotsConsolidadoAtendidas = async (): Promise<ImportarConsolidadoResponse> => {
-  const hoy = new Date();
-  const desde = new Date(hoy.getFullYear(), hoy.getMonth(), 1)
-    .toISOString()
-    .slice(0, 10);
-  const hasta = hoy.toISOString().slice(0, 10);
-
+export const actualizarSotsConsolidadoAtendidas = async (
+  desde: string,
+  hasta: string,
+): Promise<ImportarConsolidadoResponse> => {
   const { data } = await api.post<ImportarConsolidadoResponse>(
     `${LiquidacionesComplete.ENDPOINT}/importar-consolidado`,
     { desde, hasta },

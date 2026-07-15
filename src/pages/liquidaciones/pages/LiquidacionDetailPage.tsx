@@ -77,7 +77,11 @@ export default function LiquidacionDetailPage() {
   const documentos = data?.documentos_equipos_retirados ?? [];
 
   const fecha = liquidacion?.fecha
-    ? new Date(liquidacion.fecha + "T12:00:00").toLocaleDateString("es-PE", {
+    ? new Date(
+        liquidacion.fecha.includes("T")
+          ? liquidacion.fecha
+          : liquidacion.fecha + "T12:00:00",
+      ).toLocaleDateString("es-PE", {
         day: "2-digit",
         month: "long",
         year: "numeric",
@@ -217,7 +221,9 @@ export default function LiquidacionDetailPage() {
                     {doc.nombre_tipo}
                   </Badge>
                   <span className="text-xs text-muted-foreground">
-                    {new Date(doc.fecha + "T12:00:00").toLocaleDateString("es-PE")}
+                    {new Date(
+                      doc.fecha.includes("T") ? doc.fecha : doc.fecha + "T12:00:00",
+                    ).toLocaleDateString("es-PE")}
                   </span>
                   <Separator className="flex-1" />
                   <span className="text-xs text-muted-foreground">

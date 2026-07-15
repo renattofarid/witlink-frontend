@@ -58,7 +58,11 @@ export default function LiquidacionHeaderInfo({
   liquidacion,
 }: LiquidacionHeaderInfoProps) {
   const fecha = liquidacion.fecha
-    ? new Date(liquidacion.fecha + "T12:00:00").toLocaleDateString("es-PE", {
+    ? new Date(
+        liquidacion.fecha.includes("T")
+          ? liquidacion.fecha
+          : liquidacion.fecha + "T12:00:00",
+      ).toLocaleDateString("es-PE", {
         day: "2-digit",
         month: "long",
         year: "numeric",

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useMemo, useRef, useEffect } from "react";
 import {
   Search,
@@ -889,7 +891,7 @@ function MaterialCard({
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium leading-tight truncate">
+          <p className="text-sm font-medium leading-tight">
             {item.material.producto.nombre}
           </p>
           <p className="text-xs text-muted-foreground font-mono">

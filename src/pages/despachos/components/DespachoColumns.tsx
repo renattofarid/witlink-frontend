@@ -27,7 +27,7 @@ export const getDespachoColumns = ({
     cell: ({ row }) => {
       const fecha = row.original.fecha;
       if (!fecha) return "-";
-      return new Date(fecha).toLocaleDateString("es-PE", {
+      return new Date(fecha + "T12:00:00").toLocaleDateString("es-PE", {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",

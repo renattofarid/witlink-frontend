@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useMemo, useRef, useEffect } from "react";
 import {
   Search,
@@ -37,11 +39,15 @@ import {
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { useInventarioTecnicoLiquidacionQuery } from "../lib/liquidaciones.hook";
+import { useLiquidacionStore } from "../lib/liquidaciones.store";
 import type {
   LiquidacionCartItem,
   LiquidacionResource,
 } from "../lib/liquidaciones.interface";
-import type { MaterialInventarioItem } from "@/pages/inventario-tecnico/lib/inventario-tecnico.interface";
+import type {
+  MaterialInventarioItem,
+  SerieInventarioItem,
+} from "@/pages/inventario-tecnico/lib/inventario-tecnico.interface";
 import { getSeries } from "@/pages/serie/lib/serie.actions";
 import TecnicoSelector from "./TecnicoSelector";
 
@@ -76,9 +82,13 @@ export default function AddProductosModal({
   onConfirm,
   initialTecnicoId,
 }: AddProductosModalProps) {
+  const { selectedInventoryTecnicoId, setSelectedInventoryTecnico } =
+    useLiquidacionStore();
+
   const [tecnicoId, setTecnicoId] = useState(
-    initialTecnicoId ??
-      (liquidacion.tecnico1 ? String(liquidacion.tecnico1) : ""),
+    selectedInventoryTecnicoId ||
+      initialTecnicoId ||
+      (liquidacion.tecnico1 ? String(liquidacion.tecnico1.id) : ""),
   );
   const [tecnicoNombre, setTecnicoNombre] = useState("");
   const [selfTecnicoNombre, setSelfTecnicoNombre] = useState("");
@@ -94,11 +104,15 @@ export default function AddProductosModal({
   const [showOtrosMateriales, setShowOtrosMateriales] = useState(false);
   const [otrosMaterialSearch, setOtrosMaterialSearch] = useState("");
 
+  const [serieSearch, setSerieSearch] = useState("");
+  const [showBuscarGlobal, setShowBuscarGlobal] = useState(false);
+
   const { data: inventario, isLoading } = useInventarioTecnicoLiquidacionQuery(
     tecnicoId || null,
   );
 
   const materiales: MaterialInventarioItem[] = inventario?.materiales ?? [];
+  const seriesInventario: SerieInventarioItem[] = inventario?.series ?? [];
 
   const filteredMateriales = useMemo(
     () =>
@@ -120,8 +134,19 @@ export default function AddProductosModal({
     [materiales, otrosMaterialSearch],
   );
 
+  const filteredSeriesInventario = useMemo(
+    () =>
+      seriesInventario.filter((s: any) =>
+        (s.serie.producto.nombre + s.serie.producto.sap + s.serie.serie)
+          .toLowerCase()
+          .includes(serieSearch.toLowerCase()),
+      ),
+    [seriesInventario, serieSearch],
+  );
+
   const handleTecnicoChange = (id: string, nombre: string) => {
     setTecnicoId(id);
+    setSelectedInventoryTecnico(id);
     setTecnicoNombre(nombre);
     setMaterialSelections({});
   };
@@ -163,6 +188,23 @@ export default function AddProductosModal({
     setSelectedExternSeries((prev) =>
       prev.filter((s) => s.serie_id !== serieId),
     );
+  };
+
+  const toggleOwnSerie = (item: SerieInventarioItem) => {
+    if (selectedExternSeries.some((s) => s.serie_id === item.serie.id)) {
+      removeExternSerie(item.serie.id);
+      return;
+    }
+    addExternSerie({
+      serie_id: item.serie.id,
+      serie_str: item.serie.serie,
+      producto_id: item.serie.producto.id,
+      producto_nombre: item.serie.producto.nombre,
+      producto_sap: item.serie.producto.sap,
+      situacion_label: item.serie.situacion,
+      mac: item.serie.mac,
+      tecnico_nombre: null,
+    });
   };
 
   const handleConfirm = () => {
@@ -284,10 +326,10 @@ export default function AddProductosModal({
         }
       >
         <div className="space-y-4">
-          {/* Selector de técnico — para inventario de materiales */}
+          {/* Selector de técnico — inventario a mostrar por defecto */}
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">
-              Inventario a mostrar (materiales)
+              Inventario a mostrar (materiales y equipos)
             </Label>
             <TecnicoSelector
               value={tecnicoId}
@@ -299,11 +341,31 @@ export default function AddProductosModal({
                 }
               }}
             />
-            <p className="text-xs text-muted-foreground">
-              Cambia el técnico para ver otro inventario en el tab de
-              materiales.
-            </p>
+            {!tecnicoId ? (
+              <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                <AlertTriangle className="size-3 shrink-0" />
+                No hay técnico seleccionado
+              </p>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Cambia el técnico para ver otro inventario.
+              </p>
+            )}
           </div>
+
+          {initialTecnicoId &&
+            tecnicoId &&
+            tecnicoId !== initialTecnicoId &&
+            tecnicoNombre && (
+              <div className="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-700 px-3 py-2 text-xs text-amber-800 dark:text-amber-300">
+                <AlertTriangle className="size-3.5 mt-0.5 shrink-0" />
+                <span>
+                  Estás viendo el inventario de{" "}
+                  <span className="font-semibold">{tecnicoNombre}</span>, no
+                  del técnico principal asignado.
+                </span>
+              </div>
+            )}
 
           <Tabs defaultValue="equipos">
             <TabsList className="w-full">
@@ -325,18 +387,77 @@ export default function AddProductosModal({
 
             {/* ── Tab Equipos ───────────────────────────────────────────────── */}
             <TabsContent value="equipos" className="mt-3 space-y-3">
-              <p className="text-xs text-muted-foreground">
-                Busca cualquier serie en el sistema. Si pertenece a otro técnico
-                se te avisará antes de agregar.
-              </p>
-              <SerieAsyncSearch
-                onSelect={addExternSerie}
-                selectedIds={selectedSerieIds}
-                initialTecnicoId={initialTecnicoId}
-              />
+              {!tecnicoId ? (
+                <p className="text-sm text-muted-foreground text-center py-8">
+                  Selecciona un técnico para ver su inventario.
+                </p>
+              ) : (
+                <>
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
+                    <Input
+                      className="pl-8 h-8 text-xs"
+                      placeholder="Buscar equipo del inventario del técnico..."
+                      value={serieSearch}
+                      onChange={(e) => setSerieSearch(e.target.value)}
+                    />
+                  </div>
+
+                  {isLoading ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {Array.from({ length: 4 }).map((_, i) => (
+                        <Skeleton key={i} className="h-16 rounded-lg" />
+                      ))}
+                    </div>
+                  ) : filteredSeriesInventario.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-6">
+                      Sin equipos disponibles en el inventario del técnico.
+                    </p>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-52 overflow-y-auto pr-1">
+                      {filteredSeriesInventario.map((item: any) => (
+                        <SerieInventarioCard
+                          key={item.id}
+                          item={item}
+                          selected={selectedSerieIds.has(item.serie.id)}
+                          onToggle={() => toggleOwnSerie(item)}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs w-full text-muted-foreground hover:text-foreground"
+                onClick={() => setShowBuscarGlobal((prev) => !prev)}
+              >
+                <Search className="size-3 mr-1.5" />
+                {showBuscarGlobal
+                  ? "Ocultar búsqueda en todo el sistema"
+                  : "Buscar equipo en todo el sistema (otros técnicos)"}
+              </Button>
+
+              {showBuscarGlobal && (
+                <div className="space-y-3 border-t pt-3">
+                  <p className="text-xs text-muted-foreground">
+                    Busca cualquier serie en el sistema. Si pertenece a otro
+                    técnico se te avisará antes de agregar.
+                  </p>
+                  <SerieAsyncSearch
+                    onSelect={addExternSerie}
+                    selectedIds={selectedSerieIds}
+                    initialTecnicoId={initialTecnicoId}
+                  />
+                </div>
+              )}
+
               {selectedExternSeries.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-6">
-                  Sin equipos seleccionados. Usa el buscador para agregar.
+                  Sin equipos seleccionados.
                 </p>
               ) : (
                 <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
@@ -353,20 +474,6 @@ export default function AddProductosModal({
 
             {/* ── Tab Materiales ────────────────────────────────────────────── */}
             <TabsContent value="materiales" className="mt-3">
-              {initialTecnicoId &&
-                tecnicoId &&
-                tecnicoId !== initialTecnicoId &&
-                tecnicoNombre && (
-                  <div className="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-700 px-3 py-2 mb-3 text-xs text-amber-800 dark:text-amber-300">
-                    <AlertTriangle className="size-3.5 mt-0.5 shrink-0" />
-                    <span>
-                      Estás agregando materiales del inventario de{" "}
-                      <span className="font-semibold">{tecnicoNombre}</span>, no
-                      del técnico principal asignado. Se registrarán a su
-                      nombre.
-                    </span>
-                  </div>
-                )}
               <div className="relative mb-3">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
                 <Input
@@ -679,6 +786,46 @@ function SerieAsyncSearch({
   );
 }
 
+function SerieInventarioCard({
+  item,
+  selected,
+  onToggle,
+}: {
+  item: SerieInventarioItem;
+  selected: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      className={cn(
+        "border rounded-lg p-3 flex items-start gap-2 text-left transition-colors",
+        selected
+          ? "border-primary bg-primary/5"
+          : "border-border bg-card hover:bg-accent",
+      )}
+    >
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium leading-tight truncate">
+          {item.serie.producto.nombre}
+        </p>
+        <p className="text-xs text-muted-foreground font-mono">
+          Serie: {item.serie.serie}
+        </p>
+        {item.serie.mac && (
+          <p className="text-xs text-muted-foreground">MAC: {item.serie.mac}</p>
+        )}
+      </div>
+      {selected && (
+        <span className="text-xs text-primary font-semibold shrink-0">
+          ✓ sel.
+        </span>
+      )}
+    </button>
+  );
+}
+
 function ExternSerieCard({
   item,
   onRemove,
@@ -744,7 +891,7 @@ function MaterialCard({
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium leading-tight truncate">
+          <p className="text-sm font-medium leading-tight">
             {item.material.producto.nombre}
           </p>
           <p className="text-xs text-muted-foreground font-mono">

@@ -69,6 +69,14 @@ export const getKardexColumns = (): ColumnDef<KardexResource>[] => [
     },
   },
   {
+    accessorKey: "stock_anterior",
+    header: "Stock Anterior",
+  },
+  {
+    accessorKey: "stock_actual",
+    header: "Stock Actual",
+  },
+  {
     accessorKey: "ubicacion",
     header: "Ubicación",
     cell: ({ getValue }) => {
@@ -79,5 +87,13 @@ export const getKardexColumns = (): ColumnDef<KardexResource>[] => [
   {
     accessorKey: "serie",
     header: "Serie",
+  },
+  {
+    accessorKey: "stock_anterior",
+    header: "Stock Anterior",
+  },
+  {
+    accessorKey: "stock_actual",
+    header: "Stock Actual",
   },
 ];

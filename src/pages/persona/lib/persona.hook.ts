@@ -21,6 +21,18 @@ export const usePersonaQuery = (id: number) => {
   });
 };
 
+// Para usar como `useQueryByIdHook` en FormSelectAsync: precarga la opción
+// seleccionada aunque no esté en la página actual del listado paginado.
+export const usePersonaByIdQuery = (id: string | null) => {
+  const personaId = id ? Number(id) : 0;
+  return useQuery({
+    queryKey: [PersonaComplete.QUERY_KEY, personaId],
+    queryFn: () => getPersona(personaId),
+    enabled: !!personaId,
+    refetchOnWindowFocus: false,
+  });
+};
+
 export const usePersonaSelectQuery = (params: Record<string, any> = {}) => {
   return useQuery({
     queryKey: ["personas-select", params],

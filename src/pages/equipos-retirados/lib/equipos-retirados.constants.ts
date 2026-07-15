@@ -17,7 +17,6 @@ export const EquiposRetiradosComplete: ModelComplete = {
 };
 
 export const TIPO_EQUIPO_RETIRADO_OPTIONS = [
-  { value: "P", label: "Post Venta" },
-  { value: "C", label: "Comercial" },
-  { value: "O", label: "Operaciones" },
+  { value: "P", label: "POST VENTA" },
+  { value: "C", label: "CAMBIO POR INCIDENCIA" },
 ];

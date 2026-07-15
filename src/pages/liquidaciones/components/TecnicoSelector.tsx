@@ -1,20 +1,8 @@
-import { useState, useEffect } from "react";
-import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Command,
-  CommandEmpty,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import { cn } from "@/lib/utils";
-import { useTecnicosLiquidacionQuery } from "../lib/liquidaciones.hook";
+import { useEffect } from "react";
+import { useForm, useWatch } from "react-hook-form";
+import { FormSelectAsync } from "@/components/FormSelectAsync";
+import { useTecnicoDespachoQuery } from "@/pages/despachos/lib/despacho.hook";
+import { usePersonaByIdQuery } from "@/pages/persona/lib/persona.hook";
 import type { PersonaResource } from "@/pages/persona/lib/persona.interface";
 
 interface TecnicoSelectorProps {
@@ -30,92 +18,40 @@ export default function TecnicoSelector({
   onNameResolved,
   placeholder = "Seleccionar técnico...",
 }: TecnicoSelectorProps) {
-  const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState("");
-
-  const { data, isLoading } = useTecnicosLiquidacionQuery({
-    search,
-    per_page: 20,
-  });
-
-  const tecnicos: PersonaResource[] = data?.data ?? [];
-
-  const selectedTecnico = tecnicos.find((t) => String(t.id) === value);
+  const form = useForm({ defaultValues: { tecnico_id: value } });
+  const tecnicoId = useWatch({ control: form.control, name: "tecnico_id" });
 
   useEffect(() => {
-    if (selectedTecnico) {
-      const nombre = `${selectedTecnico.nombre} ${selectedTecnico.apellido_paterno}`;
-      onNameResolved?.(nombre);
+    if (value !== tecnicoId) {
+      form.setValue("tecnico_id", value);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedTecnico?.id]);
-
-  const displayName = selectedTecnico
-    ? `${selectedTecnico.nombre} ${selectedTecnico.apellido_paterno}`
-    : value
-    ? `Técnico #${value}`
-    : placeholder;
+  }, [value]);
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-full justify-between h-9 text-sm font-normal"
-        >
-          <span className={cn(!value && "text-muted-foreground")}>
-            {displayName}
-          </span>
-          <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-full p-0" align="start">
-        <Command>
-          <CommandInput
-            placeholder="Buscar técnico..."
-            value={search}
-            onValueChange={setSearch}
-          />
-          <CommandList>
-            {isLoading && (
-              <div className="flex items-center justify-center py-4">
-                <Loader2 className="size-4 animate-spin text-muted-foreground" />
-              </div>
-            )}
-            {!isLoading && tecnicos.length === 0 && (
-              <CommandEmpty>Sin resultados.</CommandEmpty>
-            )}
-            {tecnicos.map((t) => {
-              const nombre = `${t.nombre} ${t.apellido_paterno}`;
-              return (
-                <CommandItem
-                  key={t.id}
-                  value={String(t.id)}
-                  onSelect={() => {
-                    onChange(String(t.id), nombre);
-                    setOpen(false);
-                  }}
-                >
-                  <Check
-                    className={cn(
-                      "mr-2 size-4",
-                      value === String(t.id) ? "opacity-100" : "opacity-0",
-                    )}
-                  />
-                  <div className="flex flex-col">
-                    <span className="text-sm">{nombre}</span>
-                    <span className="text-xs text-muted-foreground">
-                      DNI: {t.dni}
-                    </span>
-                  </div>
-                </CommandItem>
-              );
-            })}
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+    <FormSelectAsync
+      name="tecnico_id"
+      control={form.control}
+      placeholder={placeholder}
+      useQueryHook={useTecnicoDespachoQuery}
+      useQueryByIdHook={usePersonaByIdQuery}
+      mapOptionFn={(item: PersonaResource) => ({
+        value: String(item.id),
+        label: `${item.nombre} ${item.apellido_paterno} ${item.apellido_materno}`,
+        description: item.dni,
+      })}
+      perPage={20}
+      required
+      onValueChange={(id, item) => {
+        const persona = item as PersonaResource | undefined;
+        const nombre = persona
+          ? `${persona.nombre} ${persona.apellido_paterno}`
+          : "";
+        onChange(id, nombre);
+        if (nombre) {
+          onNameResolved?.(nombre);
+        }
+      }}
+    />
   );
 }

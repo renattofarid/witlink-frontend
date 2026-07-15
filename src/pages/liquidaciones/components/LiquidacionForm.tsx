@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { GroupFormSection } from "@/components/GroupFormSection";
-import { successToast, errorToast } from "@/lib/core.function";
+import { successToast, errorToast, warningToast } from "@/lib/core.function";
 import { Users, MessageSquare } from "lucide-react";
 import {
   liquidacionFormSchema,
@@ -17,6 +17,7 @@ import { saveProductosLiquidacion, updateProductosLiquidacion } from "../lib/liq
 import { LiquidacionesComplete } from "../lib/liquidaciones.constants";
 import { useLiquidacionStore } from "../lib/liquidaciones.store";
 import { useTecnicosLiquidacionQuery } from "../lib/liquidaciones.hook";
+import { usePersonaByIdQuery } from "@/pages/persona/lib/persona.hook";
 import LiquidacionHeaderInfo from "./LiquidacionHeaderInfo";
 import LiquidacionDetailTable from "./LiquidacionDetailTable";
 import AddProductosModal from "./AddProductosModal";
@@ -180,9 +181,27 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
   const tecnico1Value = form.watch("tecnico1");
   const hasUnsaved = items.some((item) => !item.detalle_id);
 
-  const handleSave = form.control.handleSubmit(() => {
-    saveMutation.mutate();
-  });
+  const handleSave = form.handleSubmit(
+    () => {
+      if (items.length === 0) {
+        warningToast(
+          "No se puede guardar",
+          "Debe agregar al menos un producto antes de guardar.",
+        );
+        return;
+      }
+      saveMutation.mutate();
+    },
+    (errors) => {
+      const firstError = Object.values(errors)[0]?.message as
+        | string
+        | undefined;
+      warningToast(
+        "No se puede guardar",
+        firstError || "Revise los campos del formulario e intente nuevamente.",
+      );
+    },
+  );
 
   const handleAddItems = (newItems: LiquidacionCartItem[]) => {
     addItems(newItems);
@@ -209,6 +228,7 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
             control={form.control}
             placeholder="Seleccionar técnico..."
             useQueryHook={useTecnicosLiquidacionQuery}
+            useQueryByIdHook={usePersonaByIdQuery}
             mapOptionFn={(item: PersonaResource) => ({
               value: String(item.id),
               label: `${item.nombre} ${item.apellido_paterno} ${item.apellido_materno}`,
@@ -223,6 +243,7 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
             control={form.control}
             placeholder="Seleccionar técnico (opcional)..."
             useQueryHook={useTecnicosLiquidacionQuery}
+            useQueryByIdHook={usePersonaByIdQuery}
             mapOptionFn={(item: PersonaResource) => ({
               value: String(item.id),
               label: `${item.nombre} ${item.apellido_paterno} ${item.apellido_materno}`,

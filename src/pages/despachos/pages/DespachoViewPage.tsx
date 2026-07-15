@@ -1,23 +1,50 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useState } from "react";
 import { useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { Building2, CalendarDays, Package, User, Wrench } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Building2, CalendarDays, Package, Pencil, User, Wrench } from "lucide-react";
 import FormWrapper from "@/components/FormWrapper";
 import TitleFormComponent from "@/components/TitleFormComponent";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import ExportButtons from "@/components/ExportButtons";
+import { successToast, errorToast, ERROR_MESSAGE } from "@/lib/core.function";
 import { DespachoComplete } from "../lib/despacho.constants";
-import { getDespacho } from "../lib/despacho.actions";
+import { getDespacho, reasignarTecnicoDespacho } from "../lib/despacho.actions";
 import type { DespachoResource } from "../lib/despacho.interface";
 import { DespachoViewProductos } from "../components/DespachoViewProductos";
+import { DespachoReasignarTecnicoDialog } from "../components/DespachoReasignarTecnicoDialog";
 
 export default function DespachoViewPage() {
   const { id } = useParams();
+  const queryClient = useQueryClient();
+
+  const [reassignOpen, setReassignOpen] = useState(false);
 
   const { data: despacho, isLoading } = useQuery({
     queryKey: [DespachoComplete.QUERY_KEY, "detail", id],
     queryFn: () => getDespacho(Number(id)) as Promise<DespachoResource>,
     enabled: !!id,
+  });
+
+  const reassignMutation = useMutation({
+    mutationFn: (nuevoTecnicoId: number) =>
+      reasignarTecnicoDespacho(Number(id), nuevoTecnicoId),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({
+        queryKey: [DespachoComplete.QUERY_KEY, "detail", id],
+      });
+      queryClient.invalidateQueries({ queryKey: [DespachoComplete.QUERY_KEY] });
+      successToast(data.message ?? "Técnico reasignado correctamente.");
+      setReassignOpen(false);
+    },
+    onError: (error: any) => {
+      errorToast(
+        error.response?.data?.message ??
+          ERROR_MESSAGE(DespachoComplete.MODEL, "edit"),
+      );
+    },
   });
 
   if (isLoading) {
@@ -113,7 +140,17 @@ export default function DespachoViewPage() {
             <Wrench className="size-3" />
             Técnico
           </p>
-          <span className="text-sm font-medium">{nombreTecnico ?? "—"}</span>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium">{nombreTecnico ?? "—"}</span>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-6"
+              onClick={() => setReassignOpen(true)}
+            >
+              <Pencil className="size-3.5" />
+            </Button>
+          </div>
         </div>
 
         <div className="w-px self-stretch bg-border" />
@@ -140,6 +177,14 @@ export default function DespachoViewPage() {
 
         <DespachoViewProductos productos={despacho.productos ?? []} />
       </div>
+
+      <DespachoReasignarTecnicoDialog
+        open={reassignOpen}
+        onOpenChange={setReassignOpen}
+        despacho={despacho}
+        onConfirm={(nuevoTecnicoId) => reassignMutation.mutateAsync(nuevoTecnicoId) as any}
+        isLoading={reassignMutation.isPending}
+      />
     </FormWrapper>
   );
 }

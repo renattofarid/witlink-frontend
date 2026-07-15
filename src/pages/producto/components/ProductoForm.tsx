@@ -55,6 +55,7 @@ export default function ProductoForm({
       necesita_emta_mac: defaultValues?.necesita_emta_mac ?? null,
       necesita_ua: defaultValues?.necesita_ua ?? null,
       incluir_en_carga: defaultValues?.incluir_en_carga ?? true,
+      es_liquidacion: defaultValues?.es_liquidacion ?? true,
       costo: defaultValues?.costo ?? null,
     },
     mode: "onChange",
@@ -77,6 +78,7 @@ export default function ProductoForm({
         necesita_ua: isEquipo ? (values.necesita_ua ?? false) : false,
       };
       const incluirEnCarga = (values.incluir_en_carga ?? true) ? 1 : 0;
+      const esLiquidacion = values.es_liquidacion ?? true;
       if (mode === "create") {
         return createProducto({
           sap: isClaro ? values.sap : undefined,
@@ -85,6 +87,7 @@ export default function ProductoForm({
           origen: values.origen ?? "",
           ...necesitaFlags,
           incluir_en_carga: incluirEnCarga,
+          es_liquidacion: esLiquidacion,
           costo: values.costo ?? null,
         });
       }
@@ -95,6 +98,7 @@ export default function ProductoForm({
         origen: values.origen ?? "",
         ...necesitaFlags,
         incluir_en_carga: incluirEnCarga,
+        es_liquidacion: esLiquidacion,
         costo: values.costo ?? null,
       });
     },
@@ -173,6 +177,12 @@ export default function ProductoForm({
         control={activeControl as Control<any>}
         name={"incluir_en_carga" as any}
         text="Incluir en carga"
+        size="sm"
+      />
+      <FormSwitch
+        control={activeControl as Control<any>}
+        name={"es_liquidacion" as any}
+        text="Disponible para liquidación"
         size="sm"
       />
       {isEquipo && (

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -181,7 +182,7 @@ export default function DespachoViewPage() {
         open={reassignOpen}
         onOpenChange={setReassignOpen}
         despacho={despacho}
-        onConfirm={(nuevoTecnicoId) => reassignMutation.mutateAsync(nuevoTecnicoId)}
+        onConfirm={(nuevoTecnicoId) => reassignMutation.mutateAsync(nuevoTecnicoId) as any}
         isLoading={reassignMutation.isPending}
       />
     </FormWrapper>

@@ -41,6 +41,7 @@ export default function DesasignacionForm({ onSuccess }: DesasignacionFormProps)
   >({});
   const [observaciones, setObservaciones] = useState("");
   const [error, setError] = useState("");
+  const [searchSerie, setSearchSerie] = useState("");
 
   const { data: inventario, isLoading } = useQuery({
     queryKey: ["inventario-tecnico-raw", tecnicoId],
@@ -200,8 +201,16 @@ export default function DesasignacionForm({ onSuccess }: DesasignacionFormProps)
             El técnico no tiene series asignadas.
           </p>
         ) : (
+          <>
+          <div>
+            <h3>Buscar serie: </h3>
+            <Input placeholder="Ingrese el código de la serie..." 
+              value={searchSerie}
+              onChange={(e) => setSearchSerie(e.target.value.toUpperCase())}
+            />
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-72 overflow-y-auto pr-1">
-            {series.map((item) => (
+            {series.filter((item) => item.serie?.serie?.includes(searchSerie)).map((item) => (
               <SerieCard
                 key={item.id}
                 item={item}
@@ -209,7 +218,8 @@ export default function DesasignacionForm({ onSuccess }: DesasignacionFormProps)
                 onToggle={() => toggleSerie(item.serie.id)}
               />
             ))}
-          </div>
+          </div></>
+          
         )}
       </div>
 

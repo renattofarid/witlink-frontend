@@ -50,7 +50,8 @@ export default function GuiaViewPage() {
         year: "numeric",
       })
     : "—";
-
+      console.log(guia.fecha);
+      
   return (
     <FormWrapper>
       <TitleFormComponent

@@ -430,12 +430,12 @@ export default function AddProductosModal({
 
               <Button
                 type="button"
-                variant="ghost"
+                variant={"default"}
                 size="sm"
-                className="h-7 text-xs w-full text-muted-foreground hover:text-foreground"
+                className="h-8 text-xs w-full font-medium shadow-sm"
                 onClick={() => setShowBuscarGlobal((prev) => !prev)}
               >
-                <Search className="size-3 mr-1.5" />
+                <Search className="size-3.5 mr-1.5" />
                 {showBuscarGlobal
                   ? "Ocultar búsqueda en todo el sistema"
                   : "Buscar equipo en todo el sistema (otros técnicos)"}
@@ -451,6 +451,7 @@ export default function AddProductosModal({
                     onSelect={addExternSerie}
                     selectedIds={selectedSerieIds}
                     initialTecnicoId={initialTecnicoId}
+                    initialSearch={serieSearch}
                   />
                 </div>
               )}
@@ -592,13 +593,15 @@ function SerieAsyncSearch({
   onSelect,
   selectedIds,
   initialTecnicoId,
+  initialSearch,
 }: {
   onSelect: (serie: SelectedExternSerie) => void;
   selectedIds: Set<number>;
   initialTecnicoId?: string;
+  initialSearch?: string;
 }) {
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [search, setSearch] = useState(initialSearch ?? "");
+  const [debouncedSearch, setDebouncedSearch] = useState(initialSearch ?? "");
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const [pendingSerie, setPendingSerie] = useState<SelectedExternSerie | null>(
     null,

@@ -5,7 +5,14 @@ export interface InventarioSerieResource {
   inventario_tecnico_id: number;
   serie_id: number;
   situacion: string;
-  situacion_label: "PENDIENTE" | "DISPONIBLE" | "DESPACHADO" | "LIQUIDADO" | "RETIRADO" | "DEVUELTO";
+  situacion_label:
+    | "PENDIENTE"
+    | "DISPONIBLE"
+    | "DESPACHADO"
+    | "LIQUIDADO"
+    | "RETIRADO"
+    | "DEVUELTO"
+    | "DEVUELTO A CLARO";
   fecha: string;
   guia: string;
   sap: string;
@@ -22,6 +29,7 @@ export interface InventarioSerieResource {
   sot: string | null;
   motivo: string | null;
   almacen_origen: string;
+  contabilizado: string | null;
 }
 
 export type InventarioSerieResponse = PaginationResponse<InventarioSerieResource>;

@@ -1,6 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { ButtonAction } from "@/components/ButtonAction";
-import { Undo2, History } from "lucide-react";
+import { Undo2, History, PackageCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { parseISO, format } from "date-fns";
 import type { InventarioSerieResource } from "../lib/inventario.interface";
@@ -9,10 +9,11 @@ import { SituacionBadge, SITUACION } from "@/pages/serie/components/SerieColumns
 interface ColumnActions {
   onDevolver: (row: InventarioSerieResource) => void;
   onHistorial: (row: InventarioSerieResource) => void;
+  onDevolverClaro: (row: InventarioSerieResource) => void;
 }
 
 export const getInventarioSeriesColumns =
-  ({ onDevolver, onHistorial }: ColumnActions): ColumnDef<InventarioSerieResource>[] => [
+  ({ onDevolver, onHistorial, onDevolverClaro }: ColumnActions): ColumnDef<InventarioSerieResource>[] => [
     {
       accessorKey: "fecha",
       header: "Fecha",
@@ -102,6 +103,15 @@ export const getInventarioSeriesColumns =
       cell: ({ row }) => <SituacionBadge situacion={row.original.situacion_label} />,
     },
     {
+      accessorKey: "contabilizado",
+      header: "Contabilizado",
+      cell: ({ row }) => (
+        <p className="text-xs text-muted-foreground font-normal">
+          {row.original.contabilizado ?? "—"}
+        </p>
+      ),
+    },
+    {
       id: "acciones",
       header: "Acciones",
       cell: ({ row }) => (
@@ -118,6 +128,13 @@ export const getInventarioSeriesColumns =
             tooltip="Devolver serie"
             canRender={row.original.situacion_label === SITUACION.DESPACHADO}
             onClick={() => onDevolver(row.original)}
+          />
+          <ButtonAction
+            icon={PackageCheck}
+            color="indigo"
+            tooltip="Devolver a Claro"
+            canRender={row.original.situacion_label === SITUACION.DISPONIBLE}
+            onClick={() => onDevolverClaro(row.original)}
           />
         </div>
       ),

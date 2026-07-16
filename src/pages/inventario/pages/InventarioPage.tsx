@@ -18,12 +18,16 @@ import {
   InventarioComplete,
   INVENTARIO_SERIES_QUERY_KEY,
 } from "../lib/inventario.constants";
-import { devolverInventarioSerie } from "../lib/inventario.actions";
+import {
+  devolverInventarioSerie,
+  devolverClaroInventarioSerie,
+} from "../lib/inventario.actions";
 import { getInventarioSeriesColumns } from "../components/InventarioSeriesColumns";
 import { getInventarioMaterialesColumns } from "../components/InventarioMaterialesColumns";
 import InventarioSeriesFilters from "../components/InventarioSeriesFilters";
 import InventarioMaterialesFilters from "../components/InventarioMaterialesFilters";
 import InventarioSerieHistorialSheet from "../components/InventarioSerieHistorialSheet";
+import { DevolverClaroDialog } from "../components/DevolverClaroDialog";
 import type { InventarioSerieResource } from "../lib/inventario.interface";
 
 export default function InventarioPage() {
@@ -36,6 +40,9 @@ export default function InventarioPage() {
   const [historialOpen, setHistorialOpen] = useState(false);
   const [historialSerie, setHistorialSerie] =
     useState<InventarioSerieResource | null>(null);
+  const [selectedSerieClaro, setSelectedSerieClaro] =
+    useState<InventarioSerieResource | null>(null);
+  const [devolverClaroOpen, setDevolverClaroOpen] = useState(false);
 
   const [seriesParams, setSeriesParams] = useTabParams(
     "/inventario/series-tab",
@@ -76,6 +83,23 @@ export default function InventarioPage() {
     },
   });
 
+  const devolverClaroMutation = useMutation({
+    mutationFn: (contabilizado: string) =>
+      devolverClaroInventarioSerie(selectedSerieClaro!.serie_id, contabilizado),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [INVENTARIO_SERIES_QUERY_KEY],
+      });
+      successToast("Serie marcada como devuelta a Claro correctamente.");
+      setDevolverClaroOpen(false);
+    },
+    onError: (error: any) => {
+      errorToast(
+        error.response?.data?.message ?? "Error al devolver la serie a Claro.",
+      );
+    },
+  });
+
   const handleDevolverSerie = (row: InventarioSerieResource) => {
     setSelectedSerie(row);
     setDevolverSerieOpen(true);
@@ -86,9 +110,15 @@ export default function InventarioPage() {
     setHistorialOpen(true);
   };
 
+  const handleDevolverClaro = (row: InventarioSerieResource) => {
+    setSelectedSerieClaro(row);
+    setDevolverClaroOpen(true);
+  };
+
   const seriesColumns = getInventarioSeriesColumns({
     onDevolver: handleDevolverSerie,
     onHistorial: handleHistorial,
+    onDevolverClaro: handleDevolverClaro,
   });
   const materialesColumns = getInventarioMaterialesColumns();
 
@@ -185,6 +215,15 @@ export default function InventarioPage() {
         confirmText="Devolver"
         onConfirm={async () => {
           await devolverSerieMutation.mutateAsync();
+        }}
+      />
+
+      <DevolverClaroDialog
+        open={devolverClaroOpen}
+        onOpenChange={setDevolverClaroOpen}
+        isLoading={devolverClaroMutation.isPending}
+        onConfirm={async (contabilizado) => {
+          await devolverClaroMutation.mutateAsync(contabilizado);
         }}
       />
     </PageWrapper>

@@ -7,7 +7,8 @@ export type SituationLabel =
   | "DESPACHADO"
   | "LIQUIDADO"
   | "RETIRADO"
-  | "DEVUELTO";
+  | "DEVUELTO"
+  | "DEVUELTO A CLARO";
 
 export interface SerieResource {
   id: number;

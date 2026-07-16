@@ -39,6 +39,16 @@ export const devolverInventarioSerie = async (inventarioTecnicoId: number) => {
   return data;
 };
 
+export const devolverClaroInventarioSerie = async (
+  serieId: number,
+  contabilizado: string,
+) => {
+  const { data } = await api.patch(`/inventarios/series/${serieId}/devolver-claro`, {
+    contabilizado,
+  });
+  return data;
+};
+
 export const getSerieMovimientos = async (serieId: number): Promise<SerieMovimientoResource[]> => {
   const { data } = await api.get(`/series/${serieId}/movimientos`);
   return data;

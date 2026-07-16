@@ -8,6 +8,7 @@ import type {
 
 function getProductoInfo(item: ProductoLiquidacionItem): ProductoInfo | null {
   if (item.producto) return item.producto;
+  if (item.productos) return item.productos;
   return item.series[0]?.serie?.producto ?? null;
 }
 

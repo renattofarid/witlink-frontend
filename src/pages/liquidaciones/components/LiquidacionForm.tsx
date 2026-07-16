@@ -112,8 +112,6 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
   const saveMutation = useMutation({
     mutationFn: () => {
       if (!liquidacion) throw new Error("No hay SOT cargada");
-      if (items.length === 0)
-        throw new Error("Debe agregar al menos un producto");
 
       const observaciones = form.getValues("observaciones");
 
@@ -187,13 +185,6 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
 
   const handleSave = form.handleSubmit(
     () => {
-      if (items.length === 0) {
-        warningToast(
-          "No se puede guardar",
-          "Debe agregar al menos un producto antes de guardar.",
-        );
-        return;
-      }
       saveMutation.mutate();
     },
     (errors) => {

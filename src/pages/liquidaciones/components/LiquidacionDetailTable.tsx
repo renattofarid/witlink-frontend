@@ -152,7 +152,7 @@ export default function LiquidacionDetailTable({
                 "bg-amber-500 hover:bg-amber-600 text-white border-amber-500",
             )}
             onClick={onSave}
-            disabled={isSaving || items.length === 0}
+            disabled={isSaving}
           >
             <Save className="size-3.5" />
             {isSaving ? "Guardando..." : "Guardar"}

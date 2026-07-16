@@ -19,9 +19,8 @@ export const LIQUIDACION_ROUTE_VIEW = "/liquidaciones/ver";
 export const LIQUIDACION_ROUTE_EDIT = "/liquidaciones/editar";
 
 export const ESTADO_LIQUIDACION_OPTIONS = [
-  { label: "Pendiente", value: "PENDIENTE" },
-  { label: "Aprobada", value: "APROBADA" },
-  { label: "Rechazada", value: "RECHAZADA" },
+  { label: "Pendiente", value: "pendiente" },
+  { label: "Liquidada", value: "liquidada" },
 ];
 
 export const ESTADO_OPERATIVO_OPTIONS = [

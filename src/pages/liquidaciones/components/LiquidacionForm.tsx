@@ -115,9 +115,12 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
       if (items.length === 0)
         throw new Error("Debe agregar al menos un producto");
 
+      const observaciones = form.getValues("observaciones");
+
       if (liquidacion.estado_liquidacion === "liquidada") {
         return updateProductosLiquidacion({
           liquidacion_id: liquidacion.id,
+          observaciones,
           productos: items.map((item) => ({
             ...(item.detalle_id ? { id: item.detalle_id } : {}),
             producto_id: item.producto_id,
@@ -159,6 +162,7 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
       return saveProductosLiquidacion({
         liquidacion_id: liquidacion.id,
         cantidad: totalCantidad,
+        observaciones,
         productos: Object.values(grouped),
       });
     },

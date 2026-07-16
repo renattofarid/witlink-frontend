@@ -221,6 +221,7 @@ export interface LiquidacionCartItem {
 export interface SaveProductosBody {
   liquidacion_id: number;
   cantidad: number;
+  observaciones?: string;
   productos: Array<{
     cantidad: number;
     tecnico_id: number;
@@ -231,6 +232,7 @@ export interface SaveProductosBody {
 
 export interface UpdateProductosBody {
   liquidacion_id: number;
+  observaciones?: string;
   productos: Array<{
     id?: number;
     producto_id: number;

@@ -72,7 +72,10 @@ export default function LiquidacionCreatePage() {
 
       {/* Resumen cuando ya está liquidada */}
       {currentSot?.liquidacion.estado_liquidacion === "liquidada" && (
-        <LiquidacionLiquidadaView liquidacion={currentSot.liquidacion} />
+        <LiquidacionLiquidadaView
+          liquidacion={currentSot.liquidacion}
+          documentosEquiposRetirados={currentSot.documentos_equipos_retirados}
+        />
       )}
 
       {/* Formulario (pendiente → POST, liquidada → PUT) */}

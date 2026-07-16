@@ -1,9 +1,10 @@
-import { CheckCircle2, Hash, Clock, User, Layers, Cpu } from "lucide-react";
+import { CheckCircle2, Hash, Clock, User, Layers, Cpu, Undo2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import type {
   LiquidacionResource,
   ProductoLiquidacionItem,
   ProductoInfo,
+  DocumentoEquiposRetirados,
 } from "../lib/liquidaciones.interface";
 
 function getProductoInfo(item: ProductoLiquidacionItem): ProductoInfo | null {
@@ -27,14 +28,19 @@ function formatPersona(persona: {
 
 interface LiquidacionLiquidadaViewProps {
   liquidacion: LiquidacionResource;
+  documentosEquiposRetirados?: DocumentoEquiposRetirados[];
 }
 
 export default function LiquidacionLiquidadaView({
   liquidacion,
+  documentosEquiposRetirados = [],
 }: LiquidacionLiquidadaViewProps) {
   const productos = liquidacion.productos ?? [];
   const materiales = productos.filter((item) => item.series.length === 0);
   const equipos = productos.filter((item) => item.series.length > 0);
+  const equiposRetirados = documentosEquiposRetirados.flatMap(
+    (documento) => documento.productos,
+  );
 
   const fechaHora = new Date(liquidacion.updated_at).toLocaleString("es-PE", {
     day: "2-digit",
@@ -169,11 +175,50 @@ export default function LiquidacionLiquidadaView({
           </div>
         )}
 
-        {materiales.length === 0 && equipos.length === 0 && (
-          <p className="text-xs text-muted-foreground py-1">
-            Sin productos registrados en esta liquidación.
-          </p>
+        {(materiales.length > 0 || equipos.length > 0) &&
+          equiposRetirados.length > 0 && <Separator />}
+
+        {/* Equipos retirados */}
+        {equiposRetirados.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
+              <Undo2 className="size-3" />
+              Equipos retirados
+            </p>
+            <div className="space-y-1.5">
+              {equiposRetirados.map((item) => {
+                const seriesStr = item.series
+                  .map((s) => s.serie.serie)
+                  .join(", ");
+                return (
+                  <div key={item.id} className="flex items-start gap-2">
+                    <span className="font-mono text-xs text-muted-foreground shrink-0 w-28 truncate mt-0.5">
+                      {item.producto?.sap ?? "—"}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm">
+                        {item.producto?.nombre ?? "Desconocido"}
+                      </p>
+                      {seriesStr && (
+                        <p className="text-xs text-muted-foreground font-mono">
+                          Serie: {seriesStr}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         )}
+
+        {materiales.length === 0 &&
+          equipos.length === 0 &&
+          equiposRetirados.length === 0 && (
+            <p className="text-xs text-muted-foreground py-1">
+              Sin productos registrados en esta liquidación.
+            </p>
+          )}
       </div>
     </div>
   );

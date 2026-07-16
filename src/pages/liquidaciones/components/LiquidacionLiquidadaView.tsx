@@ -1,4 +1,4 @@
-import { CheckCircle2, Hash, Clock, User, Layers, Cpu, Undo2 } from "lucide-react";
+import { CheckCircle2, Hash, Clock, User, Layers, Cpu, Undo2, MessageSquare } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import type {
   LiquidacionResource,
@@ -105,6 +105,19 @@ export default function LiquidacionLiquidadaView({
           </span>
         )}
       </div>
+
+      {/* Observaciones */}
+      {liquidacion.observaciones && (
+        <div className="px-4 py-2.5 border-b bg-amber-50/50 dark:bg-amber-950/10">
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5 mb-1">
+            <MessageSquare className="size-3" />
+            Observaciones
+          </p>
+          <p className="text-sm text-foreground whitespace-pre-wrap">
+            {liquidacion.observaciones}
+          </p>
+        </div>
+      )}
 
       {/* Listas de productos */}
       <div className="px-4 py-3 space-y-3">

@@ -465,13 +465,23 @@ export default function AddProductosModal({
                 </p>
               ) : (
                 <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
-                  {selectedExternSeries.map((s) => (
-                    <ExternSerieCard
-                      key={s.serie_id}
-                      item={s}
-                      onRemove={() => removeExternSerie(s.serie_id)}
-                    />
-                  ))}
+                  {selectedExternSeries
+                    .filter((serie) => {
+                      if (!notRepetidos) return true;
+
+                      return (
+                        serie.situacion_label !== "LIQUIDADO" &&
+                        serie.situacion_label !== "INSTALADO" &&
+                        serie.situacion_label !== "RETIRADO"
+                      );
+                    })
+                    .map((s) => (
+                      <ExternSerieCard
+                        key={s.serie_id}
+                        item={s}
+                        onRemove={() => removeExternSerie(s.serie_id)}
+                      />
+                    ))}
                 </div>
               )}
             </TabsContent>
@@ -684,7 +694,8 @@ function SerieAsyncSearch({
 
                   return (
                     serie.situacion_label !== "LIQUIDADO" &&
-                    serie.situacion_label !== "INSTALADO" && serie.situacion_label !== "RETIRADO"
+                    serie.situacion_label !== "INSTALADO" &&
+                    serie.situacion_label !== "RETIRADO"
                   );
                 })
                 .map((serie) => {

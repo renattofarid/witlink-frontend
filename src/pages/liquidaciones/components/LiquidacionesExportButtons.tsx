@@ -25,7 +25,11 @@ interface ExcelResponse {
   file_base64: string;
 }
 
-function downloadFromBase64({ file_base64, file_name, mime_type }: ExcelResponse) {
+function downloadFromBase64({
+  file_base64,
+  file_name,
+  mime_type,
+}: ExcelResponse) {
   const byteChars = atob(file_base64);
   const buffer = new ArrayBuffer(byteChars.length);
   const bytes = new Uint8Array(buffer);
@@ -41,10 +45,14 @@ function downloadFromBase64({ file_base64, file_name, mime_type }: ExcelResponse
   window.URL.revokeObjectURL(url);
 }
 
-export default function LiquidacionesExportButtons() {
+export default function LiquidacionesExportButtons({
+  filters,
+}: {
+  filters: any;
+}) {
   const [open, setOpen] = useState(false);
   const [fechaInicio, setFechaInicio] = useState<Date>(
-    () => new Date(new Date().getFullYear(), 0, 1)
+    () => new Date(new Date().getFullYear(), 0, 1),
   );
   const [fechaFin, setFechaFin] = useState<Date>(() => new Date());
   const [loadingLiquidadas, setLoadingLiquidadas] = useState(false);
@@ -54,7 +62,7 @@ export default function LiquidacionesExportButtons() {
     setLoadingLiquidadas(true);
     try {
       const { data } = await api.get<ExcelResponse>(
-        "/liquidaciones/liquidadas/exportar-excel"
+        "/liquidaciones/liquidadas/exportar-excel",
       );
       downloadFromBase64(data);
       toast.success("Excel descargado exitosamente");
@@ -78,8 +86,11 @@ export default function LiquidacionesExportButtons() {
           params: {
             fecha_inicio: format(fechaInicio, "yyyy-MM-dd"),
             fecha_fin: format(fechaFin, "yyyy-MM-dd"),
+            seach: filters.search,
+            estado: filters.estado,
+            estado_liquidacion: filters.estado_liquidacion,
           },
-        }
+        },
       );
       downloadFromBase64(data);
       toast.success("Resumen descargado exitosamente");

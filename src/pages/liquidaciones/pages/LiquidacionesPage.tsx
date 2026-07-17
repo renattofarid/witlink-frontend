@@ -92,7 +92,7 @@ export default function LiquidacionesPage() {
         icon="ClipboardList"
       >
         <ActionsWrapper>
-          <LiquidacionesExportButtons />
+          <LiquidacionesExportButtons filters={params} />
           <Button
             variant="outline"
             size="sm"

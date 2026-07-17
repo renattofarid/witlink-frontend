@@ -14,6 +14,7 @@ export const SITUACION = {
   RETIRADO: "RETIRADO",
   DEVUELTO: "DEVUELTO",
   DEVUELTO_A_CLARO: "DEVUELTO A CLARO",
+  INSTALADO: "INSTALADO"
 } as const;
 
 export type SituacionLabel = SerieResource["situacion_label"];
@@ -26,6 +27,7 @@ const SITUACION_COLOR: Record<SituacionLabel, BadgeColor> = {
   RETIRADO: "gray",
   DEVUELTO: "orange",
   "DEVUELTO A CLARO": "indigo",
+  INSTALADO : "amber"
 };
 
 function getSituacionColor(situacion: string): BadgeColor {

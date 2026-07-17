@@ -57,6 +57,7 @@ interface AddProductosModalProps {
   liquidacion: LiquidacionResource;
   onConfirm: (items: LiquidacionCartItem[]) => void;
   initialTecnicoId?: string;
+  notRepetidos?: boolean;
 }
 
 interface MaterialSelection {
@@ -81,6 +82,7 @@ export default function AddProductosModal({
   liquidacion,
   onConfirm,
   initialTecnicoId,
+  notRepetidos,
 }: AddProductosModalProps) {
   const { selectedInventoryTecnicoId, setSelectedInventoryTecnico } =
     useLiquidacionStore();
@@ -361,8 +363,8 @@ export default function AddProductosModal({
                 <AlertTriangle className="size-3.5 mt-0.5 shrink-0" />
                 <span>
                   Estás viendo el inventario de{" "}
-                  <span className="font-semibold">{tecnicoNombre}</span>, no
-                  del técnico principal asignado.
+                  <span className="font-semibold">{tecnicoNombre}</span>, no del
+                  técnico principal asignado.
                 </span>
               </div>
             )}
@@ -452,6 +454,7 @@ export default function AddProductosModal({
                     selectedIds={selectedSerieIds}
                     initialTecnicoId={initialTecnicoId}
                     initialSearch={serieSearch}
+                    notRepetidos={notRepetidos}
                   />
                 </div>
               )}
@@ -594,11 +597,13 @@ function SerieAsyncSearch({
   selectedIds,
   initialTecnicoId,
   initialSearch,
+  notRepetidos,
 }: {
   onSelect: (serie: SelectedExternSerie) => void;
   selectedIds: Set<number>;
   initialTecnicoId?: string;
   initialSearch?: string;
+  notRepetidos?: boolean;
 }) {
   const [search, setSearch] = useState(initialSearch ?? "");
   const [debouncedSearch, setDebouncedSearch] = useState(initialSearch ?? "");
@@ -673,66 +678,75 @@ function SerieAsyncSearch({
                 Sin resultados para &ldquo;{debouncedSearch}&rdquo;
               </p>
             ) : (
-              results.map((serie) => {
-                const isSelected = selectedIds.has(serie.id);
-                const ownerName = serie.tecnico
-                  ? `${serie.tecnico.nombre}`
-                  : null;
-                const isDifferentOwner =
-                  (serie.tecnico &&
-                    initialTecnicoId &&
-                    String(serie.tecnico.id) !== initialTecnicoId) ||
-                  (!serie.tecnico && serie.situacion_label === "DESPACHADO");
+              results
+                .filter((serie) => {
+                  if (!notRepetidos) return true;
 
-                return (
-                  <button
-                    key={serie.id}
-                    type="button"
-                    disabled={isSelected}
-                    onClick={() => handleSerieClick(serie)}
-                    className={cn(
-                      "w-full text-left px-3 py-2 text-xs border-b last:border-b-0 transition-colors",
-                      isSelected
-                        ? "opacity-50 cursor-not-allowed bg-muted"
-                        : "hover:bg-accent",
-                    )}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="min-w-0 flex-1">
-                        <p className="font-medium truncate">
-                          {serie.producto?.nombre}
-                        </p>
-                        <p className="text-muted-foreground font-mono">
-                          Serie: {serie.serie}
-                        </p>
-                        {serie.mac && (
-                          <p className="text-muted-foreground">
-                            MAC: {serie.mac}
+                  return (
+                    serie.situacion_label !== "LIQUIDADO" &&
+                    serie.situacion_label !== "INSTALADO"
+                  );
+                })
+                .map((serie) => {
+                  const isSelected = selectedIds.has(serie.id);
+                  const ownerName = serie.tecnico
+                    ? `${serie.tecnico.nombre}`
+                    : null;
+                  const isDifferentOwner =
+                    (serie.tecnico &&
+                      initialTecnicoId &&
+                      String(serie.tecnico.id) !== initialTecnicoId) ||
+                    (!serie.tecnico && serie.situacion_label === "DESPACHADO");
+
+                  return (
+                    <button
+                      key={serie.id}
+                      type="button"
+                      disabled={isSelected}
+                      onClick={() => handleSerieClick(serie)}
+                      className={cn(
+                        "w-full text-left px-3 py-2 text-xs border-b last:border-b-0 transition-colors",
+                        isSelected
+                          ? "opacity-50 cursor-not-allowed bg-muted"
+                          : "hover:bg-accent",
+                      )}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium truncate">
+                            {serie.producto?.nombre}
                           </p>
-                        )}
-                        {isDifferentOwner && (
-                          <p className="text-amber-600 dark:text-amber-400 flex items-center gap-1 mt-0.5">
-                            <AlertTriangle className="size-3 shrink-0" />
-                            {ownerName
-                              ? `Pertenece a: ${ownerName}`
-                              : "Asignado a otro técnico"}
+                          <p className="text-muted-foreground font-mono">
+                            Serie: {serie.serie}
                           </p>
-                        )}
+                          {serie.mac && (
+                            <p className="text-muted-foreground">
+                              MAC: {serie.mac}
+                            </p>
+                          )}
+                          {isDifferentOwner && (
+                            <p className="text-amber-600 dark:text-amber-400 flex items-center gap-1 mt-0.5">
+                              <AlertTriangle className="size-3 shrink-0" />
+                              {ownerName
+                                ? `Pertenece a: ${ownerName}`
+                                : "Asignado a otro técnico"}
+                            </p>
+                          )}
+                        </div>
+                        <div className="shrink-0 flex flex-col items-end gap-1">
+                          <Badge variant="outline" className="text-xs">
+                            {serie.situacion_label}
+                          </Badge>
+                          {isSelected && (
+                            <span className="text-xs text-primary font-medium">
+                              Agregado
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      <div className="shrink-0 flex flex-col items-end gap-1">
-                        <Badge variant="outline" className="text-xs">
-                          {serie.situacion_label}
-                        </Badge>
-                        {isSelected && (
-                          <span className="text-xs text-primary font-medium">
-                            Agregado
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </button>
-                );
-              })
+                    </button>
+                  );
+                })
             )}
           </div>
         )}

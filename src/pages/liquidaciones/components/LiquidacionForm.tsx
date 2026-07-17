@@ -13,7 +13,10 @@ import {
   liquidacionFormSchema,
   type LiquidacionFormValues,
 } from "../lib/liquidaciones.schema";
-import { saveProductosLiquidacion, updateProductosLiquidacion } from "../lib/liquidaciones.actions";
+import {
+  saveProductosLiquidacion,
+  updateProductosLiquidacion,
+} from "../lib/liquidaciones.actions";
 import { LiquidacionesComplete } from "../lib/liquidaciones.constants";
 import { useLiquidacionStore } from "../lib/liquidaciones.store";
 import { useTecnicosLiquidacionQuery } from "../lib/liquidaciones.hook";
@@ -63,24 +66,30 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
     if (!liquidacion?.productos?.length) return;
     if (useLiquidacionStore.getState().items.length > 0) return;
 
-    const cartItems: LiquidacionCartItem[] = liquidacion.productos.map((item) => {
-      const prod = item.productos ?? item.producto ?? item.series[0]?.serie?.producto;
-      return {
-        tempId: `api-${item.id}`,
-        detalle_id: item.id,
-        tipo: prod?.necesita_serie ? "serie" : "material",
-        producto_id: prod?.id ?? item.producto_id ?? 0,
-        producto_nombre: prod?.nombre ?? "Desconocido",
-        producto_sap: prod?.sap ?? "",
-        tecnico_id: item.tecnico_id,
-        tecnico_nombre: item.tecnico ?? `Técnico ${item.tecnico_id}`,
-        cantidad: Number(item.cantidad),
-        series: item.series.map((s) => ({ id: s.serie.id, serie: s.serie.serie })),
-      };
-    });
+    const cartItems: LiquidacionCartItem[] = liquidacion.productos.map(
+      (item) => {
+        const prod =
+          item.productos ?? item.producto ?? item.series[0]?.serie?.producto;
+        return {
+          tempId: `api-${item.id}`,
+          detalle_id: item.id,
+          tipo: prod?.necesita_serie ? "serie" : "material",
+          producto_id: prod?.id ?? item.producto_id ?? 0,
+          producto_nombre: prod?.nombre ?? "Desconocido",
+          producto_sap: prod?.sap ?? "",
+          tecnico_id: item.tecnico_id,
+          tecnico_nombre: item.tecnico ?? `Técnico ${item.tecnico_id}`,
+          cantidad: Number(item.cantidad),
+          series: item.series.map((s) => ({
+            id: s.serie.id,
+            serie: s.serie.serie,
+          })),
+        };
+      },
+    );
 
     addItems(cartItems);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [liquidacion]);
 
   // Guarda los valores del formulario al desmontar, identificados por el SOT capturado al montar
@@ -88,25 +97,33 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
     const sot = sotAtMountRef.current;
     return () => {
       if (sot) {
-        setSavedFormValues({ sot, values: form.getValues() as Record<string, string> });
+        setSavedFormValues({
+          sot,
+          values: form.getValues() as Record<string, string>,
+        });
       }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Restaura desde el store si corresponde al mismo SOT, si no usa los valores de la API
   useEffect(() => {
     if (!liquidacion) return;
     if (savedFormValues && savedFormValues.sot === sotAtMountRef.current) {
-      form.setValue("observaciones", savedFormValues.values.observaciones ?? "");
+      form.setValue(
+        "observaciones",
+        savedFormValues.values.observaciones ?? "",
+      );
       form.setValue("tecnico1", savedFormValues.values.tecnico1 ?? "");
       form.setValue("tecnico2", savedFormValues.values.tecnico2 ?? "");
     } else {
       form.setValue("observaciones", liquidacion.observaciones ?? "");
-      if (liquidacion.tecnico1?.id) form.setValue("tecnico1", String(liquidacion.tecnico1.id));
-      if (liquidacion.tecnico2?.id) form.setValue("tecnico2", String(liquidacion.tecnico2.id));
+      if (liquidacion.tecnico1?.id)
+        form.setValue("tecnico1", String(liquidacion.tecnico1.id));
+      if (liquidacion.tecnico2?.id)
+        form.setValue("tecnico2", String(liquidacion.tecnico2.id));
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [liquidacion]);
 
   const saveMutation = useMutation({
@@ -291,6 +308,7 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
           liquidacion={liquidacion}
           onConfirm={handleAddItems}
           initialTecnicoId={tecnico1Value || undefined}
+          notRepetidos={true}
         />
       )}
     </div>

@@ -8,6 +8,7 @@ export type SituationLabel =
   | "LIQUIDADO"
   | "RETIRADO"
   | "DEVUELTO"
+  | "INSTALADO"
   | "DEVUELTO A CLARO";
 
 export interface SerieResource {

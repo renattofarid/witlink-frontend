@@ -684,7 +684,7 @@ function SerieAsyncSearch({
 
                   return (
                     serie.situacion_label !== "LIQUIDADO" &&
-                    serie.situacion_label !== "INSTALADO"
+                    serie.situacion_label !== "INSTALADO" && serie.situacion_label !== "RETIRADO"
                   );
                 })
                 .map((serie) => {

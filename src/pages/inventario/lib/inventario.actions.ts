@@ -53,3 +53,12 @@ export const getSerieMovimientos = async (serieId: number): Promise<SerieMovimie
   const { data } = await api.get(`/series/${serieId}/movimientos`);
   return data;
 };
+
+export const updateSot = async (serieId: number, sot: string) => {
+  const { data } = await api.patch(
+    `/inventarios/series/${serieId}/sot`,
+    { sot }
+  );
+
+  return data;
+};

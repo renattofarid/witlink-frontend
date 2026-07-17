@@ -21,6 +21,7 @@ import {
 import {
   devolverInventarioSerie,
   devolverClaroInventarioSerie,
+  updateSot,
 } from "../lib/inventario.actions";
 import { getInventarioSeriesColumns } from "../components/InventarioSeriesColumns";
 import { getInventarioMaterialesColumns } from "../components/InventarioMaterialesColumns";
@@ -29,6 +30,15 @@ import InventarioMaterialesFilters from "../components/InventarioMaterialesFilte
 import InventarioSerieHistorialSheet from "../components/InventarioSerieHistorialSheet";
 import { DevolverClaroDialog } from "../components/DevolverClaroDialog";
 import type { InventarioSerieResource } from "../lib/inventario.interface";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 export default function InventarioPage() {
   const { almacen_id } = useAuthStore();
@@ -43,6 +53,8 @@ export default function InventarioPage() {
   const [selectedSerieClaro, setSelectedSerieClaro] =
     useState<InventarioSerieResource | null>(null);
   const [devolverClaroOpen, setDevolverClaroOpen] = useState(false);
+  const [openSot, setOpenSot] = useState(false);
+  const [sot, setSot] = useState("");
 
   const [seriesParams, setSeriesParams] = useTabParams(
     "/inventario/series-tab",
@@ -100,6 +112,25 @@ export default function InventarioPage() {
     },
   });
 
+  const updateSotMutation = useMutation({
+    mutationFn: ({ id, sot }: { id: number; sot: string }) =>
+      updateSot(id, sot),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [INVENTARIO_SERIES_QUERY_KEY],
+      });
+
+      successToast("SOT actualizado correctamente.");
+    },
+
+    onError: (error: any) => {
+      errorToast(
+        error.response?.data?.message ?? "No se pudo actualizar el SOT.",
+      );
+    },
+  });
+
   const handleDevolverSerie = (row: InventarioSerieResource) => {
     setSelectedSerie(row);
     setDevolverSerieOpen(true);
@@ -115,10 +146,17 @@ export default function InventarioPage() {
     setDevolverClaroOpen(true);
   };
 
+  const handleUpdateSot = (row: InventarioSerieResource) => {
+    setSelectedSerie(row);
+    setSot(row.sot ?? "");
+    setOpenSot(true);
+  };
+
   const seriesColumns = getInventarioSeriesColumns({
     onDevolver: handleDevolverSerie,
     onHistorial: handleHistorial,
     onDevolverClaro: handleDevolverClaro,
+    onStatusSot: handleUpdateSot,
   });
   const materialesColumns = getInventarioMaterialesColumns();
 
@@ -226,6 +264,46 @@ export default function InventarioPage() {
           await devolverClaroMutation.mutateAsync(contabilizado);
         }}
       />
+      <Dialog open={openSot} onOpenChange={setOpenSot}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Actualizar SOT</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <Input
+              value={sot}
+              onChange={(e) => setSot(e.target.value)}
+              placeholder="Ingrese la SOT"
+            />
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpenSot(false)}>
+              Cancelar
+            </Button>
+
+            <Button
+              disabled={updateSotMutation.isPending}
+              onClick={() =>
+                updateSotMutation.mutate(
+                  {
+                    id: selectedSerie!.serie_id,
+                    sot,
+                  },
+                  {
+                    onSuccess: () => {
+                      setOpenSot(false);
+                    },
+                  },
+                )
+              }
+            >
+              {updateSotMutation.isPending ? "Guardando..." : "Guardar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </PageWrapper>
   );
 }

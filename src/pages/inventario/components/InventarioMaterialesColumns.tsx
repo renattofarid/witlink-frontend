@@ -30,6 +30,9 @@ export const getInventarioMaterialesColumns =
     {
       accessorKey: "sot",
       header: "SOT",
+      cell: ({ row }) => {
+        console.log(row.original.sot);
+      },
     },
     {
       accessorKey: "motivo",

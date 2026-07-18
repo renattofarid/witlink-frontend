@@ -97,16 +97,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       icon: LayoutGrid,
     };
 
-    const groupItems = (user.grupos_menu ?? []).map((grupo) => ({
-      title: grupo.nombre,
-      url: "#",
-      icon: getIcon(grupo.icono),
-      items: grupo.opciones_menu.map((opcion) => ({
-        title: opcion.nombre,
-        url: opcion.ruta,
-        icon: getIcon(opcion.icono),
-      })),
-    }));
+    const groupItems = (user.grupos_menu ?? [])
+      .filter((grupo) => grupo.icono !== "permission")
+      .map((grupo) => ({
+        title: grupo.nombre,
+        url: "#",
+        icon: getIcon(grupo.icono),
+        items: grupo.opciones_menu.map((opcion) => ({
+          title: opcion.nombre,
+          url: opcion.ruta,
+          icon: getIcon(opcion.icono),
+        })),
+      }));
 
     const devItems = import.meta.env.DEV
       ? [

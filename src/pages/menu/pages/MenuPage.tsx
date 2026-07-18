@@ -50,7 +50,7 @@ export default function MenuPage() {
     onError: (error: any) => {
       errorToast(
         error.response?.data?.message ??
-          ERROR_MESSAGE(MenuComplete.MODEL, "delete")
+          ERROR_MESSAGE(MenuComplete.MODEL, "delete"),
       );
     },
   });
@@ -64,7 +64,7 @@ export default function MenuPage() {
     onError: (error: any) => {
       errorToast(
         error.response?.data?.message ??
-          ERROR_MESSAGE(MenuComplete.MODEL, "restore")
+          ERROR_MESSAGE(MenuComplete.MODEL, "restore"),
       );
     },
   });
@@ -123,7 +123,10 @@ export default function MenuPage() {
             search={params.search ?? ""}
             onSearchChange={handleSearchChange}
           />
-          <MenuButtons onAdd={handleAdd} onReorganize={() => setKanbanOpen(true)} />
+          <MenuButtons
+            onAdd={handleAdd}
+            onReorganize={() => setKanbanOpen(true)}
+          />
         </ActionsWrapper>
       </TitleComponent>
 

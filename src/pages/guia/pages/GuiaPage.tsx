@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTabParams } from "@/hooks/useTabParams";
+import { useHasPermission } from "@/hooks/useHasPermission";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -40,6 +41,7 @@ import {
 export default function GuiaPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const canConfirm = useHasPermission("confirmar-ingreso");
 
   const today = new Date();
   const [params, setParams] = useTabParams(GuiaComplete.ABSOLUTE_ROUTE, {
@@ -121,6 +123,7 @@ export default function GuiaPage() {
       setToConfirm(row);
       setConfirmOpen(true);
     },
+    canConfirm,
   });
 
   const exportParams = Object.fromEntries(

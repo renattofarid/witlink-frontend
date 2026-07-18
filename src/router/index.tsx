@@ -450,16 +450,14 @@ export default function AppRoutes() {
         }
       />
 
-      {import.meta.env.DEV && (
-        <Route
-          path={MenuComplete.ROUTE}
-          element={
-            <ProtectedRoute>
-              <MenuPage />
-            </ProtectedRoute>
-          }
-        />
-      )}
+      <Route
+        path={MenuComplete.ROUTE}
+        element={
+          <ProtectedRoute>
+            <MenuPage />
+          </ProtectedRoute>
+        }
+      />
 
       {/* 404 */}
       <Route path="*" element={<Navigate to="/inicio" />} />

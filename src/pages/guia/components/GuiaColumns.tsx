@@ -23,6 +23,7 @@ interface ColumnActions {
   onDelete: (row: GuiaListResource) => void;
   onRestore: (row: GuiaListResource) => void;
   onConfirm: (row: GuiaListResource) => void;
+  canConfirm: boolean;
 }
 
 export const getGuiaColumns = ({
@@ -33,6 +34,7 @@ export const getGuiaColumns = ({
   onDelete,
   onRestore,
   onConfirm,
+  canConfirm,
 }: ColumnActions): ColumnDef<GuiaListResource>[] => [
   {
     id: "tipo",
@@ -136,6 +138,8 @@ export const getGuiaColumns = ({
       const item = row.original;
       const isDeleted = !!item.deleted_at;
       const isRetirado = item.type === "retirado";
+
+
       return (
         <div className="flex gap-1">
           <ButtonAction
@@ -160,7 +164,7 @@ export const getGuiaColumns = ({
           />
           <ButtonAction
             icon={CheckCircle}
-            canRender={!isDeleted && !isRetirado && !item.confirmado}
+            canRender={canConfirm && !isDeleted && !isRetirado && !item.confirmado}
             onClick={() => onConfirm(item)}
           />
           <ButtonAction

@@ -97,7 +97,9 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
     const publicPaths = [
       "/inicio",
       "/",
-      ...(import.meta.env.DEV ? [MenuComplete.ABSOLUTE_ROUTE] : []),
+      ...(import.meta.env.DEV
+        ? [MenuComplete.ABSOLUTE_ROUTE]
+        : [MenuComplete.ABSOLUTE_ROUTE]),
     ];
     const isPublic = publicPaths.includes(location.pathname);
     const hasAccess =

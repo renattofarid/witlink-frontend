@@ -28,3 +28,8 @@ export const confirmarTraslado = async (id: number) => {
   const { data } = await api.patch(`/traslados/${id}/confirmar`);
   return data;
 };
+
+export const anularTraslado = async (id: number) => {
+  const { data } = await api.patch(`/traslados/${id}/anular`);
+  return data;
+};

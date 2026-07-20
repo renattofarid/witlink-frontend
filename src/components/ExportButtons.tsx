@@ -116,7 +116,7 @@ export default function ExportButtons({
       <div className="flex items-center gap-1 bg-gray-50 dark:bg-gray-800 rounded-lg border dark:border-gray-800">
         {excelEndpoint && (
           <Tooltip>
-            <TooltipTrigger asChild>
+            <TooltipTrigger>
               <Button
                 size="sm"
                 variant="ghost"
@@ -135,7 +135,7 @@ export default function ExportButtons({
 
         {pdfEndpoint && (
           <Tooltip>
-            <TooltipTrigger asChild>
+            <TooltipTrigger>
               <Button
                 size="sm"
                 variant="ghost"
@@ -180,7 +180,7 @@ export default function ExportButtons({
     <>
       {excelEndpoint && (
         <Tooltip>
-          <TooltipTrigger asChild>
+          <TooltipTrigger>
             <Button
               size="sm"
               variant="ghost"
@@ -198,7 +198,7 @@ export default function ExportButtons({
 
       {pdfEndpoint && (
         <Tooltip>
-          <TooltipTrigger asChild>
+          <TooltipTrigger>
             <Button
               size="sm"
               variant="ghost"

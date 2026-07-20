@@ -75,7 +75,7 @@ export default function InventarioTecnicoButtons({
     <div className="flex items-center gap-2">
       <div className="flex items-center gap-1 bg-gray-50 dark:bg-gray-800 rounded-lg border dark:border-gray-800">
         <Tooltip>
-          <TooltipTrigger asChild>
+          <TooltipTrigger>
             <Button
               size="sm"
               variant="ghost"

@@ -14,7 +14,11 @@ interface SerieButtonsProps {
   onAdd: () => void;
 }
 
-function downloadFromBase64({ file_base64, file_name, mime_type }: ExcelResponse) {
+function downloadFromBase64({
+  file_base64,
+  file_name,
+  mime_type,
+}: ExcelResponse) {
   const byteChars = atob(file_base64);
   const buffer = new ArrayBuffer(byteChars.length);
   const bytes = new Uint8Array(buffer);
@@ -53,7 +57,7 @@ export default function SerieButtons({ onAdd }: SerieButtonsProps) {
     <div className="flex items-center gap-2">
       <div className="flex items-center gap-1 bg-gray-50 dark:bg-gray-800 rounded-lg border dark:border-gray-800">
         <Tooltip>
-          <TooltipTrigger asChild>
+          <TooltipTrigger>
             <Button
               size="sm"
               variant="ghost"
@@ -70,7 +74,7 @@ export default function SerieButtons({ onAdd }: SerieButtonsProps) {
           </TooltipContent>
         </Tooltip>
         <Tooltip>
-          <TooltipTrigger asChild>
+          <TooltipTrigger>
             <Button
               size="sm"
               variant="ghost"

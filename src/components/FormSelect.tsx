@@ -80,7 +80,7 @@ export function FormSelect({
               {label} {required && <RequiredField />}
               {tooltip && (
                 <Tooltip>
-                  <TooltipTrigger asChild>
+                  <TooltipTrigger>
                     <Badge
                       color="tertiary"
                       className="ml-2 p-0 aspect-square w-4 h-4 text-center justify-center"

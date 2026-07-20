@@ -8,15 +8,16 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SearchableSelect } from "@/components/SearchableSelect";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
+
+const PER_PAGE_OPTIONS = [
+  { value: "10", label: "10" },
+  { value: "25", label: "25" },
+  { value: "50", label: "50" },
+  { value: "100", label: "100" },
+  { value: "500", label: "500" },
+];
 
 interface Props {
   page: number;
@@ -69,25 +70,14 @@ export default function DataTablePagination({
     <Pagination className="flex flex-col md:flex-row justify-center items-center md:justify-between">
       {per_page && setPerPage && totalData ? (
         <div className="flex gap-2 items-center">
-          <Select
+          <SearchableSelect
+            options={PER_PAGE_OPTIONS}
             value={per_page.toString()}
-            onValueChange={(page) => {
+            onChange={(page) => {
               setPerPage(Number(page));
             }}
-          >
-            <SelectTrigger className="w-fit">
-              <SelectValue placeholder="Select a fruit" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectItem value="10">10</SelectItem>
-                <SelectItem value="25">25</SelectItem>
-                <SelectItem value="50">50</SelectItem>
-                <SelectItem value="100">100</SelectItem>
-                <SelectItem value="500">500</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+            className="w-fit"
+          />
           <p className="text-muted-foreground text-sm">
             {`Mostrando ${
               per_page > totalData ? totalData : per_page

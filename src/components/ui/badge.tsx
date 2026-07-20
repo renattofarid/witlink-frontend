@@ -275,7 +275,7 @@ function Badge({
 
   return tooltip ? (
     <Tooltip>
-      <TooltipTrigger asChild>
+      <TooltipTrigger>
         <div className={combinedClassName} {...props}>
           {content}
         </div>

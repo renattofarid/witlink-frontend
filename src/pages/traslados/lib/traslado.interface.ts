@@ -28,6 +28,7 @@ export interface TrasladoListItem {
   fecha: string | null;
   numero: string;
   confirmado: boolean;
+  anulado: boolean;
   almacen_origen_id: number;
   almacen_origen: string;
   almacen_destino_id: number;
@@ -36,9 +37,11 @@ export interface TrasladoListItem {
   cantidad_series: number;
   usuario: string;
   usuario_confirmo: string | null;
+  usuario_anula: string | null;
   productos: TrasladoProducto[];
   "fecha_envío": string;
   "fecha_confirmación": string | null;
+  fecha_anulacion: string | null;
 }
 
 export type TrasladoListResponse = PaginationResponse<TrasladoListItem>;

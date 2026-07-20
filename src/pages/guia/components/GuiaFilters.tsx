@@ -2,18 +2,17 @@ import { format } from "date-fns";
 import FilterWrapper from "@/components/FilterWrapper";
 import SearchInput from "@/components/SearchInput";
 import DatePicker from "@/components/DatePicker";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SearchableSelect } from "@/components/SearchableSelect";
 
 interface GuiaFiltersProps {
   params: Record<string, string>;
   setParams: React.Dispatch<React.SetStateAction<Record<string, string>>>;
 }
+
+const ALMACEN_OPTIONS = [
+  { value: "todos", label: "Todos" },
+  { value: "retirados", label: "Retirados" },
+];
 
 export default function GuiaFilters({ params, setParams }: GuiaFiltersProps) {
   return (
@@ -23,9 +22,11 @@ export default function GuiaFilters({ params, setParams }: GuiaFiltersProps) {
         onChange={(v) => setParams((prev) => ({ ...prev, search: v, page: "1" }))}
         placeholder="Buscar guía..."
       />
-      <Select
+      <SearchableSelect
+        placeholder="Almacén"
+        options={ALMACEN_OPTIONS}
         value={params.almacen ?? "todos"}
-        onValueChange={(v) =>
+        onChange={(v) =>
           setParams((prev) => {
             const next: Record<string, string> = { ...prev, page: "1" };
             if (v === "todos") delete next.almacen;
@@ -33,15 +34,7 @@ export default function GuiaFilters({ params, setParams }: GuiaFiltersProps) {
             return next;
           })
         }
-      >
-        <SelectTrigger className="h-8 w-36 text-xs">
-          <SelectValue placeholder="Almacén" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="todos" className="text-xs">Todos</SelectItem>
-          <SelectItem value="retirados" className="text-xs">Retirados</SelectItem>
-        </SelectContent>
-      </Select>
+      />
       <DatePicker
         value={params.fecha_inicio ?? ""}
         onChange={(date) =>

@@ -463,8 +463,11 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     );
 
     return tooltip ? (
-      <Tooltip>
-        <TooltipTrigger>{button}</TooltipTrigger>
+      <Tooltip
+        delayDuration={delayDuration ?? 300}
+        disableHoverableContent={true}
+      >
+        <TooltipTrigger asChild>{button}</TooltipTrigger>
         <TooltipContent>{tooltip}</TooltipContent>
       </Tooltip>
     ) : (

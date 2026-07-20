@@ -39,6 +39,7 @@ interface GuiaProductoDialogProps {
   ) => Promise<void>;
   fieldValidationStatus?: Record<string, "idle" | "loading" | "valid" | "invalid">;
   onGenerarSeries?: (series: SerieFormValues[]) => void;
+  isSubmitting?: boolean;
 }
 
 export function GuiaProductoDialog({
@@ -54,6 +55,7 @@ export function GuiaProductoDialog({
   onValidateField,
   fieldValidationStatus,
   onGenerarSeries,
+  isSubmitting,
 }: GuiaProductoDialogProps) {
   const watchedTipo = useWatch({
     control: productSubForm.control,
@@ -188,10 +190,10 @@ export function GuiaProductoDialog({
           type="button"
           size="sm"
           onClick={onSubmit}
-          disabled={hasBlockingFieldValidation}
+          disabled={hasBlockingFieldValidation || isSubmitting}
         >
           <Check className="size-3 mr-1" />
-          {editingIndex !== null ? "Actualizar" : "Agregar"}
+          {isSubmitting ? "Guardando..." : editingIndex !== null ? "Actualizar" : "Agregar"}
         </Button>
       </div>
     </div>

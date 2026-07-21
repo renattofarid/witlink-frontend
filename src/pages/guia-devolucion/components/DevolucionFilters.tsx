@@ -14,21 +14,12 @@ const ALMACEN_OPTIONS = [
   { value: "retirados", label: "Retirados" },
 ];
 
-const TIPOS_OPTIONS = [
-  { value: "todos", label: "TODOS" },
-  { value: "POST VENTA", label: "POST VENTA" },
-  { value: "CAMBIO POR INCIDENCIA", label: "CAMBIO POR INCIDENCIA" },
-  { value: "OTRO", label: "OTRO" },
-];
-
 export default function GuiaFilters({ params, setParams }: GuiaFiltersProps) {
   return (
     <FilterWrapper>
       <SearchInput
         value={params.search ?? ""}
-        onChange={(v) =>
-          setParams((prev) => ({ ...prev, search: v, page: "1" }))
-        }
+        onChange={(v) => setParams((prev) => ({ ...prev, search: v, page: "1" }))}
         placeholder="Buscar guía..."
       />
       <SearchableSelect
@@ -38,32 +29,12 @@ export default function GuiaFilters({ params, setParams }: GuiaFiltersProps) {
         onChange={(v) =>
           setParams((prev) => {
             const next: Record<string, string> = { ...prev, page: "1" };
-            if (v === "todos") {
-              delete next.almacen;
-              delete next.tipo;
-            } else next.almacen = v;
+            if (v === "todos") delete next.almacen;
+            else next.almacen = v;
             return next;
           })
         }
       />
-      {params.almacen === "retirados" ? (
-        <>
-          <SearchableSelect
-            placeholder="Tipo"
-            options={TIPOS_OPTIONS}
-            value={params.tipo ?? "todos"}
-            onChange={(v) =>
-              setParams((prev) => {
-                const next: Record<string, string> = { ...prev, page: "1" };
-                if (v === "todos") delete next.tipo;
-                else next.tipo = v;
-                return next;
-              })
-            }
-          />
-        </>
-      ) : null}
-
       <DatePicker
         value={params.fecha_inicio ?? ""}
         onChange={(date) =>

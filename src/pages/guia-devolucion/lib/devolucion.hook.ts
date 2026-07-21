@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { GuiaDevolucionComplete } from "./devolucion.constants";
+import { getGuiasDevolucion } from "./devolucion.actions";
 
 export const useGuiaDevolucionQuery = (params: Record<string, string>) => {
   return useQuery({
     queryKey: [GuiaDevolucionComplete.QUERY_KEY, params],
-    // queryFn: () => getGuias(params),
+    queryFn: () => getGuiasDevolucion(params),
     refetchOnWindowFocus: true,
   });
 };

@@ -18,6 +18,7 @@ export function GuiaProductoSelector({
   productSubForm,
   readonlyCantidad,
 }: GuiaProductoSelectorProps) {
+  
   const [createOpen, setCreateOpen] = useState(false);
 
   return (

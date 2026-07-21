@@ -29,13 +29,17 @@ export default function LiquidacionesPage() {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [pdfSot, setPdfSot] = useState<string>("");
 
-  const [params, setParams] = useTabParams(LiquidacionesComplete.ABSOLUTE_ROUTE, {
-    page: "1",
-    per_page: String(DEFAULT_PER_PAGE),
-    search: "",
-    estado: "",
-    estado_liquidacion: "",
-  });
+  const [params, setParams] = useTabParams(
+    LiquidacionesComplete.ABSOLUTE_ROUTE,
+    {
+      page: "1",
+      per_page: String(DEFAULT_PER_PAGE),
+      search: "",
+      estado: "",
+      estado_liquidacion: "",
+      sots: "",
+    },
+  );
 
   const queryParams = Object.fromEntries(
     Object.entries(params).filter(([, v]) => v !== ""),
@@ -57,6 +61,9 @@ export default function LiquidacionesPage() {
 
   const handlePerPageChange = (perPage: number) =>
     setParams((prev) => ({ ...prev, per_page: String(perPage), page: "1" }));
+
+  const handleSotsChange = (v: string) =>
+    setParams((prev) => ({ ...prev, sots: v, page: "1" }));
 
   const handleGetActa = async (row: LiquidacionResource) => {
     try {
@@ -128,9 +135,11 @@ export default function LiquidacionesPage() {
           search={params.search ?? ""}
           estado={params.estado ?? ""}
           estadoLiquidacion={params.estado_liquidacion ?? ""}
+          sots={params.sots ?? ""}
           onSearchChange={handleSearchChange}
           onEstadoChange={handleEstadoChange}
           onEstadoLiquidacionChange={handleEstadoLiquidacionChange}
+          onSotsChange={handleSotsChange}
         />
       </DataTable>
 

@@ -55,7 +55,7 @@ export default function InventarioPage() {
   const [devolverClaroOpen, setDevolverClaroOpen] = useState(false);
   const [openSot, setOpenSot] = useState(false);
   const [sot, setSot] = useState("");
-
+  
   const [seriesParams, setSeriesParams] = useTabParams(
     "/inventario/series-tab",
     {

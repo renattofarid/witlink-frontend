@@ -9,6 +9,34 @@ import type {
   ActaResource,
 } from "./liquidaciones.interface";
 
+function buildLiquidacionesParams(params: Record<string, string>) {
+  const { sots, ...rest } = params;
+  const result: Record<string, unknown> = { ...rest };
+
+  if (sots) {
+    const items = sots.split(",").filter(Boolean);
+    result.sots = items;
+  }
+
+  return result;
+}
+
+function serializeParams(params: Record<string, unknown>): string {
+  const search = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === "") return;
+
+    if (Array.isArray(value)) {
+      value.forEach((item) => search.append(`${key}[]`, String(item)));
+    } else {
+      search.append(key, String(value));
+    }
+  });
+
+  return search.toString();
+}
+
 export const searchSot = async (sot: string): Promise<SotSearchResponse> => {
   const { data } = await api.get(
     `${LiquidacionesComplete.ENDPOINT}/${encodeURIComponent(sot)}`,
@@ -19,7 +47,12 @@ export const searchSot = async (sot: string): Promise<SotSearchResponse> => {
 export const getLiquidaciones = async (
   params: Record<string, string>,
 ): Promise<LiquidacionesResponse> => {
-  const { data } = await api.get(LiquidacionesComplete.ENDPOINT, { params });
+  const { data } = await api.get(LiquidacionesComplete.ENDPOINT, {
+    params: buildLiquidacionesParams(params),
+    paramsSerializer: {
+      serialize: serializeParams,
+    },
+  });
   return data;
 };
 

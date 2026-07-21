@@ -19,6 +19,7 @@ export function GuiaProductoSelector({
   readonlyCantidad,
 }: GuiaProductoSelectorProps) {
   
+  
   const [createOpen, setCreateOpen] = useState(false);
 
   return (

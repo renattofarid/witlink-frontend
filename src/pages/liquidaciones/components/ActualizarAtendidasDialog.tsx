@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -11,10 +12,11 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import { successToast, errorToast, warningToast } from "@/lib/core.function";
 import {
-  actualizarSotsConsolidadoAtendidas,
+  actualizarSotsConsolidadoAtendidasPorTramos,
   type ImportarConsolidadoResponse,
 } from "../lib/liquidaciones.actions";
 import { LiquidacionesComplete } from "../lib/liquidaciones.constants";
@@ -85,14 +87,12 @@ function showImportResult(data: ImportarConsolidadoResponse) {
   ];
 
   if (errores > 0) {
-    partes.push(`${errores} omitidas (técnico no encontrado)`);
+    partes.push(`${errores}+ omitidas (técnico no encontrado)`);
   }
 
-  const mensaje = `${partes.join(" · ")}. El total en la tabla solo crece con SOT nuevas.`;
+  const mensaje = partes.join(" · ");
 
-  if (errores > 0 && total === 0) {
-    warningToast(mensaje);
-  } else if (errores > 0) {
+  if (errores > 0) {
     warningToast(mensaje);
   } else {
     successToast(data.mensaje ?? mensaje);
@@ -101,6 +101,10 @@ function showImportResult(data: ImportarConsolidadoResponse) {
 
 export default function ActualizarAtendidasDialog({ open, onClose }: Props) {
   const queryClient = useQueryClient();
+  const [progress, setProgress] = useState<{
+    percent: number;
+    label: string;
+  } | null>(null);
 
   const { control, handleSubmit, reset } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -112,8 +116,15 @@ export default function ActualizarAtendidasDialog({ open, onClose }: Props) {
 
   const mutation = useMutation({
     mutationFn: ({ desde, hasta }: FormValues) =>
-      actualizarSotsConsolidadoAtendidas(desde, hasta),
+      actualizarSotsConsolidadoAtendidasPorTramos(desde, hasta, (info) => {
+        const percent = Math.round((info.current / info.total) * 100);
+        setProgress({
+          percent,
+          label: `Tramo ${info.current} de ${info.total}: ${info.chunkDesde} → ${info.chunkHasta}`,
+        });
+      }),
     onSuccess: (data) => {
+      setProgress({ percent: 100, label: "Finalizado" });
       showImportResult(data);
       queryClient.invalidateQueries({
         queryKey: [LiquidacionesComplete.QUERY_KEY],
@@ -121,28 +132,43 @@ export default function ActualizarAtendidasDialog({ open, onClose }: Props) {
       handleClose();
     },
     onError: (error) => {
+      setProgress(null);
       errorToast("Error al actualizar las SOT atendidas", getApiErrorMessage(error));
     },
   });
 
   const handleClose = () => {
+    if (mutation.isPending) return;
     reset({ desde: defaultDesde(), hasta: defaultHasta() });
+    setProgress(null);
     onClose();
   };
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent
+        className="sm:max-w-md"
+        onPointerDownOutside={(e) => {
+          if (mutation.isPending) e.preventDefault();
+        }}
+        onEscapeKeyDown={(e) => {
+          if (mutation.isPending) e.preventDefault();
+        }}
+      >
         <DialogHeader>
           <DialogTitle>Actualizar atendidas desde SOTs</DialogTitle>
           <DialogDescription>
             Importa SOT con estado ATENDIDA del consolidado SOTs. El rango usa la
-            fecha de atención en SOTs, no la fecha en que se importó aquí.
+            fecha de atención en SOTs. Se procesa por semanas para ir más rápido
+            y mostrar el avance.
           </DialogDescription>
         </DialogHeader>
 
         <form
-          onSubmit={handleSubmit((values) => mutation.mutate(values))}
+          onSubmit={handleSubmit((values) => {
+            setProgress({ percent: 0, label: "Iniciando..." });
+            mutation.mutate(values);
+          })}
           className="space-y-4 py-2"
         >
           <DatePickerFormField
@@ -150,16 +176,38 @@ export default function ActualizarAtendidasDialog({ open, onClose }: Props) {
             name="desde"
             label="Desde"
             required
+            disabled={mutation.isPending}
           />
           <DatePickerFormField
             control={control}
             name="hasta"
             label="Hasta"
             required
+            disabled={mutation.isPending}
           />
 
+          {progress && (
+            <div className="space-y-2 rounded-md border p-3">
+              <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+                <span className="truncate">{progress.label}</span>
+                <span className="shrink-0 font-medium text-foreground">
+                  {progress.percent}%
+                </span>
+              </div>
+              <Progress value={progress.percent} className="h-2" />
+              <p className="text-xs text-muted-foreground">
+                No cierres esta ventana mientras actualiza.
+              </p>
+            </div>
+          )}
+
           <DialogFooter>
-            <Button type="button" variant="ghost" onClick={handleClose}>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={handleClose}
+              disabled={mutation.isPending}
+            >
               Cancelar
             </Button>
             <Button type="submit" disabled={mutation.isPending}>

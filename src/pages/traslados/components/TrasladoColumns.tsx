@@ -1,12 +1,13 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, ArrowRight } from "lucide-react";
+import { CheckCircle2, XCircle, ArrowRight } from "lucide-react";
 import ExportButtons from "@/components/ExportButtons";
 import type { TrasladoListItem } from "../lib/traslado.interface";
 
 interface ColumnActions {
   onConfirmar: (item: TrasladoListItem) => void;
+  onAnular: (item: TrasladoListItem) => void;
   almacen_id: number | null;
 }
 
@@ -104,8 +105,31 @@ export const getTrasladoListColumns = (
     header: "Estado",
     size: 140,
     cell: ({ row }) => {
-      const { confirmado, usuario_confirmo } = row.original;
+      const { confirmado, anulado, usuario_confirmo, usuario_anula } =
+        row.original;
       const fechaConf = row.original["fecha_confirmación"];
+      const fechaAnul = row.original.fecha_anulacion;
+
+      if (anulado) {
+        return (
+          <div className="flex flex-col gap-0.5">
+            <Badge variant="default" color="red" className="w-fit">
+              Anulado
+            </Badge>
+            {(usuario_anula || fechaAnul) && (
+              <span className="text-[10px] text-muted-foreground leading-tight">
+                {usuario_anula && (
+                  <span className="capitalize">
+                    {abbreviateName(usuario_anula)}
+                  </span>
+                )}
+                {usuario_anula && fechaAnul && " · "}
+                {fechaAnul && formatISODate(fechaAnul)}
+              </span>
+            )}
+          </div>
+        );
+      }
       if (confirmado) {
         return (
           <div className="flex flex-col gap-0.5">
@@ -146,10 +170,12 @@ export const getTrasladoListColumns = (
     size: 140,
     cell: ({ row }) => {
       const item = row.original;
-      const canConfirm =
-        !item.confirmado &&
+      const isDestino =
         actions?.almacen_id !== null &&
         item.almacen_destino_id === actions?.almacen_id;
+      const isPendiente = !item.confirmado && !item.anulado;
+      const canConfirm = isPendiente && isDestino;
+      const canAnular = isPendiente && isDestino;
 
       return (
         <div className="flex items-center gap-1">
@@ -161,12 +187,23 @@ export const getTrasladoListColumns = (
           {canConfirm && (
             <Button
               size="sm"
-              variant="outline"
-              className="h-7 gap-1.5  text-green-700 border-green-400 hover:bg-green-50"
+              variant="secondary"
+              color="green"
+              tooltip="Confirmar traslado"
               onClick={() => actions!.onConfirmar(item)}
             >
               <CheckCircle2 className="size-3.5" />
-              Confirmar
+            </Button>
+          )}
+          {canAnular && (
+            <Button
+              size="sm"
+              variant="secondary"
+              color="red"
+              tooltip="Anular traslado"
+              onClick={() => actions!.onAnular(item)}
+            >
+              <XCircle className="size-3.5" />
             </Button>
           )}
         </div>

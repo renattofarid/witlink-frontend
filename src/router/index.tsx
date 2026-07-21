@@ -97,7 +97,9 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
     const publicPaths = [
       "/inicio",
       "/",
-      ...(import.meta.env.DEV ? [MenuComplete.ABSOLUTE_ROUTE] : []),
+      ...(import.meta.env.DEV
+        ? [MenuComplete.ABSOLUTE_ROUTE]
+        : [MenuComplete.ABSOLUTE_ROUTE]),
     ];
     const isPublic = publicPaths.includes(location.pathname);
     const hasAccess =
@@ -450,16 +452,14 @@ export default function AppRoutes() {
         }
       />
 
-      {import.meta.env.DEV && (
-        <Route
-          path={MenuComplete.ROUTE}
-          element={
-            <ProtectedRoute>
-              <MenuPage />
-            </ProtectedRoute>
-          }
-        />
-      )}
+      <Route
+        path={MenuComplete.ROUTE}
+        element={
+          <ProtectedRoute>
+            <MenuPage />
+          </ProtectedRoute>
+        }
+      />
 
       {/* 404 */}
       <Route path="*" element={<Navigate to="/inicio" />} />

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -20,7 +20,9 @@ import { format } from "date-fns";
 import {
   productoSchema,
   type ProductoFormValues,
+  type SerieFormValues,
 } from "../lib/guia.schema";
+import { verificarDisponibilidadIngreso } from "../lib/guia.actions";
 import { GuiaProductoDialog } from "./GuiaProductoDialog";
 
 import {
@@ -84,6 +86,32 @@ const EMPTY_PRODUCTO: ProductoFormValues = {
   observaciones: null,
   series: [],
 };
+
+// ── Helper: valida que una fila de serie tenga todos los campos requeridos ────
+
+function needsSeriesRows(values: ProductoFormValues): boolean {
+  return (
+    values.tipo === "EQUIPO" &&
+    (!!values.necesita_serie ||
+      !!values.necesita_mac ||
+      !!values.necesita_emta_mac ||
+      !!values.necesita_ua)
+  );
+}
+
+function isSerieComplete(
+  serie: SerieFormValues,
+  flags: Pick<
+    ProductoFormValues,
+    "necesita_serie" | "necesita_mac" | "necesita_emta_mac" | "necesita_ua"
+  >,
+): boolean {
+  if (flags.necesita_serie && !serie.serie?.trim()) return false;
+  if (flags.necesita_mac && !serie.mac?.trim()) return false;
+  if (flags.necesita_emta_mac && !serie.emta_mac?.trim()) return false;
+  if (flags.necesita_ua && !serie.ua?.trim()) return false;
+  return true;
+}
 
 // ── Helper: map ProductoFormValues → equipo retirado body ─────────────────────
 
@@ -153,6 +181,13 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
 
   // Edit mode: which product detail id is getting a new serie
   const [addSerieForDetailId, setAddSerieForDetailId] = useState<number | null>(null);
+
+  // Guardas de reenvío (evita doble clic mientras se valida/envía al backend)
+  const addProductoSubmitLockRef = useRef(false);
+  const addSerieSubmitLockRef = useRef(false);
+  const createSubmitLockRef = useRef(false);
+  const editSubmitLockRef = useRef(false);
+  const [isAddingSerie, setIsAddingSerie] = useState(false);
 
   // Delete producto confirmation (edit mode)
   const [deleteProductoConfirm, setDeleteProductoConfirm] = useState<{
@@ -228,22 +263,246 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
   const serieForm = useForm<{
     serie: string;
     mac: string;
+    emta_mac: string;
     ua: string;
     observaciones: string;
   }>({
-    defaultValues: { serie: "", mac: "", ua: "", observaciones: "" },
+    defaultValues: { serie: "", mac: "", emta_mac: "", ua: "", observaciones: "" },
   });
 
-  // ── Handlers: producto dialog ──────────────────────────────────────────────
-  const handleAddOrUpdateProducto = productSubForm.handleSubmit((values) => {
-    if (editingProductoIndex === null) {
-      appendProducto(values);
-    } else {
-      updateProductoField(editingProductoIndex, values);
-      setEditingProductoIndex(null);
+  // ── Validación cruzada de series (tabla de series del producto) ───────────
+  // Estado de validación por campo: "idle"|"loading"|"valid"|"invalid"
+  const [fieldValidationStatus, setFieldValidationStatus] = useState<
+    Record<string, "idle" | "loading" | "valid" | "invalid">
+  >({});
+
+  // Evita que la misma serie/mac/emta_mac/ua se repita en otro producto del
+  // mismo documento (ya sea otro producto del formulario en creación, o un
+  // producto ya guardado en el documento en edición).
+  const checkCrossProductDuplicate = useCallback(
+    (
+      rowIndex: number,
+      field: "serie" | "mac" | "emta_mac" | "ua",
+      value: string | null | undefined,
+    ) => {
+      if (!value?.trim()) return;
+      const upper = value.trim().toUpperCase();
+      let exists = false;
+      if (mode === "create") {
+        const allProducts = createForm.getValues("productos");
+        const otherProducts =
+          editingProductoIndex !== null
+            ? allProducts.filter((_, i) => i !== editingProductoIndex)
+            : allProducts;
+        exists = otherProducts.some((p) =>
+          (p.series ?? []).some(
+            (s) => s[field] && s[field]!.toUpperCase() === upper,
+          ),
+        );
+      } else {
+        const productos = equipo?.productos ?? [];
+        exists = productos.some((p) =>
+          (p.series ?? []).some((s) => {
+            const fieldValue =
+              field === "serie"
+                ? s.serie.serie
+                : field === "mac"
+                  ? s.serie.mac
+                  : field === "ua"
+                    ? s.serie.ua
+                    : s.serie.emta_mac;
+            return !!fieldValue && fieldValue.toUpperCase() === upper;
+          }),
+        );
+      }
+      if (exists) {
+        productSubForm.setError(`series.${rowIndex}.${field}` as any, {
+          type: "manual",
+          message: "Ya existe en otro producto",
+        });
+      }
+    },
+    [mode, createForm, editingProductoIndex, productSubForm, equipo],
+  );
+
+  // Valida contra la API que la serie/UA/EMTA MAC no estén ya registradas —
+  // agregar una serie a un equipo retirado también es un ingreso, así que
+  // aplica la misma regla de disponibilidad que en Guía normal. La MAC queda
+  // excluida: puede repetirse porque pertenece a una serie previamente
+  // despachada/instalada en el cliente (no se aplica unique para MAC).
+  const validateSerieField = useCallback(
+    async (
+      rowIndex: number,
+      field: "serie" | "mac" | "emta_mac" | "ua",
+      value: string | null | undefined,
+    ) => {
+      if (field === "mac") return;
+      if (!value?.trim()) return;
+      const key = `${rowIndex}.${field}`;
+      setFieldValidationStatus((prev) => ({ ...prev, [key]: "loading" }));
+      try {
+        await verificarDisponibilidadIngreso(value.trim(), field);
+        // 200 → código libre → disponible para ingresar
+        setFieldValidationStatus((prev) => ({ ...prev, [key]: "valid" }));
+        productSubForm.clearErrors(`series.${rowIndex}.${field}` as any);
+      } catch (error: any) {
+        if (error?.response?.status === 409) {
+          // 409 → ya registrado y no retirado → no disponible
+          setFieldValidationStatus((prev) => ({ ...prev, [key]: "invalid" }));
+          productSubForm.setError(`series.${rowIndex}.${field}` as any, {
+            type: "manual",
+            message:
+              error?.response?.data?.message ?? "Ya existe o no está disponible",
+          });
+        } else {
+          setFieldValidationStatus((prev) => ({ ...prev, [key]: "idle" }));
+        }
+      }
+    },
+    [productSubForm],
+  );
+
+  // Producto sobre el que se está agregando la serie inline (edit mode)
+  const addSerieProducto = (equipo?.productos ?? []).find(
+    (p) => p.id === addSerieForDetailId,
+  );
+  const addSerieRequiresMac = addSerieProducto?.producto.necesita_mac === 1;
+  const addSerieRequiresEmtaMac =
+    String(addSerieProducto?.producto.necesita_emta_mac) === "1";
+  const addSerieRequiresUa = addSerieProducto?.producto.necesita_ua === 1;
+
+  // ── Requeridos + duplicados + existencia (edit mode inline add) ───────────
+  const handleSubmitSerie = serieForm.handleSubmit(async (values) => {
+    // Evita doble envío: mientras se validan campos contra la API (async),
+    // un segundo clic podría disparar otro submit antes de que el botón se
+    // deshabilite por addSerieMutation.isPending.
+    if (addSerieSubmitLockRef.current || addSerieMutation.isPending) return;
+    addSerieSubmitLockRef.current = true;
+    setIsAddingSerie(true);
+    try {
+      await submitSerieInternal(values);
+    } finally {
+      addSerieSubmitLockRef.current = false;
+      setIsAddingSerie(false);
     }
-    productSubForm.reset(EMPTY_PRODUCTO);
-    setProductoDialogOpen(false);
+  });
+
+  const submitSerieInternal = async (values: {
+    serie: string;
+    mac: string;
+    emta_mac: string;
+    ua: string;
+    observaciones: string;
+  }) => {
+    const serieUpper = values.serie ? values.serie.trim().toUpperCase() : "";
+    const macUpper = values.mac ? values.mac.trim().toUpperCase() : "";
+    const emtaMacUpper = values.emta_mac ? values.emta_mac.trim().toUpperCase() : "";
+    const uaUpper = values.ua ? values.ua.trim().toUpperCase() : "";
+    let hasError = false;
+
+    // El producto exige estos campos: los 4 deben completarse para agregar o actualizar
+    if (addSerieRequiresMac && !macUpper) {
+      serieForm.setError("mac", { type: "manual", message: "Requerido" });
+      hasError = true;
+    }
+    if (addSerieRequiresEmtaMac && !emtaMacUpper) {
+      serieForm.setError("emta_mac", { type: "manual", message: "Requerido" });
+      hasError = true;
+    }
+    if (addSerieRequiresUa && !uaUpper) {
+      serieForm.setError("ua", { type: "manual", message: "Requerido" });
+      hasError = true;
+    }
+    if (hasError) return;
+
+    const productos = equipo?.productos ?? [];
+    for (const p of productos) {
+      for (const s of p.series ?? []) {
+        if (serieUpper && s.serie.serie?.toUpperCase() === serieUpper) {
+          serieForm.setError("serie", { type: "manual", message: "Serie duplicada" });
+          hasError = true;
+        }
+        if (macUpper && s.serie.mac?.toUpperCase() === macUpper) {
+          serieForm.setError("mac", { type: "manual", message: "MAC duplicada" });
+          hasError = true;
+        }
+        if (emtaMacUpper && s.serie.emta_mac?.toUpperCase() === emtaMacUpper) {
+          serieForm.setError("emta_mac", { type: "manual", message: "EMTA MAC duplicada" });
+          hasError = true;
+        }
+        if (uaUpper && s.serie.ua?.toUpperCase() === uaUpper) {
+          serieForm.setError("ua", { type: "manual", message: "UA duplicada" });
+          hasError = true;
+        }
+      }
+    }
+    if (hasError) return;
+
+    // Agregar una serie también es un ingreso: serie/UA/EMTA MAC no deben
+    // estar ya registradas. La MAC queda excluida (puede repetirse: pertenece
+    // a una serie previamente despachada/instalada en el cliente).
+    const checks: Array<["serie" | "ua" | "emta_mac", string]> = [];
+    if (serieUpper) checks.push(["serie", serieUpper]);
+    if (uaUpper) checks.push(["ua", uaUpper]);
+    if (emtaMacUpper) checks.push(["emta_mac", emtaMacUpper]);
+
+    for (const [field, value] of checks) {
+      try {
+        await verificarDisponibilidadIngreso(value, field);
+        // 200 → código libre → disponible para ingresar
+      } catch (error: any) {
+        if (error?.response?.status === 409) {
+          // 409 → ya registrado y no retirado → no disponible
+          serieForm.setError(field, {
+            type: "manual",
+            message: error?.response?.data?.message ?? "Ya existe o no está disponible",
+          });
+          hasError = true;
+        }
+      }
+    }
+    if (hasError) return;
+    addSerieMutation.mutate(values);
+  };
+
+  // ── Handlers: producto dialog ──────────────────────────────────────────────
+  // Descarta filas de serie incompletas (p.ej. la fila vacía que se inserta
+  // automáticamente al avanzar con Enter) y exige que al menos una fila
+  // tenga completos todos los campos que el equipo requiere.
+  const prepareProductoValues = (
+    rawValues: ProductoFormValues,
+  ): ProductoFormValues | null => {
+    if (!needsSeriesRows(rawValues)) return rawValues;
+    const completeSeries = (rawValues.series ?? []).filter((s) =>
+      isSerieComplete(s, rawValues),
+    );
+    if (completeSeries.length === 0) {
+      productSubForm.setError("series", {
+        type: "manual",
+        message: "Complete todos los campos requeridos de al menos una serie.",
+      });
+      return null;
+    }
+    return { ...rawValues, series: completeSeries, cantidad: completeSeries.length };
+  };
+
+  const handleAddOrUpdateProducto = productSubForm.handleSubmit((rawValues) => {
+    if (addProductoSubmitLockRef.current) return;
+    addProductoSubmitLockRef.current = true;
+    try {
+      const values = prepareProductoValues(rawValues);
+      if (!values) return;
+      if (editingProductoIndex === null) {
+        appendProducto(values);
+      } else {
+        updateProductoField(editingProductoIndex, values);
+        setEditingProductoIndex(null);
+      }
+      productSubForm.reset(EMPTY_PRODUCTO);
+      setProductoDialogOpen(false);
+    } finally {
+      addProductoSubmitLockRef.current = false;
+    }
   });
 
   const handleOpenProductoDialog = () => {
@@ -334,13 +593,14 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
   });
 
   const addSerieMutation = useMutation({
-    mutationFn: (values: { serie: string; mac: string; ua: string; observaciones: string }) =>
+    mutationFn: (values: { serie: string; mac: string; emta_mac: string; ua: string; observaciones: string }) =>
       addSeriesEquipoRetirado({
         detalle_producto_documento_equipo_retirado_id: addSerieForDetailId!,
         series: [
           {
             serie: values.serie || null,
             mac: values.mac || null,
+            emta_mac: values.emta_mac || null,
             ua: values.ua || null,
             observaciones: values.observaciones || null,
           },
@@ -470,7 +730,11 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
       <div className="space-y-4">
         {/* Header form */}
         <form
-          onSubmit={editForm.handleSubmit((v) => editMutation.mutate(v))}
+          onSubmit={editForm.handleSubmit((v) => {
+            if (editSubmitLockRef.current || editMutation.isPending) return;
+            editSubmitLockRef.current = true;
+            editMutation.mutate(v, { onSettled: () => { editSubmitLockRef.current = false; } });
+          })}
           className="space-y-2"
         >
           <div className="flex items-center gap-2">
@@ -542,9 +806,23 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
             productSubForm={productSubForm}
             watchedSeries={watchedSeries}
             onClose={handleCloseProductoDialog}
-            onSubmit={productSubForm.handleSubmit((v) => addProductoEditMutation.mutate(v))}
+            onSubmit={productSubForm.handleSubmit((rawValues) => {
+              if (addProductoSubmitLockRef.current || addProductoEditMutation.isPending) return;
+              const values = prepareProductoValues(rawValues);
+              if (!values) return;
+              addProductoSubmitLockRef.current = true;
+              addProductoEditMutation.mutate(values, {
+                onSettled: () => {
+                  addProductoSubmitLockRef.current = false;
+                },
+              });
+            })}
             onAppendSerie={appendSerie}
             onRemoveSerie={removeSerie}
+            onCheckDuplicate={checkCrossProductDuplicate}
+            onValidateField={validateSerieField}
+            fieldValidationStatus={fieldValidationStatus}
+            isSubmitting={addProductoEditMutation.isPending}
           />
 
           {productos.length > 0 ? (
@@ -571,7 +849,7 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
                             size="sm"
                             className="h-7 text-xs"
                             onClick={() => {
-                              serieForm.reset();
+                              serieForm.reset({ serie: "", mac: "", emta_mac: "", ua: "", observaciones: "" });
                               setAddSerieForDetailId(p.id);
                             }}
                           >
@@ -602,6 +880,7 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
                             <span className="font-mono text-muted-foreground">
                               {s.serie.serie}
                               {s.serie.mac ? ` · ${s.serie.mac}` : ""}
+                              {s.serie.emta_mac ? ` · ${s.serie.emta_mac}` : ""}
                               {s.observacion ? (
                                 <span className="ml-1 not-italic text-muted-foreground/70">
                                   ({s.observacion})
@@ -630,7 +909,7 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
                     {/* Inline serie add form */}
                     {isAddingSerieHere && (
                       <div className="border rounded p-2 space-y-2 bg-muted/5">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                        <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
                           <FormInput
                             name="serie"
                             label="Serie"
@@ -644,6 +923,25 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
                             label="MAC"
                             control={serieForm.control}
                             placeholder="001A2B3C4D5E"
+                            required={p.producto.necesita_mac === 1}
+                            disabled={p.producto.necesita_mac !== 1}
+                          />
+                          <FormInput
+                            name="emta_mac"
+                            label="EMTA MAC"
+                            control={serieForm.control}
+                            placeholder="001A2B3C4D5E"
+                            required={String(p.producto.necesita_emta_mac) === "1"}
+                            disabled={String(p.producto.necesita_emta_mac) !== "1"}
+                          />
+                          <FormInput
+                            name="ua"
+                            label="UA"
+                            control={serieForm.control}
+                            placeholder="Ingrese UA"
+                            uppercase
+                            required={p.producto.necesita_ua === 1}
+                            disabled={p.producto.necesita_ua !== 1}
                           />
                           <FormInput
                             name="observaciones"
@@ -663,12 +961,10 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
                           <Button
                             type="button"
                             size="sm"
-                            disabled={addSerieMutation.isPending}
-                            onClick={serieForm.handleSubmit((v) =>
-                              addSerieMutation.mutate(v),
-                            )}
+                            disabled={addSerieMutation.isPending || isAddingSerie}
+                            onClick={handleSubmitSerie}
                           >
-                            {addSerieMutation.isPending ? "Guardando..." : "Agregar serie"}
+                            {addSerieMutation.isPending || isAddingSerie ? "Guardando..." : "Agregar serie"}
                           </Button>
                         </div>
                       </div>
@@ -713,7 +1009,11 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
   // ── CREATE MODE ────────────────────────────────────────────────────────────
   return (
     <form
-      onSubmit={createForm.handleSubmit((v) => createMutation.mutate(v))}
+      onSubmit={createForm.handleSubmit((v) => {
+        if (createSubmitLockRef.current || createMutation.isPending) return;
+        createSubmitLockRef.current = true;
+        createMutation.mutate(v, { onSettled: () => { createSubmitLockRef.current = false; } });
+      })}
       className="space-y-4"
     >
       {/* Datos del equipo retirado */}
@@ -785,6 +1085,9 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
           onSubmit={handleAddOrUpdateProducto}
           onAppendSerie={(s) => appendSerie(s)}
           onRemoveSerie={removeSerie}
+          onCheckDuplicate={checkCrossProductDuplicate}
+          onValidateField={validateSerieField}
+          fieldValidationStatus={fieldValidationStatus}
         />
 
         {watchedProductos.length > 0 && (

@@ -33,6 +33,7 @@ export function GuiaProductoSelector({
               control={productSubForm.control}
               placeholder="Buscar por nombre o SAP..."
               useQueryHook={useProductoQuery}
+              additionalParams={{ tipo: "EQUIPO" }}
               mapOptionFn={(item: ProductoResource) => ({
                 value: String(item.id),
                 label: item.nombre,

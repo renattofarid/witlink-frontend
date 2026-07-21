@@ -11,7 +11,7 @@ import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import { successToast, errorToast } from "@/lib/core.function";
 import { TrasladoComplete } from "../lib/traslado.constants";
 import { useTrasladoListQuery } from "../lib/traslado.hook";
-import { confirmarTraslado } from "../lib/traslado.actions";
+import { confirmarTraslado, anularTraslado } from "../lib/traslado.actions";
 import { getTrasladoListColumns } from "../components/TrasladoColumns";
 import TrasladoFilters from "../components/TrasladoFilters";
 import TrasladoButtons from "../components/TrasladoButtons";
@@ -22,6 +22,7 @@ export default function TrasladosPage() {
   const queryClient = useQueryClient();
   const almacen_id = useAuthStore((s) => s.almacen_id);
   const [selectedItem, setSelectedItem] = useState<TrasladoListItem | null>(null);
+  const [anularItem, setAnularItem] = useState<TrasladoListItem | null>(null);
 
   const [params, setParams] = useTabParams(TrasladoComplete.ABSOLUTE_ROUTE, {
     page: "1",
@@ -43,9 +44,23 @@ export default function TrasladosPage() {
     },
   });
 
+  const anularMutation = useMutation({
+    mutationFn: (item: TrasladoListItem) => anularTraslado(item.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [TrasladoComplete.QUERY_KEY] });
+      successToast("Traslado anulado correctamente.");
+    },
+    onError: (error: any) => {
+      errorToast(
+        error.response?.data?.message ?? "Error al anular el traslado.",
+      );
+    },
+  });
+
   const columns = getTrasladoListColumns({
     almacen_id,
     onConfirmar: (item) => setSelectedItem(item),
+    onAnular: (item) => setAnularItem(item),
   });
 
   const handlePageChange = (page: number) =>
@@ -93,6 +108,19 @@ export default function TrasladosPage() {
         isLoading={confirmMutation.isPending}
         onConfirm={async () => {
           if (selectedItem) await confirmMutation.mutateAsync(selectedItem);
+        }}
+      />
+
+      <ConfirmationDialog
+        open={!!anularItem}
+        onOpenChange={(open) => !open && setAnularItem(null)}
+        title="Anular traslado"
+        description="¿Estás seguro de que deseas anular este traslado? Las series involucradas volverán a estar disponibles. Esta acción no se puede deshacer."
+        confirmText="Anular"
+        confirmColor="red"
+        isLoading={anularMutation.isPending}
+        onConfirm={async () => {
+          if (anularItem) await anularMutation.mutateAsync(anularItem);
         }}
       />
     </PageWrapper>

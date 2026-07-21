@@ -21,6 +21,7 @@ export interface EquipoRetiradoSerieResource {
   serie: string;
   situacion: string;
   mac: string;
+  emta_mac?: string;
   ua: string;
   producto: EquipoRetiradoSerieProductoResource;
   created_at: string;

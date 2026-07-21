@@ -109,7 +109,7 @@ export default function DatePicker({
           {label}
           {tooltip && (
             <Tooltip>
-              <TooltipTrigger asChild>
+              <TooltipTrigger>
                 <Badge
                   variant="default"
                   className="ml-2 p-0 aspect-square w-4 h-4 text-center justify-center cursor-help"

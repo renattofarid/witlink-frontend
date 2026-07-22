@@ -7,14 +7,7 @@ import { SearchableSelect } from "@/components/SearchableSelect";
 import SearchInput from "@/components/SearchInput";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
+import GeneralSheet from "@/components/GeneralSheet";
 import { X } from "lucide-react";
 
 interface InventarioSeriesFiltersProps {
@@ -180,43 +173,40 @@ export default function InventarioSeriesFilters({
         />
       </FilterWrapper>
 
-      <Dialog open={bulkOpen} onOpenChange={setBulkOpen}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Búsqueda masiva de series</DialogTitle>
-            <DialogDescription>
-              Copia y pega las series. Se detectarán automáticamente.
-            </DialogDescription>
-          </DialogHeader>
+      <GeneralSheet
+        open={bulkOpen}
+        onClose={() => setBulkOpen(false)}
+        title="Búsqueda masiva de series"
+        subtitle="Copia y pega las series. Se detectarán automáticamente."
+        size="lg"
+      >
+        <div className="space-y-2">
+          <Textarea
+            value={bulkText}
+            onChange={(e) => setBulkText(e.target.value)}
+            placeholder={"9162N967G201858\nZTEYH8TRBV17067\n..."}
+            rows={10}
+            className="font-mono text-sm"
+          />
+          <p className="text-xs text-muted-foreground">
+            {parsedPreview.length > 0
+              ? `${parsedPreview.length} serie(s) detectada(s).`
+              : "No se detectaron series aún."}
+          </p>
+        </div>
 
-          <div className="space-y-2">
-            <Textarea
-              value={bulkText}
-              onChange={(e) => setBulkText(e.target.value)}
-              placeholder={"9162N967G201858\nZTEYH8TRBV17067\n..."}
-              rows={10}
-              className="font-mono text-sm"
-            />
-            <p className="text-xs text-muted-foreground">
-              {parsedPreview.length > 0
-                ? `${parsedPreview.length} serie(s) detectada(s).`
-                : "No se detectaron series aún."}
-            </p>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setBulkOpen(false)}>
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleConfirmBulk}
-              disabled={parsedPreview.length === 0}
-            >
-              Buscar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        <div className="flex justify-end gap-2 pt-4">
+          <Button variant="outline" onClick={() => setBulkOpen(false)}>
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleConfirmBulk}
+            disabled={parsedPreview.length === 0}
+          >
+            Buscar
+          </Button>
+        </div>
+      </GeneralSheet>
     </div>
   );
 }

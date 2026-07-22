@@ -1,5 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { getInventarioTecnico, getHistorialDevoluciones } from "./inventario-tecnico.actions";
+import {
+  getInventarioTecnico,
+  getHistorialDevoluciones,
+} from "./inventario-tecnico.actions";
 import { InventarioTecnicoComplete } from "./inventario-tecnico.constants";
 import { getPersonas } from "@/pages/persona/lib/persona.actions";
 
@@ -14,7 +17,10 @@ export const useInventarioTecnicoQuery = (
     refetchOnWindowFocus: true,
   });
 
-export const useHistorialDevolucionesQuery = (tecnicoId: string, enabled: boolean) =>
+export const useHistorialDevolucionesQuery = (
+  tecnicoId: string,
+  enabled: boolean,
+) =>
   useQuery({
     queryKey: ["historial-devoluciones", tecnicoId],
     queryFn: () => getHistorialDevoluciones(Number(tecnicoId)),
@@ -28,7 +34,6 @@ export const useTecnicoInventarioQuery = (params: Record<string, any> = {}) => {
     queryKey: ["personas-tecnicos-inventario", apiParams],
     queryFn: () =>
       getPersonas({
-        tipo_empleado: "Técnico",
         ...apiParams,
       } as Record<string, string | undefined>),
     enabled,

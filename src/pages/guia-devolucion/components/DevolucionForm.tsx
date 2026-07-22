@@ -308,6 +308,7 @@ export default function DevolucionForm({ mode, guia, onSuccess }: Props) {
             label="RUC / DNI"
             control={form.control}
             required
+            maxLength={11}
           />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -321,6 +322,7 @@ export default function DevolucionForm({ mode, guia, onSuccess }: Props) {
             name="telefono"
             label="Teléfono"
             control={form.control}
+            maxLength={9}
           />
         </div>
       </div>
@@ -442,13 +444,13 @@ export default function DevolucionForm({ mode, guia, onSuccess }: Props) {
           <div className="space-y-3 border rounded-md p-3 bg-muted/10">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <FormInput name="transportista_nombre" label="Transportista" control={form.control} />
-              <FormInput name="transportista_documento" label="RUC transportista" control={form.control} />
+              <FormInput name="transportista_documento" label="RUC transportista" control={form.control} maxLength={11} />
               <FormInput name="transportista_direccion" label="Dirección transportista" control={form.control} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <FormInput name="conductor" label="Conductor" control={form.control} />
               <FormInput name="licencia_conducir" label="Licencia de conducir" control={form.control} />
-              <FormInput name="placa_vehiculo" label="Placa de vehículo" control={form.control} />
+              <FormInput name="placa_vehiculo" label="Placa de vehículo" control={form.control} maxLength={6} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <FormInput name="marca_vehiculo" label="Marca de vehículo" control={form.control} />

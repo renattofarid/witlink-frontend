@@ -3,14 +3,7 @@ import SearchInput from "@/components/SearchInput";
 import { SearchableSelect } from "@/components/SearchableSelect";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
+import GeneralSheet from "@/components/GeneralSheet";
 import { X } from "lucide-react";
 import {
   ESTADO_OPERATIVO_OPTIONS,
@@ -116,44 +109,41 @@ export default function LiquidacionFilters({
         )}
       </div>
 
-      {/* Dialog de búsqueda masiva de SOTs */}
-      <Dialog open={bulkOpen} onOpenChange={setBulkOpen}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Búsqueda masiva de SOTs</DialogTitle>
-            <DialogDescription>
-              Copia y pega los SOTs. Se detectarán automáticamente.
-            </DialogDescription>
-          </DialogHeader>
+      {/* Sheet de búsqueda masiva de SOTs */}
+      <GeneralSheet
+        open={bulkOpen}
+        onClose={() => setBulkOpen(false)}
+        title="Búsqueda masiva de SOTs"
+        subtitle="Copia y pega los SOTs. Se detectarán automáticamente."
+        size="lg"
+      >
+        <div className="space-y-2">
+          <Textarea
+            value={bulkText}
+            onChange={(e) => setBulkText(e.target.value)}
+            placeholder={"SOT0001\nSOT0002\n..."}
+            rows={10}
+            className="font-mono text-sm"
+          />
+          <p className="text-xs text-muted-foreground">
+            {parsedPreview.length > 0
+              ? `${parsedPreview.length} SOT(s) detectado(s).`
+              : "No se detectaron SOTs aún."}
+          </p>
+        </div>
 
-          <div className="space-y-2">
-            <Textarea
-              value={bulkText}
-              onChange={(e) => setBulkText(e.target.value)}
-              placeholder={"SOT0001\nSOT0002\n..."}
-              rows={10}
-              className="font-mono text-sm"
-            />
-            <p className="text-xs text-muted-foreground">
-              {parsedPreview.length > 0
-                ? `${parsedPreview.length} SOT(s) detectado(s).`
-                : "No se detectaron SOTs aún."}
-            </p>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setBulkOpen(false)}>
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleConfirmBulk}
-              disabled={parsedPreview.length === 0}
-            >
-              Buscar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        <div className="flex justify-end gap-2 pt-4">
+          <Button variant="outline" onClick={() => setBulkOpen(false)}>
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleConfirmBulk}
+            disabled={parsedPreview.length === 0}
+          >
+            Buscar
+          </Button>
+        </div>
+      </GeneralSheet>
     </div>
   );
 }

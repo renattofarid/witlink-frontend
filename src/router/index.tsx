@@ -82,6 +82,8 @@ import {
 } from "../pages/salidas-antiguamiento/lib/salida-antiguamiento.constants";
 import { GuiaDevolucionComplete } from "@/pages/guia-devolucion/lib/devolucion.constants";
 import DevolucionPage from "@/pages/guia-devolucion/pages/DevolucionPage";
+import DevolucionAddPage from "@/pages/guia-devolucion/pages/DevolucionAddPage";
+import DevolucionEditPage from "@/pages/guia-devolucion/pages/DevolucionEditPage";
 
 function ProtectedRoute({ children }: { children: JSX.Element }) {
   const { token, allowedRoutes, almacen_id } = useAuthStore();
@@ -314,6 +316,22 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <DevolucionPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={GuiaDevolucionComplete.ROUTE_ADD}
+        element={
+          <ProtectedRoute>
+            <DevolucionAddPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={`${GuiaDevolucionComplete.ROUTE_UPDATE}/:id`}
+        element={
+          <ProtectedRoute>
+            <DevolucionEditPage />
           </ProtectedRoute>
         }
       />

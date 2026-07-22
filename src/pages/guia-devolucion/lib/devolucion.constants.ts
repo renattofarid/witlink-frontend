@@ -3,8 +3,8 @@ import { ClipboardList } from "lucide-react";
 
 export const GuiaDevolucionComplete: ModelComplete = {
   MODEL: {
-    name: "Guías de Devolución",
-    plural: "Guías",
+    name: "Guía de Devolución",
+    plural: "Guías de Devolución",
     gender: true,
   },
   ICON: ClipboardList,
@@ -16,4 +16,4 @@ export const GuiaDevolucionComplete: ModelComplete = {
   ROUTE_UPDATE: "/guias-devolucion/editar",
 };
 
-export const GUIA_ROUTE_VIEW = "/guias-devolucion/ver";
+export const MOTIVO_TRASLADO_DEFAULT = "13-DEVOLUCION CLARO";

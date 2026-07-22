@@ -55,6 +55,7 @@ export default function DevolucionForm({ mode, guia, onSuccess }: Props) {
         producto_id: p.producto_id,
         producto: p.producto ?? "",
         sap: p.sap ?? "",
+        marca: p.marca ?? "",
       })),
     ) ?? [],
   );
@@ -141,12 +142,17 @@ export default function DevolucionForm({ mode, guia, onSuccess }: Props) {
     new Map(seriesCart.map((s) => [s.producto_id, s])).values(),
   );
 
-  const getOverride = (producto_id: number, sap: string, nombre: string): GuiaDevolucionProductoBody =>
+  const getOverride = (
+    producto_id: number,
+    sap: string,
+    nombre: string,
+    marca: string = "",
+  ): GuiaDevolucionProductoBody =>
     productoOverrides[producto_id] ?? {
       producto_id,
       unidad: "UND",
       descripcion: nombre,
-      marca: "",
+      marca,
       modelo: sap,
     };
 
@@ -154,12 +160,13 @@ export default function DevolucionForm({ mode, guia, onSuccess }: Props) {
     producto_id: number,
     sap: string,
     nombre: string,
+    marca: string,
     field: keyof GuiaDevolucionProductoBody,
     value: string,
   ) => {
     setProductoOverrides((prev) => ({
       ...prev,
-      [producto_id]: { ...getOverride(producto_id, sap, nombre), [field]: value },
+      [producto_id]: { ...getOverride(producto_id, sap, nombre, marca), [field]: value },
     }));
   };
 
@@ -376,7 +383,8 @@ export default function DevolucionForm({ mode, guia, onSuccess }: Props) {
                 </thead>
                 <tbody>
                   {uniqueProductos.map((p) => {
-                    const ov = getOverride(p.producto_id, p.sap, p.producto);
+                    const marcaDefault = p.marca ?? "";
+                    const ov = getOverride(p.producto_id, p.sap, p.producto, marcaDefault);
                     return (
                       <tr key={p.producto_id} className="border-t">
                         <td className="px-2 py-1.5 whitespace-nowrap">{p.producto}</td>
@@ -385,7 +393,7 @@ export default function DevolucionForm({ mode, guia, onSuccess }: Props) {
                             className="h-7 text-xs"
                             value={ov.unidad}
                             onChange={(e) =>
-                              setOverrideField(p.producto_id, p.sap, p.producto, "unidad", e.target.value)
+                              setOverrideField(p.producto_id, p.sap, p.producto, marcaDefault, "unidad", e.target.value)
                             }
                           />
                         </td>
@@ -394,7 +402,7 @@ export default function DevolucionForm({ mode, guia, onSuccess }: Props) {
                             className="h-7 text-xs"
                             value={ov.descripcion}
                             onChange={(e) =>
-                              setOverrideField(p.producto_id, p.sap, p.producto, "descripcion", e.target.value)
+                              setOverrideField(p.producto_id, p.sap, p.producto, marcaDefault, "descripcion", e.target.value)
                             }
                           />
                         </td>
@@ -403,7 +411,7 @@ export default function DevolucionForm({ mode, guia, onSuccess }: Props) {
                             className="h-7 text-xs"
                             value={ov.marca}
                             onChange={(e) =>
-                              setOverrideField(p.producto_id, p.sap, p.producto, "marca", e.target.value)
+                              setOverrideField(p.producto_id, p.sap, p.producto, marcaDefault, "marca", e.target.value)
                             }
                           />
                         </td>
@@ -412,7 +420,7 @@ export default function DevolucionForm({ mode, guia, onSuccess }: Props) {
                             className="h-7 text-xs"
                             value={ov.modelo}
                             onChange={(e) =>
-                              setOverrideField(p.producto_id, p.sap, p.producto, "modelo", e.target.value)
+                              setOverrideField(p.producto_id, p.sap, p.producto, marcaDefault, "modelo", e.target.value)
                             }
                           />
                         </td>

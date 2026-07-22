@@ -12,6 +12,7 @@ export interface DevolucionSerieCartItem {
   producto_id: number;
   producto: string;
   sap: string;
+  marca?: string;
 }
 
 interface Props {

@@ -274,6 +274,20 @@ export const verificarDisponibilidadIngreso = async (
   return data;
 };
 
+// Exclusivo para Ingreso -> Equipo Retirado: a diferencia de la ruta de
+// Almacén, permite reingresar series en estados RE/DV/IN/DE/DC (ya que vienen
+// del campo) y solo bloquea (409) si están DI/PE/TR.
+export const verificarDisponibilidadIngresoRetirado = async (
+  codigo: string,
+  tipo: "serie" | "mac" | "emta_mac" | "ua",
+) => {
+  const { data } = await api.get(
+    `/series/${encodeURIComponent(codigo)}/verificar-disponibilidad-ingreso-retirado`,
+    { params: { tipo } },
+  );
+  return data;
+};
+
 export const getProveedores = async (params: Record<string, any>) => {
   const { data } = await api.get("/proveedores", { params });
   return data;

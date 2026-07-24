@@ -22,7 +22,7 @@ import {
   type ProductoFormValues,
   type SerieFormValues,
 } from "../lib/guia.schema";
-import { verificarDisponibilidadIngreso } from "../lib/guia.actions";
+import { verificarDisponibilidadIngresoRetirado } from "../lib/guia.actions";
 import { GuiaProductoDialog } from "./GuiaProductoDialog";
 
 import {
@@ -341,7 +341,7 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
       const key = `${rowIndex}.${field}`;
       setFieldValidationStatus((prev) => ({ ...prev, [key]: "loading" }));
       try {
-        await verificarDisponibilidadIngreso(value.trim(), field);
+        await verificarDisponibilidadIngresoRetirado(value.trim(), field);
         // 200 → código libre → disponible para ingresar
         setFieldValidationStatus((prev) => ({ ...prev, [key]: "valid" }));
         productSubForm.clearErrors(`series.${rowIndex}.${field}` as any);
@@ -448,7 +448,7 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
 
     for (const [field, value] of checks) {
       try {
-        await verificarDisponibilidadIngreso(value, field);
+        await verificarDisponibilidadIngresoRetirado(value, field);
         // 200 → código libre → disponible para ingresar
       } catch (error: any) {
         if (error?.response?.status === 409) {

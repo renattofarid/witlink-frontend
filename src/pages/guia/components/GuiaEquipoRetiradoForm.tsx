@@ -73,7 +73,7 @@ type HeaderEditFormValues = z.infer<typeof headerEditSchema>;
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const EMPTY_PRODUCTO: ProductoFormValues = {
-  producto_id: null,
+  producto_id: "",
   sap: null,
   nombre: null,
   tipo: null,
@@ -125,22 +125,8 @@ function mapProducto(p: ProductoFormValues) {
     observaciones: s.observaciones ?? null,
   }));
 
-  if (p.producto_id) {
-    return {
-      producto_id: Number(p.producto_id),
-      origen: p.origen ?? "",
-      necesita_serie: isEquipo ? (p.necesita_serie ?? false) : false,
-      necesita_mac: isEquipo ? (p.necesita_mac ?? false) : false,
-      necesita_emta_mac: isEquipo ? (p.necesita_emta_mac ?? false) : false,
-      necesita_ua: isEquipo ? (p.necesita_ua ?? false) : false,
-      cantidad: p.cantidad,
-      series,
-    };
-  }
   return {
-    sap: p.sap ?? null,
-    nombre: p.nombre ?? null,
-    tipo: p.tipo ?? null,
+    producto_id: Number(p.producto_id),
     origen: p.origen ?? "",
     necesita_serie: isEquipo ? (p.necesita_serie ?? false) : false,
     necesita_mac: isEquipo ? (p.necesita_mac ?? false) : false,

@@ -84,7 +84,7 @@ function guiaToFormValues(guia: GuiaResource): GuiaCreateFormValues {
 }
 
 const EMPTY_PRODUCTO: ProductoFormValues = {
-  producto_id: null,
+  producto_id: "",
   sap: null,
   nombre: null,
   tipo: null,

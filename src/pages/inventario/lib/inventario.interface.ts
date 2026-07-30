@@ -32,7 +32,15 @@ export interface InventarioSerieResource {
   contabilizado: string | null;
 }
 
-export type InventarioSerieResponse = PaginationResponse<InventarioSerieResource>;
+export type InventarioSerieResponse =
+  PaginationResponse<InventarioSerieResource> & {
+    /**
+     * Terms sent in the bulk search that did not match any record under the
+     * applied filters. Empty (or absent) when every term matched at least one
+     * result. Used to surface a non-blocking alert to the user.
+     */
+    no_registrados?: string[];
+  };
 
 // Inventory — Materiales
 export interface InventarioMaterialResource {

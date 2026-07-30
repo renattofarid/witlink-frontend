@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTabParams } from "@/hooks/useTabParams";
 import PageWrapper from "@/components/PageWrapper";
@@ -7,7 +7,7 @@ import { DataTable } from "@/components/DataTable";
 import DataTablePagination from "@/components/DataTablePagination";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
-import { successToast, errorToast } from "@/lib/core.function";
+import { successToast, errorToast, warningToast } from "@/lib/core.function";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
 import {
@@ -78,6 +78,20 @@ export default function InventarioPage() {
     useInventarioSeriesQuery(seriesParams);
   const { data: materialesData, isLoading: materialesLoading } =
     useInventarioMaterialesQuery(materialesParams);
+
+  // Non-blocking alert: warn about bulk-search terms with no matches. An empty
+  // (or absent) `no_registrados` means every term matched at least one result.
+  const seriesNoRegistrados = seriesData?.no_registrados ?? [];
+  useEffect(() => {
+    if (seriesNoRegistrados.length === 0) return;
+
+    const preview = seriesNoRegistrados.slice(0, 10).join(", ");
+    const rest = seriesNoRegistrados.length - 10;
+    warningToast(
+      `No se encontraron: ${preview}${rest > 0 ? ` y ${rest} más` : ""}`,
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seriesNoRegistrados.join(",")]);
 
   const devolverSerieMutation = useMutation({
     mutationFn: () =>

@@ -166,6 +166,7 @@ export default function LiquidacionLiquidadaView({
                 const seriesStr = item.series
                   .map((s) => s.serie.serie)
                   .join(", ");
+                const cantidad = Number(item.cantidad);
                 return (
                   <div key={item.id} className="flex items-start gap-2">
                     <span className="font-mono text-xs text-muted-foreground shrink-0 w-28 truncate mt-0.5">
@@ -181,6 +182,9 @@ export default function LiquidacionLiquidadaView({
                         </p>
                       )}
                     </div>
+                    <span className="text-xs text-muted-foreground shrink-0 mt-0.5">
+                      ({cantidad} {cantidad === 1 ? "unidad" : "unidades"})
+                    </span>
                   </div>
                 );
               })}
@@ -203,6 +207,7 @@ export default function LiquidacionLiquidadaView({
                 const seriesStr = item.series
                   .map((s) => s.serie.serie)
                   .join(", ");
+                const cantidad = Number(item.cantidad);
                 return (
                   <div key={item.id} className="flex items-start gap-2">
                     <span className="font-mono text-xs text-muted-foreground shrink-0 w-28 truncate mt-0.5">
@@ -218,6 +223,9 @@ export default function LiquidacionLiquidadaView({
                         </p>
                       )}
                     </div>
+                    <span className="text-xs text-muted-foreground shrink-0 mt-0.5">
+                      ({cantidad} {cantidad === 1 ? "unidad" : "unidades"})
+                    </span>
                   </div>
                 );
               })}

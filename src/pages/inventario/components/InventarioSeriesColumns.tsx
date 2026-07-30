@@ -1,6 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { ButtonAction } from "@/components/ButtonAction";
-import { Undo2, History, PackageCheck } from "lucide-react";
+import { Undo2, History, PackageCheck, Lock, Unlock, MapPinned } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { parseISO, format } from "date-fns";
 import type { InventarioSerieResource } from "../lib/inventario.interface";
@@ -14,6 +14,10 @@ interface ColumnActions {
   onHistorial: (row: InventarioSerieResource) => void;
   onDevolverClaro: (row: InventarioSerieResource) => void;
   onStatusSot: (row: InventarioSerieResource) => void;
+  isCorporativo?: boolean;
+  onReservarSot?: (row: InventarioSerieResource) => void;
+  onLiberarSot?: (row: InventarioSerieResource) => void;
+  onCambiarUbicacion?: (row: InventarioSerieResource) => void;
 }
 
 export const getInventarioSeriesColumns = ({
@@ -21,6 +25,10 @@ export const getInventarioSeriesColumns = ({
   onHistorial,
   onDevolverClaro,
   onStatusSot,
+  isCorporativo,
+  onReservarSot,
+  onLiberarSot,
+  onCambiarUbicacion,
 }: ColumnActions): ColumnDef<InventarioSerieResource>[] => [
   {
     accessorKey: "fecha",
@@ -171,6 +179,26 @@ export const getInventarioSeriesColumns = ({
           tooltip="Devolver a Claro"
           canRender={row.original.situacion_label === SITUACION.DISPONIBLE}
           onClick={() => onDevolverClaro(row.original)}
+        />
+        <ButtonAction
+          icon={Lock}
+          color="amber"
+          tooltip="Reservar por SOT"
+          canRender={!!isCorporativo && !!onReservarSot}
+          onClick={() => onReservarSot?.(row.original)}
+        />
+        <ButtonAction
+          icon={Unlock}
+          color="amber"
+          tooltip="Liberar reserva"
+          canRender={!!isCorporativo && !!onLiberarSot}
+          onClick={() => onLiberarSot?.(row.original)}
+        />
+        <ButtonAction
+          icon={MapPinned}
+          tooltip="Cambiar ubicación"
+          canRender={!!isCorporativo && !!onCambiarUbicacion}
+          onClick={() => onCambiarUbicacion?.(row.original)}
         />
       </div>
     ),

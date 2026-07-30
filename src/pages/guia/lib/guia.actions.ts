@@ -274,6 +274,21 @@ export const verificarDisponibilidadIngreso = async (
   return data;
 };
 
+// Exclusivo para el tab "Equipo Retirado" del ingreso: permite reingresar
+// series que vienen del campo (retirado/devuelto/instalado/despachado/
+// devuelto a claro) y solo bloquea las que están disponibles/pendientes/
+// en traslado, a diferencia de verificarDisponibilidadIngreso (almacén).
+export const verificarDisponibilidadIngresoRetirado = async (
+  codigo: string,
+  tipo: "serie" | "mac" | "emta_mac" | "ua",
+) => {
+  const { data } = await api.get(
+    `/series/${encodeURIComponent(codigo)}/verificar-disponibilidad-ingreso-retirado`,
+    { params: { tipo } },
+  );
+  return data;
+};
+
 export const getProveedores = async (params: Record<string, any>) => {
   const { data } = await api.get("/proveedores", { params });
   return data;

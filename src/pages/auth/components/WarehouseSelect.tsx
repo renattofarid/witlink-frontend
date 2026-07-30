@@ -30,12 +30,20 @@ export default function WarehouseSelect({
   const [isContinuing, setIsContinuing] = useState(false);
   const navigate = useNavigate();
   const setAlmacenId = useAuthStore((s) => s.setAlmacenId);
+  const user = useAuthStore((s) => s.user);
 
-  const { data: almacenes = [], isLoading } = useQuery({
+  const { data: almacenesAll = [], isLoading } = useQuery({
     queryKey: ["almacenes-select"],
     queryFn: getAlmacenes,
     refetchOnWindowFocus: false,
   });
+
+  // Usuarios corporativos solo pueden operar sobre sus subalmacenes del grupo
+  const almacenes = useMemo(() => {
+    if (!user?.is_corporativo) return almacenesAll;
+    const permitidos = user.subalmacenes_operativos ?? [];
+    return almacenesAll.filter((a) => permitidos.includes(a.id));
+  }, [almacenesAll, user]);
 
   const options = useMemo(
     () =>

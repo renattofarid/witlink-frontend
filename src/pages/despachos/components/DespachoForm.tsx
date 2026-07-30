@@ -6,6 +6,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
+import { FormInput } from "@/components/FormInput";
 import { DataTable } from "@/components/DataTable";
 import { Badge } from "@/components/ui/badge";
 import { successToast, errorToast } from "@/lib/core.function";
@@ -19,6 +20,7 @@ import {
 import { createDespacho } from "../lib/despacho.actions";
 import { DespachoComplete } from "../lib/despacho.constants";
 import { useTecnicoDespachoQuery } from "../lib/despacho.hook";
+import { useAuthStore } from "@/pages/auth/lib/auth.store";
 import type { PersonaResource } from "@/pages/persona/lib/persona.interface";
 import type {
   DespachoCreateBody,
@@ -45,6 +47,7 @@ interface DespachoFormProps {
 
 export default function DespachoForm({ onSuccess }: DespachoFormProps) {
   const queryClient = useQueryClient();
+  const isCorporativo = !!useAuthStore((s) => s.user?.is_corporativo);
 
   const [masivoSeries, setMasivoSeries] = useState<MasivoSerieValidadaItem[]>([]);
   const [masivoError, setMasivoError] = useState("");
@@ -54,9 +57,9 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
   const [productoDialogOpen, setProductoDialogOpen] = useState(false);
 
   // ── Main form ──────────────────────────────────────────────────────────────
-  const form = useForm<DespachoCreateFormValues>({
+  const form = useForm<DespachoCreateFormValues & { sot?: string }>({
     resolver: zodResolver(despachoCreateSchema) as any,
-    defaultValues: { tecnico_id: "", productos: [] },
+    defaultValues: { tecnico_id: "", productos: [], sot: "" },
     mode: "onChange",
   });
 
@@ -125,7 +128,7 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
   const mutation = useMutation({
     mutationFn: (body: DespachoCreateBody) => createDespacho(body),
     onSuccess: () => {
-      form.reset({ tecnico_id: "", productos: [] });
+      form.reset({ tecnico_id: "", productos: [], sot: "" });
       setMasivoSeries([]);
       queryClient.invalidateQueries({ queryKey: [DespachoComplete.QUERY_KEY] });
       successToast("Despacho creado correctamente.");
@@ -153,10 +156,17 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
       setCombinedError("Debe agregar al menos un producto o una serie");
       return;
     }
+
+    const sotValue = (form.getValues("sot") ?? "").trim();
+    if (isCorporativo && !sotValue) {
+      setCombinedError("La SOT es obligatoria para despachos corporativos");
+      return;
+    }
     setCombinedError("");
 
     const body: DespachoCreateBody = {
       tecnico_id: Number(form.getValues("tecnico_id")),
+      ...(isCorporativo ? { sot: sotValue } : {}),
     };
 
     if (hasProductos) {
@@ -285,6 +295,15 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
             perPage={20}
             required
           />
+          {isCorporativo && (
+            <FormInput
+              name="sot"
+              label="SOT"
+              control={form.control}
+              placeholder="Ingrese la SOT"
+              required
+            />
+          )}
         </div>
       </div>
 

@@ -22,7 +22,7 @@ import {
   type ProductoFormValues,
   type SerieFormValues,
 } from "../lib/guia.schema";
-import { verificarDisponibilidadIngreso } from "../lib/guia.actions";
+import { verificarDisponibilidadIngresoRetirado } from "../lib/guia.actions";
 import { GuiaProductoDialog } from "./GuiaProductoDialog";
 
 import {
@@ -325,11 +325,12 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
     [mode, createForm, editingProductoIndex, productSubForm, equipo],
   );
 
-  // Valida contra la API que la serie/UA/EMTA MAC no estén ya registradas —
-  // agregar una serie a un equipo retirado también es un ingreso, así que
-  // aplica la misma regla de disponibilidad que en Guía normal. La MAC queda
-  // excluida: puede repetirse porque pertenece a una serie previamente
-  // despachada/instalada en el cliente (no se aplica unique para MAC).
+  // Valida contra la API específica de equipo retirado: permite reingresar
+  // series que vienen del campo (retirado/devuelto/instalado/despachado/
+  // devuelto a claro) y solo bloquea duplicados reales (disponible/pendiente/
+  // traslado). La MAC queda excluida: puede repetirse porque pertenece a una
+  // serie previamente despachada/instalada en el cliente (no se aplica unique
+  // para MAC).
   const validateSerieField = useCallback(
     async (
       rowIndex: number,
@@ -341,7 +342,7 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
       const key = `${rowIndex}.${field}`;
       setFieldValidationStatus((prev) => ({ ...prev, [key]: "loading" }));
       try {
-        await verificarDisponibilidadIngreso(value.trim(), field);
+        await verificarDisponibilidadIngresoRetirado(value.trim(), field);
         // 200 → código libre → disponible para ingresar
         setFieldValidationStatus((prev) => ({ ...prev, [key]: "valid" }));
         productSubForm.clearErrors(`series.${rowIndex}.${field}` as any);
@@ -438,9 +439,10 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
     }
     if (hasError) return;
 
-    // Agregar una serie también es un ingreso: serie/UA/EMTA MAC no deben
-    // estar ya registradas. La MAC queda excluida (puede repetirse: pertenece
-    // a una serie previamente despachada/instalada en el cliente).
+    // Agregar una serie también es un ingreso: valida contra la API de
+    // equipo retirado (permite reingresar series retiradas/devueltas/etc.).
+    // La MAC queda excluida (puede repetirse: pertenece a una serie
+    // previamente despachada/instalada en el cliente).
     const checks: Array<["serie" | "ua" | "emta_mac", string]> = [];
     if (serieUpper) checks.push(["serie", serieUpper]);
     if (uaUpper) checks.push(["ua", uaUpper]);
@@ -448,7 +450,7 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
 
     for (const [field, value] of checks) {
       try {
-        await verificarDisponibilidadIngreso(value, field);
+        await verificarDisponibilidadIngresoRetirado(value, field);
         // 200 → código libre → disponible para ingresar
       } catch (error: any) {
         if (error?.response?.status === 409) {

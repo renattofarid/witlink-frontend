@@ -1,5 +1,6 @@
 import { api } from "@/lib/config";
 import { DespachoComplete } from "./despacho.constants";
+import { useAuthStore } from "@/pages/auth/lib/auth.store";
 import type {
   DespachoResponse,
   DespachoResource,
@@ -20,7 +21,19 @@ export const getDespacho = async (id: number): Promise<DespachoResource> => {
   return data;
 };
 
-export const createDespacho = async (body: DespachoCreateBody) => {
+export const createDespacho = async (
+  body: DespachoCreateBody & { sot?: string },
+) => {
+  const { user, almacen_id } = useAuthStore.getState();
+
+  if (user?.is_corporativo) {
+    const { data } = await api.post("/corporativo/despachos", {
+      ...body,
+      almacen_id,
+    });
+    return data;
+  }
+
   const { data } = await api.post(DespachoComplete.ENDPOINT, body);
   return data;
 };

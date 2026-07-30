@@ -19,7 +19,13 @@ export interface AuthUsuario {
   oficina_id: number;
   tipo_usuario: TipoUsuario;
   grupos_menu: GruposMenu[];
+  is_corporativo?: boolean;
+  grupo_corporativo?: GrupoCorporativo | null;
+  subalmacenes_operativos?: number[];
+  almacen_retirados_id?: number | null;
 }
+
+export type GrupoCorporativo = "ALMACEN_PINT" | "ALMACEN_PEXT";
 
 export interface GruposMenu {
   id: number;

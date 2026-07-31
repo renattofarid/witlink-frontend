@@ -152,7 +152,7 @@ export default function InventarioSeriesFilters({
           value={params.retirados || "all"}
           onChange={(v) => set("retirados", v)}
         />
-        <div>
+        <div className="flex items-center gap-1">
           <Button color={"muted"} onClick={() => setBulkOpen(true)}>
             {productosSeleccionados.length > 0
               ? `Buscar masivo (${productosSeleccionados.length})`
@@ -169,14 +169,15 @@ export default function InventarioSeriesFilters({
               <X className="h-4 w-4" />
             </Button>
           )}
+
+          <ExportExcelButton
+            show={totalResults > 0}
+            getRows={getExportRows}
+            fileName={excelFileName("inventario-equipos")}
+            sheetName="Equipos"
+            label="Exportar filtrado"
+          />
         </div>
-        <ExportExcelButton
-          show={totalResults > 0}
-          getRows={getExportRows}
-          fileName={excelFileName("inventario-equipos")}
-          sheetName="Equipos"
-          label="Exportar filtrado"
-        />
         <SearchableSelect
           placeholder="Devueltos"
           options={[

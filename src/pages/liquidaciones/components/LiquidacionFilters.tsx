@@ -4,6 +4,7 @@ import { SearchableSelect } from "@/components/SearchableSelect";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import GeneralSheet from "@/components/GeneralSheet";
+import NoRegistradosBanner from "@/components/NoRegistradosBanner";
 import { X } from "lucide-react";
 import {
   ESTADO_OPERATIVO_OPTIONS,
@@ -19,6 +20,8 @@ interface LiquidacionFiltersProps {
   onEstadoChange: (v: string) => void;
   onEstadoLiquidacionChange: (v: string) => void;
   onSotsChange: (v: string) => void;
+  /** Bulk-search SOTs with no matches under the applied filters. */
+  noRegistrados?: string[];
 }
 
 export default function LiquidacionFilters({
@@ -30,6 +33,7 @@ export default function LiquidacionFilters({
   onEstadoChange,
   onEstadoLiquidacionChange,
   onSotsChange,
+  noRegistrados = [],
 }: LiquidacionFiltersProps) {
   const [bulkOpen, setBulkOpen] = useState(false);
   const [bulkText, setBulkText] = useState("");
@@ -108,6 +112,11 @@ export default function LiquidacionFilters({
           </Button>
         )}
       </div>
+
+      <NoRegistradosBanner
+        items={noRegistrados}
+        descripcion="los SOTs buscados"
+      />
 
       {/* Sheet de búsqueda masiva de SOTs */}
       <GeneralSheet

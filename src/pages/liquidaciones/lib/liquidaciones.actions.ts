@@ -9,32 +9,24 @@ import type {
   ActaResource,
 } from "./liquidaciones.interface";
 
-function buildLiquidacionesParams(params: Record<string, string>) {
-  const { sots, ...rest } = params;
-  const result: Record<string, unknown> = { ...rest };
+/**
+ * Builds the JSON body for the liquidaciones list. It travels as a POST payload
+ * (not a query string) so that bulk SOT searches with many terms are not
+ * rejected by IIS, which returns a 404 when the query string exceeds its limit.
+ */
+function buildLiquidacionesBody(params: Record<string, string>) {
+  const { sots, page, per_page, ...rest } = params;
+  const body: Record<string, unknown> = {};
 
-  if (sots) {
-    const items = sots.split(",").filter(Boolean);
-    result.sots = items;
+  for (const [key, value] of Object.entries(rest)) {
+    if (value !== "") body[key] = value;
   }
 
-  return result;
-}
+  if (page) body.page = Number(page);
+  if (per_page) body.per_page = Number(per_page);
+  if (sots) body.sots = sots.split(",").filter(Boolean);
 
-function serializeParams(params: Record<string, unknown>): string {
-  const search = new URLSearchParams();
-
-  Object.entries(params).forEach(([key, value]) => {
-    if (value === undefined || value === null || value === "") return;
-
-    if (Array.isArray(value)) {
-      value.forEach((item) => search.append(`${key}[]`, String(item)));
-    } else {
-      search.append(key, String(value));
-    }
-  });
-
-  return search.toString();
+  return body;
 }
 
 export const searchSot = async (sot: string): Promise<SotSearchResponse> => {
@@ -47,12 +39,10 @@ export const searchSot = async (sot: string): Promise<SotSearchResponse> => {
 export const getLiquidaciones = async (
   params: Record<string, string>,
 ): Promise<LiquidacionesResponse> => {
-  const { data } = await api.get(LiquidacionesComplete.ENDPOINT, {
-    params: buildLiquidacionesParams(params),
-    paramsSerializer: {
-      serialize: serializeParams,
-    },
-  });
+  const { data } = await api.post(
+    LiquidacionesComplete.ENDPOINT,
+    buildLiquidacionesBody(params),
+  );
   return data;
 };
 

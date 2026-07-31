@@ -8,16 +8,20 @@ import SearchInput from "@/components/SearchInput";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import GeneralSheet from "@/components/GeneralSheet";
+import NoRegistradosBanner from "@/components/NoRegistradosBanner";
 import { X } from "lucide-react";
 
 interface InventarioSeriesFiltersProps {
   params: Record<string, string>;
   setParams: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  /** Bulk-search terms with no matches under the applied filters. */
+  noRegistrados?: string[];
 }
 
 export default function InventarioSeriesFilters({
   params,
   setParams,
+  noRegistrados = [],
 }: InventarioSeriesFiltersProps) {
   const { data: almacenes = [] } = useQuery({
     queryKey: ["almacenes-list"],
@@ -172,6 +176,11 @@ export default function InventarioSeriesFilters({
           onChange={(v) => set("tecnicos", v)}
         />
       </FilterWrapper>
+
+      <NoRegistradosBanner
+        items={noRegistrados}
+        descripcion="las series buscadas"
+      />
 
       <GeneralSheet
         open={bulkOpen}

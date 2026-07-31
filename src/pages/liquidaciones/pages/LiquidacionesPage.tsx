@@ -140,6 +140,7 @@ export default function LiquidacionesPage() {
           onEstadoChange={handleEstadoChange}
           onEstadoLiquidacionChange={handleEstadoLiquidacionChange}
           onSotsChange={handleSotsChange}
+          noRegistrados={data?.no_registrados ?? []}
         />
       </DataTable>
 

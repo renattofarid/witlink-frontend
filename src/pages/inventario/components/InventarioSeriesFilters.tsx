@@ -9,19 +9,26 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import GeneralSheet from "@/components/GeneralSheet";
 import NoRegistradosBanner from "@/components/NoRegistradosBanner";
+import ExportExcelButton from "@/components/ExportExcelButton";
 import { X } from "lucide-react";
+import { getInventarioSeries } from "../lib/inventario.actions";
+import { excelFileName } from "@/lib/exportExcel";
+import type { InventarioSerieResource } from "../lib/inventario.interface";
 
 interface InventarioSeriesFiltersProps {
   params: Record<string, string>;
   setParams: React.Dispatch<React.SetStateAction<Record<string, string>>>;
   /** Bulk-search terms with no matches under the applied filters. */
   noRegistrados?: string[];
+  /** Total results under the current filter; the export button shows only when > 0. */
+  totalResults?: number;
 }
 
 export default function InventarioSeriesFilters({
   params,
   setParams,
   noRegistrados = [],
+  totalResults = 0,
 }: InventarioSeriesFiltersProps) {
   const { data: almacenes = [] } = useQuery({
     queryKey: ["almacenes-list"],
@@ -85,6 +92,34 @@ export default function InventarioSeriesFilters({
     setBulkText("");
   };
 
+  // Fetches every row under the current filter (a single page of `totalResults`)
+  // and flattens it to the columns shown on screen for the Excel export.
+  const getExportRows = async () => {
+    const res = await getInventarioSeries({
+      ...params,
+      page: "1",
+      per_page: String(totalResults),
+    });
+    return res.data.map((r: InventarioSerieResource) => ({
+      Fecha: r.fecha || "",
+      Guía: r.guia || "",
+      SAP: r.sap || "",
+      Producto: r.producto || "",
+      Serie: r.serie || "",
+      MAC: r.mac || "",
+      EMTA: r.emta || "",
+      UA: r.ua || "",
+      Días: r.dias,
+      Ubicación: r.ubicacion || "",
+      Situación: r.situacion_label || "",
+      Personal: r.personal || "",
+      Técnico: r.tecnico || "",
+      "Almacén origen": r.almacen_origen || "",
+      SOT: r.sot || "",
+      Motivo: r.motivo || "",
+    }));
+  };
+
   return (
     <div className="flex flex-wrap items-center gap-2">
       <FilterWrapper>
@@ -135,6 +170,13 @@ export default function InventarioSeriesFilters({
             </Button>
           )}
         </div>
+        <ExportExcelButton
+          show={totalResults > 0}
+          getRows={getExportRows}
+          fileName={excelFileName("inventario-equipos")}
+          sheetName="Equipos"
+          label="Exportar filtrado"
+        />
         <SearchableSelect
           placeholder="Devueltos"
           options={[

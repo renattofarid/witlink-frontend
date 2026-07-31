@@ -208,6 +208,7 @@ export default function InventarioPage() {
               params={seriesParams}
               setParams={setSeriesParams}
               noRegistrados={seriesNoRegistrados}
+              totalResults={seriesData?.meta.total ?? 0}
             />
           </DataTable>
 

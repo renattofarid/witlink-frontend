@@ -5,11 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import GeneralSheet from "@/components/GeneralSheet";
 import NoRegistradosBanner from "@/components/NoRegistradosBanner";
+import ExportExcelButton from "@/components/ExportExcelButton";
 import { X } from "lucide-react";
 import {
   ESTADO_OPERATIVO_OPTIONS,
   ESTADO_LIQUIDACION_OPTIONS,
 } from "../lib/liquidaciones.constants";
+import { getLiquidaciones } from "../lib/liquidaciones.actions";
+import { excelFileName } from "@/lib/exportExcel";
+import type { LiquidacionResource } from "../lib/liquidaciones.interface";
 
 interface LiquidacionFiltersProps {
   search: string;
@@ -22,6 +26,10 @@ interface LiquidacionFiltersProps {
   onSotsChange: (v: string) => void;
   /** Bulk-search SOTs with no matches under the applied filters. */
   noRegistrados?: string[];
+  /** Filters currently applied to the list, used to export the filtered set. */
+  exportParams?: Record<string, string>;
+  /** Total results under the current filter; the export button shows only when > 0. */
+  totalResults?: number;
 }
 
 export default function LiquidacionFilters({
@@ -34,6 +42,8 @@ export default function LiquidacionFilters({
   onEstadoLiquidacionChange,
   onSotsChange,
   noRegistrados = [],
+  exportParams = {},
+  totalResults = 0,
 }: LiquidacionFiltersProps) {
   const [bulkOpen, setBulkOpen] = useState(false);
   const [bulkText, setBulkText] = useState("");
@@ -69,6 +79,39 @@ export default function LiquidacionFilters({
   const handleClearBulk = () => {
     onSotsChange("");
     setBulkText("");
+  };
+
+  const formatFecha = (fecha: string) => {
+    if (!fecha) return "";
+    const raw = fecha.includes("T") ? fecha : `${fecha}T12:00:00`;
+    return new Date(raw).toLocaleDateString("es-PE", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
+
+  // Fetches every row under the current filter (a single page of `totalResults`)
+  // and flattens it to the columns shown on screen for the Excel export.
+  const getExportRows = async () => {
+    const res = await getLiquidaciones({
+      ...exportParams,
+      page: "1",
+      per_page: String(totalResults),
+    });
+    return res.data.map((r: LiquidacionResource) => ({
+      SOT: r.sot,
+      Cliente: r.nombre || "",
+      Código: r.codigo || "",
+      Fecha: formatFecha(r.fecha),
+      "Tipo trabajo": r.tipo_trabajo || "",
+      Estado: r.estado || "",
+      "Liq. estado": r.estado_liquidacion || "",
+      Distrito: r.distrito || "",
+      Dirección: r.direccion || "",
+      Paquete: r.paquete || "",
+      Contacto: r.contacto || "",
+    }));
   };
 
   return (
@@ -112,6 +155,14 @@ export default function LiquidacionFilters({
           </Button>
         )}
       </div>
+
+      <ExportExcelButton
+        show={totalResults > 0}
+        getRows={getExportRows}
+        fileName={excelFileName("liquidaciones")}
+        sheetName="Liquidaciones"
+        label="Exportar filtrado"
+      />
 
       <NoRegistradosBanner
         items={noRegistrados}

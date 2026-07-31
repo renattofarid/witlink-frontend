@@ -8,7 +8,7 @@ import type {
 function buildParams(params: Record<string, string>) {
   const { almacen_id, productos, ...rest } = params;
   const result: Record<string, unknown> = { ...rest };
-  
+
   if (almacen_id) {
     result["almacen_id[]"] = almacen_id.split(",").filter(Boolean);
   }
@@ -20,11 +20,34 @@ function buildParams(params: Record<string, string>) {
   return result;
 }
 
+/**
+ * Builds the JSON body for the series search. It travels as a POST payload
+ * (not a query string) so that bulk searches with many terms are not rejected
+ * by IIS, which returns a 404 when the URL/query string exceeds its limit.
+ */
+function buildSeriesBody(params: Record<string, string>) {
+  const { almacen_id, productos, page, per_page, ...rest } = params;
+  const body: Record<string, unknown> = {};
+
+  for (const [key, value] of Object.entries(rest)) {
+    if (value !== "") body[key] = value;
+  }
+
+  if (page) body.page = Number(page);
+  if (per_page) body.per_page = Number(per_page);
+  if (almacen_id) body.almacen_id = almacen_id.split(",").filter(Boolean);
+  if (productos) body.productos = productos.split(",").filter(Boolean);
+
+  return body;
+}
+
 export const getInventarioSeries = async (
   params: Record<string, string>,
 ): Promise<InventarioSerieResponse> => {
-  
-  const { data } = await api.get("/inventarios/series", { params: buildParams(params) });
+  const { data } = await api.post(
+    "/inventarios/series",
+    buildSeriesBody(params),
+  );
   return data;
 };
 

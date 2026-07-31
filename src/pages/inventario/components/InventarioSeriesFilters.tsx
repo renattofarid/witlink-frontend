@@ -11,9 +11,8 @@ import GeneralSheet from "@/components/GeneralSheet";
 import NoRegistradosBanner from "@/components/NoRegistradosBanner";
 import ExportExcelButton from "@/components/ExportExcelButton";
 import { X } from "lucide-react";
-import { getInventarioSeries } from "../lib/inventario.actions";
-import { excelFileName } from "@/lib/exportExcel";
-import type { InventarioSerieResource } from "../lib/inventario.interface";
+import { exportarInventarioSeriesExcel } from "../lib/inventario.actions";
+import { downloadExcelFromBase64 } from "@/lib/exportExcel";
 
 interface InventarioSeriesFiltersProps {
   params: Record<string, string>;
@@ -92,32 +91,11 @@ export default function InventarioSeriesFilters({
     setBulkText("");
   };
 
-  // Fetches every row under the current filter (a single page of `totalResults`)
-  // and flattens it to the columns shown on screen for the Excel export.
-  const getExportRows = async () => {
-    const res = await getInventarioSeries({
-      ...params,
-      page: "1",
-      per_page: String(totalResults),
-    });
-    return res.data.map((r: InventarioSerieResource) => ({
-      Fecha: r.fecha || "",
-      Guía: r.guia || "",
-      SAP: r.sap || "",
-      Producto: r.producto || "",
-      Serie: r.serie || "",
-      MAC: r.mac || "",
-      EMTA: r.emta || "",
-      UA: r.ua || "",
-      Días: r.dias,
-      Ubicación: r.ubicacion || "",
-      Situación: r.situacion_label || "",
-      Personal: r.personal || "",
-      Técnico: r.tecnico || "",
-      "Almacén origen": r.almacen_origen || "",
-      SOT: r.sot || "",
-      Motivo: r.motivo || "",
-    }));
+  // The backend generates the Excel from the same filters as the table, so it
+  // contains every match and not just the visible page.
+  const handleExport = async () => {
+    const res = await exportarInventarioSeriesExcel(params);
+    downloadExcelFromBase64(res);
   };
 
   return (
@@ -172,9 +150,7 @@ export default function InventarioSeriesFilters({
 
           <ExportExcelButton
             show={totalResults > 0}
-            getRows={getExportRows}
-            fileName={excelFileName("inventario-equipos")}
-            sheetName="Equipos"
+            onExport={handleExport}
             label="Exportar filtrado"
           />
         </div>

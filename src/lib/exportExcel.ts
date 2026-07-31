@@ -1,27 +1,29 @@
-/**
- * Generates an .xlsx file from an array of flat row objects and triggers the
- * browser download. Each row's keys become the sheet's column headers.
- *
- * `xlsx` is imported dynamically so its (~400KB) bundle is loaded only when the
- * user actually exports, keeping it out of the initial bundle.
- */
-export async function exportRowsToExcel(
-  rows: Record<string, unknown>[],
-  fileName: string,
-  sheetName: string = "Datos",
-) {
-  const XLSX = await import("xlsx");
-  const worksheet = XLSX.utils.json_to_sheet(rows);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
-  XLSX.writeFile(workbook, fileName);
+export interface ExcelResponse {
+  file_name: string;
+  mime_type: string;
+  file_base64: string;
 }
 
-/** Builds a filename like `liquidaciones_2026-07-31.xlsx`. */
-export function excelFileName(prefix: string): string {
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, "0");
-  const d = String(now.getDate()).padStart(2, "0");
-  return `${prefix}_${y}-${m}-${d}.xlsx`;
+/**
+ * Decodes a base64 Excel payload returned by the backend export endpoints and
+ * triggers the browser download using the server-provided file name.
+ */
+export function downloadExcelFromBase64({
+  file_base64,
+  file_name,
+  mime_type,
+}: ExcelResponse) {
+  const byteChars = atob(file_base64);
+  const buffer = new ArrayBuffer(byteChars.length);
+  const bytes = new Uint8Array(buffer);
+  for (let i = 0; i < byteChars.length; i++) bytes[i] = byteChars.charCodeAt(i);
+  const blob = new Blob([buffer], { type: mime_type });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.setAttribute("download", file_name);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
 }

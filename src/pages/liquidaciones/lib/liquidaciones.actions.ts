@@ -1,4 +1,5 @@
 import { api } from "@/lib/config";
+import type { ExcelResponse } from "@/lib/exportExcel";
 import { LiquidacionesComplete } from "./liquidaciones.constants";
 import type {
   SotSearchResponse,
@@ -42,6 +43,24 @@ export const getLiquidaciones = async (
   const { data } = await api.post(
     LiquidacionesComplete.ENDPOINT,
     buildLiquidacionesBody(params),
+  );
+  return data;
+};
+
+/**
+ * Server-side Excel export of the filtered list (bulk SOT search included).
+ * Uses the dedicated endpoint that does NOT require a date range, so it exports
+ * exactly the filtered table. Sends the same filters as the list minus pagination.
+ */
+export const exportarBusquedaLiquidacionesExcel = async (
+  params: Record<string, string>,
+): Promise<ExcelResponse> => {
+  const body = buildLiquidacionesBody(params);
+  delete body.page;
+  delete body.per_page;
+  const { data } = await api.post(
+    `${LiquidacionesComplete.ENDPOINT}/busqueda/exportar-excel`,
+    body,
   );
   return data;
 };

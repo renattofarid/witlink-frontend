@@ -18,32 +18,10 @@ import {
 import { api } from "@/lib/config";
 import { toast } from "sonner";
 import DatePicker from "@/components/DatePicker";
-
-interface ExcelResponse {
-  file_name: string;
-  mime_type: string;
-  file_base64: string;
-}
-
-function downloadFromBase64({
-  file_base64,
-  file_name,
-  mime_type,
-}: ExcelResponse) {
-  const byteChars = atob(file_base64);
-  const buffer = new ArrayBuffer(byteChars.length);
-  const bytes = new Uint8Array(buffer);
-  for (let i = 0; i < byteChars.length; i++) bytes[i] = byteChars.charCodeAt(i);
-  const blob = new Blob([buffer], { type: mime_type });
-  const url = window.URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.setAttribute("download", file_name);
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  window.URL.revokeObjectURL(url);
-}
+import {
+  downloadExcelFromBase64,
+  type ExcelResponse,
+} from "@/lib/exportExcel";
 
 export default function LiquidacionesExportButtons({
   filters,
@@ -64,7 +42,7 @@ export default function LiquidacionesExportButtons({
       const { data } = await api.get<ExcelResponse>(
         "/liquidaciones/liquidadas/exportar-excel",
       );
-      downloadFromBase64(data);
+      downloadExcelFromBase64(data);
       toast.success("Excel descargado exitosamente");
     } catch {
       toast.error("Error al descargar el archivo Excel");
@@ -92,7 +70,7 @@ export default function LiquidacionesExportButtons({
           },
         },
       );
-      downloadFromBase64(data);
+      downloadExcelFromBase64(data);
       toast.success("Resumen descargado exitosamente");
       setOpen(false);
     } catch {

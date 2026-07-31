@@ -11,9 +11,8 @@ import {
   ESTADO_OPERATIVO_OPTIONS,
   ESTADO_LIQUIDACION_OPTIONS,
 } from "../lib/liquidaciones.constants";
-import { getLiquidaciones } from "../lib/liquidaciones.actions";
-import { excelFileName } from "@/lib/exportExcel";
-import type { LiquidacionResource } from "../lib/liquidaciones.interface";
+import { exportarBusquedaLiquidacionesExcel } from "../lib/liquidaciones.actions";
+import { downloadExcelFromBase64 } from "@/lib/exportExcel";
 
 interface LiquidacionFiltersProps {
   search: string;
@@ -81,37 +80,12 @@ export default function LiquidacionFilters({
     setBulkText("");
   };
 
-  const formatFecha = (fecha: string) => {
-    if (!fecha) return "";
-    const raw = fecha.includes("T") ? fecha : `${fecha}T12:00:00`;
-    return new Date(raw).toLocaleDateString("es-PE", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
-  };
-
-  // Fetches every row under the current filter (a single page of `totalResults`)
-  // and flattens it to the columns shown on screen for the Excel export.
-  const getExportRows = async () => {
-    const res = await getLiquidaciones({
-      ...exportParams,
-      page: "1",
-      per_page: String(totalResults),
-    });
-    return res.data.map((r: LiquidacionResource) => ({
-      SOT: r.sot,
-      Cliente: r.nombre || "",
-      Código: r.codigo || "",
-      Fecha: formatFecha(r.fecha),
-      "Tipo trabajo": r.tipo_trabajo || "",
-      Estado: r.estado || "",
-      "Liq. estado": r.estado_liquidacion || "",
-      Distrito: r.distrito || "",
-      Dirección: r.direccion || "",
-      Paquete: r.paquete || "",
-      Contacto: r.contacto || "",
-    }));
+  // The backend generates the Excel from the same filters as the table (bulk
+  // SOTs included) with no date range required, so it exports exactly the
+  // filtered set and not just the visible page.
+  const handleExport = async () => {
+    const res = await exportarBusquedaLiquidacionesExcel(exportParams);
+    downloadExcelFromBase64(res);
   };
 
   return (
@@ -158,9 +132,7 @@ export default function LiquidacionFilters({
 
       <ExportExcelButton
         show={totalResults > 0}
-        getRows={getExportRows}
-        fileName={excelFileName("liquidaciones")}
-        sheetName="Liquidaciones"
+        onExport={handleExport}
         label="Exportar filtrado"
       />
 

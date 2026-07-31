@@ -1,4 +1,5 @@
 import { api } from "@/lib/config";
+import type { ExcelResponse } from "@/lib/exportExcel";
 import type {
   InventarioSerieResponse,
   InventarioMaterialResponse,
@@ -48,6 +49,24 @@ export const getInventarioSeries = async (
     "/inventarios/series",
     buildSeriesBody(params),
   );
+  return data;
+};
+
+/**
+ * Server-side Excel export of the series list. Sends the SAME filters as the
+ * table (minus pagination) so the file contains every match, not just the
+ * visible page.
+ */
+export const exportarInventarioSeriesExcel = async (
+  params: Record<string, string>,
+): Promise<ExcelResponse> => {
+  const body = buildSeriesBody(params);
+  delete body.page;
+  delete body.per_page;
+  const { data } = await api.post("/inventarios/series/exportar-excel", {
+    ...body,
+    formato: "xlsx",
+  });
   return data;
 };
 

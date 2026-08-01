@@ -41,12 +41,12 @@ export default function GuiaAddPage() {
         backRoute={GuiaComplete.ABSOLUTE_ROUTE}
       />
       <Tabs value={activeTab} onValueChange={handleTabChange}>
-        <TabsList className="w-full">
-          <TabsTrigger value="almacen" className="flex-1">
+        <TabsList className="w-fit gap-2 px-2">
+          <TabsTrigger value="almacen" className="flex-1 px-4">
             <ClipboardList className="size-3.5 mr-1.5" />
             Almacén
           </TabsTrigger>
-          <TabsTrigger value="equipo_retirado" className="flex-1">
+          <TabsTrigger value="equipo_retirado" className="flex-1 px-4">
             <Archive className="size-3.5 mr-1.5" />
             Equipo Retirado
           </TabsTrigger>

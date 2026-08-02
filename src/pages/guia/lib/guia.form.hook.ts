@@ -69,6 +69,7 @@ function buildGuiaCreateBody(values: GuiaCreateFormValues): GuiaCreateBody {
   return {
     numero: values.numero,
     fecha: values.fecha,
+    almacen_id: values.almacen_id ? Number(values.almacen_id) : null,
     archivo: values.archivo ?? null,
     productos: values.productos.map((p) =>
       buildProductoNuevo(p, p.tipo === "EQUIPO"),

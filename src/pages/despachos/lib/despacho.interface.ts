@@ -107,6 +107,7 @@ export interface DespachoProductoBody {
 export interface DespachoCreateBody {
   tecnico_id: number;
   sot?: string;
+  almacen_id?: number;
   productos?: DespachoProductoBody[];
   series?: string[];
 }

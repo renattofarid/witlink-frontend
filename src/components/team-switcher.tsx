@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronsUpDown, Loader2, Warehouse } from "lucide-react";
 
@@ -20,14 +20,12 @@ import {
 } from "@/components/ui/sidebar";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
 import { getAlmacenes, selectAlmacen } from "@/pages/auth/lib/auth.actions";
-import { getAlmacenesPermitidos } from "@/pages/auth/lib/auth.utils";
 import { errorToast } from "@/lib/core.function";
 
 export function TeamSwitcher() {
   const { isMobile } = useSidebar();
   const almacen_id = useAuthStore((s) => s.almacen_id);
   const setAlmacenId = useAuthStore((s) => s.setAlmacenId);
-  const user = useAuthStore((s) => s.user);
   const [switching, setSwitching] = useState<number | null>(null);
   const queryClient = useQueryClient();
 
@@ -37,10 +35,8 @@ export function TeamSwitcher() {
     refetchOnWindowFocus: false,
   });
 
-  // Usuarios corporativos solo pueden cambiarse a almacenes de su propio grupo
-  const almacenes = useMemo(
-    () => getAlmacenesPermitidos(user, almacenesAll),
-    [almacenesAll, user],
+  const almacenes = almacenesAll.filter(
+    (a) => a.is_corporativo || a.almacen_padre_id === null,
   );
 
   const activeAlmacen = almacenes.find((a) => a.id === almacen_id) ?? null;
@@ -121,7 +117,10 @@ export function TeamSwitcher() {
             {almacenes.length === 0 && (
               <>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem disabled className="gap-2 p-2 text-xs text-muted-foreground">
+                <DropdownMenuItem
+                  disabled
+                  className="gap-2 p-2 text-xs text-muted-foreground"
+                >
                   No hay almacenes disponibles
                 </DropdownMenuItem>
               </>

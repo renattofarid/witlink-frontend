@@ -29,7 +29,7 @@ export const createDespacho = async (
   if (user?.is_corporativo) {
     const { data } = await api.post("/corporativo/despachos", {
       ...body,
-      almacen_id,
+      almacen_id: body.almacen_id ?? almacen_id,
     });
     return data;
   }

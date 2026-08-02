@@ -1,11 +1,15 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { DataTable } from "@/components/DataTable";
 import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 import { PackagePlus } from "lucide-react";
+import { useAuthStore } from "@/pages/auth/lib/auth.store";
+import { getAlmacenes } from "@/pages/auth/lib/auth.actions";
+import { getSubalmacenesOperativos } from "@/pages/auth/lib/auth.utils";
 import {
   guiaCreateSchema,
   guiaEditSchema,
@@ -115,6 +119,26 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
 
   const { almacenDraft, setAlmacenDraft } = useGuiaDraftStore();
   const submittedRef = useRef(false);
+
+  // ── Almacén (solo corporativo): el almacén activo de sesión puede ser el
+  // "padre" del grupo, que nunca es un destino físico válido para un ingreso.
+  const user = useAuthStore((s) => s.user);
+  const { data: almacenesAll = [], isLoading: loadingAlmacenes } = useQuery({
+    queryKey: ["almacenes-list"],
+    queryFn: getAlmacenes,
+    refetchOnWindowFocus: false,
+    enabled: !!user?.is_corporativo,
+  });
+  const almacenOptions = useMemo(
+    () =>
+      user?.is_corporativo
+        ? getSubalmacenesOperativos(user, almacenesAll).map((a) => ({
+            value: String(a.id),
+            label: a.nombre,
+          }))
+        : undefined,
+    [user, almacenesAll],
+  );
 
   // Wrap onSuccess to mark submission before navigating away
   const wrappedOnSuccess = () => {
@@ -440,7 +464,16 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
 
   return (
     <form
-      onSubmit={form.control.handleSubmit((v) => mutation.mutate(v))}
+      onSubmit={form.control.handleSubmit((v) => {
+        if (mode === "create" && user?.is_corporativo && !v.almacen_id) {
+          form.setError("almacen_id", {
+            type: "manual",
+            message: "Seleccione el almacén.",
+          });
+          return;
+        }
+        mutation.mutate(v);
+      })}
       className="space-y-4"
     >
       {/* ── Sección 1: Datos de la guía ────────────────────────────────────── */}
@@ -448,6 +481,8 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
         control={form.control}
         mode={mode}
         existingFileName={guia?.ruta_pdf_guia ?? null}
+        almacenOptions={almacenOptions}
+        loadingAlmacenes={loadingAlmacenes}
       />
 
       {/* ── Sección 2: Productos ────────────────────────────────────────────── */}

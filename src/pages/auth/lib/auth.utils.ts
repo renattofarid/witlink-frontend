@@ -14,3 +14,16 @@ export function getAlmacenesPermitidos(
   const permitidos = new Set(user.subalmacenes.map((s) => s.id));
   return almacenes.filter((a) => permitidos.has(a.id));
 }
+
+/**
+ * Subalmacenes operativos reales del grupo del usuario corporativo: excluye  
+ * el almacén "padre" (p.ej. PINT/PEXT), que solo agrupa y nunca contiene
+ * stock propio, por lo que jamás es un destino válido para una operación
+ * (ingreso, despacho, traslado) que requiera un almacén físico específico.
+ */
+export function getSubalmacenesOperativos(
+  user: AuthUsuario | null,
+  almacenes: AlmacenResource[],
+): AlmacenResource[] {
+  return getAlmacenesPermitidos(user, almacenes);
+}

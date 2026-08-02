@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
+import { FormSelect } from "@/components/FormSelect";
 import { FormInput } from "@/components/FormInput";
 import { DataTable } from "@/components/DataTable";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +22,8 @@ import { createDespacho } from "../lib/despacho.actions";
 import { DespachoComplete } from "../lib/despacho.constants";
 import { useTecnicoDespachoQuery } from "../lib/despacho.hook";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
+import { getAlmacenes } from "@/pages/auth/lib/auth.actions";
+import { getSubalmacenesOperativos } from "@/pages/auth/lib/auth.utils";
 import type { PersonaResource } from "@/pages/persona/lib/persona.interface";
 import type {
   DespachoCreateBody,
@@ -48,8 +51,8 @@ interface DespachoFormProps {
 
 export default function DespachoForm({ onSuccess }: DespachoFormProps) {
   const queryClient = useQueryClient();
-  const isCorporativo = !!useAuthStore((s) => s.user?.is_corporativo);
-  const almacen_id = useAuthStore((s) => s.almacen_id);
+  const user = useAuthStore((s) => s.user);
+  const isCorporativo = !!user?.is_corporativo;
 
   const [masivoSeries, setMasivoSeries] = useState<MasivoSerieValidadaItem[]>([]);
   const [masivoError, setMasivoError] = useState("");
@@ -58,12 +61,33 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
   const [editingProductoIndex, setEditingProductoIndex] = useState<number | null>(null);
   const [productoDialogOpen, setProductoDialogOpen] = useState(false);
 
+  // ── Almacén (solo corporativo): el almacén activo de sesión puede ser el
+  // "padre" del grupo, que nunca contiene stock propio; se exige elegir un
+  // subalmacén específico para esta operación.
+  const { data: almacenesAll = [] } = useQuery({
+    queryKey: ["almacenes-list"],
+    queryFn: getAlmacenes,
+    refetchOnWindowFocus: false,
+    enabled: isCorporativo,
+  });
+  const almacenOptions = useMemo(
+    () =>
+      getSubalmacenesOperativos(user, almacenesAll).map((a) => ({
+        value: String(a.id),
+        label: a.nombre,
+      })),
+    [user, almacenesAll],
+  );
+
   // ── Main form ──────────────────────────────────────────────────────────────
   const form = useForm<DespachoCreateFormValues & { sot?: string }>({
     resolver: zodResolver(despachoCreateSchema) as any,
-    defaultValues: { tecnico_id: "", productos: [], sot: "" },
+    defaultValues: { tecnico_id: "", almacen_id: "", productos: [], sot: "" },
     mode: "onChange",
   });
+
+  const almacenIdValue = form.watch("almacen_id");
+  const resolvedAlmacenId = almacenIdValue ? Number(almacenIdValue) : null;
 
   const {
     append: appendProducto,
@@ -175,11 +199,17 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
       setCombinedError("La SOT es obligatoria para despachos corporativos");
       return;
     }
+    if (isCorporativo && !resolvedAlmacenId) {
+      setCombinedError("Seleccione el almacén para el despacho");
+      return;
+    }
     setCombinedError("");
 
     const body: DespachoCreateBody = {
       tecnico_id: Number(form.getValues("tecnico_id")),
-      ...(isCorporativo ? { sot: sotValue } : {}),
+      ...(isCorporativo
+        ? { sot: sotValue, almacen_id: resolvedAlmacenId! }
+        : {}),
     };
 
     if (hasProductos) {
@@ -306,7 +336,13 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
           <Separator className="flex-1" />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div
+          className={
+            isCorporativo
+              ? "grid grid-cols-1 md:grid-cols-3 gap-3"
+              : "grid grid-cols-1 md:grid-cols-2 gap-3"
+          }
+        >
           <FormSelectAsync
             name="tecnico_id"
             label="Técnico"
@@ -321,6 +357,16 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
             perPage={20}
             required
           />
+          {isCorporativo && (
+            <FormSelect
+              name="almacen_id"
+              label="Almacén"
+              control={form.control}
+              placeholder="Seleccionar subalmacén..."
+              options={almacenOptions}
+              required
+            />
+          )}
           {isCorporativo && (
             <FormInput
               name="sot"
@@ -387,7 +433,7 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
 
         {isCorporativo && debouncedSot && (
           <DespachoSotSeriesPanel
-            almacenId={almacen_id}
+            almacenId={resolvedAlmacenId}
             sot={debouncedSot}
             existingSeries={existingSeriesSet}
             onAdd={(item) => {

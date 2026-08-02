@@ -39,7 +39,7 @@ export function GuiaDatosSection({
           required
           uppercase
         />
-        
+
         <DatePickerFormField
           required
           name="fecha"
@@ -60,7 +60,7 @@ export function GuiaDatosSection({
               </label>
               <Input
                 type="file"
-                accept=".pdf,.doc,.docx,.xls,.xlsx,image/*"
+                accept=".pdf"
                 onChange={(e) => onChange(e.target.files?.[0] ?? null)}
                 {...field}
               />

@@ -47,11 +47,17 @@ export default function WarehouseSelect({
 
   const options = useMemo(
     () =>
-      almacenes.map((a) => ({
-        value: String(a.id),
-        label: a.nombre,
-        description: a.direccion,
-      })),
+      almacenes
+        .filter(
+          (a) =>
+            a.es_subalmacen_corporativo === false &&
+            a.almacen_padre_id === null,
+        )
+        .map((a) => ({
+          value: String(a.id),
+          label: a.nombre,
+          description: a.direccion,
+        })),
     [almacenes],
   );
 
@@ -101,7 +107,9 @@ export default function WarehouseSelect({
                   <div className="flex size-8 items-center justify-center rounded-md">
                     <Waypoints className="size-6" />
                   </div>
-                  <span className="sr-only">Witlink - Selección de almacén</span>
+                  <span className="sr-only">
+                    Witlink - Selección de almacén
+                  </span>
                 </a>
                 <h1 className="text-xl font-bold">Selecciona tu almacén.</h1>
                 <FieldDescription>
@@ -116,7 +124,9 @@ export default function WarehouseSelect({
                       options={options}
                       value={selectedId}
                       onChange={setSelectedId}
-                      placeholder={isLoading ? "Cargando..." : "Selecciona un almacén..."}
+                      placeholder={
+                        isLoading ? "Cargando..." : "Selecciona un almacén..."
+                      }
                       disabled={isLoading}
                       buttonSize="default"
                     />

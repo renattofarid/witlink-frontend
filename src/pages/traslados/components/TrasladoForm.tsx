@@ -112,8 +112,11 @@ export default function TrasladoForm({ onSuccess }: TrasladoFormProps) {
     refetchOnWindowFocus: false,
   });
 
+  // Los almacenes corporativos "padre" (p.ej. PINT/PEXT) son agrupadores
+  // administrativos sin operativa propia: nunca son un destino válido, solo
+  // sus subalmacenes lo son.
   const almacenOptions = almacenes
-    .filter((a) => a.id !== almacen_id)
+    .filter((a) => a.id !== almacen_id && !a.is_corporativo)
     .map((a) => ({ value: String(a.id), label: a.nombre }));
 
   const mutation = useMutation({

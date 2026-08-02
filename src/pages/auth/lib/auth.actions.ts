@@ -44,9 +44,10 @@ export async function login(body: LoginBody): Promise<AuthResponse> {
 export async function authenticate(): Promise<AuthenticateResponse> {
   try {
     const { data } = await api.get<AuthenticateResponse>("/auth/me");
-    const { setUser } = useAuthStore.getState();
+    const { setUser, setAlmacenId } = useAuthStore.getState();
 
     setUser(data.data);
+    setAlmacenId(data.data.almacen_id);
 
     await loadAllowedRoutes(data.data.tipo_usuario.id);
 

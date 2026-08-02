@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -28,6 +28,7 @@ import type {
 } from "../lib/despacho.interface";
 import { DespachoProductoDialog } from "./DespachoProductoDialog";
 import { DespachoMasivoSeriesInput } from "./DespachoMasivoSeriesInput";
+import { DespachoSotSeriesPanel } from "./DespachoSotSeriesPanel";
 import { despachoProductoSchema } from "../lib/despacho.schema";
 
 void despachoProductoSchema;
@@ -48,6 +49,7 @@ interface DespachoFormProps {
 export default function DespachoForm({ onSuccess }: DespachoFormProps) {
   const queryClient = useQueryClient();
   const isCorporativo = !!useAuthStore((s) => s.user?.is_corporativo);
+  const almacen_id = useAuthStore((s) => s.almacen_id);
 
   const [masivoSeries, setMasivoSeries] = useState<MasivoSerieValidadaItem[]>([]);
   const [masivoError, setMasivoError] = useState("");
@@ -68,6 +70,17 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
     remove: removeProducto,
     update: updateProductoField,
   } = useFieldArray({ control: form.control, name: "productos" });
+
+  // Debounce de la SOT para no disparar la búsqueda de reservas en cada tecla.
+  const sotValue = form.watch("sot") ?? "";
+  const [debouncedSot, setDebouncedSot] = useState("");
+  useEffect(() => {
+    const timeout = setTimeout(
+      () => setDebouncedSot(sotValue.trim().toUpperCase()),
+      400,
+    );
+    return () => clearTimeout(timeout);
+  }, [sotValue]);
 
   // ── Product sub-form ───────────────────────────────────────────────────────
   const productSubForm = useForm<DespachoProductoFormValues>({
@@ -188,6 +201,19 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
 
   // ── Columns: tabla resumen de productos ────────────────────────────────────
   const watchedProductos = form.watch("productos");
+
+  // Series ya presentes en el despacho (masivo o dentro de un producto), para
+  // no volver a sugerirlas en el panel de reservas SOT.
+  const existingSeriesSet = useMemo(() => {
+    const set = new Set<string>();
+    masivoSeries.forEach((s) => set.add(s.serie.toUpperCase()));
+    watchedProductos.forEach((p) =>
+      (p.series ?? []).forEach((s) => {
+        if (s.serie) set.add(s.serie.trim().toUpperCase());
+      }),
+    );
+    return set;
+  }, [masivoSeries, watchedProductos]);
 
   const productoColumns: ColumnDef<DespachoProductoFormValues>[] = [
     {
@@ -358,6 +384,19 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
           </h3>
           <Separator className="flex-1" />
         </div>
+
+        {isCorporativo && debouncedSot && (
+          <DespachoSotSeriesPanel
+            almacenId={almacen_id}
+            sot={debouncedSot}
+            existingSeries={existingSeriesSet}
+            onAdd={(item) => {
+              setMasivoSeries((prev) => [...prev, item]);
+              setMasivoError("");
+              setCombinedError("");
+            }}
+          />
+        )}
 
         <DespachoMasivoSeriesInput
           items={masivoSeries}

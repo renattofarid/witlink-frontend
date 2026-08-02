@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronsUpDown, Loader2, Warehouse } from "lucide-react";
 
@@ -20,20 +20,28 @@ import {
 } from "@/components/ui/sidebar";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
 import { getAlmacenes, selectAlmacen } from "@/pages/auth/lib/auth.actions";
+import { getAlmacenesPermitidos } from "@/pages/auth/lib/auth.utils";
 import { errorToast } from "@/lib/core.function";
 
 export function TeamSwitcher() {
   const { isMobile } = useSidebar();
   const almacen_id = useAuthStore((s) => s.almacen_id);
   const setAlmacenId = useAuthStore((s) => s.setAlmacenId);
+  const user = useAuthStore((s) => s.user);
   const [switching, setSwitching] = useState<number | null>(null);
   const queryClient = useQueryClient();
 
-  const { data: almacenes = [] } = useQuery({
+  const { data: almacenesAll = [] } = useQuery({
     queryKey: ["almacenes-select"],
     queryFn: getAlmacenes,
     refetchOnWindowFocus: false,
   });
+
+  // Usuarios corporativos solo pueden cambiarse a almacenes de su propio grupo
+  const almacenes = useMemo(
+    () => getAlmacenesPermitidos(user, almacenesAll),
+    [almacenesAll, user],
+  );
 
   const activeAlmacen = almacenes.find((a) => a.id === almacen_id) ?? null;
 

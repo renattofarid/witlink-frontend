@@ -16,16 +16,20 @@ export interface AuthUsuario {
   id: number;
   nombre_usuario: string;
   persona_id: number;
-  oficina_id: number;
+  almacen_id: number;
   tipo_usuario: TipoUsuario;
   grupos_menu: GruposMenu[];
-  is_corporativo?: boolean;
-  grupo_corporativo?: GrupoCorporativo | null;
-  subalmacenes_operativos?: number[];
-  almacen_retirados_id?: number | null;
+  is_corporativo: boolean;
+  subalmacenes: SubalmacenResumen[];
+  almacen_padre_id: number | null;
+  es_subalmacen_corporativo: boolean;
 }
 
-export type GrupoCorporativo = "ALMACEN_PINT" | "ALMACEN_PEXT";
+export interface SubalmacenResumen {
+  id: number;
+  nombre: string;
+  codigo: string;
+}
 
 export interface GruposMenu {
   id: number;
@@ -48,9 +52,4 @@ export interface TipoUsuario {
   nombre: string;
 }
 
-export interface AlmacenResource {
-  id: number;
-  nombre: string;
-  direccion: string;
-  deleted_at: string | null;
-}
+export type { AlmacenResource } from "@/pages/almacenes/lib/almacen.interface";

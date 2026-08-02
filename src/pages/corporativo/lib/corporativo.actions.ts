@@ -6,7 +6,6 @@ import type {
   CorporativoInventarioSerieResponse,
   ReservaSotBody,
 } from "./corporativo.interface";
-import type { DespachoCreateBody } from "@/pages/despachos/lib/despacho.interface";
 
 export const getInventarioSeriesCorporativo = async (
   params: Record<string, string>,
@@ -46,23 +45,6 @@ export const cambiarUbicacionMasivo = async (
   body: CambiarUbicacionMasivoBody,
 ): Promise<CambiarUbicacionMasivoResponse> => {
   const { data } = await api.post("/inventarios/series/cambiar-ubicacion-masivo", body);
-  return data;
-};
-
-export const createDespachoCorporativo = async (
-  body: DespachoCreateBody & { almacen_id: number; sot?: string },
-) => {
-  const { data } = await api.post("/corporativo/despachos", body);
-  return data;
-};
-
-export const createDespachoMasivoSeriesCorporativo = async (body: {
-  almacen_id: number;
-  sot: string;
-  tecnico_id: number;
-  series: string[];
-}) => {
-  const { data } = await api.post("/corporativo/despachos/masivo-series", body);
   return data;
 };
 

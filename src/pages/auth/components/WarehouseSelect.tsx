@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Warehouse, Waypoints } from "lucide-react";
 import { getAlmacenes, selectAlmacen } from "../lib/auth.actions";
 import { useAuthStore } from "../lib/auth.store";
+import { getAlmacenesPermitidos } from "../lib/auth.utils";
 import { errorToast } from "@/lib/core.function";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,11 +40,10 @@ export default function WarehouseSelect({
   });
 
   // Usuarios corporativos solo pueden operar sobre sus subalmacenes del grupo
-  const almacenes = useMemo(() => {
-    if (!user?.is_corporativo) return almacenesAll;
-    const permitidos = user.subalmacenes_operativos ?? [];
-    return almacenesAll.filter((a) => permitidos.includes(a.id));
-  }, [almacenesAll, user]);
+  const almacenes = useMemo(
+    () => getAlmacenesPermitidos(user, almacenesAll),
+    [almacenesAll, user],
+  );
 
   const options = useMemo(
     () =>

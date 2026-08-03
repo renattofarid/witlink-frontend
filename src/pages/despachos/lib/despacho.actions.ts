@@ -62,16 +62,23 @@ export const getSeriesDisponibles = async (params: Record<string, any>) => {
 export const validateSerieDisponible = async (params: {
   serie: string;
   producto_id: number | string;
+  almacen_id?: number | null;
 }): Promise<MasivoSerieValidacionResponse> => {
   const { data } = await api.get(`/series/${encodeURIComponent(params.serie)}/validar`, {
-    params: { producto_id: params.producto_id },
+    params: {
+      producto_id: params.producto_id,
+      ...(params.almacen_id ? { almacen_id: params.almacen_id } : {}),
+    },
   });
   return data;
 };
 
 export const validateSerieMasivoDisponible = async (
   serie: string,
+  almacenId?: number | null,
 ): Promise<MasivoSerieValidacionResponse> => {
-  const { data } = await api.get(`/series/${encodeURIComponent(serie)}/validar`);
+  const { data } = await api.get(`/series/${encodeURIComponent(serie)}/validar`, {
+    params: almacenId ? { almacen_id: almacenId } : undefined,
+  });
   return data;
 };

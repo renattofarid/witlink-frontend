@@ -405,6 +405,7 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
           editingIndex={editingProductoIndex}
           productSubForm={productSubForm}
           watchedSeries={watchedSeries as DespachoSerieFormValues[]}
+          almacenId={resolvedAlmacenId}
           onClose={handleCloseProductoDialog}
           onSubmit={handleAddOrUpdateProducto}
           onAppendSerie={appendSerie}
@@ -446,6 +447,7 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
 
         <DespachoMasivoSeriesInput
           items={masivoSeries}
+          almacenId={resolvedAlmacenId}
           onAdd={(item) => {
             setMasivoSeries((prev) => [...prev, item]);
             setMasivoError("");

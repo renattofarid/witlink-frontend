@@ -20,6 +20,7 @@ interface DespachoProductoDialogProps {
   editingIndex: number | null;
   productSubForm: UseFormReturn<DespachoProductoFormValues>;
   watchedSeries: DespachoSerieFormValues[];
+  almacenId?: number | null;
   onClose: () => void;
   onSubmit: () => void;
   onAppendSerie: (serie: DespachoSerieFormValues) => void;
@@ -32,6 +33,7 @@ export function DespachoProductoDialog({
   editingIndex,
   productSubForm,
   watchedSeries,
+  almacenId,
   onClose,
   onSubmit,
   onAppendSerie,
@@ -111,6 +113,7 @@ export function DespachoProductoDialog({
       const result = await validateSerieDisponible({
         serie: trimmed,
         producto_id: watchedProductoId,
+        almacen_id: almacenId,
       });
       onAppendSerie({ serie: result.serie.serie ?? trimmed, serie_id: result.serie.id });
       setSerieInput("");
@@ -123,7 +126,7 @@ export function DespachoProductoDialog({
       isValidatingRef.current = false;
       setIsValidating(false);
     }
-  }, [serieInput, watchedSeries, watchedProductoId, onAppendSerie]);
+  }, [serieInput, watchedSeries, watchedProductoId, onAppendSerie, almacenId]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -165,6 +168,7 @@ export function DespachoProductoDialog({
       const result = await validateSerieDisponible({
         serie: trimmed,
         producto_id: watchedProductoId,
+        almacen_id: almacenId,
       });
       onUpdateSerie(index, { serie: result.serie.serie ?? trimmed, serie_id: result.serie.id });
       setEditingSerieIndex(null);
@@ -177,7 +181,7 @@ export function DespachoProductoDialog({
       isEditingValidatingRef.current = false;
       setIsEditingValidating(false);
     }
-  }, [editingSerieValue, watchedSeries, watchedProductoId, onUpdateSerie]);
+  }, [editingSerieValue, watchedSeries, watchedProductoId, onUpdateSerie, almacenId]);
 
   const handleEditKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
     if (e.key === "Enter") {

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTabParams } from "@/hooks/useTabParams";
 import PageWrapper from "@/components/PageWrapper";
@@ -147,6 +147,19 @@ export default function InventarioPage() {
       ...(almacen_id && !isCorporativo ? { almacen_id: String(almacen_id) } : {}),
     },
   );
+
+  // Al abrir el diálogo de reserva, precarga el almacén: el de sesión si no es
+  // corporativo, o el subalmacén actualmente filtrado si es corporativo.
+  useEffect(() => {
+    if (!reservaOpen || !reservaTarget) return;
+    const currentAlmacenId =
+      reservaTarget.tipo === "serie"
+        ? seriesParams.almacen_id
+        : materialesParams.almacen_id;
+    setReservaAlmacenId(
+      currentAlmacenId && !currentAlmacenId.includes(",") ? currentAlmacenId : "",
+    );
+  }, [reservaOpen, reservaTarget, seriesParams.almacen_id, materialesParams.almacen_id]);
 
   const { data: seriesDataGeneral, isLoading: seriesLoadingGeneral } =
     useInventarioSeriesQuery(seriesParams, !isCorporativo);
@@ -308,7 +321,7 @@ export default function InventarioPage() {
   const cambiarUbicacionMutation = useMutation({
     mutationFn: () =>
       cambiarUbicacionMasivo({
-        series: [ubicacionSerie!.serie_id],
+        series: [ubicacionSerie!.serie_id ?? ubicacionSerie!.id!],
         situacion: ubicacionSituacion as "DI" | "DE" | "IN" | "RE" | "TR",
         ...(ubicacionSituacion === "IN" ? { sot: ubicacionSot } : {}),
       }),
@@ -327,31 +340,33 @@ export default function InventarioPage() {
   const handleReservarSerie = (row: InventarioSerieResource) => {
     setReservaTarget({ tipo: "serie", row });
     setReservaSot(row.sot ?? "");
-    setReservaAlmacenId(
-      seriesParams.almacen_id && !seriesParams.almacen_id.includes(",")
-        ? seriesParams.almacen_id
-        : "",
-    );
     setReservaOpen(true);
   };
 
   const handleLiberarSerie = (row: InventarioSerieResource) => {
-    liberarSerieMutation.mutate(row.serie_id);
+    const id = row.serie_id ?? row.id;
+    if (!id) {
+      console.warn("Fila de serie sin serie_id ni id:", row);
+      errorToast("No se pudo identificar la serie a liberar.");
+      return;
+    }
+    liberarSerieMutation.mutate(id);
   };
 
   const handleReservarMaterial = (row: InventarioMaterialResource) => {
     setReservaTarget({ tipo: "material", row });
     setReservaSot(row.sot ?? "");
-    setReservaAlmacenId(
-      materialesParams.almacen_id && !materialesParams.almacen_id.includes(",")
-        ? materialesParams.almacen_id
-        : "",
-    );
     setReservaOpen(true);
   };
 
   const handleLiberarMaterial = (row: InventarioMaterialResource) => {
-    liberarMaterialMutation.mutate(row.producto_id);
+    const id = row.producto_id ?? row.id;
+    if (!id) {
+      console.warn("Fila de material sin producto_id ni id:", row);
+      errorToast("No se pudo identificar el material a liberar.");
+      return;
+    }
+    liberarMaterialMutation.mutate(id);
   };
 
   const handleCambiarUbicacion = (row: InventarioSerieResource) => {
@@ -364,14 +379,26 @@ export default function InventarioPage() {
   const handleConfirmReserva = () => {
     if (!reservaTarget || !reservaSot.trim() || !reservaAlmacenId) return;
     if (reservaTarget.tipo === "serie") {
+      const id = reservaTarget.row.serie_id ?? reservaTarget.row.id;
+      if (!id) {
+        console.warn("Fila de serie sin serie_id ni id:", reservaTarget.row);
+        errorToast("No se pudo identificar la serie a reservar.");
+        return;
+      }
       reservarSerieMutation.mutate({
-        id: reservaTarget.row.serie_id,
+        id,
         numero_sot: reservaSot.trim(),
         almacen_id: Number(reservaAlmacenId),
       });
     } else {
+      const id = reservaTarget.row.producto_id ?? reservaTarget.row.id;
+      if (!id) {
+        console.warn("Fila de material sin producto_id ni id:", reservaTarget.row);
+        errorToast("No se pudo identificar el material a reservar.");
+        return;
+      }
       reservarMaterialMutation.mutate({
-        id: reservaTarget.row.producto_id,
+        id,
         numero_sot: reservaSot.trim(),
         almacen_id: Number(reservaAlmacenId),
       });
@@ -408,8 +435,6 @@ export default function InventarioPage() {
   });
   const materialesColumns = getInventarioMaterialesColumns({
     isCorporativo,
-    onReservarSot: handleReservarMaterial,
-    onLiberarSot: handleLiberarMaterial,
   });
 
   const handleSeriesPageChange = (page: number) =>
@@ -572,18 +597,20 @@ export default function InventarioPage() {
           </DialogHeader>
 
           <div className="space-y-4">
-            <Select value={reservaAlmacenId} onValueChange={setReservaAlmacenId}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Seleccionar subalmacén..." />
-              </SelectTrigger>
-              <SelectContent>
-                {reservaAlmacenOptions.map((a) => (
-                  <SelectItem key={a.value} value={a.value}>
-                    {a.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {isCorporativo && (
+              <Select value={reservaAlmacenId} onValueChange={setReservaAlmacenId}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Seleccionar subalmacén..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {reservaAlmacenOptions.map((a) => (
+                    <SelectItem key={a.value} value={a.value}>
+                      {a.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
             <Input
               value={reservaSot}
               onChange={(e) => setReservaSot(e.target.value)}

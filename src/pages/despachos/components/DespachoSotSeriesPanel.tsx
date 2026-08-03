@@ -34,9 +34,9 @@ export function DespachoSotSeriesPanel({
     !!almacenId && sot.trim().length > 0,
   );
 
-  // Solo tiene sentido despachar series que sigan disponibles (DI); el
-  // endpoint también devuelve, para fines de auditoría, series ya
-  // liquidadas/retiradas/despachadas bajo esta misma SOT.
+  // El endpoint ya filtra a solo series con reserva ACTIVA para esta SOT.
+  // Se descarta aquí, por seguridad, cualquiera que ya no siga disponible
+  // (por ejemplo si fue despachada pero su reserva aún no se consumió).
   const disponibles = (data?.data ?? []).filter((s) => s.situacion === "DI");
 
   const handleAdd = useCallback(
@@ -44,7 +44,7 @@ export function DespachoSotSeriesPanel({
       setAddingSerie(serie);
       setRowError((prev) => ({ ...prev, [serie]: "" }));
       try {
-        const res = await validateSerieMasivoDisponible(serie);
+        const res = await validateSerieMasivoDisponible(serie, almacenId);
         onAdd({
           id: res.serie.id,
           serie: res.serie.serie,
@@ -62,7 +62,7 @@ export function DespachoSotSeriesPanel({
         setAddingSerie(null);
       }
     },
-    [onAdd],
+    [onAdd, almacenId],
   );
 
   if (!sot.trim() || !almacenId) return null;
@@ -100,10 +100,10 @@ export function DespachoSotSeriesPanel({
                   </span>
                   <p className="text-xs text-muted-foreground truncate">
                     {item.producto}
-                    {item.sot && (
+                    {item.reserva_sot && (
                       <>
                         <span className="mx-1 text-border">·</span>
-                        reservado: {item.sot}
+                        reservado: {item.reserva_sot}
                       </>
                     )}
                   </p>

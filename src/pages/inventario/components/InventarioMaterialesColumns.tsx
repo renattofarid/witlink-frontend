@@ -30,6 +30,24 @@ export const getInventarioMaterialesColumns = ({
     accessorKey: "cantidad",
     header: "Cantidad",
   },
+  ...(isCorporativo
+    ? [
+        {
+          id: "cantidad_reservada",
+          header: "Reservada",
+          cell: ({ row }) => {
+            const reservada = Number(row.original.cantidad_reservada ?? 0);
+            return reservada > 0 ? (
+              <span className="text-xs font-medium text-amber-600">
+                {reservada}
+              </span>
+            ) : (
+              <span className="text-xs text-muted-foreground">0</span>
+            );
+          },
+        } satisfies ColumnDef<InventarioMaterialResource>,
+      ]
+    : []),
   {
     accessorKey: "ubicacion",
     header: "Ubicación",
@@ -39,39 +57,36 @@ export const getInventarioMaterialesColumns = ({
     header: "Personal",
   },
   {
-    accessorKey: "sot",
-    header: "SOT",
-    cell: ({ row }) => (
-      <span className="text-xs text-muted-foreground">
-        {row.original.sot ?? "Sin SOT"}
-      </span>
-    ),
-  },
-  {
     accessorKey: "motivo",
     header: "Motivo",
   },
-  {
-    id: "acciones",
-    header: "Acciones",
-    cell: ({ row }) =>
-      isCorporativo ? (
-        <div className="flex gap-1">
-          <ButtonAction
-            icon={Lock}
-            color="amber"
-            tooltip="Reservar por SOT"
-            canRender={!!onReservarSot}
-            onClick={() => onReservarSot?.(row.original)}
-          />
-          <ButtonAction
-            icon={Unlock}
-            color="amber"
-            tooltip="Liberar reserva"
-            canRender={!!onLiberarSot}
-            onClick={() => onLiberarSot?.(row.original)}
-          />
-        </div>
-      ) : null,
-  },
+  ...(onReservarSot || onLiberarSot
+    ? [
+        {
+          id: "acciones",
+          header: "Acciones",
+          cell: ({ row }) => {
+            const reservada = Number(row.original.cantidad_reservada ?? 0);
+            return isCorporativo ? (
+              <div className="flex gap-1">
+                <ButtonAction
+                  icon={Lock}
+                  color="amber"
+                  tooltip="Reservar por SOT"
+                  canRender={!!onReservarSot && reservada <= 0}
+                  onClick={() => onReservarSot?.(row.original)}
+                />
+                <ButtonAction
+                  icon={Unlock}
+                  color="amber"
+                  tooltip="Liberar reserva"
+                  canRender={!!onLiberarSot && reservada > 0}
+                  onClick={() => onLiberarSot?.(row.original)}
+                />
+              </div>
+            ) : null;
+          },
+        } satisfies ColumnDef<InventarioMaterialResource>,
+      ]
+    : []),
 ];

@@ -141,6 +141,22 @@ export const getInventarioSeriesColumns = ({
       </div>
     ),
   },
+  ...(isCorporativo
+    ? [
+        {
+          id: "reserva_sot",
+          header: "Reserva",
+          cell: ({ row }) =>
+            row.original.reserva_sot ? (
+              <Badge variant="ghost" color="amber" className="text-xs">
+                Reservada · {row.original.reserva_sot}
+              </Badge>
+            ) : (
+              <p className="text-xs text-muted-foreground">Libre</p>
+            ),
+        } satisfies ColumnDef<InventarioSerieResource>,
+      ]
+    : []),
   {
     accessorKey: "motivo",
     header: "Motivo",
@@ -195,14 +211,18 @@ export const getInventarioSeriesColumns = ({
           icon={Lock}
           color="amber"
           tooltip="Reservar por SOT"
-          canRender={!!isCorporativo && !!onReservarSot}
+          canRender={
+            !!isCorporativo && !!onReservarSot && !row.original.reserva_sot
+          }
           onClick={() => onReservarSot?.(row.original)}
         />
         <ButtonAction
           icon={Unlock}
           color="amber"
           tooltip="Liberar reserva"
-          canRender={!!isCorporativo && !!onLiberarSot}
+          canRender={
+            !!isCorporativo && !!onLiberarSot && !!row.original.reserva_sot
+          }
           onClick={() => onLiberarSot?.(row.original)}
         />
         <ButtonAction

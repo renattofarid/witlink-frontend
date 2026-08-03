@@ -439,6 +439,8 @@ export default function InventarioPage() {
   });
   const materialesColumns = getInventarioMaterialesColumns({
     isCorporativo,
+    onReservarSot: handleReservarMaterial,
+    onLiberarSot: handleLiberarMaterial,
   });
 
   const handleSeriesPageChange = (page: number) =>

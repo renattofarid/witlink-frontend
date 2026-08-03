@@ -5,7 +5,10 @@ import type {
 } from "@/pages/inventario/lib/inventario.interface";
 
 export type CorporativoInventarioSerieResponse =
-  PaginationResponse<InventarioSerieResource>;
+  PaginationResponse<InventarioSerieResource> & {
+    /** Terms sent in the bulk search that did not match any record. */
+    no_registrados?: string[];
+  };
 
 export type CorporativoInventarioMaterialResponse =
   PaginationResponse<InventarioMaterialResource>;

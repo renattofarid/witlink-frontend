@@ -38,27 +38,12 @@ function mapSeries(series: any[]) {
   );
 }
 
-function buildProductoNuevo(p: any, isEquipo: boolean): GuiaProductoBody {
+function buildProductoNuevo(p: any): GuiaProductoBody {
   const series = mapSeries(p.series ?? []);
-  if (p.producto_id) {
-    return {
-      producto_id: Number(p.producto_id),
-      tipo: p.tipo ?? null,
-      origen: p.origen ?? null,
-      cantidad: p.cantidad,
-      observaciones: p.observaciones ?? null,
-      series,
-    };
-  }
   return {
-    sap: p.sap ?? null,
-    nombre: p.nombre ?? null,
+    producto_id: Number(p.producto_id),
     tipo: p.tipo ?? null,
     origen: p.origen ?? null,
-    necesita_serie: isEquipo ? (p.necesita_serie ?? false) : false,
-    necesita_mac: isEquipo ? (p.necesita_mac ?? false) : false,
-    necesita_emta_mac: isEquipo ? (p.necesita_emta_mac ?? false) : false,
-    necesita_ua: isEquipo ? (p.necesita_ua ?? false) : false,
     cantidad: p.cantidad,
     observaciones: p.observaciones ?? null,
     series,
@@ -71,16 +56,14 @@ function buildGuiaCreateBody(values: GuiaCreateFormValues): GuiaCreateBody {
     fecha: values.fecha,
     almacen_id: values.almacen_id ? Number(values.almacen_id) : null,
     archivo: values.archivo ?? null,
-    productos: values.productos.map((p) =>
-      buildProductoNuevo(p, p.tipo === "EQUIPO"),
-    ),
+    productos: values.productos.map((p) => buildProductoNuevo(p)),
   };
 }
 
 function buildGuiaEditBody(values: GuiaCreateFormValues): GuiaEditBody {
   const añadir = values.productos
     .filter((p) => !p.productos_guia_id)
-    .map((p) => buildProductoNuevo(p, p.tipo === "EQUIPO"));
+    .map((p) => buildProductoNuevo(p));
 
   const actualizar = values.productos
     .filter((p) => !!p.productos_guia_id)
@@ -246,9 +229,8 @@ export function useGuiaAddProductoInEdit(guiaId: number | undefined) {
     if (!guiaId) return null;
     setIsSaving(true);
     try {
-      const isEquipo = values.tipo === "EQUIPO";
       await updateGuia(guiaId, {
-        productos: { añadir: [buildProductoNuevo(values, isEquipo)] },
+        productos: { añadir: [buildProductoNuevo(values)] },
       });
 
       const freshGuia = await queryClient.fetchQuery({

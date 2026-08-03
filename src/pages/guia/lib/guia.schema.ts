@@ -24,7 +24,7 @@ export const serieSchema = z
 export const productoSchema = z
   .object({
     productos_guia_id: z.number().optional().nullable(),
-    producto_id: z.string().optional().nullable(),
+    producto_id: z.string().min(1, "Seleccione un producto del catálogo"),
     sap: z.string().optional().nullable(),
     nombre: z.string().optional().nullable(),
     tipo: z.enum(["MATERIAL", "EQUIPO"]).optional().nullable(),
@@ -38,30 +38,6 @@ export const productoSchema = z
     series: z.array(serieSchema).optional().nullable(),
   })
   .superRefine((p, ctx) => {
-    // Equipo manual: al menos un flag debe estar activo
-    if (
-      !p.producto_id &&
-      p.tipo === "EQUIPO" &&
-      !p.necesita_serie &&
-      !p.necesita_mac &&
-      !p.necesita_emta_mac &&
-      !p.necesita_ua
-    ) {
-      ctx.addIssue({
-        code: "custom",
-        message:
-          "Un equipo debe requerir al menos una serie, MAC, EMTA MAC o UA.",
-        path: ["necesita_serie"],
-      });
-    }
-    // Producto manual: requiere al menos nombre o SAP
-    if (!p.producto_id && !p.nombre && !p.sap) {
-      ctx.addIssue({
-        code: "custom",
-        message: "Ingrese el nombre o código SAP del producto.",
-        path: ["nombre"],
-      });
-    }
     // Series requeridas solo para equipos con necesita_serie = true
     if (p.tipo !== "EQUIPO" || !p.necesita_serie) return;
     if ((p.series?.length ?? 0) !== p.cantidad) {

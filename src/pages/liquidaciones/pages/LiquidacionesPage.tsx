@@ -140,6 +140,9 @@ export default function LiquidacionesPage() {
           onEstadoChange={handleEstadoChange}
           onEstadoLiquidacionChange={handleEstadoLiquidacionChange}
           onSotsChange={handleSotsChange}
+          noRegistrados={data?.no_registrados ?? []}
+          exportParams={queryParams}
+          totalResults={data?.meta.total ?? 0}
         />
       </DataTable>
 

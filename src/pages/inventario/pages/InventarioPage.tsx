@@ -178,6 +178,10 @@ export default function InventarioPage() {
     ? materialesLoadingCorp
     : materialesLoadingGeneral;
 
+  // Bulk-search terms with no matches under the applied filters. Surfaced as a
+  // persistent, dismissible banner inside the filters (see InventarioSeriesFilters).
+  const seriesNoRegistrados = seriesData?.no_registrados ?? [];
+
   const devolverSerieMutation = useMutation({
     mutationFn: () =>
       devolverInventarioSerie(selectedSerie!.inventario_tecnico_id),
@@ -488,6 +492,8 @@ export default function InventarioPage() {
             <InventarioSeriesFilters
               params={seriesParams}
               setParams={setSeriesParams}
+              noRegistrados={seriesNoRegistrados}
+              totalResults={seriesData?.meta.total ?? 0}
             />
           </DataTable>
 

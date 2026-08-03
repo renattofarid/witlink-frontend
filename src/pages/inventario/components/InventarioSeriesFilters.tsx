@@ -9,16 +9,26 @@ import SearchInput from "@/components/SearchInput";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import GeneralSheet from "@/components/GeneralSheet";
+import NoRegistradosBanner from "@/components/NoRegistradosBanner";
+import ExportExcelButton from "@/components/ExportExcelButton";
 import { X } from "lucide-react";
+import { exportarInventarioSeriesExcel } from "../lib/inventario.actions";
+import { downloadExcelFromBase64 } from "@/lib/exportExcel";
 
 interface InventarioSeriesFiltersProps {
   params: Record<string, string>;
   setParams: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  /** Bulk-search terms with no matches under the applied filters. */
+  noRegistrados?: string[];
+  /** Total results under the current filter; the export button shows only when > 0. */
+  totalResults?: number;
 }
 
 export default function InventarioSeriesFilters({
   params,
   setParams,
+  noRegistrados = [],
+  totalResults = 0,
 }: InventarioSeriesFiltersProps) {
   const user = useAuthStore((s) => s.user);
   const { data: almacenesAll = [] } = useQuery({
@@ -87,6 +97,13 @@ export default function InventarioSeriesFilters({
     setBulkText("");
   };
 
+  // The backend generates the Excel from the same filters as the table, so it
+  // contains every match and not just the visible page.
+  const handleExport = async () => {
+    const res = await exportarInventarioSeriesExcel(params);
+    downloadExcelFromBase64(res);
+  };
+
   return (
     <div className="flex flex-wrap items-center gap-2">
       <FilterWrapper>
@@ -119,7 +136,7 @@ export default function InventarioSeriesFilters({
           value={params.retirados || "all"}
           onChange={(v) => set("retirados", v)}
         />
-        <div>
+        <div className="flex items-center gap-1">
           <Button color={"muted"} onClick={() => setBulkOpen(true)}>
             {productosSeleccionados.length > 0
               ? `Buscar masivo (${productosSeleccionados.length})`
@@ -136,6 +153,12 @@ export default function InventarioSeriesFilters({
               <X className="h-4 w-4" />
             </Button>
           )}
+
+          <ExportExcelButton
+            show={totalResults > 0}
+            onExport={handleExport}
+            label="Exportar filtrado"
+          />
         </div>
         <SearchableSelect
           placeholder="Devueltos"
@@ -178,6 +201,11 @@ export default function InventarioSeriesFilters({
           onChange={(v) => set("tecnicos", v)}
         />
       </FilterWrapper>
+
+      <NoRegistradosBanner
+        items={noRegistrados}
+        descripcion="las series buscadas"
+      />
 
       <GeneralSheet
         open={bulkOpen}

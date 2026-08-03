@@ -4,11 +4,15 @@ import { SearchableSelect } from "@/components/SearchableSelect";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import GeneralSheet from "@/components/GeneralSheet";
+import NoRegistradosBanner from "@/components/NoRegistradosBanner";
+import ExportExcelButton from "@/components/ExportExcelButton";
 import { X } from "lucide-react";
 import {
   ESTADO_OPERATIVO_OPTIONS,
   ESTADO_LIQUIDACION_OPTIONS,
 } from "../lib/liquidaciones.constants";
+import { exportarBusquedaLiquidacionesExcel } from "../lib/liquidaciones.actions";
+import { downloadExcelFromBase64 } from "@/lib/exportExcel";
 
 interface LiquidacionFiltersProps {
   search: string;
@@ -19,6 +23,12 @@ interface LiquidacionFiltersProps {
   onEstadoChange: (v: string) => void;
   onEstadoLiquidacionChange: (v: string) => void;
   onSotsChange: (v: string) => void;
+  /** Bulk-search SOTs with no matches under the applied filters. */
+  noRegistrados?: string[];
+  /** Filters currently applied to the list, used to export the filtered set. */
+  exportParams?: Record<string, string>;
+  /** Total results under the current filter; the export button shows only when > 0. */
+  totalResults?: number;
 }
 
 export default function LiquidacionFilters({
@@ -30,6 +40,9 @@ export default function LiquidacionFilters({
   onEstadoChange,
   onEstadoLiquidacionChange,
   onSotsChange,
+  noRegistrados = [],
+  exportParams = {},
+  totalResults = 0,
 }: LiquidacionFiltersProps) {
   const [bulkOpen, setBulkOpen] = useState(false);
   const [bulkText, setBulkText] = useState("");
@@ -65,6 +78,14 @@ export default function LiquidacionFilters({
   const handleClearBulk = () => {
     onSotsChange("");
     setBulkText("");
+  };
+
+  // The backend generates the Excel from the same filters as the table (bulk
+  // SOTs included) with no date range required, so it exports exactly the
+  // filtered set and not just the visible page.
+  const handleExport = async () => {
+    const res = await exportarBusquedaLiquidacionesExcel(exportParams);
+    downloadExcelFromBase64(res);
   };
 
   return (
@@ -108,6 +129,17 @@ export default function LiquidacionFilters({
           </Button>
         )}
       </div>
+
+      <ExportExcelButton
+        show={totalResults > 0}
+        onExport={handleExport}
+        label="Exportar filtrado"
+      />
+
+      <NoRegistradosBanner
+        items={noRegistrados}
+        descripcion="los SOTs buscados"
+      />
 
       {/* Sheet de búsqueda masiva de SOTs */}
       <GeneralSheet

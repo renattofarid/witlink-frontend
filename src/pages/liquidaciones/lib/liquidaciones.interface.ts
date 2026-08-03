@@ -254,4 +254,12 @@ export interface ActaResource {
 
 // ── Listado paginado ──────────────────────────────────────────────────────────
 
-export type LiquidacionesResponse = PaginationResponse<LiquidacionResource>;
+export type LiquidacionesResponse =
+  PaginationResponse<LiquidacionResource> & {
+    /**
+     * SOTs sent in the bulk search that did not match any record under the
+     * applied filters. Empty (or absent) when every term matched at least one
+     * result. Used to surface a non-blocking, dismissible banner.
+     */
+    no_registrados?: string[];
+  };

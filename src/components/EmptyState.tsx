@@ -27,7 +27,7 @@ export default function EmptyState({
           <Icon />
         </EmptyMedia>
         <EmptyTitle>{title}</EmptyTitle>
-        <EmptyDescription>{description}</EmptyDescription>
+        <EmptyDescription>{description}</EmptyDescription>n
       </EmptyHeader>
     </Empty>
   );

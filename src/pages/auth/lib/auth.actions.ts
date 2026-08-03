@@ -44,9 +44,10 @@ export async function login(body: LoginBody): Promise<AuthResponse> {
 export async function authenticate(): Promise<AuthenticateResponse> {
   try {
     const { data } = await api.get<AuthenticateResponse>("/auth/me");
-    const { setUser } = useAuthStore.getState();
+    const { setUser, setAlmacenId } = useAuthStore.getState();
 
     setUser(data.data);
+    setAlmacenId(data.data.almacen_id);
 
     await loadAllowedRoutes(data.data.tipo_usuario.id);
 
@@ -70,7 +71,7 @@ export async function selectAlmacen(almacenId: number): Promise<string> {
 }
 
 export async function getAlmacenes(): Promise<AlmacenResource[]> {
-  const { data } = await api.get("/almacenes");
+  const { data } = await api.get("/almacenes", { params: { all: "true" } });
   // La API puede devolver { data: [] } o un array directo
   const list = Array.isArray(data) ? data : (data?.data ?? []);
   return list as AlmacenResource[];

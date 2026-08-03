@@ -138,6 +138,7 @@ function buildGuiaFormData(body: GuiaCreateBody): FormData {
   const formData = new FormData();
   formData.append("numero", body.numero);
   formData.append("fecha", body.fecha);
+  if (body.almacen_id != null) formData.append("almacen_id", String(body.almacen_id));
   // formData.append("proveedor_id", String(body.proveedor_id));
   if (body.archivo) formData.append("archivo", body.archivo);
 
@@ -274,9 +275,10 @@ export const verificarDisponibilidadIngreso = async (
   return data;
 };
 
-// Exclusivo para Ingreso -> Equipo Retirado: a diferencia de la ruta de
-// Almacén, permite reingresar series en estados RE/DV/IN/DE/DC (ya que vienen
-// del campo) y solo bloquea (409) si están DI/PE/TR.
+// Exclusivo para el tab "Equipo Retirado" del ingreso: permite reingresar
+// series que vienen del campo (retirado/devuelto/instalado/despachado/
+// devuelto a claro) y solo bloquea las que están disponibles/pendientes/
+// en traslado, a diferencia de verificarDisponibilidadIngreso (almacén).
 export const verificarDisponibilidadIngresoRetirado = async (
   codigo: string,
   tipo: "serie" | "mac" | "emta_mac" | "ua",

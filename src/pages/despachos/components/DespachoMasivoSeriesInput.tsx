@@ -8,12 +8,14 @@ import type { MasivoSerieValidadaItem } from "../lib/despacho.interface";
 
 interface DespachoMasivoSeriesInputProps {
   items: MasivoSerieValidadaItem[];
+  almacenId?: number | null;
   onAdd: (item: MasivoSerieValidadaItem) => void;
   onRemove: (id: number) => void;
 }
 
 export function DespachoMasivoSeriesInput({
   items,
+  almacenId,
   onAdd,
   onRemove,
 }: DespachoMasivoSeriesInputProps) {
@@ -37,7 +39,7 @@ export function DespachoMasivoSeriesInput({
     setIsValidating(true);
     setError("");
     try {
-      const res = await validateSerieMasivoDisponible(trimmed);
+      const res = await validateSerieMasivoDisponible(trimmed, almacenId);
       onAdd({
         id: res.serie.id,
         serie: res.serie.serie,
@@ -54,7 +56,7 @@ export function DespachoMasivoSeriesInput({
       setIsValidating(false);
       requestAnimationFrame(() => inputRef.current?.focus());
     }
-  }, [input, items, onAdd]);
+  }, [input, items, onAdd, almacenId]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {

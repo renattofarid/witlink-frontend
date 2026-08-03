@@ -95,8 +95,7 @@ export default function OficinaPage() {
     }));
 
   const handleSearchChange = (value: string) => {
-    console.log("Search value:", value);
-    setParams((prev) => ({ ...prev, page: "1" }));
+    setParams((prev) => ({ ...prev, page: "1", search: value }));
   };
 
   const columns = getOficinaColumns({

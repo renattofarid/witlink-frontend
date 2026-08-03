@@ -16,6 +16,9 @@ export const despachoProductoSchema = z.object({
 
 export const despachoCreateSchema = z.object({
   tecnico_id: z.string().min(1, "Seleccione un técnico"),
+  // Solo requerido para corporativos: el almacén de sesión puede ser el
+  // "padre" del grupo, que nunca contiene stock propio.
+  almacen_id: z.union([z.string(), z.number()]).optional().nullable(),
   productos: z
     .array(despachoProductoSchema)
     .min(1, "Debe agregar al menos un producto"),

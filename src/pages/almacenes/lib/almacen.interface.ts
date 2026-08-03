@@ -7,6 +7,10 @@ export interface AlmacenResource {
   direccion: string;
   created_at: string;
   updated_at: string;
+  almacen_padre_id: number | null;
+  almacen_padre_codigo: string | null;
+  is_corporativo: boolean;
+  es_subalmacen_corporativo: boolean;
 }
 
 export type AlmacenResponse = PaginationResponse<AlmacenResource>;

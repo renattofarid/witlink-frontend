@@ -32,6 +32,7 @@ export default function DespachosPage() {
     fecha_inicio: format(new Date(today.getFullYear(), 0, 1), "yyyy-MM-dd"),
     fecha_fin: format(today, "yyyy-MM-dd"),
     tecnico_id: "",
+    almacen_id: "",
   });
 
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -40,10 +41,11 @@ export default function DespachosPage() {
   const [reassignOpen, setReassignOpen] = useState(false);
   const [toReassign, setToReassign] = useState<DespachoResource | null>(null);
 
-  const { fecha_inicio, fecha_fin, tecnico_id, ...restParams } = params;
+  const { fecha_inicio, fecha_fin, tecnico_id, almacen_id, ...restParams } = params;
   const queryParams: Record<string, any> = {
     ...restParams,
     ...(tecnico_id ? { tecnico_id } : {}),
+    ...(almacen_id ? { almacen_id } : {}),
   };
   if (fecha_inicio || fecha_fin) {
     queryParams["fecha[]"] = [fecha_inicio ?? "", fecha_fin ?? ""].filter(Boolean);

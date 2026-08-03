@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTabParams } from "@/hooks/useTabParams";
 import PageWrapper from "@/components/PageWrapper";
 import TitleComponent from "@/components/TitleComponent";
@@ -10,6 +10,8 @@ import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import { successToast, errorToast } from "@/lib/core.function";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
+import { getAlmacenes } from "@/pages/auth/lib/auth.actions";
+import { getSubalmacenesOperativos } from "@/pages/auth/lib/auth.utils";
 import {
   useInventarioSeriesQuery,
   useInventarioMaterialesQuery,
@@ -17,6 +19,7 @@ import {
 import {
   InventarioComplete,
   INVENTARIO_SERIES_QUERY_KEY,
+  INVENTARIO_MATERIALES_QUERY_KEY,
 } from "../lib/inventario.constants";
 import {
   devolverInventarioSerie,
@@ -29,7 +32,10 @@ import InventarioSeriesFilters from "../components/InventarioSeriesFilters";
 import InventarioMaterialesFilters from "../components/InventarioMaterialesFilters";
 import InventarioSerieHistorialSheet from "../components/InventarioSerieHistorialSheet";
 import { DevolverClaroDialog } from "../components/DevolverClaroDialog";
-import type { InventarioSerieResource } from "../lib/inventario.interface";
+import type {
+  InventarioMaterialResource,
+  InventarioSerieResource,
+} from "../lib/inventario.interface";
 import {
   Dialog,
   DialogContent,
@@ -39,10 +45,58 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Download } from "lucide-react";
+import {
+  useInventarioMaterialesCorporativoQuery,
+  useInventarioSeriesCorporativoQuery,
+} from "@/pages/corporativo/lib/corporativo.hook";
+import {
+  cambiarUbicacionMasivo,
+  getDiagnosticoReservasSot,
+  liberarMaterialSot,
+  liberarSerieSot,
+  reservarMaterialSot,
+  reservarSerieSot,
+} from "@/pages/corporativo/lib/corporativo.actions";
+
+const SITUACIONES_UBICACION = [
+  { value: "DI", label: "Disponible" },
+  { value: "DE", label: "Despachado" },
+  { value: "IN", label: "Instalado / Cliente" },
+  { value: "RE", label: "Retirado" },
+  { value: "TR", label: "En traslado" },
+];
 
 export default function InventarioPage() {
-  const { almacen_id } = useAuthStore();
+  const { almacen_id, user } = useAuthStore();
+  const isCorporativo = !!user?.is_corporativo;
   const queryClient = useQueryClient();
+
+  const { data: almacenesAll = [] } = useQuery({
+    queryKey: ["almacenes-list"],
+    queryFn: getAlmacenes,
+    refetchOnWindowFocus: false,
+    enabled: isCorporativo,
+  });
+  const subalmacenesOperativos = useMemo(
+    () => getSubalmacenesOperativos(user, almacenesAll),
+    [user, almacenesAll],
+  );
+  const reservaAlmacenOptions = useMemo(
+    () =>
+      subalmacenesOperativos.map((a) => ({
+        value: String(a.id),
+        label: a.nombre,
+      })),
+    [subalmacenesOperativos],
+  );
 
   const [selectedSerie, setSelectedSerie] =
     useState<InventarioSerieResource | null>(null);
@@ -55,13 +109,33 @@ export default function InventarioPage() {
   const [devolverClaroOpen, setDevolverClaroOpen] = useState(false);
   const [openSot, setOpenSot] = useState(false);
   const [sot, setSot] = useState("");
-  
+
+  // ── Corporativo: reservas SOT ──────────────────────────────────────────────
+  const [reservaTarget, setReservaTarget] = useState<
+    | { tipo: "serie"; row: InventarioSerieResource }
+    | { tipo: "material"; row: InventarioMaterialResource }
+    | null
+  >(null);
+  const [reservaOpen, setReservaOpen] = useState(false);
+  const [reservaSot, setReservaSot] = useState("");
+  const [reservaAlmacenId, setReservaAlmacenId] = useState("");
+
+  // ── Corporativo: cambio de ubicación ───────────────────────────────────────
+  const [ubicacionSerie, setUbicacionSerie] =
+    useState<InventarioSerieResource | null>(null);
+  const [ubicacionOpen, setUbicacionOpen] = useState(false);
+  const [ubicacionSituacion, setUbicacionSituacion] = useState("DI");
+  const [ubicacionSot, setUbicacionSot] = useState("");
+
+  // Para corporativos, el almacén de sesión puede ser el "padre" del grupo
+  // (no contiene stock propio), así que no se usa como valor por defecto:
+  // el usuario debe elegir un subalmacén real en el filtro.
   const [seriesParams, setSeriesParams] = useTabParams(
     "/inventario/series-tab",
     {
       page: "1",
       per_page: String(DEFAULT_PER_PAGE),
-      ...(almacen_id ? { almacen_id: String(almacen_id) } : {}),
+      ...(almacen_id && !isCorporativo ? { almacen_id: String(almacen_id) } : {}),
     },
   );
 
@@ -70,14 +144,39 @@ export default function InventarioPage() {
     {
       page: "1",
       per_page: String(DEFAULT_PER_PAGE),
-      ...(almacen_id ? { almacen_id: String(almacen_id) } : {}),
+      ...(almacen_id && !isCorporativo ? { almacen_id: String(almacen_id) } : {}),
     },
   );
 
-  const { data: seriesData, isLoading: seriesLoading } =
-    useInventarioSeriesQuery(seriesParams);
-  const { data: materialesData, isLoading: materialesLoading } =
-    useInventarioMaterialesQuery(materialesParams);
+  // Al abrir el diálogo de reserva, precarga el almacén: el de sesión si no es
+  // corporativo, o el subalmacén actualmente filtrado si es corporativo.
+  useEffect(() => {
+    if (!reservaOpen || !reservaTarget) return;
+    const currentAlmacenId =
+      reservaTarget.tipo === "serie"
+        ? seriesParams.almacen_id
+        : materialesParams.almacen_id;
+    setReservaAlmacenId(
+      currentAlmacenId && !currentAlmacenId.includes(",") ? currentAlmacenId : "",
+    );
+  }, [reservaOpen, reservaTarget, seriesParams.almacen_id, materialesParams.almacen_id]);
+
+  const { data: seriesDataGeneral, isLoading: seriesLoadingGeneral } =
+    useInventarioSeriesQuery(seriesParams, !isCorporativo);
+  const { data: materialesDataGeneral, isLoading: materialesLoadingGeneral } =
+    useInventarioMaterialesQuery(materialesParams, !isCorporativo);
+
+  const { data: seriesDataCorp, isLoading: seriesLoadingCorp } =
+    useInventarioSeriesCorporativoQuery(seriesParams, isCorporativo);
+  const { data: materialesDataCorp, isLoading: materialesLoadingCorp } =
+    useInventarioMaterialesCorporativoQuery(materialesParams, isCorporativo);
+
+  const seriesData = isCorporativo ? seriesDataCorp : seriesDataGeneral;
+  const seriesLoading = isCorporativo ? seriesLoadingCorp : seriesLoadingGeneral;
+  const materialesData = isCorporativo ? materialesDataCorp : materialesDataGeneral;
+  const materialesLoading = isCorporativo
+    ? materialesLoadingCorp
+    : materialesLoadingGeneral;
 
   // Bulk-search terms with no matches under the applied filters. Surfaced as a
   // persistent, dismissible banner inside the filters (see InventarioSeriesFilters).
@@ -156,13 +255,193 @@ export default function InventarioPage() {
     setOpenSot(true);
   };
 
+  const invalidateCorporativoInventario = () => {
+    queryClient.invalidateQueries({ queryKey: [INVENTARIO_SERIES_QUERY_KEY] });
+    queryClient.invalidateQueries({ queryKey: [INVENTARIO_MATERIALES_QUERY_KEY] });
+  };
+
+  const reservarSerieMutation = useMutation({
+    mutationFn: ({
+      id,
+      numero_sot,
+      almacen_id: reservaAlmacen,
+    }: {
+      id: number;
+      numero_sot: string;
+      almacen_id: number;
+    }) => reservarSerieSot(id, { numero_sot, almacen_id: reservaAlmacen }),
+    onSuccess: () => {
+      invalidateCorporativoInventario();
+      successToast("Reserva creada correctamente.");
+      setReservaOpen(false);
+    },
+    onError: (error: any) => {
+      errorToast(error.response?.data?.message ?? "No se pudo crear la reserva.");
+    },
+  });
+
+  const liberarSerieMutation = useMutation({
+    mutationFn: (id: number) => liberarSerieSot(id),
+    onSuccess: () => {
+      invalidateCorporativoInventario();
+      successToast("Reserva liberada correctamente.");
+    },
+    onError: (error: any) => {
+      errorToast(error.response?.data?.message ?? "No se pudo liberar la reserva.");
+    },
+  });
+
+  const reservarMaterialMutation = useMutation({
+    mutationFn: ({
+      id,
+      numero_sot,
+      almacen_id: reservaAlmacen,
+    }: {
+      id: number;
+      numero_sot: string;
+      almacen_id: number;
+    }) => reservarMaterialSot(id, { numero_sot, almacen_id: reservaAlmacen }),
+    onSuccess: () => {
+      invalidateCorporativoInventario();
+      successToast("Reserva creada correctamente.");
+      setReservaOpen(false);
+    },
+    onError: (error: any) => {
+      errorToast(error.response?.data?.message ?? "No se pudo crear la reserva.");
+    },
+  });
+
+  const liberarMaterialMutation = useMutation({
+    mutationFn: (id: number) => liberarMaterialSot(id),
+    onSuccess: () => {
+      invalidateCorporativoInventario();
+      successToast("Reserva liberada correctamente.");
+    },
+    onError: (error: any) => {
+      errorToast(error.response?.data?.message ?? "No se pudo liberar la reserva.");
+    },
+  });
+
+  const cambiarUbicacionMutation = useMutation({
+    mutationFn: () =>
+      cambiarUbicacionMasivo({
+        series: [ubicacionSerie!.serie_id ?? ubicacionSerie!.id!],
+        situacion: ubicacionSituacion as "DI" | "DE" | "IN" | "RE" | "TR",
+        ...(ubicacionSituacion === "IN" ? { sot: ubicacionSot } : {}),
+      }),
+    onSuccess: () => {
+      invalidateCorporativoInventario();
+      successToast("Ubicación actualizada correctamente.");
+      setUbicacionOpen(false);
+    },
+    onError: (error: any) => {
+      errorToast(
+        error.response?.data?.message ?? "No se pudo actualizar la ubicación.",
+      );
+    },
+  });
+
+  const handleReservarSerie = (row: InventarioSerieResource) => {
+    setReservaTarget({ tipo: "serie", row });
+    setReservaSot(row.sot ?? "");
+    setReservaOpen(true);
+  };
+
+  const handleLiberarSerie = (row: InventarioSerieResource) => {
+    const id = row.serie_id ?? row.id;
+    if (!id) {
+      console.warn("Fila de serie sin serie_id ni id:", row);
+      errorToast("No se pudo identificar la serie a liberar.");
+      return;
+    }
+    liberarSerieMutation.mutate(id);
+  };
+
+  const handleReservarMaterial = (row: InventarioMaterialResource) => {
+    setReservaTarget({ tipo: "material", row });
+    setReservaSot(row.sot ?? "");
+    setReservaOpen(true);
+  };
+
+  const handleLiberarMaterial = (row: InventarioMaterialResource) => {
+    const id = row.producto_id ?? row.id;
+    if (!id) {
+      console.warn("Fila de material sin producto_id ni id:", row);
+      errorToast("No se pudo identificar el material a liberar.");
+      return;
+    }
+    liberarMaterialMutation.mutate(id);
+  };
+
+  const handleCambiarUbicacion = (row: InventarioSerieResource) => {
+    setUbicacionSerie(row);
+    setUbicacionSituacion("DI");
+    setUbicacionSot(row.sot ?? "");
+    setUbicacionOpen(true);
+  };
+
+  const handleConfirmReserva = () => {
+    if (!reservaTarget || !reservaSot.trim() || !reservaAlmacenId) return;
+    if (reservaTarget.tipo === "serie") {
+      const id = reservaTarget.row.serie_id ?? reservaTarget.row.id;
+      if (!id) {
+        console.warn("Fila de serie sin serie_id ni id:", reservaTarget.row);
+        errorToast("No se pudo identificar la serie a reservar.");
+        return;
+      }
+      reservarSerieMutation.mutate({
+        id,
+        numero_sot: reservaSot.trim(),
+        almacen_id: Number(reservaAlmacenId),
+      });
+    } else {
+      const id = reservaTarget.row.producto_id ?? reservaTarget.row.id;
+      if (!id) {
+        console.warn("Fila de material sin producto_id ni id:", reservaTarget.row);
+        errorToast("No se pudo identificar el material a reservar.");
+        return;
+      }
+      reservarMaterialMutation.mutate({
+        id,
+        numero_sot: reservaSot.trim(),
+        almacen_id: Number(reservaAlmacenId),
+      });
+    }
+  };
+
+  const handleDescargarDiagnostico = async () => {
+    try {
+      const blob = await getDiagnosticoReservasSot();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "diagnostico_reservas_sot.csv";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error: any) {
+      errorToast(
+        error.response?.data?.message ?? "No se pudo descargar el diagnóstico.",
+      );
+    }
+  };
+
   const seriesColumns = getInventarioSeriesColumns({
     onDevolver: handleDevolverSerie,
     onHistorial: handleHistorial,
     onDevolverClaro: handleDevolverClaro,
     onStatusSot: handleUpdateSot,
+    isCorporativo,
+    onReservarSot: handleReservarSerie,
+    onLiberarSot: handleLiberarSerie,
+    onCambiarUbicacion: handleCambiarUbicacion,
   });
-  const materialesColumns = getInventarioMaterialesColumns();
+  const materialesColumns = getInventarioMaterialesColumns({
+    isCorporativo,
+    onReservarSot: handleReservarMaterial,
+    onLiberarSot: handleLiberarMaterial,
+  });
 
   const handleSeriesPageChange = (page: number) =>
     setSeriesParams((prev) => ({ ...prev, page: String(page) }));
@@ -186,11 +465,19 @@ export default function InventarioPage() {
 
   return (
     <PageWrapper>
-      <TitleComponent
-        title={InventarioComplete.MODEL.name}
-        subtitle="Consulta el inventario de equipos y materiales"
-        icon="ClipboardList"
-      />
+      <div className="flex items-center justify-between gap-2">
+        <TitleComponent
+          title={InventarioComplete.MODEL.name}
+          subtitle="Consulta el inventario de equipos y materiales"
+          icon="ClipboardList"
+        />
+        {isCorporativo && (
+          <Button variant="outline" size="sm" onClick={handleDescargarDiagnostico}>
+            <Download className="size-4 mr-1" />
+            Diagnóstico de reservas
+          </Button>
+        )}
+      </div>
 
       <Tabs defaultValue="equipos">
         <TabsList>
@@ -215,8 +502,8 @@ export default function InventarioPage() {
           <DataTablePagination
             page={Number(seriesParams.page)}
             per_page={Number(seriesParams.per_page)}
-            totalPages={seriesData?.meta.last_page ?? 1}
-            totalData={seriesData?.meta.total ?? 0}
+            totalPages={seriesData?.meta?.last_page ?? 1}
+            totalData={seriesData?.meta?.total ?? 0}
             onPageChange={handleSeriesPageChange}
             setPerPage={handleSeriesPerPageChange}
           />
@@ -237,8 +524,8 @@ export default function InventarioPage() {
           <DataTablePagination
             page={Number(materialesParams.page)}
             per_page={Number(materialesParams.per_page)}
-            totalPages={materialesData?.meta.last_page ?? 1}
-            totalData={materialesData?.meta.total ?? 0}
+            totalPages={materialesData?.meta?.last_page ?? 1}
+            totalData={materialesData?.meta?.total ?? 0}
             onPageChange={handleMaterialesPageChange}
             setPerPage={handleMaterialesPerPageChange}
           />
@@ -306,6 +593,103 @@ export default function InventarioPage() {
               }
             >
               {updateSotMutation.isPending ? "Guardando..." : "Guardar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={reservaOpen} onOpenChange={setReservaOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Reservar por SOT</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {isCorporativo && (
+              <Select value={reservaAlmacenId} onValueChange={setReservaAlmacenId}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Seleccionar subalmacén..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {reservaAlmacenOptions.map((a) => (
+                    <SelectItem key={a.value} value={a.value}>
+                      {a.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            <Input
+              value={reservaSot}
+              onChange={(e) => setReservaSot(e.target.value)}
+              placeholder="Ingrese la SOT"
+            />
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setReservaOpen(false)}>
+              Cancelar
+            </Button>
+
+            <Button
+              disabled={
+                !reservaSot.trim() ||
+                !reservaAlmacenId ||
+                reservarSerieMutation.isPending ||
+                reservarMaterialMutation.isPending
+              }
+              onClick={handleConfirmReserva}
+            >
+              {reservarSerieMutation.isPending || reservarMaterialMutation.isPending
+                ? "Guardando..."
+                : "Reservar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={ubicacionOpen} onOpenChange={setUbicacionOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Cambiar ubicación</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <Select value={ubicacionSituacion} onValueChange={setUbicacionSituacion}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Selecciona una situación" />
+              </SelectTrigger>
+              <SelectContent>
+                {SITUACIONES_UBICACION.map((s) => (
+                  <SelectItem key={s.value} value={s.value}>
+                    {s.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {ubicacionSituacion === "IN" && (
+              <Input
+                value={ubicacionSot}
+                onChange={(e) => setUbicacionSot(e.target.value)}
+                placeholder="Ingrese la SOT (obligatoria para 'Instalado')"
+              />
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setUbicacionOpen(false)}>
+              Cancelar
+            </Button>
+
+            <Button
+              disabled={
+                cambiarUbicacionMutation.isPending ||
+                (ubicacionSituacion === "IN" && !ubicacionSot.trim())
+              }
+              onClick={() => cambiarUbicacionMutation.mutate()}
+            >
+              {cambiarUbicacionMutation.isPending ? "Guardando..." : "Guardar"}
             </Button>
           </DialogFooter>
         </DialogContent>

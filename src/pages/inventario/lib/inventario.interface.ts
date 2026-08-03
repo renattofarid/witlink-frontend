@@ -4,6 +4,8 @@ import type { PaginationResponse } from "@/lib/core.interface";
 export interface InventarioSerieResource {
   inventario_tecnico_id: number;
   serie_id: number;
+  /** Algunos endpoints (p. ej. corporativo) devuelven el id crudo del modelo en vez de `serie_id`. */
+  id?: number;
   situacion: string;
   situacion_label:
     | "PENDIENTE"
@@ -30,6 +32,8 @@ export interface InventarioSerieResource {
   motivo: string | null;
   almacen_origen: string;
   contabilizado: string | null;
+  /** SOT que reservó este equipo (solo corporativo); distinto de `sot`, que es el SOT final de despacho/liquidación. */
+  reserva_sot?: string | null;
 }
 
 export type InventarioSerieResponse =
@@ -45,6 +49,8 @@ export type InventarioSerieResponse =
 // Inventory — Materiales
 export interface InventarioMaterialResource {
   producto_id: number;
+  /** Algunos endpoints (p. ej. corporativo) devuelven el id crudo del modelo en vez de `producto_id`. */
+  id?: number;
   fecha: string;
   sap: string;
   producto: string;
@@ -53,6 +59,8 @@ export interface InventarioMaterialResource {
   personal: string | null;
   sot: string | null;
   motivo: string | null;
+  /** Cantidad reservada por SOT dentro de `cantidad` (solo corporativo). */
+  cantidad_reservada?: number | string | null;
 }
 
 export type InventarioMaterialResponse = PaginationResponse<InventarioMaterialResource>;

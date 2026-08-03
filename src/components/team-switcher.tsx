@@ -29,11 +29,15 @@ export function TeamSwitcher() {
   const [switching, setSwitching] = useState<number | null>(null);
   const queryClient = useQueryClient();
 
-  const { data: almacenes = [] } = useQuery({
+  const { data: almacenesAll = [] } = useQuery({
     queryKey: ["almacenes-select"],
     queryFn: getAlmacenes,
     refetchOnWindowFocus: false,
   });
+
+  const almacenes = almacenesAll.filter(
+    (a) => a.is_corporativo || a.almacen_padre_id === null,
+  );
 
   const activeAlmacen = almacenes.find((a) => a.id === almacen_id) ?? null;
 
@@ -113,7 +117,10 @@ export function TeamSwitcher() {
             {almacenes.length === 0 && (
               <>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem disabled className="gap-2 p-2 text-xs text-muted-foreground">
+                <DropdownMenuItem
+                  disabled
+                  className="gap-2 p-2 text-xs text-muted-foreground"
+                >
                   No hay almacenes disponibles
                 </DropdownMenuItem>
               </>

@@ -1,6 +1,13 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { ButtonAction } from "@/components/ButtonAction";
-import { Undo2, History, PackageCheck } from "lucide-react";
+import {
+  Undo2,
+  History,
+  PackageCheck,
+  Lock,
+  Unlock,
+  MapPinned,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { parseISO, format } from "date-fns";
 import type { InventarioSerieResource } from "../lib/inventario.interface";
@@ -14,6 +21,10 @@ interface ColumnActions {
   onHistorial: (row: InventarioSerieResource) => void;
   onDevolverClaro: (row: InventarioSerieResource) => void;
   onStatusSot: (row: InventarioSerieResource) => void;
+  isCorporativo?: boolean;
+  onReservarSot?: (row: InventarioSerieResource) => void;
+  onLiberarSot?: (row: InventarioSerieResource) => void;
+  onCambiarUbicacion?: (row: InventarioSerieResource) => void;
 }
 
 export const getInventarioSeriesColumns = ({
@@ -21,13 +32,21 @@ export const getInventarioSeriesColumns = ({
   onHistorial,
   onDevolverClaro,
   onStatusSot,
+  isCorporativo,
+  onReservarSot,
+  onLiberarSot,
+  onCambiarUbicacion,
 }: ColumnActions): ColumnDef<InventarioSerieResource>[] => [
   {
     accessorKey: "fecha",
     header: "Fecha",
     cell: (info) => {
       const raw = info.getValue() as string;
-      return <p className="text-xs">{format(parseISO(raw), "dd/MM/yyyy")}</p>;
+      return (
+        <p className="text-xs">
+          {raw ? format(parseISO(raw), "dd/MM/yyyy") : "-"}
+        </p>
+      );
     },
   },
   {
@@ -122,6 +141,22 @@ export const getInventarioSeriesColumns = ({
       </div>
     ),
   },
+  ...(isCorporativo
+    ? [
+        {
+          id: "reserva_sot",
+          header: "Reserva",
+          cell: ({ row }) =>
+            row.original.reserva_sot ? (
+              <Badge variant="ghost" color="amber" className="text-xs">
+                Reservada · {row.original.reserva_sot}
+              </Badge>
+            ) : (
+              <p className="text-xs text-muted-foreground">Libre</p>
+            ),
+        } satisfies ColumnDef<InventarioSerieResource>,
+      ]
+    : []),
   {
     accessorKey: "motivo",
     header: "Motivo",
@@ -171,6 +206,30 @@ export const getInventarioSeriesColumns = ({
           tooltip="Devolver a Claro"
           canRender={row.original.situacion_label === SITUACION.DISPONIBLE}
           onClick={() => onDevolverClaro(row.original)}
+        />
+        <ButtonAction
+          icon={Lock}
+          color="amber"
+          tooltip="Reservar por SOT"
+          canRender={
+            !!isCorporativo && !!onReservarSot && !row.original.reserva_sot
+          }
+          onClick={() => onReservarSot?.(row.original)}
+        />
+        <ButtonAction
+          icon={Unlock}
+          color="amber"
+          tooltip="Liberar reserva"
+          canRender={
+            !!isCorporativo && !!onLiberarSot && !!row.original.reserva_sot
+          }
+          onClick={() => onLiberarSot?.(row.original)}
+        />
+        <ButtonAction
+          icon={MapPinned}
+          tooltip="Cambiar ubicación"
+          canRender={!!isCorporativo && !!onCambiarUbicacion}
+          onClick={() => onCambiarUbicacion?.(row.original)}
         />
       </div>
     ),

@@ -1,11 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-} from "@/components/ui/tooltip";
 import { api } from "@/lib/config";
 import { Sheet, FileDown } from "lucide-react";
 import { toast } from "sonner";
@@ -80,7 +75,9 @@ export default function ExportButtons({
         const binary = atob(data.file_base64);
         const bytes = new Uint8Array(binary.length);
         for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-        const blob = new Blob([bytes], { type: data.mime_type ?? "application/pdf" });
+        const blob = new Blob([bytes], {
+          type: data.mime_type ?? "application/pdf",
+        });
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
@@ -115,41 +112,29 @@ export default function ExportButtons({
     return (
       <div className="flex items-center gap-1 bg-gray-50 dark:bg-gray-800 rounded-lg border dark:border-gray-800">
         {excelEndpoint && (
-          <Tooltip>
-            <TooltipTrigger>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="px-2 hover:bg-green-700/5 hover:text-green-700 dark:hover:bg-primary dark:hover:text-white transition-colors"
-                onClick={handleExcelDownload}
-              >
-                <Sheet className="size-4" />
-                Excel
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Descargar Excel</p>
-            </TooltipContent>
-          </Tooltip>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="px-2 hover:bg-green-700/5 hover:text-green-700 dark:hover:bg-primary dark:hover:text-white transition-colors"
+            onClick={handleExcelDownload}
+            tooltip="Descargar Excel"
+          >
+            <Sheet className="size-4" />
+            Excel
+          </Button>
         )}
 
         {pdfEndpoint && (
-          <Tooltip>
-            <TooltipTrigger>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="px-2 hover:bg-red-700/5 hover:text-red-700 transition-colors"
-                onClick={handlePDFDownload}
-              >
-                <FileDown className="size-4" />
-                PDF
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Descargar PDF</p>
-            </TooltipContent>
-          </Tooltip>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="px-2 hover:bg-red-700/5 hover:text-red-700 transition-colors"
+            onClick={handlePDFDownload}
+            tooltip="Descargar PDF"
+          >
+            <FileDown className="size-4" />
+            PDF
+          </Button>
         )}
       </div>
     );
@@ -179,39 +164,27 @@ export default function ExportButtons({
   return (
     <>
       {excelEndpoint && (
-        <Tooltip>
-          <TooltipTrigger>
-            <Button
-              size="sm"
-              variant="ghost"
-              className="px-2 h-8 w-8 p-0 hover:bg-green-700/5 hover:text-green-700 transition-colors"
-              onClick={handleExcelDownload}
-            >
-              <Sheet className="size-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Descargar Excel</p>
-          </TooltipContent>
-        </Tooltip>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="px-2 h-8 w-8 p-0 hover:bg-green-700/5 hover:text-green-700 transition-colors"
+          onClick={handleExcelDownload}
+          tooltip="Descargar Excel"
+        >
+          <Sheet className="size-4" />
+        </Button>
       )}
 
       {pdfEndpoint && (
-        <Tooltip>
-          <TooltipTrigger>
-            <Button
-              size="sm"
-              variant="ghost"
-              className="px-2 h-8 w-8 p-0 hover:bg-red-700/5 hover:text-red-700 transition-colors"
-              onClick={handlePDFDownload}
-            >
-              <FileDown className="size-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Descargar PDF</p>
-          </TooltipContent>
-        </Tooltip>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="px-2 h-8 w-8 p-0 hover:bg-red-700/5 hover:text-red-700 transition-colors"
+          onClick={handlePDFDownload}
+          tooltip="Descargar PDF"
+        >
+          <FileDown className="size-4" />
+        </Button>
       )}
     </>
   );

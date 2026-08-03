@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Warehouse, Waypoints } from "lucide-react";
 import { getAlmacenes, selectAlmacen } from "../lib/auth.actions";
 import { useAuthStore } from "../lib/auth.store";
+import { getAlmacenesPermitidos } from "../lib/auth.utils";
 import { errorToast } from "@/lib/core.function";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,20 +31,33 @@ export default function WarehouseSelect({
   const [isContinuing, setIsContinuing] = useState(false);
   const navigate = useNavigate();
   const setAlmacenId = useAuthStore((s) => s.setAlmacenId);
+  const user = useAuthStore((s) => s.user);
 
-  const { data: almacenes = [], isLoading } = useQuery({
+  const { data: almacenesAll = [], isLoading } = useQuery({
     queryKey: ["almacenes-select"],
     queryFn: getAlmacenes,
     refetchOnWindowFocus: false,
   });
 
+  // Usuarios corporativos solo pueden operar sobre sus subalmacenes del grupo
+  const almacenes = useMemo(
+    () => getAlmacenesPermitidos(user, almacenesAll),
+    [almacenesAll, user],
+  );
+
   const options = useMemo(
     () =>
-      almacenes.map((a) => ({
-        value: String(a.id),
-        label: a.nombre,
-        description: a.direccion,
-      })),
+      almacenes
+        .filter(
+          (a) =>
+            a.es_subalmacen_corporativo === false &&
+            a.almacen_padre_id === null,
+        )
+        .map((a) => ({
+          value: String(a.id),
+          label: a.nombre,
+          description: a.direccion,
+        })),
     [almacenes],
   );
 
@@ -93,7 +107,9 @@ export default function WarehouseSelect({
                   <div className="flex size-8 items-center justify-center rounded-md">
                     <Waypoints className="size-6" />
                   </div>
-                  <span className="sr-only">Witlink - Selección de almacén</span>
+                  <span className="sr-only">
+                    Witlink - Selección de almacén
+                  </span>
                 </a>
                 <h1 className="text-xl font-bold">Selecciona tu almacén.</h1>
                 <FieldDescription>
@@ -108,7 +124,9 @@ export default function WarehouseSelect({
                       options={options}
                       value={selectedId}
                       onChange={setSelectedId}
-                      placeholder={isLoading ? "Cargando..." : "Selecciona un almacén..."}
+                      placeholder={
+                        isLoading ? "Cargando..." : "Selecciona un almacén..."
+                      }
                       disabled={isLoading}
                       buttonSize="default"
                     />

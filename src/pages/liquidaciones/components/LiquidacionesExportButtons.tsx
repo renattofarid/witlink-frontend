@@ -10,11 +10,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-} from "@/components/ui/tooltip";
 import { api } from "@/lib/config";
 import { toast } from "sonner";
 import DatePicker from "@/components/DatePicker";
@@ -105,23 +100,17 @@ export default function LiquidacionesExportButtons({
   return (
     <div className="flex items-center gap-2">
       <div className="flex items-center gap-1 bg-gray-50 dark:bg-gray-800 rounded-lg border dark:border-gray-800">
-        <Tooltip>
-          <TooltipTrigger>
-            <Button
-              size="sm"
-              variant="ghost"
-              className="px-2 hover:bg-green-700/5 hover:text-green-700 dark:hover:bg-primary dark:hover:text-white transition-colors"
-              onClick={handleLiquidadasDownload}
-              disabled={loadingLiquidadas}
-            >
-              <Sheet className="size-4" />
-              Liquidadas
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Exportar liquidaciones en estado liquidada</p>
-          </TooltipContent>
-        </Tooltip>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="px-2 hover:bg-green-700/5 hover:text-green-700 dark:hover:bg-primary dark:hover:text-white transition-colors"
+          onClick={handleLiquidadasDownload}
+          disabled={loadingLiquidadas}
+          tooltip="Descargar Excel de liquidaciones"
+        >
+          <Sheet className="size-4" />
+          Liquidadas
+        </Button>
       </div>
 
       <Button variant="outline" size="sm" onClick={() => setOpen(true)}>

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTabParams } from "@/hooks/useTabParams";
 import PageWrapper from "@/components/PageWrapper";
 import TitleComponent from "@/components/TitleComponent";
@@ -10,6 +10,8 @@ import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import { successToast, errorToast } from "@/lib/core.function";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
+import { getAlmacenes } from "@/pages/auth/lib/auth.actions";
+import { getSubalmacenesOperativos } from "@/pages/auth/lib/auth.utils";
 import {
   useInventarioSeriesQuery,
   useInventarioMaterialesQuery,
@@ -77,6 +79,25 @@ export default function InventarioPage() {
   const isCorporativo = !!user?.is_corporativo;
   const queryClient = useQueryClient();
 
+  const { data: almacenesAll = [] } = useQuery({
+    queryKey: ["almacenes-list"],
+    queryFn: getAlmacenes,
+    refetchOnWindowFocus: false,
+    enabled: isCorporativo,
+  });
+  const subalmacenesOperativos = useMemo(
+    () => getSubalmacenesOperativos(user, almacenesAll),
+    [user, almacenesAll],
+  );
+  const reservaAlmacenOptions = useMemo(
+    () =>
+      subalmacenesOperativos.map((a) => ({
+        value: String(a.id),
+        label: a.nombre,
+      })),
+    [subalmacenesOperativos],
+  );
+
   const [selectedSerie, setSelectedSerie] =
     useState<InventarioSerieResource | null>(null);
   const [devolverSerieOpen, setDevolverSerieOpen] = useState(false);
@@ -97,6 +118,7 @@ export default function InventarioPage() {
   >(null);
   const [reservaOpen, setReservaOpen] = useState(false);
   const [reservaSot, setReservaSot] = useState("");
+  const [reservaAlmacenId, setReservaAlmacenId] = useState("");
 
   // ── Corporativo: cambio de ubicación ───────────────────────────────────────
   const [ubicacionSerie, setUbicacionSerie] =
@@ -105,12 +127,15 @@ export default function InventarioPage() {
   const [ubicacionSituacion, setUbicacionSituacion] = useState("DI");
   const [ubicacionSot, setUbicacionSot] = useState("");
 
+  // Para corporativos, el almacén de sesión puede ser el "padre" del grupo
+  // (no contiene stock propio), así que no se usa como valor por defecto:
+  // el usuario debe elegir un subalmacén real en el filtro.
   const [seriesParams, setSeriesParams] = useTabParams(
     "/inventario/series-tab",
     {
       page: "1",
       per_page: String(DEFAULT_PER_PAGE),
-      ...(almacen_id ? { almacen_id: String(almacen_id) } : {}),
+      ...(almacen_id && !isCorporativo ? { almacen_id: String(almacen_id) } : {}),
     },
   );
 
@@ -119,7 +144,7 @@ export default function InventarioPage() {
     {
       page: "1",
       per_page: String(DEFAULT_PER_PAGE),
-      ...(almacen_id ? { almacen_id: String(almacen_id) } : {}),
+      ...(almacen_id && !isCorporativo ? { almacen_id: String(almacen_id) } : {}),
     },
   );
 
@@ -219,8 +244,15 @@ export default function InventarioPage() {
   };
 
   const reservarSerieMutation = useMutation({
-    mutationFn: ({ id, numero_sot }: { id: number; numero_sot: string }) =>
-      reservarSerieSot(id, { numero_sot, almacen_id: Number(almacen_id) }),
+    mutationFn: ({
+      id,
+      numero_sot,
+      almacen_id: reservaAlmacen,
+    }: {
+      id: number;
+      numero_sot: string;
+      almacen_id: number;
+    }) => reservarSerieSot(id, { numero_sot, almacen_id: reservaAlmacen }),
     onSuccess: () => {
       invalidateCorporativoInventario();
       successToast("Reserva creada correctamente.");
@@ -243,8 +275,15 @@ export default function InventarioPage() {
   });
 
   const reservarMaterialMutation = useMutation({
-    mutationFn: ({ id, numero_sot }: { id: number; numero_sot: string }) =>
-      reservarMaterialSot(id, { numero_sot, almacen_id: Number(almacen_id) }),
+    mutationFn: ({
+      id,
+      numero_sot,
+      almacen_id: reservaAlmacen,
+    }: {
+      id: number;
+      numero_sot: string;
+      almacen_id: number;
+    }) => reservarMaterialSot(id, { numero_sot, almacen_id: reservaAlmacen }),
     onSuccess: () => {
       invalidateCorporativoInventario();
       successToast("Reserva creada correctamente.");
@@ -288,6 +327,11 @@ export default function InventarioPage() {
   const handleReservarSerie = (row: InventarioSerieResource) => {
     setReservaTarget({ tipo: "serie", row });
     setReservaSot(row.sot ?? "");
+    setReservaAlmacenId(
+      seriesParams.almacen_id && !seriesParams.almacen_id.includes(",")
+        ? seriesParams.almacen_id
+        : "",
+    );
     setReservaOpen(true);
   };
 
@@ -298,6 +342,11 @@ export default function InventarioPage() {
   const handleReservarMaterial = (row: InventarioMaterialResource) => {
     setReservaTarget({ tipo: "material", row });
     setReservaSot(row.sot ?? "");
+    setReservaAlmacenId(
+      materialesParams.almacen_id && !materialesParams.almacen_id.includes(",")
+        ? materialesParams.almacen_id
+        : "",
+    );
     setReservaOpen(true);
   };
 
@@ -313,13 +362,18 @@ export default function InventarioPage() {
   };
 
   const handleConfirmReserva = () => {
-    if (!reservaTarget || !reservaSot.trim()) return;
+    if (!reservaTarget || !reservaSot.trim() || !reservaAlmacenId) return;
     if (reservaTarget.tipo === "serie") {
-      reservarSerieMutation.mutate({ id: reservaTarget.row.serie_id, numero_sot: reservaSot.trim() });
+      reservarSerieMutation.mutate({
+        id: reservaTarget.row.serie_id,
+        numero_sot: reservaSot.trim(),
+        almacen_id: Number(reservaAlmacenId),
+      });
     } else {
       reservarMaterialMutation.mutate({
         id: reservaTarget.row.producto_id,
         numero_sot: reservaSot.trim(),
+        almacen_id: Number(reservaAlmacenId),
       });
     }
   };
@@ -415,8 +469,8 @@ export default function InventarioPage() {
           <DataTablePagination
             page={Number(seriesParams.page)}
             per_page={Number(seriesParams.per_page)}
-            totalPages={seriesData?.meta.last_page ?? 1}
-            totalData={seriesData?.meta.total ?? 0}
+            totalPages={seriesData?.meta?.last_page ?? 1}
+            totalData={seriesData?.meta?.total ?? 0}
             onPageChange={handleSeriesPageChange}
             setPerPage={handleSeriesPerPageChange}
           />
@@ -437,8 +491,8 @@ export default function InventarioPage() {
           <DataTablePagination
             page={Number(materialesParams.page)}
             per_page={Number(materialesParams.per_page)}
-            totalPages={materialesData?.meta.last_page ?? 1}
-            totalData={materialesData?.meta.total ?? 0}
+            totalPages={materialesData?.meta?.last_page ?? 1}
+            totalData={materialesData?.meta?.total ?? 0}
             onPageChange={handleMaterialesPageChange}
             setPerPage={handleMaterialesPerPageChange}
           />
@@ -518,6 +572,18 @@ export default function InventarioPage() {
           </DialogHeader>
 
           <div className="space-y-4">
+            <Select value={reservaAlmacenId} onValueChange={setReservaAlmacenId}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Seleccionar subalmacén..." />
+              </SelectTrigger>
+              <SelectContent>
+                {reservaAlmacenOptions.map((a) => (
+                  <SelectItem key={a.value} value={a.value}>
+                    {a.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Input
               value={reservaSot}
               onChange={(e) => setReservaSot(e.target.value)}
@@ -533,6 +599,7 @@ export default function InventarioPage() {
             <Button
               disabled={
                 !reservaSot.trim() ||
+                !reservaAlmacenId ||
                 reservarSerieMutation.isPending ||
                 reservarMaterialMutation.isPending
               }

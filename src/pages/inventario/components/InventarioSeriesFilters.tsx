@@ -2,9 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getAlmacenes } from "@/pages/auth/lib/auth.actions";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
-import { getAlmacenesPermitidos } from "@/pages/auth/lib/auth.utils";
+import { getSubalmacenesOperativos } from "@/pages/auth/lib/auth.utils";
 import FilterWrapper from "@/components/FilterWrapper";
-import { MultiSelectFilter } from "@/components/MultiSelectFilter";
 import { SearchableSelect } from "@/components/SearchableSelect";
 import SearchInput from "@/components/SearchInput";
 import { Button } from "@/components/ui/button";
@@ -29,7 +28,7 @@ export default function InventarioSeriesFilters({
   });
 
   const almacenes = useMemo(
-    () => getAlmacenesPermitidos(user, almacenesAll),
+    () => getSubalmacenesOperativos(user, almacenesAll),
     [almacenesAll, user],
   );
 
@@ -37,13 +36,12 @@ export default function InventarioSeriesFilters({
   const [bulkText, setBulkText] = useState("");
 
   const almacenOptions = useMemo(
-    () => almacenes.map((a) => ({ value: String(a.id), label: a.nombre })),
+    () => [
+      { value: "all", label: "Todos" },
+      ...almacenes.map((a) => ({ value: String(a.id), label: a.nombre })),
+    ],
     [almacenes],
   );
-
-  const selectedAlmacenes = params.almacen_id
-    ? params.almacen_id.split(",").filter(Boolean)
-    : [];
 
   const productosSeleccionados = params.productos
     ? params.productos.split(",").filter(Boolean)
@@ -92,14 +90,14 @@ export default function InventarioSeriesFilters({
   return (
     <div className="flex flex-wrap items-center gap-2">
       <FilterWrapper>
-        <MultiSelectFilter
+        <SearchableSelect
           placeholder="Almacenes"
           options={almacenOptions}
-          values={selectedAlmacenes}
-          onChange={(ids) =>
+          value={params.almacen_id || "all"}
+          onChange={(v) =>
             setParams((prev) => ({
               ...prev,
-              almacen_id: ids.join(","),
+              almacen_id: v === "all" ? "" : v,
               page: "1",
             }))
           }

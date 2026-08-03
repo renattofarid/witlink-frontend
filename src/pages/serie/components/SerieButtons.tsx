@@ -1,11 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, Sheet } from "lucide-react";
-import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-} from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import { exportSeries } from "../lib/serie.actions";
 import type { ExcelResponse } from "../lib/serie.actions";
@@ -56,40 +51,28 @@ export default function SerieButtons({ onAdd }: SerieButtonsProps) {
   return (
     <div className="flex items-center gap-2">
       <div className="flex items-center gap-1 bg-gray-50 dark:bg-gray-800 rounded-lg border dark:border-gray-800">
-        <Tooltip>
-          <TooltipTrigger>
-            <Button
-              size="sm"
-              variant="ghost"
-              className="px-2 hover:bg-green-700/5 hover:text-green-700 dark:hover:bg-primary dark:hover:text-white transition-colors"
-              onClick={() => handleExport("xlsx")}
-              disabled={loadingXlsx}
-            >
-              <Sheet className="size-4" />
-              Excel
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Exportar series en formato Excel (.xlsx)</p>
-          </TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger>
-            <Button
-              size="sm"
-              variant="ghost"
-              className="px-2 hover:bg-blue-700/5 hover:text-blue-700 dark:hover:bg-primary dark:hover:text-white transition-colors"
-              onClick={() => handleExport("csv")}
-              disabled={loadingCsv}
-            >
-              <Sheet className="size-4" />
-              CSV
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Exportar series en formato CSV</p>
-          </TooltipContent>
-        </Tooltip>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="px-2 hover:bg-green-700/5 hover:text-green-700 dark:hover:bg-primary dark:hover:text-white transition-colors"
+          onClick={() => handleExport("xlsx")}
+          disabled={loadingXlsx}
+          tooltip="Exportar series en formato Excel (.xlsx)"
+        >
+          <Sheet className="size-4" />
+          Excel
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="px-2 hover:bg-blue-700/5 hover:text-blue-700 dark:hover:bg-primary dark:hover:text-white transition-colors"
+          onClick={() => handleExport("csv")}
+          disabled={loadingCsv}
+          tooltip="Exportar series en formato CSV (.csv)"
+        >
+          <Sheet className="size-4" />
+          CSV
+        </Button>
       </div>
 
       <Button onClick={onAdd}>

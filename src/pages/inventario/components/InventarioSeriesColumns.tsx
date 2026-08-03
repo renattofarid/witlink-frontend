@@ -1,6 +1,13 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { ButtonAction } from "@/components/ButtonAction";
-import { Undo2, History, PackageCheck, Lock, Unlock, MapPinned } from "lucide-react";
+import {
+  Undo2,
+  History,
+  PackageCheck,
+  Lock,
+  Unlock,
+  MapPinned,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { parseISO, format } from "date-fns";
 import type { InventarioSerieResource } from "../lib/inventario.interface";
@@ -35,7 +42,11 @@ export const getInventarioSeriesColumns = ({
     header: "Fecha",
     cell: (info) => {
       const raw = info.getValue() as string;
-      return <p className="text-xs">{format(parseISO(raw), "dd/MM/yyyy")}</p>;
+      return (
+        <p className="text-xs">
+          {raw ? format(parseISO(raw), "dd/MM/yyyy") : "-"}
+        </p>
+      );
     },
   },
   {

@@ -1,12 +1,10 @@
 import { FileText, History, Loader2, Sheet } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-} from "@/components/ui/tooltip";
 import { useState } from "react";
-import { generarCarga, exportarInventarioTecnico } from "../lib/inventario-tecnico.actions";
+import {
+  generarCarga,
+  exportarInventarioTecnico,
+} from "../lib/inventario-tecnico.actions";
 import { errorToast, successToast } from "@/lib/core.function";
 
 interface InventarioTecnicoButtonsProps {
@@ -14,7 +12,11 @@ interface InventarioTecnicoButtonsProps {
   onOpenHistorial: () => void;
 }
 
-function downloadFromBase64(file_base64: string, file_name: string, mime_type: string) {
+function downloadFromBase64(
+  file_base64: string,
+  file_name: string,
+  mime_type: string,
+) {
   const byteChars = atob(file_base64);
   const buffer = new ArrayBuffer(byteChars.length);
   const bytes = new Uint8Array(buffer);
@@ -74,34 +76,24 @@ export default function InventarioTecnicoButtons({
   return (
     <div className="flex items-center gap-2">
       <div className="flex items-center gap-1 bg-gray-50 dark:bg-gray-800 rounded-lg border dark:border-gray-800">
-        <Tooltip>
-          <TooltipTrigger>
-            <Button
-              size="sm"
-              variant="ghost"
-              className="px-2 hover:bg-green-700/5 hover:text-green-700 dark:hover:bg-primary dark:hover:text-white transition-colors"
-              onClick={handleExportarLiquidadas}
-              disabled={!tecnicoId || loadingExcel}
-            >
-              {loadingExcel ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <Sheet className="size-4" />
-              )}
-              Excel
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Exportar inventario del técnico en Excel</p>
-          </TooltipContent>
-        </Tooltip>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="px-2 hover:bg-green-700/5 hover:text-green-700 dark:hover:bg-primary dark:hover:text-white transition-colors"
+          onClick={handleExportarLiquidadas}
+          disabled={!tecnicoId || loadingExcel}
+          tooltip="Descargar Excel del inventario técnico"
+        >
+          {loadingExcel ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <Sheet className="size-4" />
+          )}
+          Excel
+        </Button>
       </div>
 
-      <Button
-        variant="outline"
-        onClick={onOpenHistorial}
-        disabled={!tecnicoId}
-      >
+      <Button variant="outline" onClick={onOpenHistorial} disabled={!tecnicoId}>
         <History className="size-4 mr-1" />
         Historial
       </Button>

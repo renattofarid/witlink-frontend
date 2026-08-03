@@ -71,7 +71,7 @@ export async function selectAlmacen(almacenId: number): Promise<string> {
 }
 
 export async function getAlmacenes(): Promise<AlmacenResource[]> {
-  const { data } = await api.get("/almacenes");
+  const { data } = await api.get("/almacenes", { params: { all: "true" } });
   // La API puede devolver { data: [] } o un array directo
   const list = Array.isArray(data) ? data : (data?.data ?? []);
   return list as AlmacenResource[];

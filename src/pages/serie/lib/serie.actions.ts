@@ -42,9 +42,11 @@ export const confirmarDisponibilidadSerie = async (id: number) => {
 
 export const validarSerie = async (
   serie: string,
+  almacenId?: number | null,
 ): Promise<SerieValidacionResponse> => {
   const { data } = await api.get(
     `${SerieComplete.ENDPOINT}/${encodeURIComponent(serie)}/validar`,
+    { params: almacenId ? { almacen_id: almacenId } : undefined },
   );
   return data;
 };

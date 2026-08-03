@@ -194,6 +194,7 @@ export default function TrasladoForm({ onSuccess }: TrasladoFormProps) {
     try {
       const { serie: validada } = await validarSerie(
         serie.serie ?? String(serie.id),
+        origenActual,
       );
       setSeriesCart((prev) => [
         ...prev,
@@ -228,7 +229,11 @@ export default function TrasladoForm({ onSuccess }: TrasladoFormProps) {
     setSerieError(null);
     setSerieMatches([]);
     try {
-      const result = await getSeries({ serie: val, por_pagina: "10" });
+      const result = await getSeries({
+        serie: val,
+        por_pagina: "10",
+        ...(origenActual ? { almacen_id: String(origenActual) } : {}),
+      });
       const items = result.data ?? [];
       if (items.length === 0) {
         setSerieError(`No se encontró ninguna serie con "${val}"`);
@@ -280,7 +285,11 @@ export default function TrasladoForm({ onSuccess }: TrasladoFormProps) {
     setMaterialError(null);
     setMaterialMatches([]);
     try {
-      const result = await getMateriales({ search: val, por_pagina: "10" });
+      const result = await getMateriales({
+        search: val,
+        por_pagina: "10",
+        ...(origenActual ? { almacen_id: String(origenActual) } : {}),
+      });
       const items = result.data ?? [];
       if (items.length === 0) {
         setMaterialError(`No se encontró ningún material con "${val}"`);

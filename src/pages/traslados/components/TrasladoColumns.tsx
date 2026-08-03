@@ -8,7 +8,9 @@ import type { TrasladoListItem } from "../lib/traslado.interface";
 interface ColumnActions {
   onConfirmar: (item: TrasladoListItem) => void;
   onAnular: (item: TrasladoListItem) => void;
-  almacen_id: number | null;
+  /** Almacenes sobre los que el usuario puede operar: su propio almacén, o
+   * todos los subalmacenes de su grupo si es corporativo. */
+  operativosIds: number[];
 }
 
 function formatISODate(iso: string | null | undefined): string {
@@ -170,9 +172,9 @@ export const getTrasladoListColumns = (
     size: 140,
     cell: ({ row }) => {
       const item = row.original;
-      const isDestino =
-        actions?.almacen_id !== null &&
-        item.almacen_destino_id === actions?.almacen_id;
+      const isDestino = !!actions?.operativosIds?.includes(
+        item.almacen_destino_id,
+      );
       const isPendiente = !item.confirmado && !item.anulado;
       const canConfirm = isPendiente && isDestino;
       const canAnular = isPendiente && isDestino;

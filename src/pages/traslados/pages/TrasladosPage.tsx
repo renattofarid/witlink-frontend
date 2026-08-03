@@ -21,6 +21,12 @@ import type { TrasladoListItem } from "../lib/traslado.interface";
 export default function TrasladosPage() {
   const queryClient = useQueryClient();
   const almacen_id = useAuthStore((s) => s.almacen_id);
+  const user = useAuthStore((s) => s.user);
+  const operativosIds = user?.is_corporativo
+    ? user.subalmacenes.map((a) => a.id)
+    : almacen_id
+      ? [almacen_id]
+      : [];
   const [selectedItem, setSelectedItem] = useState<TrasladoListItem | null>(null);
   const [anularItem, setAnularItem] = useState<TrasladoListItem | null>(null);
 
@@ -58,7 +64,7 @@ export default function TrasladosPage() {
   });
 
   const columns = getTrasladoListColumns({
-    almacen_id,
+    operativosIds,
     onConfirmar: (item) => setSelectedItem(item),
     onAnular: (item) => setAnularItem(item),
   });

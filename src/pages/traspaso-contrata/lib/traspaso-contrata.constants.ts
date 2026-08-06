@@ -8,9 +8,10 @@ export const TraspasoContrataComplete: ModelComplete = {
     gender: true,
   },
   ICON: Truck,
-  ROUTE: "/guias-salida/traspasos-contrata",
+  ROUTE: "/traspasos-contrata",
   QUERY_KEY: "traspasos-contrata",
-  ABSOLUTE_ROUTE: "/guias-salida/traspasos-contrata",
+  ABSOLUTE_ROUTE: "/traspasos-contrata",
+  // Endpoint del backend: no cambia, sigue viviendo bajo /guias-salida/...
   ENDPOINT: "/guias-salida/traspasos-contrata",
-  ROUTE_ADD: "/guias-salida/traspasos-contrata/agregar",
+  ROUTE_ADD: "/traspasos-contrata/agregar",
 };

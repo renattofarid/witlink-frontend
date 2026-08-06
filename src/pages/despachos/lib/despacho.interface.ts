@@ -5,6 +5,9 @@ import type { UsuariosResource } from "@/pages/usuarios/lib/usuarios.interface";
 export interface DespachoResource {
   id: number;
   numero: string;
+  /** Presente solo en despachos corporativos con SOT asociada. */
+  sot: string | null;
+  numero_sot?: string | null;
   fecha: string;
   almacen: AlmacenResource;
   usuario: UsuariosResource;

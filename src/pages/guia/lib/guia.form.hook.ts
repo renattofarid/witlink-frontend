@@ -47,6 +47,9 @@ function buildProductoNuevo(p: any): GuiaProductoBody {
     cantidad: p.cantidad,
     observaciones: p.observaciones ?? null,
     series,
+    // Solo viaja si la fila representa un producto nuevo (ver GuiaProductoSelector: no se
+    // setea al seleccionar un producto del catálogo, existente o recién creado).
+    lote: p.lote || null,
   };
 }
 

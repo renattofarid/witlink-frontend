@@ -36,6 +36,8 @@ export const productoSchema = z
     cantidad: z.coerce.number().min(1, "Minimo 1 unidad"),
     observaciones: z.string().optional().nullable(),
     series: z.array(serieSchema).optional().nullable(),
+    // Solo aplica cuando el producto es nuevo (creado desde el botón "+"); no se envía si se selecciona uno existente.
+    lote: z.string().max(100, "Máximo 100 caracteres").optional().nullable(),
   })
   .superRefine((p, ctx) => {
     // Series requeridas solo para equipos con necesita_serie = true

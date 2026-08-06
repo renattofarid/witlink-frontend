@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import type { RowSelectionState } from "@tanstack/react-table";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTabParams } from "@/hooks/useTabParams";
 import PageWrapper from "@/components/PageWrapper";
@@ -52,7 +53,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Download } from "lucide-react";
+import { Download, Lock } from "lucide-react";
 import {
   useInventarioMaterialesCorporativoQuery,
   useInventarioSeriesCorporativoQuery,
@@ -64,6 +65,7 @@ import {
   liberarSerieSot,
   reservarMaterialSot,
   reservarSerieSot,
+  reservarSotMasivo,
 } from "@/pages/corporativo/lib/corporativo.actions";
 
 const SITUACIONES_UBICACION = [
@@ -127,6 +129,19 @@ export default function InventarioPage() {
   const [ubicacionSituacion, setUbicacionSituacion] = useState("DI");
   const [ubicacionSot, setUbicacionSot] = useState("");
 
+  // ── Corporativo: reserva masiva de SOT ─────────────────────────────────────
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const selectedSerieIds = useMemo(
+    () =>
+      Object.keys(rowSelection)
+        .filter((id) => rowSelection[id])
+        .map(Number),
+    [rowSelection],
+  );
+  const [reservaMasivaOpen, setReservaMasivaOpen] = useState(false);
+  const [reservaMasivaSot, setReservaMasivaSot] = useState("");
+  const [reservaMasivaAlmacenId, setReservaMasivaAlmacenId] = useState("");
+
   // Para corporativos, el almacén de sesión puede ser el "padre" del grupo
   // (no contiene stock propio), así que no se usa como valor por defecto:
   // el usuario debe elegir un subalmacén real en el filtro.
@@ -160,6 +175,15 @@ export default function InventarioPage() {
       currentAlmacenId && !currentAlmacenId.includes(",") ? currentAlmacenId : "",
     );
   }, [reservaOpen, reservaTarget, seriesParams.almacen_id, materialesParams.almacen_id]);
+
+  // Al abrir el diálogo de reserva masiva, precarga el subalmacén filtrado (si es único).
+  useEffect(() => {
+    if (!reservaMasivaOpen) return;
+    const currentAlmacenId = seriesParams.almacen_id;
+    setReservaMasivaAlmacenId(
+      currentAlmacenId && !currentAlmacenId.includes(",") ? currentAlmacenId : "",
+    );
+  }, [reservaMasivaOpen, seriesParams.almacen_id]);
 
   const { data: seriesDataGeneral, isLoading: seriesLoadingGeneral } =
     useInventarioSeriesQuery(seriesParams, !isCorporativo);
@@ -322,6 +346,33 @@ export default function InventarioPage() {
     },
   });
 
+  const reservarSotMasivoMutation = useMutation({
+    mutationFn: () =>
+      reservarSotMasivo({
+        ...(reservaMasivaAlmacenId
+          ? { almacen_id: Number(reservaMasivaAlmacenId) }
+          : {}),
+        numero_sot: reservaMasivaSot.trim(),
+        serie_ids: selectedSerieIds,
+      }),
+    onSuccess: (data) => {
+      invalidateCorporativoInventario();
+      successToast(
+        `${data?.meta?.reservadas ?? selectedSerieIds.length} series reservadas correctamente.`,
+      );
+      setRowSelection({});
+      setReservaMasivaOpen(false);
+      setReservaMasivaSot("");
+    },
+    onError: (error: any) => {
+      // No se limpia la selección: el usuario puede corregir la SOT y reintentar.
+      errorToast(
+        error.response?.data?.message ??
+          "No se pudo completar la reserva masiva.",
+      );
+    },
+  });
+
   const cambiarUbicacionMutation = useMutation({
     mutationFn: () =>
       cambiarUbicacionMasivo({
@@ -436,6 +487,7 @@ export default function InventarioPage() {
     onReservarSot: handleReservarSerie,
     onLiberarSot: handleLiberarSerie,
     onCambiarUbicacion: handleCambiarUbicacion,
+    enableSeleccionMasiva: isCorporativo,
   });
   const materialesColumns = getInventarioMaterialesColumns({
     isCorporativo,
@@ -486,10 +538,27 @@ export default function InventarioPage() {
         </TabsList>
 
         <TabsContent value="equipos">
+          {isCorporativo && selectedSerieIds.length > 0 && (
+            <div className="flex items-center justify-end gap-2 mb-2">
+              <span className="text-xs text-muted-foreground">
+                {selectedSerieIds.length} serie(s) seleccionada(s)
+              </span>
+              <Button size="sm" onClick={() => setReservaMasivaOpen(true)}>
+                <Lock className="size-3.5 mr-1" />
+                Reservar SOT ({selectedSerieIds.length})
+              </Button>
+            </div>
+          )}
           <DataTable
             columns={seriesColumns}
             data={seriesData?.data ?? []}
             isLoading={seriesLoading}
+            getRowId={(row: InventarioSerieResource) =>
+              String(row.serie_id ?? row.id)
+            }
+            enableRowSelection={isCorporativo}
+            rowSelection={rowSelection}
+            onRowSelectionChange={setRowSelection}
           >
             <InventarioSeriesFilters
               params={seriesParams}
@@ -643,6 +712,61 @@ export default function InventarioPage() {
               {reservarSerieMutation.isPending || reservarMaterialMutation.isPending
                 ? "Guardando..."
                 : "Reservar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={reservaMasivaOpen} onOpenChange={setReservaMasivaOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              Reservar SOT ({selectedSerieIds.length} series)
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <Select
+              value={reservaMasivaAlmacenId}
+              onValueChange={setReservaMasivaAlmacenId}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Seleccionar subalmacén..." />
+              </SelectTrigger>
+              <SelectContent>
+                {reservaAlmacenOptions.map((a) => (
+                  <SelectItem key={a.value} value={a.value}>
+                    {a.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Input
+              value={reservaMasivaSot}
+              onChange={(e) => setReservaMasivaSot(e.target.value)}
+              placeholder="Ingrese la SOT"
+            />
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setReservaMasivaOpen(false)}
+            >
+              Cancelar
+            </Button>
+
+            <Button
+              disabled={
+                !reservaMasivaSot.trim() ||
+                selectedSerieIds.length === 0 ||
+                reservarSotMasivoMutation.isPending
+              }
+              onClick={() => reservarSotMasivoMutation.mutate()}
+            >
+              {reservarSotMasivoMutation.isPending
+                ? "Guardando..."
+                : `Reservar (${selectedSerieIds.length})`}
             </Button>
           </DialogFooter>
         </DialogContent>

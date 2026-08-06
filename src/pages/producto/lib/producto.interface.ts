@@ -13,6 +13,7 @@ export interface ProductoResource {
   incluir_en_carga: boolean;
   es_liquidacion: boolean;
   costo: number | null;
+  lote: string | null;
   stock: number;
   created_at: string;
   updated_at: string;
@@ -32,6 +33,7 @@ export interface ProductoCreateBody {
   incluir_en_carga?: 0 | 1;
   es_liquidacion?: boolean;
   costo?: number | null;
+  lote?: string;
 }
 
 export interface ProductoUpdateBody {
@@ -46,4 +48,5 @@ export interface ProductoUpdateBody {
   incluir_en_carga?: 0 | 1;
   es_liquidacion?: boolean;
   costo?: number | null;
+  lote?: string;
 }

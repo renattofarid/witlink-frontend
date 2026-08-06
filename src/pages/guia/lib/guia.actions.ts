@@ -116,6 +116,8 @@ function appendProductoFields(
   formData.append(`${prefix}[cantidad]`, String(producto.cantidad));
   if (producto.observaciones !== undefined && producto.observaciones !== null)
     formData.append(`${prefix}[observaciones]`, producto.observaciones);
+  if (producto.lote !== undefined && producto.lote !== null && producto.lote !== "")
+    formData.append(`${prefix}[lote]`, producto.lote);
 
   (producto.series ?? []).forEach((serie, j) => {
     const sprefix = `${prefix}[series][${j}]`;

@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
@@ -10,8 +12,9 @@ import { FormSelect } from "@/components/FormSelect";
 import { FormInput } from "@/components/FormInput";
 import { DataTable } from "@/components/DataTable";
 import { Badge } from "@/components/ui/badge";
-import { successToast, errorToast } from "@/lib/core.function";
+import { errorToast } from "@/lib/core.function";
 import { Trash2, Pencil, PackagePlus } from "lucide-react";
+import { LiquidacionesComplete } from "@/pages/liquidaciones/lib/liquidaciones.constants";
 import {
   despachoCreateSchema,
   type DespachoCreateFormValues,
@@ -51,6 +54,7 @@ interface DespachoFormProps {
 
 export default function DespachoForm({ onSuccess }: DespachoFormProps) {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
   const isCorporativo = !!user?.is_corporativo;
 
@@ -164,11 +168,27 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
   // ── Mutation ───────────────────────────────────────────────────────────────
   const mutation = useMutation({
     mutationFn: (body: DespachoCreateBody) => createDespacho(body),
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       form.reset({ tecnico_id: "", productos: [], sot: "" });
       setMasivoSeries([]);
       queryClient.invalidateQueries({ queryKey: [DespachoComplete.QUERY_KEY] });
-      successToast("Despacho creado correctamente.");
+      const sot = variables.sot?.trim().toUpperCase();
+      if (sot) {
+        toast.success("Despacho creado correctamente.", {
+          description: `SOT ${sot} registrada para liquidación.`,
+          action: {
+            label: "Ver liquidación",
+            onClick: () =>
+              navigate(
+                `${LiquidacionesComplete.ROUTE_ADD}?sot=${encodeURIComponent(sot)}`,
+              ),
+          },
+        });
+      } else {
+        toast.success("Despacho creado correctamente.", {
+          action: { label: "Listo", onClick: () => toast.dismiss() },
+        });
+      }
       onSuccess?.();
     },
     onError: (error: any) => {

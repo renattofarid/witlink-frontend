@@ -22,6 +22,15 @@ export const getDespachoColumns = ({
     header: "Número",
   },
   {
+    accessorKey: "sot",
+    header: "SOT",
+    cell: ({ row }) => (
+      <span className="text-xs text-muted-foreground">
+        {row.original.sot ?? row.original.numero_sot ?? "-"}
+      </span>
+    ),
+  },
+  {
     accessorKey: "fecha",
     header: "Fecha",
     cell: ({ row }) => {

@@ -84,6 +84,9 @@ import { GuiaDevolucionComplete } from "@/pages/guia-devolucion/lib/devolucion.c
 import DevolucionPage from "@/pages/guia-devolucion/pages/DevolucionPage";
 import DevolucionAddPage from "@/pages/guia-devolucion/pages/DevolucionAddPage";
 import DevolucionEditPage from "@/pages/guia-devolucion/pages/DevolucionEditPage";
+import { TraspasoContrataComplete } from "@/pages/traspaso-contrata/lib/traspaso-contrata.constants";
+import TraspasoContrataPage from "@/pages/traspaso-contrata/pages/TraspasoContrataPage";
+import TraspasoContrataAddPage from "@/pages/traspaso-contrata/pages/TraspasoContrataAddPage";
 
 function ProtectedRoute({ children }: { children: JSX.Element }) {
   const { token, allowedRoutes, almacen_id } = useAuthStore();
@@ -332,6 +335,23 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <DevolucionEditPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path={TraspasoContrataComplete.ROUTE}
+        element={
+          <ProtectedRoute>
+            <TraspasoContrataPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={TraspasoContrataComplete.ROUTE_ADD}
+        element={
+          <ProtectedRoute>
+            <TraspasoContrataAddPage />
           </ProtectedRoute>
         }
       />

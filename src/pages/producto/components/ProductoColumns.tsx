@@ -54,6 +54,10 @@ export const getProductoColumns = ({
     header: "Costo",
   },
   {
+    accessorKey: "lote",
+    header: "Lote",
+  },
+  {
     id: "incluir_en_carga",
     header: "Carga",
     cell: ({ row }) => <BoolCell value={row.original.incluir_en_carga} />,

@@ -5,6 +5,8 @@ import type {
   CorporativoInventarioMaterialResponse,
   CorporativoInventarioSerieResponse,
   ReservaSotBody,
+  ReservaSotMasivoBody,
+  ReservaSotMasivoResponse,
 } from "./corporativo.interface";
 
 export const getInventarioSeriesCorporativo = async (
@@ -38,6 +40,16 @@ export const reservarMaterialSot = async (materialId: number, body: ReservaSotBo
 
 export const liberarMaterialSot = async (materialId: number) => {
   const { data } = await api.delete(`/corporativo/inventarios/material/${materialId}/sot`);
+  return data;
+};
+
+export const reservarSotMasivo = async (
+  body: ReservaSotMasivoBody,
+): Promise<ReservaSotMasivoResponse> => {
+  const { data } = await api.post(
+    "/corporativo/inventarios/series/reservar-sot-masivo",
+    body,
+  );
   return data;
 };
 

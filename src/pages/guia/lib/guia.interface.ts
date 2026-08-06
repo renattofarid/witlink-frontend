@@ -112,6 +112,8 @@ export interface GuiaProductoBody {
   cantidad: number;
   observaciones: string | null;
   series: GuiaSerieBody[] | null;
+  /** Solo aplica cuando el producto es nuevo (rama `añadir`); no enviar si el producto ya existe. */
+  lote?: string | null;
 }
 
 export interface GuiaCreateBody {

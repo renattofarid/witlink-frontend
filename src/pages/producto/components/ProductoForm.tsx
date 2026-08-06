@@ -57,6 +57,7 @@ export default function ProductoForm({
       incluir_en_carga: defaultValues?.incluir_en_carga ?? true,
       es_liquidacion: defaultValues?.es_liquidacion ?? true,
       costo: defaultValues?.costo ?? null,
+      lote: defaultValues?.lote ?? "",
     },
     mode: "onChange",
   });
@@ -89,6 +90,7 @@ export default function ProductoForm({
           incluir_en_carga: incluirEnCarga,
           es_liquidacion: esLiquidacion,
           costo: values.costo ?? null,
+          lote: values.lote || undefined,
         });
       }
       return updateProducto(defaultValues!.id, {
@@ -100,6 +102,7 @@ export default function ProductoForm({
         incluir_en_carga: incluirEnCarga,
         es_liquidacion: esLiquidacion,
         costo: values.costo ?? null,
+        lote: values.lote || undefined,
       });
     },
     onSuccess: () => {
@@ -171,6 +174,13 @@ export default function ProductoForm({
           type="number"
           min={0}
           step={0.01}
+        />
+        <FormInput
+          name="lote"
+          label="Lote"
+          control={activeControl}
+          placeholder="Lote"
+          uppercase
         />
       </div>
       <FormSwitch

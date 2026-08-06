@@ -9,6 +9,7 @@ import {
   MapPinned,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { parseISO, format } from "date-fns";
 import type { InventarioSerieResource } from "../lib/inventario.interface";
 import {
@@ -25,6 +26,8 @@ interface ColumnActions {
   onReservarSot?: (row: InventarioSerieResource) => void;
   onLiberarSot?: (row: InventarioSerieResource) => void;
   onCambiarUbicacion?: (row: InventarioSerieResource) => void;
+  /** Reserva masiva de SOT: habilita la columna de selección (checkbox nativo de DataTable). */
+  enableSeleccionMasiva?: boolean;
 }
 
 export const getInventarioSeriesColumns = ({
@@ -36,7 +39,40 @@ export const getInventarioSeriesColumns = ({
   onReservarSot,
   onLiberarSot,
   onCambiarUbicacion,
+  enableSeleccionMasiva,
 }: ColumnActions): ColumnDef<InventarioSerieResource>[] => [
+  ...(enableSeleccionMasiva
+    ? [
+        {
+          id: "select",
+          header: ({ table }) => {
+            const rows = table.getRowModel().rows;
+            const eligible = rows.filter((r) => !r.original.reserva_sot);
+            const eligibleSelected = eligible.filter((r) => r.getIsSelected());
+            const allSelected =
+              eligible.length > 0 && eligibleSelected.length === eligible.length;
+            const someSelected =
+              eligibleSelected.length > 0 && !allSelected;
+            return (
+              <Checkbox
+                checked={allSelected ? true : someSelected ? "indeterminate" : false}
+                disabled={eligible.length === 0}
+                onCheckedChange={(value) =>
+                  eligible.forEach((r) => r.toggleSelected(!!value))
+                }
+              />
+            );
+          },
+          cell: ({ row }) => (
+            <Checkbox
+              checked={row.getIsSelected()}
+              disabled={!!row.original.reserva_sot}
+              onCheckedChange={(value) => row.toggleSelected(!!value)}
+            />
+          ),
+        } satisfies ColumnDef<InventarioSerieResource>,
+      ]
+    : []),
   {
     accessorKey: "fecha",
     header: "Fecha",

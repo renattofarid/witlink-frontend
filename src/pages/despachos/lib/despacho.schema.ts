@@ -27,6 +27,9 @@ export const despachoCreateSchema = z.object({
 export const despachoMasivoSchema = z.object({
   tecnico_id: z.string().min(1, "Seleccione un técnico"),
   series_text: z.string().min(1, "Ingrese al menos una serie"),
+  // Opcional: si se ingresa y la SOT aún no existe, el backend crea automáticamente
+  // una liquidación en estado "pendiente" para ella.
+  sot: z.string().optional(),
 });
 
 export type DespachoSerieFormValues = z.infer<typeof despachoSerieSchema>;

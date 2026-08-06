@@ -1,6 +1,8 @@
 import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -9,9 +11,10 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
+import { FormInput } from "@/components/FormInput";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { successToast, errorToast } from "@/lib/core.function";
+import { errorToast } from "@/lib/core.function";
 import { createDespacho } from "../lib/despacho.actions";
 import { DespachoComplete } from "../lib/despacho.constants";
 import { useTecnicoDespachoQuery } from "../lib/despacho.hook";
@@ -19,6 +22,7 @@ import {
   despachoMasivoSchema,
   type DespachoMasivoFormValues,
 } from "../lib/despacho.schema";
+import { LiquidacionesComplete } from "@/pages/liquidaciones/lib/liquidaciones.constants";
 import type { PersonaResource } from "@/pages/persona/lib/persona.interface";
 
 interface DespachoMasivoDialogProps {
@@ -31,10 +35,11 @@ export function DespachoMasivoDialog({
   onOpenChange,
 }: DespachoMasivoDialogProps) {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const form = useForm<DespachoMasivoFormValues>({
     resolver: zodResolver(despachoMasivoSchema),
-    defaultValues: { tecnico_id: "", series_text: "" },
+    defaultValues: { tecnico_id: "", series_text: "", sot: "" },
   });
 
   const mutation = useMutation({
@@ -43,14 +48,32 @@ export function DespachoMasivoDialog({
         .split("\n")
         .map((s) => s.trim().toUpperCase())
         .filter(Boolean);
+      const sot = values.sot?.trim().toUpperCase();
       return createDespacho({
         tecnico_id: Number(values.tecnico_id),
         series,
+        ...(sot ? { sot } : {}),
       });
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: [DespachoComplete.QUERY_KEY] });
-      successToast("Despacho masivo creado correctamente.");
+      const sot = variables.sot?.trim().toUpperCase();
+      if (sot) {
+        toast.success("Despacho masivo creado correctamente.", {
+          description: `SOT ${sot} registrada para liquidación.`,
+          action: {
+            label: "Ver liquidación",
+            onClick: () =>
+              navigate(
+                `${LiquidacionesComplete.ROUTE_ADD}?sot=${encodeURIComponent(sot)}`,
+              ),
+          },
+        });
+      } else {
+        toast.success("Despacho masivo creado correctamente.", {
+          action: { label: "Listo", onClick: () => toast.dismiss() },
+        });
+      }
       form.reset();
       onOpenChange(false);
     },
@@ -85,6 +108,13 @@ export function DespachoMasivoDialog({
             })}
             perPage={20}
             required
+          />
+
+          <FormInput
+            name="sot"
+            label="SOT"
+            control={form.control}
+            placeholder="Opcional: genera/asocia la liquidación automáticamente"
           />
 
           <div className="space-y-1.5">

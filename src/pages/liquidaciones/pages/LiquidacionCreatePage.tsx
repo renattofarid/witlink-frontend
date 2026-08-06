@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import FormWrapper from "@/components/FormWrapper";
 import TitleFormComponent from "@/components/TitleFormComponent";
 import LiquidacionSearchForm from "../components/LiquidacionSearchForm";
@@ -8,10 +8,13 @@ import { useLiquidacionStore } from "../lib/liquidaciones.store";
 import { LiquidacionesComplete } from "../lib/liquidaciones.constants";
 import { searchSot } from "../lib/liquidaciones.actions";
 import { errorToast } from "@/lib/core.function";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function LiquidacionCreatePage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const sotFromQuery = searchParams.get("sot");
+  const autoSearchedRef = useRef(false);
   const {
     currentSot,
     sotNotFound,
@@ -53,6 +56,16 @@ export default function LiquidacionCreatePage() {
     navigate(LiquidacionesComplete.ABSOLUTE_ROUTE);
   };
 
+  // Autobúsqueda cuando se llega desde "Ver liquidación" tras crear un despacho
+  // con SOT (?sot=...), sin requerir carga CSV previa.
+  useEffect(() => {
+    if (autoSearchedRef.current) return;
+    if (!sotFromQuery) return;
+    autoSearchedRef.current = true;
+    handleSearch(sotFromQuery);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sotFromQuery]);
+
   return (
     <FormWrapper>
       <TitleFormComponent
@@ -67,7 +80,7 @@ export default function LiquidacionCreatePage() {
         isLoading={isSearching}
         notFound={sotNotFound}
         onSearch={handleSearch}
-        currentSot={sotSearched ?? undefined}
+        currentSot={sotSearched ?? sotFromQuery ?? undefined}
       />
 
       {/* Resumen cuando ya está liquidada */}

@@ -13,6 +13,7 @@ export const productoSchema = z
     incluir_en_carga: z.boolean().nullable().optional(),
     es_liquidacion: z.boolean().nullable().optional(),
     costo: z.coerce.number().min(0, "Debe ser mayor o igual a 0").nullable(),
+    lote: z.string().max(100, "Máximo 100 caracteres").optional(),
   })
   .superRefine((v, ctx) => {
     if (v.origen === "CLARO" && (!v.sap || v.sap.trim() === "")) {

@@ -18,6 +18,28 @@ export interface ReservaSotBody {
   almacen_id: number;
 }
 
+export interface ReservaSotMasivoBody {
+  almacen_id?: number;
+  numero_sot: string;
+  serie_ids: number[];
+}
+
+export interface ReservaSotMasivoResponse {
+  message: string;
+  data: Array<{
+    id: number;
+    referencia_id: number;
+    referencia_tipo: string;
+    numero_sot: string;
+    almacen_id: number;
+  }>;
+  meta: {
+    numero_sot: string;
+    almacen_id: number;
+    reservadas: number;
+  };
+}
+
 export interface CambiarUbicacionMasivoBody {
   series: number[];
   situacion: "DI" | "DE" | "IN" | "RE" | "TR";

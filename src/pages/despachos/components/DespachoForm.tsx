@@ -35,6 +35,7 @@ import type {
 import { DespachoProductoDialog } from "./DespachoProductoDialog";
 import { DespachoMasivoSeriesInput } from "./DespachoMasivoSeriesInput";
 import { DespachoSotSeriesPanel } from "./DespachoSotSeriesPanel";
+import { DespachoSotRemisionPreview } from "./DespachoSotRemisionPreview";
 import { despachoProductoSchema } from "../lib/despacho.schema";
 
 void despachoProductoSchema;
@@ -397,6 +398,10 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
             />
           )}
         </div>
+
+        {isCorporativo && debouncedSot && (
+          <DespachoSotRemisionPreview sot={debouncedSot} />
+        )}
       </div>
 
       {/* ── Sección 2: Productos ───────────────────────────────────────────── */}

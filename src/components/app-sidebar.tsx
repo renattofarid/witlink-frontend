@@ -31,6 +31,7 @@ import {
   BarChart3,
   Blocks,
   FileDown,
+  FileSpreadsheet,
 } from "lucide-react";
 import {
   Sidebar,
@@ -80,6 +81,7 @@ const iconMap: Record<string, LucideIcon> = {
   BarChart3: BarChart3,
   Blocks: Blocks,
   FileDown: FileDown,
+  FileSpreadsheet: FileSpreadsheet,
 };
 
 export const getIcon = (name: string): LucideIcon =>

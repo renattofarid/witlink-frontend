@@ -50,6 +50,14 @@ const estadoColorMap: Record<
   REPROGRAMADO: "blue",
 };
 
+const estadoLiquidacionColorMap: Record<
+  string,
+  "green" | "yellow" | "red" | "blue" | "muted"
+> = {
+  LIQUIDADA: "green",
+  PENDIENTE: "yellow",
+};
+
 interface LiquidacionHeaderInfoProps {
   liquidacion: LiquidacionResource;
 }
@@ -97,7 +105,14 @@ export default function LiquidacionHeaderInfo({
             </Badge>
           )}
           {liquidacion.estado_liquidacion && (
-            <Badge variant="outline" className="text-xs">
+            <Badge
+              color={
+                estadoLiquidacionColorMap[
+                  liquidacion.estado_liquidacion.toUpperCase()
+                ] ?? "muted"
+              }
+              className="text-xs uppercase"
+            >
               {liquidacion.estado_liquidacion}
             </Badge>
           )}

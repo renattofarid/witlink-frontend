@@ -85,10 +85,16 @@ export default function LiquidacionDetailPage() {
 
       <LiquidacionHeaderInfo liquidacion={liquidacion} />
 
-      <LiquidacionLiquidadaView
-        liquidacion={liquidacion}
-        documentosEquiposRetirados={documentos}
-      />
+      {liquidacion.estado_liquidacion === "liquidada" ? (
+        <LiquidacionLiquidadaView
+          liquidacion={liquidacion}
+          documentosEquiposRetirados={documentos}
+        />
+      ) : (
+        <p className="text-sm text-muted-foreground">
+          Esta SOT aún no ha sido liquidada.
+        </p>
+      )}
     </FormWrapper>
   );
 }

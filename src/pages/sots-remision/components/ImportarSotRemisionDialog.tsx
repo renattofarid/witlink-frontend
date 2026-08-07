@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { FieldError } from "@/components/ui/field";
 import { Badge } from "@/components/ui/badge";
-import { successToast, errorToast } from "@/lib/core.function";
+import { promiseToast } from "@/lib/core.function";
 import { importarSotRemisionExcel } from "../lib/sot-remision.actions";
 import { SotRemisionComplete } from "../lib/sot-remision.constants";
 import type { ImportarSotRemisionExcelResult } from "../lib/sot-remision.interface";
@@ -32,16 +32,19 @@ export default function ImportarSotRemisionDialog({ open, onClose }: Props) {
   const [resultado, setResultado] = useState<ImportarSotRemisionExcelResult | null>(null);
 
   const mutation = useMutation({
-    mutationFn: (file: File) => importarSotRemisionExcel(file),
+    mutationFn: (file: File) => {
+      const promise = importarSotRemisionExcel(file);
+      promiseToast(promise, {
+        loading: "Importando Excel...",
+        success: (data) => data.message ?? "Excel importado correctamente.",
+        error: (error: any) =>
+          error?.response?.data?.message ?? "Error al importar el Excel.",
+      });
+      return promise;
+    },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: [SotRemisionComplete.QUERY_KEY] });
       setResultado(data.data);
-      successToast(data.message ?? "Excel importado correctamente.");
-    },
-    onError: (error: any) => {
-      errorToast(
-        error?.response?.data?.message ?? "Error al importar el Excel.",
-      );
     },
   });
 

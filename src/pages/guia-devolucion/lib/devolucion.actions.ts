@@ -6,6 +6,7 @@ import type {
   GuiaDevolucionResource,
   DevolucionDestinosResponse,
   SerieRetiradaResponse,
+  SeriesRetiradasParams,
 } from "./devolucion.interface";
 
 export const getGuiasDevolucion = async (
@@ -50,10 +51,10 @@ export const getDestinosDevolucion = async (): Promise<DevolucionDestinosRespons
 };
 
 export const getSeriesRetiradas = async (
-  search: string,
+  params: SeriesRetiradasParams,
 ): Promise<SerieRetiradaResponse> => {
   const { data } = await api.get(`${GuiaDevolucionComplete.ENDPOINT}/series-retiradas`, {
-    params: { search },
+    params,
   });
   return data;
 };

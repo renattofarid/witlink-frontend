@@ -20,6 +20,13 @@ export interface DevolucionDestinosResponse {
   destinos_extra: DevolucionDestinoExtra[];
 }
 
+export interface SerieRetiradaDespachoRef {
+  id: number;
+  numero: string;
+  sot: string;
+  fecha: string;
+}
+
 export interface SerieRetiradaResource {
   id: number;
   serie: string;
@@ -30,11 +37,25 @@ export interface SerieRetiradaResource {
   producto_id: number;
   sap: string;
   producto: string;
+  /** Solo presente cuando la búsqueda se filtra por `sot`/`despacho_id` (flujo PEXT). */
+  despacho?: SerieRetiradaDespachoRef;
 }
 
 export interface SerieRetiradaResponse {
   data: SerieRetiradaResource[];
 }
+
+export interface SeriesRetiradasParams {
+  search?: string;
+  almacen_id?: number;
+  /** Flujo PEXT: filtra series por SOT en vez de exigir estado RETIRADO. */
+  sot?: string;
+  /** Flujo PEXT: filtra series por despacho específico. */
+  despacho_id?: number;
+}
+
+/** Situación que bloquea la selección de una serie para devolución. */
+export const SITUACION_BLOQUEADA_DEVOLUCION = "DC";
 
 export interface GuiaDevolucionSerieResource {
   id: number;

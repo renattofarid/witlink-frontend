@@ -16,6 +16,7 @@ import {
 import {
   saveProductosLiquidacion,
   updateProductosLiquidacion,
+  openGuiaRemisionPdf,
 } from "../lib/liquidaciones.actions";
 import { LiquidacionesComplete } from "../lib/liquidaciones.constants";
 import { useLiquidacionStore } from "../lib/liquidaciones.store";
@@ -181,11 +182,18 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
         productos: Object.values(grouped),
       });
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({
         queryKey: [LiquidacionesComplete.QUERY_KEY],
       });
       successToast("Liquidación guardada correctamente.");
+
+      const guiaRemisionPdfUrl =
+        "guiaRemisionPdfUrl" in data ? data.guiaRemisionPdfUrl : null;
+      if (guiaRemisionPdfUrl && liquidacion) {
+        openGuiaRemisionPdf(liquidacion.sot);
+      }
+
       onSuccess?.();
     },
     onError: (error: any) => {

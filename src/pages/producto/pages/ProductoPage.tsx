@@ -17,6 +17,7 @@ import ProductoFilters from "../components/ProductoFilters";
 import ProductoButtons from "../components/ProductoButtons";
 import ProductoModal from "../components/ProductoModal";
 import EquipoRetiradoModal from "../components/EquipoRetiradoModal";
+import ImportarSapDialog from "../components/ImportarSapDialog";
 import type { ProductoResource } from "../lib/producto.interface";
 
 export default function ProductoPage() {
@@ -33,6 +34,7 @@ export default function ProductoPage() {
   const [mode, setMode] = useState<"create" | "edit">("create");
   const [selected, setSelected] = useState<ProductoResource | null>(null);
   const [retiroOpen, setRetiroOpen] = useState(false);
+  const [importarSapOpen, setImportarSapOpen] = useState(false);
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [toDelete, setToDelete] = useState<ProductoResource | null>(null);
@@ -98,6 +100,7 @@ export default function ProductoPage() {
           <ProductoButtons
             onAdd={handleAdd}
             onRetiro={() => setRetiroOpen(true)}
+            onImportarSap={() => setImportarSapOpen(true)}
           />
         </ActionsWrapper>
       </TitleComponent>
@@ -134,6 +137,11 @@ export default function ProductoPage() {
       <EquipoRetiradoModal
         open={retiroOpen}
         onClose={() => setRetiroOpen(false)}
+      />
+
+      <ImportarSapDialog
+        open={importarSapOpen}
+        onClose={() => setImportarSapOpen(false)}
       />
 
       <SimpleDeleteDialog

@@ -1,11 +1,13 @@
 import { api } from "@/lib/config";
 import type { ExcelResponse } from "@/lib/exportExcel";
+import { promiseToast } from "@/lib/core.function";
 import { LiquidacionesComplete } from "./liquidaciones.constants";
 import type {
   SotSearchResponse,
   LiquidacionesResponse,
   SaveProductosBody,
   SaveProductosResponse,
+  SaveProductosLiquidacionResult,
   UpdateProductosBody,
   ActaResource,
 } from "./liquidaciones.interface";
@@ -67,9 +69,15 @@ export const exportarBusquedaLiquidacionesExcel = async (
 
 export const saveProductosLiquidacion = async (
   body: SaveProductosBody,
-): Promise<SaveProductosResponse> => {
-  const { data } = await api.post("/detalle-productos-liquidacion", body);
-  return data;
+): Promise<SaveProductosLiquidacionResult> => {
+  const { data, headers } = await api.post(
+    "/detalle-productos-liquidacion",
+    body,
+  );
+  return {
+    ...data,
+    guiaRemisionPdfUrl: headers["x-guia-remision-pdf"] ?? null,
+  };
 };
 
 export const updateProductosLiquidacion = async (
@@ -260,3 +268,32 @@ export const getActaBlob = async (rutaArchivo: string): Promise<Blob> => {
   const { data } = await api.post("/archivos", { ruta_pdf: rutaArchivo }, { responseType: "blob" });
   return data;
 };
+
+/**
+ * Previsualiza/descarga la guía de remisión PDF de una liquidación ya
+ * liquidada. `identificador` puede ser la SOT o el id, según el flujo actual.
+ */
+export async function openGuiaRemisionPdf(
+  identificador: string | number,
+  fileName?: string,
+) {
+  const promise = api
+    .get(`${LiquidacionesComplete.ENDPOINT}/${encodeURIComponent(String(identificador))}/guia-remision-pdf`, {
+      responseType: "blob",
+    })
+    .then((response) => {
+      const blob = response.data as Blob;
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName ?? `guia_remision_${identificador}.pdf`;
+      a.click();
+      window.open(url);
+    });
+  promiseToast(promise, {
+    loading: "Generando guía de remisión...",
+    success: "Guía de remisión lista",
+    error: "Error al obtener la guía de remisión",
+  });
+  return promise;
+}

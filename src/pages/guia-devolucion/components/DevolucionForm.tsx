@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Truck } from "lucide-react";
+import { Truck, Search, X as XIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -53,9 +53,18 @@ export default function DevolucionForm({
   initialSot,
   initialDespachoId,
 }: Props) {
-  const isPext = Boolean(initialSot || initialDespachoId);
   const queryClient = useQueryClient();
   const today = format(new Date(), "yyyy-MM-dd");
+
+  // Filtro de SOT/despacho para el flujo PEXT. Se precarga cuando se llega
+  // desde "Devolver equipos" (liquidación) vía query params, pero también se
+  // puede definir manualmente: no todo usuario PEXT llega por ese camino, y
+  // sin este campo no había forma de filtrar la búsqueda de series por SOT
+  // antes de buscar.
+  const [sotFilter, setSotFilter] = useState(initialSot ?? "");
+  const [sotFilterInput, setSotFilterInput] = useState(initialSot ?? "");
+  const [despachoIdFilter] = useState(initialDespachoId);
+  const isPext = Boolean(sotFilter || despachoIdFilter);
 
   const [seriesCart, setSeriesCart] = useState<DevolucionSerieCartItem[]>(
     guia?.productos.flatMap((p) =>
@@ -363,12 +372,59 @@ export default function DevolucionForm({
           </h3>
           <Separator className="flex-1" />
         </div>
-        {isPext && (
-          <p className="text-xs text-muted-foreground bg-muted/40 border rounded-md px-3 py-1.5">
-            Modo PEXT: la búsqueda de series se filtra por{" "}
-            {initialDespachoId ? `despacho #${initialDespachoId}` : `SOT ${initialSot}`}.
-          </p>
-        )}
+        <div className="space-y-1.5">
+          <Label className="text-xs md:text-sm font-medium text-muted-foreground">
+            Filtrar por SOT (modo PEXT)
+          </Label>
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1 max-w-xs">
+              <Input
+                value={sotFilterInput}
+                onChange={(e) => setSotFilterInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key !== "Enter") return;
+                  e.preventDefault();
+                  setSotFilter(sotFilterInput.trim());
+                }}
+                placeholder="Ingrese SOT..."
+                disabled={Boolean(despachoIdFilter)}
+                className="pr-8"
+              />
+              {sotFilterInput && !despachoIdFilter && (
+                <button
+                  type="button"
+                  className="absolute right-2 top-2.5 text-muted-foreground hover:text-foreground"
+                  onClick={() => {
+                    setSotFilterInput("");
+                    setSotFilter("");
+                  }}
+                >
+                  <XIcon className="size-3.5" />
+                </button>
+              )}
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={Boolean(despachoIdFilter)}
+              onClick={() => setSotFilter(sotFilterInput.trim())}
+            >
+              <Search className="size-3.5 mr-1" />
+              Aplicar
+            </Button>
+          </div>
+          {isPext ? (
+            <p className="text-xs text-muted-foreground bg-muted/40 border rounded-md px-3 py-1.5">
+              Modo PEXT: la búsqueda de series se filtra por{" "}
+              {despachoIdFilter ? `despacho #${despachoIdFilter}` : `SOT ${sotFilter}`}.
+            </p>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              Ingrese una SOT y presione Enter para filtrar las series disponibles por despacho de origen.
+            </p>
+          )}
+        </div>
         <DevolucionSeriesInput
           items={seriesCart}
           onAdd={(item) => {
@@ -380,7 +436,7 @@ export default function DevolucionForm({
           }
           extraParams={
             isPext
-              ? { sot: initialSot, despacho_id: initialDespachoId }
+              ? { sot: sotFilter || undefined, despacho_id: despachoIdFilter }
               : undefined
           }
         />

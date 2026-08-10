@@ -47,17 +47,11 @@ export default function WarehouseSelect({
 
   const options = useMemo(
     () =>
-      almacenes
-        .filter(
-          (a) =>
-            a.es_subalmacen_corporativo === false &&
-            a.almacen_padre_id === null,
-        )
-        .map((a) => ({
-          value: String(a.id),
-          label: a.nombre,
-          description: a.direccion,
-        })),
+      almacenes.map((a) => ({
+        value: String(a.id),
+        label: a.nombre,
+        description: a.direccion,
+      })),
     [almacenes],
   );
 

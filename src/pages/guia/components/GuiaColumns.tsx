@@ -13,7 +13,6 @@ import { Badge } from "@/components/ui/badge";
 import type { GuiaListResource } from "../lib/guia.interface";
 import { openPdf, exportGuiaExcel } from "../lib/guia.actions";
 import { Button } from "@/components/ui/button";
-import { parse } from "date-fns";
 
 interface ColumnActions {
   onView: (row: GuiaListResource) => void;

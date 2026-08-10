@@ -7,6 +7,7 @@ import {
   getDestinosDevolucion,
   getSeriesRetiradas,
 } from "./devolucion.actions";
+import type { SeriesRetiradasParams } from "./devolucion.interface";
 
 export const useGuiaDevolucionQuery = (params: Record<string, string>) => {
   return useQuery({
@@ -33,11 +34,14 @@ export const useDestinosDevolucionQuery = () => {
   });
 };
 
-export const useSeriesRetiradasQuery = (search: string) => {
+export const useSeriesRetiradasQuery = (params: SeriesRetiradasParams) => {
+  const hasFilter = Boolean(
+    params.search?.trim() || params.sot?.trim() || params.despacho_id,
+  );
   return useQuery({
-    queryKey: [GuiaDevolucionComplete.QUERY_KEY, "series-retiradas", search],
-    queryFn: () => getSeriesRetiradas(search),
-    enabled: search.trim().length > 0,
+    queryKey: [GuiaDevolucionComplete.QUERY_KEY, "series-retiradas", params],
+    queryFn: () => getSeriesRetiradas(params),
+    enabled: hasFilter,
     refetchOnWindowFocus: false,
   });
 };

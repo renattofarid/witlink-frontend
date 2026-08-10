@@ -38,12 +38,22 @@ interface Props {
   mode: "create" | "edit";
   guia?: GuiaDevolucionResource;
   onSuccess?: () => void;
+  /** Flujo PEXT: preseleccionan el filtro de búsqueda de series por SOT/despacho. */
+  initialSot?: string;
+  initialDespachoId?: number;
 }
 
 const ALMACEN_PREFIX = "almacen:";
 const EXTRA_PREFIX = "extra:";
 
-export default function DevolucionForm({ mode, guia, onSuccess }: Props) {
+export default function DevolucionForm({
+  mode,
+  guia,
+  onSuccess,
+  initialSot,
+  initialDespachoId,
+}: Props) {
+  const isPext = Boolean(initialSot || initialDespachoId);
   const queryClient = useQueryClient();
   const today = format(new Date(), "yyyy-MM-dd");
 
@@ -197,6 +207,17 @@ export default function DevolucionForm({ mode, guia, onSuccess }: Props) {
       setSeriesError("Agregue al menos una serie retirada.");
       return;
     }
+    if (isPext) {
+      const despachoIds = new Set(
+        seriesCart.map((s) => s.despacho?.id).filter(Boolean),
+      );
+      if (despachoIds.size > 1) {
+        setSeriesError(
+          "Todas las series deben pertenecer al mismo despacho/almacén origen.",
+        );
+        return;
+      }
+    }
     setSeriesError(null);
 
     const body: GuiaDevolucionCreateBody = {
@@ -342,6 +363,12 @@ export default function DevolucionForm({ mode, guia, onSuccess }: Props) {
           </h3>
           <Separator className="flex-1" />
         </div>
+        {isPext && (
+          <p className="text-xs text-muted-foreground bg-muted/40 border rounded-md px-3 py-1.5">
+            Modo PEXT: la búsqueda de series se filtra por{" "}
+            {initialDespachoId ? `despacho #${initialDespachoId}` : `SOT ${initialSot}`}.
+          </p>
+        )}
         <DevolucionSeriesInput
           items={seriesCart}
           onAdd={(item) => {
@@ -350,6 +377,11 @@ export default function DevolucionForm({ mode, guia, onSuccess }: Props) {
           }}
           onRemove={(id) =>
             setSeriesCart((prev) => prev.filter((i) => i.id !== id))
+          }
+          extraParams={
+            isPext
+              ? { sot: initialSot, despacho_id: initialDespachoId }
+              : undefined
           }
         />
         {seriesError && <p className="text-xs text-destructive">{seriesError}</p>}

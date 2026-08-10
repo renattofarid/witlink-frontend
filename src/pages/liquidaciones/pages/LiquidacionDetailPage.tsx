@@ -1,11 +1,13 @@
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { FileText } from "lucide-react";
 import FormWrapper from "@/components/FormWrapper";
 import TitleFormComponent from "@/components/TitleFormComponent";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LiquidacionesComplete } from "../lib/liquidaciones.constants";
-import { searchSot } from "../lib/liquidaciones.actions";
+import { searchSot, openGuiaRemisionPdf } from "../lib/liquidaciones.actions";
 import LiquidacionHeaderInfo from "../components/LiquidacionHeaderInfo";
 import LiquidacionLiquidadaView from "../components/LiquidacionLiquidadaView";
 
@@ -43,6 +45,7 @@ export default function LiquidacionDetailPage() {
 
   const liquidacion = data?.liquidacion;
   const documentos = data?.documentos_equipos_retirados ?? [];
+  const isPext = data?.meta?.modo_operativo === "pext_por_despacho";
 
   if (isLoading) {
     return (
@@ -81,7 +84,23 @@ export default function LiquidacionDetailPage() {
         mode="detail"
         icon="ClipboardList"
         backRoute={LiquidacionesComplete.ABSOLUTE_ROUTE}
-      />
+      >
+        {liquidacion.guia_remision_pdf && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              openGuiaRemisionPdf(
+                liquidacion.sot,
+                liquidacion.guia_remision_pdf?.file_name,
+              )
+            }
+          >
+            <FileText className="size-4 mr-1" />
+            Previsualizar guía de remisión
+          </Button>
+        )}
+      </TitleFormComponent>
 
       <LiquidacionHeaderInfo liquidacion={liquidacion} />
 
@@ -89,6 +108,7 @@ export default function LiquidacionDetailPage() {
         <LiquidacionLiquidadaView
           liquidacion={liquidacion}
           documentosEquiposRetirados={documentos}
+          despachosSot={isPext ? (data?.despachos_sot ?? []) : undefined}
         />
       ) : (
         <p className="text-sm text-muted-foreground">

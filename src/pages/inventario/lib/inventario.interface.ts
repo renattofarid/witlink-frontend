@@ -116,31 +116,41 @@ export interface SerieHistorialCierreDefinitivo {
   cerrada: boolean;
 }
 
+export interface SerieHistorialAlmacenResource {
+  id: number;
+  nombre: string;
+}
+
 export interface SerieHistorialEvento {
+  orden: number;
+  tipo: string;
+  tipo_label: string;
   fecha: string;
-  guia: string | null;
-  tipo_movimiento: string;
-  movimiento: string;
-  ubicacion: string;
-  origen: string;
-  destino: string;
-  registro: string;
+  registrado_en: string;
+  referencia_id: number | null;
+  referencia: string | null;
+  sot: string | null;
+  estado: string | null;
+  almacen: SerieHistorialAlmacenResource | null;
+  tecnico: SerieHistorialTecnicoResource | null;
   usuario: string;
+  detalle: Record<string, unknown> | null;
   [key: string]: unknown;
 }
 
 export interface SerieHistorialKardexItem {
+  id: number;
+  movimiento_id: number;
   fecha: string;
   codigo: string;
   producto: string;
-  tipo: string;
   movimiento: string;
   cantidad: number;
   ubicacion: string;
   serie: string;
   referencia: string;
-  stock_anterior: string;
-  stock_actual: string;
+  stock_anterior: number;
+  stock_actual: number;
   [key: string]: unknown;
 }
 

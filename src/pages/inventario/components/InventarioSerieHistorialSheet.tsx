@@ -1,20 +1,28 @@
 import GeneralSheet from "@/components/GeneralSheet";
 import { DataTable } from "@/components/DataTable";
 import { useSerieHistorialQuery } from "../lib/inventario.hook";
-import type {
-  InventarioSerieResource,
-  SerieHistorialKardexItem,
-} from "../lib/inventario.interface";
-import { Loader2, ArrowRight, CheckCircle2 } from "lucide-react";
+import type { SerieHistorialKardexItem } from "../lib/inventario.interface";
+import { Loader2, CheckCircle2 } from "lucide-react";
 import { Badge, type BadgeColor } from "@/components/ui/badge";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import type { ColumnDef } from "@tanstack/react-table";
 
+/** Resumen mínimo de una serie necesario para abrir el sheet de historial.
+ *  Estructural a propósito: tanto `InventarioSerieResource` (vista Inventario)
+ *  como `SerieResource` (vista Series) lo satisfacen sin necesidad de cast. */
+export interface HistorialSerieSummary {
+  serie_id?: number;
+  id?: number;
+  serie: string;
+  sap: string;
+  producto: string;
+}
+
 interface Props {
   open: boolean;
   onClose: () => void;
-  serie: InventarioSerieResource | null;
+  serie: HistorialSerieSummary | null;
 }
 
 const TIPO_BADGE: Record<string, string> = {
@@ -69,8 +77,9 @@ export default function InventarioSerieHistorialSheet({
   onClose,
   serie,
 }: Props) {
+  const serieId = serie?.serie_id ?? serie?.id ?? null;
   const { data, isLoading } = useSerieHistorialQuery(
-    open && serie ? serie.serie_id : null,
+    open ? serieId : null,
   );
 
   const detalle = data?.serie;
@@ -83,7 +92,7 @@ export default function InventarioSerieHistorialSheet({
       title={`Historial — ${serie?.serie ?? ""}`}
       subtitle={serie ? `${serie.sap} · ${serie.producto}` : undefined}
       icon="History"
-      size="xl"
+      size="3xl"
     >
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
@@ -143,31 +152,26 @@ export default function InventarioSerieHistorialSheet({
                   <div className="rounded-lg border bg-card p-3 shadow-sm space-y-2">
                     <div className="flex items-center justify-between gap-2 flex-wrap">
                       <span
-                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${tipoClass(m.tipo_movimiento)}`}
+                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${tipoClass(m.tipo_label)}`}
                       >
-                        {m.tipo_movimiento}
+                        {m.tipo_label}
                       </span>
                       <span className="text-xs text-muted-foreground">
                         {formatFecha(m.fecha)}
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-1.5 flex-wrap text-xs uppercase">
-                      <span className="text-muted-foreground">{m.origen}</span>
-                      <ArrowRight className="size-3 shrink-0 text-muted-foreground" />
-                      <span className="font-medium">{m.destino}</span>
-                    </div>
-
                     <div className="flex items-center justify-between flex-wrap gap-1 text-xs text-muted-foreground uppercase">
                       <div className="flex items-center gap-2">
-                        <span>📍 {m.ubicacion}</span>
-                        {m.guia && (
+                        {m.almacen && <span>📍 {m.almacen.nombre}</span>}
+                        {m.tecnico && <span>🔧 {m.tecnico.nombre}</span>}
+                        {m.referencia && (
                           <Badge variant="ghost" className="text-xs h-5 px-1.5">
-                            {m.guia}
+                            {m.referencia}
                           </Badge>
                         )}
                       </div>
-                      <span title={`Registrado: ${m.registro}`}>
+                      <span title={`Registrado: ${m.registrado_en}`}>
                         👤 {m.usuario}
                       </span>
                     </div>

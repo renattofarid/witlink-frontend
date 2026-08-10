@@ -9,6 +9,7 @@ import DataTablePagination from "@/components/DataTablePagination";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
 import { successToast, errorToast, ERROR_MESSAGE } from "@/lib/core.function";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
+import { useAuthStore } from "@/pages/auth/lib/auth.store";
 import { useSerieQuery } from "../lib/serie.hook";
 import { deleteSerie } from "../lib/serie.actions";
 import { SerieComplete } from "../lib/serie.constants";
@@ -16,20 +17,34 @@ import { getSerieColumns } from "../components/SerieColumns";
 import SerieFilters from "../components/SerieFilters";
 import SerieButtons from "../components/SerieButtons";
 import SerieModal from "../components/SerieModal";
+import InventarioSerieHistorialSheet from "@/pages/inventario/components/InventarioSerieHistorialSheet";
 import type { SerieResource } from "../lib/serie.interface";
 
 export default function SeriePage() {
   const queryClient = useQueryClient();
 
+  const { almacen_id, user } = useAuthStore();
+  const isCorporativo = !!user?.is_corporativo;
+
+  // Para usuarios no corporativos, el backend filtra por el almacén de la
+  // sesión activa; se precarga como valor por defecto del filtro. Los
+  // corporativos (o usuarios con subalmacenes) eligen el almacén desde el
+  // filtro de la tabla (ver SerieFilters).
   const [params, setParams] = useTabParams(SerieComplete.ABSOLUTE_ROUTE, {
     page: "1",
     per_page: String(DEFAULT_PER_PAGE),
+    ...(almacen_id && !isCorporativo ? { almacen_id: String(almacen_id) } : {}),
   });
 
   const [modalOpen, setModalOpen] = useState(false);
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [toDelete, setToDelete] = useState<SerieResource | null>(null);
+
+  const [historialOpen, setHistorialOpen] = useState(false);
+  const [historialSerie, setHistorialSerie] = useState<SerieResource | null>(
+    null,
+  );
 
   const { data, isLoading } = useSerieQuery(params);
 
@@ -54,6 +69,11 @@ export default function SeriePage() {
     setDeleteOpen(true);
   };
 
+  const handleHistorial = (row: SerieResource) => {
+    setHistorialSerie(row);
+    setHistorialOpen(true);
+  };
+
   const handlePageChange = (page: number) =>
     setParams((prev) => ({ ...prev, page: String(page) }));
 
@@ -66,6 +86,7 @@ export default function SeriePage() {
 
   const columns = getSerieColumns({
     onDelete: handleDelete,
+    onHistorial: handleHistorial,
   });
 
   return (
@@ -98,6 +119,21 @@ export default function SeriePage() {
       />
 
       <SerieModal open={modalOpen} onClose={() => setModalOpen(false)} />
+
+      <InventarioSerieHistorialSheet
+        open={historialOpen}
+        onClose={() => setHistorialOpen(false)}
+        serie={
+          historialSerie
+            ? {
+                id: historialSerie.id,
+                serie: historialSerie.serie ?? "",
+                sap: historialSerie.producto?.sap ?? "",
+                producto: historialSerie.producto?.nombre ?? "",
+              }
+            : null
+        }
+      />
 
       <SimpleDeleteDialog
         open={deleteOpen}

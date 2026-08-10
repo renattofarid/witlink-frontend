@@ -13,7 +13,6 @@ import { Badge } from "@/components/ui/badge";
 import type { GuiaListResource } from "../lib/guia.interface";
 import { openPdf, exportGuiaExcel } from "../lib/guia.actions";
 import { Button } from "@/components/ui/button";
-import { parse } from "date-fns";
 
 interface ColumnActions {
   onView: (row: GuiaListResource) => void;
@@ -24,6 +23,36 @@ interface ColumnActions {
   onRestore: (row: GuiaListResource) => void;
   onConfirm: (row: GuiaListResource) => void;
   canConfirm: boolean;
+}
+
+function formatFechaConHora(raw: string | null | undefined) {
+  if (!raw) return { dateStr: "-", timeStr: null };
+
+  const normalized = raw.replace(" ", "T");
+  const d = new Date(normalized);
+
+  if (isNaN(d.getTime())) {
+    return { dateStr: raw, timeStr: null };
+  }
+
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  const dateStr = `${year}-${month}-${day}`;
+
+  const hasTimeComponent = raw.includes(" ") || raw.includes("T");
+  let timeStr: string | null = null;
+
+  if (hasTimeComponent) {
+    timeStr = d.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+    });
+  }
+
+  return { dateStr, timeStr };
 }
 
 export const getGuiaColumns = ({
@@ -64,14 +93,17 @@ export const getGuiaColumns = ({
     accessorKey: "fecha",
     header: "Fecha",
     cell: ({ row }) => {
-      const fecha = row.original.fecha.split("T")[0];
-      if (!fecha) return "-";
-      const parsedDate = parse(fecha, "yyyy-MM-dd", new Date());
-      return parsedDate.toLocaleDateString("es-PE", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      });
+      const { dateStr, timeStr } = formatFechaConHora(row.original.fecha);
+      if (dateStr === "-") return "-";
+
+      return (
+        <div className="flex flex-col text-xs leading-tight font-mono">
+          <span className="font-semibold text-foreground">{dateStr}</span>
+          {timeStr && (
+            <span className="text-[11px] text-muted-foreground">{timeStr}</span>
+          )}
+        </div>
+      );
     },
   },
   {

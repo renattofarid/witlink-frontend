@@ -5,7 +5,9 @@ import type {
   ProductoLiquidacionItem,
   ProductoInfo,
   DocumentoEquiposRetirados,
+  DespachoSotItem,
 } from "../lib/liquidaciones.interface";
+import LiquidacionDespachosSotView from "./LiquidacionDespachosSotView";
 
 function getProductoInfo(item: ProductoLiquidacionItem): ProductoInfo | null {
   if (item.producto) return item.producto;
@@ -29,12 +31,16 @@ function formatPersona(persona: {
 interface LiquidacionLiquidadaViewProps {
   liquidacion: LiquidacionResource;
   documentosEquiposRetirados?: DocumentoEquiposRetirados[];
+  /** Flujo PEXT: si viene, reemplaza el bloque de "equipos retirados" por la vista agrupada por despacho. */
+  despachosSot?: DespachoSotItem[];
 }
 
 export default function LiquidacionLiquidadaView({
   liquidacion,
   documentosEquiposRetirados = [],
+  despachosSot,
 }: LiquidacionLiquidadaViewProps) {
+  const isPext = despachosSot !== undefined;
   const productos = liquidacion.productos ?? [];
   const materiales = productos.filter((item) => item.series.length === 0);
   const equipos = productos.filter((item) => item.series.length > 0);
@@ -193,49 +199,61 @@ export default function LiquidacionLiquidadaView({
         )}
 
         {(materiales.length > 0 || equipos.length > 0) &&
-          equiposRetirados.length > 0 && <Separator />}
+          (isPext ? (despachosSot?.length ?? 0) > 0 : equiposRetirados.length > 0) && (
+            <Separator />
+          )}
 
-        {/* Equipos retirados */}
-        {equiposRetirados.length > 0 && (
+        {/* Despachos (flujo PEXT) o equipos retirados (flujo estándar) */}
+        {isPext ? (
           <div className="space-y-2">
             <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
               <Undo2 className="size-3" />
-              Equipos retirados
+              Despachos de la SOT
             </p>
-            <div className="space-y-1.5">
-              {equiposRetirados.map((item) => {
-                const seriesStr = item.series
-                  .map((s) => s.serie.serie)
-                  .join(", ");
-                const cantidad = Number(item.cantidad);
-                return (
-                  <div key={item.id} className="flex items-start gap-2">
-                    <span className="font-mono text-xs text-muted-foreground shrink-0 w-28 truncate mt-0.5">
-                      {item.producto?.sap ?? "—"}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm">
-                        {item.producto?.nombre ?? "Desconocido"}
-                      </p>
-                      {seriesStr && (
-                        <p className="text-xs text-muted-foreground font-mono">
-                          Serie: {seriesStr}
-                        </p>
-                      )}
-                    </div>
-                    <span className="text-xs text-muted-foreground shrink-0 mt-0.5">
-                      ({cantidad} {cantidad === 1 ? "unidad" : "unidades"})
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
+            <LiquidacionDespachosSotView despachosSot={despachosSot ?? []} />
           </div>
+        ) : (
+          equiposRetirados.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
+                <Undo2 className="size-3" />
+                Equipos retirados
+              </p>
+              <div className="space-y-1.5">
+                {equiposRetirados.map((item) => {
+                  const seriesStr = item.series
+                    .map((s) => s.serie.serie)
+                    .join(", ");
+                  const cantidad = Number(item.cantidad);
+                  return (
+                    <div key={item.id} className="flex items-start gap-2">
+                      <span className="font-mono text-xs text-muted-foreground shrink-0 w-28 truncate mt-0.5">
+                        {item.producto?.sap ?? "—"}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm">
+                          {item.producto?.nombre ?? "Desconocido"}
+                        </p>
+                        {seriesStr && (
+                          <p className="text-xs text-muted-foreground font-mono">
+                            Serie: {seriesStr}
+                          </p>
+                        )}
+                      </div>
+                      <span className="text-xs text-muted-foreground shrink-0 mt-0.5">
+                        ({cantidad} {cantidad === 1 ? "unidad" : "unidades"})
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )
         )}
 
         {materiales.length === 0 &&
           equipos.length === 0 &&
-          equiposRetirados.length === 0 && (
+          (isPext ? (despachosSot?.length ?? 0) === 0 : equiposRetirados.length === 0) && (
             <p className="text-xs text-muted-foreground py-1">
               Sin productos registrados en esta liquidación.
             </p>

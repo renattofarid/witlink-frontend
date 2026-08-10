@@ -1,27 +1,69 @@
+import { useMemo } from "react";
 import { format } from "date-fns";
+import { useQuery } from "@tanstack/react-query";
 import FilterWrapper from "@/components/FilterWrapper";
 import SearchInput from "@/components/SearchInput";
 import DatePicker from "@/components/DatePicker";
 import { SearchableSelect } from "@/components/SearchableSelect";
+import { getAlmacenes } from "@/pages/auth/lib/auth.actions";
+import { useAuthStore } from "@/pages/auth/lib/auth.store";
+import { getSubalmacenesOperativos } from "@/pages/auth/lib/auth.utils";
 
 interface GuiaFiltersProps {
   params: Record<string, string>;
   setParams: React.Dispatch<React.SetStateAction<Record<string, string>>>;
 }
 
-const ALMACEN_OPTIONS = [
-  { value: "todos", label: "Todos" },
-  { value: "retirados", label: "Retirados" },
-];
-
 const TIPOS_OPTIONS = [
   { value: "todos", label: "TODOS" },
+  { value: "P", label: "P" },
+  { value: "C", label: "C" },
+  { value: "O", label: "O" },
   { value: "POST VENTA", label: "POST VENTA" },
   { value: "CAMBIO POR INCIDENCIA", label: "CAMBIO POR INCIDENCIA" },
   { value: "OTRO", label: "OTRO" },
 ];
 
+const SORT_OPTIONS = [
+  { value: "fecha", label: "Fecha" },
+  { value: "numero", label: "Número" },
+  { value: "almacen", label: "Almacén" },
+  { value: "sot", label: "SOT" },
+  { value: "motivo", label: "Motivo" },
+  { value: "usuario", label: "Usuario" },
+  { value: "cantidad_materiales", label: "Cantidad de materiales" },
+  { value: "cantidad_series", label: "Cantidad de series" },
+];
+
+const DIRECTION_OPTIONS = [
+  { value: "desc", label: "Descendente" },
+  { value: "asc", label: "Ascendente" },
+];
+
 export default function GuiaFilters({ params, setParams }: GuiaFiltersProps) {
+  const user = useAuthStore((s) => s.user);
+  const isCorporativo = !!user?.is_corporativo;
+
+  const { data: almacenesAll = [] } = useQuery({
+    queryKey: ["almacenes-list"],
+    queryFn: getAlmacenes,
+    refetchOnWindowFocus: false,
+    enabled: isCorporativo,
+  });
+
+  const almacenOptions = useMemo(() => {
+    const base = [
+      { value: "todos", label: "Todos" },
+      { value: "retirados", label: "Retirados" },
+    ];
+    if (!isCorporativo) return base;
+    const subalmacenes = getSubalmacenesOperativos(user, almacenesAll);
+    return [
+      ...base,
+      ...subalmacenes.map((a) => ({ value: String(a.id), label: a.nombre })),
+    ];
+  }, [isCorporativo, user, almacenesAll]);
+
   return (
     <FilterWrapper>
       <SearchInput
@@ -33,7 +75,7 @@ export default function GuiaFilters({ params, setParams }: GuiaFiltersProps) {
       />
       <SearchableSelect
         placeholder="Almacén"
-        options={ALMACEN_OPTIONS}
+        options={almacenOptions}
         value={params.almacen ?? "todos"}
         onChange={(v) =>
           setParams((prev) => {
@@ -47,21 +89,19 @@ export default function GuiaFilters({ params, setParams }: GuiaFiltersProps) {
         }
       />
       {params.almacen === "retirados" ? (
-        <>
-          <SearchableSelect
-            placeholder="Tipo"
-            options={TIPOS_OPTIONS}
-            value={params.tipo ?? "todos"}
-            onChange={(v) =>
-              setParams((prev) => {
-                const next: Record<string, string> = { ...prev, page: "1" };
-                if (v === "todos") delete next.tipo;
-                else next.tipo = v;
-                return next;
-              })
-            }
-          />
-        </>
+        <SearchableSelect
+          placeholder="Tipo"
+          options={TIPOS_OPTIONS}
+          value={params.tipo ?? "todos"}
+          onChange={(v) =>
+            setParams((prev) => {
+              const next: Record<string, string> = { ...prev, page: "1" };
+              if (v === "todos") delete next.tipo;
+              else next.tipo = v;
+              return next;
+            })
+          }
+        />
       ) : null}
 
       <DatePicker
@@ -85,6 +125,23 @@ export default function GuiaFilters({ params, setParams }: GuiaFiltersProps) {
           }))
         }
         placeholder="Hasta"
+      />
+
+      <SearchableSelect
+        placeholder="Ordenar por"
+        options={SORT_OPTIONS}
+        value={params.sort ?? "fecha"}
+        onChange={(v) =>
+          setParams((prev) => ({ ...prev, sort: v, page: "1" }))
+        }
+      />
+      <SearchableSelect
+        placeholder="Dirección"
+        options={DIRECTION_OPTIONS}
+        value={params.direction ?? "desc"}
+        onChange={(v) =>
+          setParams((prev) => ({ ...prev, direction: v, page: "1" }))
+        }
       />
     </FilterWrapper>
   );

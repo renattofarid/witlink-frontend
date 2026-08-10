@@ -1,7 +1,7 @@
 import { ButtonAction } from "@/components/ButtonAction";
 import { Badge } from "@/components/ui/badge";
 import type { BadgeColor } from "@/components/ui/badge";
-import { Trash2 } from "lucide-react";
+import { History, Trash2 } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { SerieResource } from "../lib/serie.interface";
 
@@ -44,10 +44,12 @@ export function SituacionBadge({ situacion }: { situacion: string }) {
 
 interface ColumnActions {
   onDelete: (row: SerieResource) => void;
+  onHistorial: (row: SerieResource) => void;
 }
 
 export const getSerieColumns = ({
   onDelete,
+  onHistorial,
 }: ColumnActions): ColumnDef<SerieResource>[] => [
   {
     accessorKey: "id",
@@ -90,6 +92,12 @@ export const getSerieColumns = ({
     header: "Acciones",
     cell: ({ row }) => (
       <div className="flex gap-1">
+        <ButtonAction
+          icon={History}
+          tooltip="Ver historial"
+          canRender={true}
+          onClick={() => onHistorial(row.original)}
+        />
         <ButtonAction
           icon={Trash2}
           canRender={true}

@@ -1,8 +1,12 @@
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import FilterWrapper from "@/components/FilterWrapper";
 import SearchInput from "@/components/SearchInput";
 import { SearchableSelect } from "@/components/SearchableSelect";
 import { getProductosAll } from "@/pages/producto/lib/producto.actions";
+import { getAlmacenes } from "@/pages/auth/lib/auth.actions";
+import { useAuthStore } from "@/pages/auth/lib/auth.store";
+import { getSubalmacenesOperativos } from "@/pages/auth/lib/auth.utils";
 
 interface SerieFiltersProps {
   params: Record<string, string>;
@@ -40,6 +44,33 @@ export default function SerieFilters({ params, setParams }: SerieFiltersProps) {
     refetchOnWindowFocus: false,
   });
 
+  const user = useAuthStore((s) => s.user);
+  const isCorporativo = !!user?.is_corporativo;
+
+  // Solo se consulta/muestra el filtro de almacén cuando aplica: el usuario
+  // es corporativo (opera sobre varios subalmacenes de su grupo) o tiene
+  // subalmacenes asignados en el auth. Para el resto, el backend ya filtra
+  // por el almacén de la sesión activa.
+  const hasSubalmacenes = (user?.subalmacenes?.length ?? 0) > 0;
+  const showAlmacenFilter = isCorporativo || hasSubalmacenes;
+
+  const { data: almacenesAll = [] } = useQuery({
+    queryKey: ["almacenes-list"],
+    queryFn: getAlmacenes,
+    refetchOnWindowFocus: false,
+    enabled: showAlmacenFilter,
+  });
+
+  const almacenes = useMemo(
+    () => getSubalmacenesOperativos(user, almacenesAll),
+    [user, almacenesAll],
+  );
+
+  const almacenOptions = [
+    { value: "all", label: "Todos los almacenes" },
+    ...almacenes.map((a) => ({ value: String(a.id), label: a.nombre })),
+  ];
+
   const productoOptions = [
     { value: "all", label: "Todos los productos" },
     ...productos.map((p) => ({ value: String(p.id), label: `${p.nombre} (${p.sap})` })),
@@ -58,6 +89,14 @@ export default function SerieFilters({ params, setParams }: SerieFiltersProps) {
         onChange={(v) => setText("search", v)}
         placeholder="Buscar serie, MAC, UA, producto..."
       />
+      {showAlmacenFilter && (
+        <SearchableSelect
+          placeholder="Almacén"
+          options={almacenOptions}
+          value={params.almacen_id || "all"}
+          onChange={(v) => set("almacen_id", v)}
+        />
+      )}
       <SearchableSelect
         placeholder="Situación"
         options={SITUACION_OPTIONS}

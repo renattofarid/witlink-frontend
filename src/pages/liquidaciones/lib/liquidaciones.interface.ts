@@ -46,6 +46,15 @@ export interface LiquidacionResource {
   usuario: UsuarioLiquidacion;
   acta: ActaResource | null;
   productos?: ProductoLiquidacionItem[];
+  /** Presente (no null) solo cuando la liquidación ya se liquidó. */
+  guia_remision_pdf?: GuiaRemisionPdfInfo | null;
+}
+
+// ── Guía de remisión PDF (generada al liquidar) ───────────────────────────────
+
+export interface GuiaRemisionPdfInfo {
+  preview_url: string;
+  file_name: string;
 }
 
 // ── Documentos / equipos retirados ────────────────────────────────────────────
@@ -134,9 +143,35 @@ export interface DocumentoEquiposRetirados {
   productos: DocumentoProductoItem[];
 }
 
+// ── PEXT por despacho ─────────────────────────────────────────────────────────
+// Para usuarios del grupo ALMACEN_PEXT, el detalle de liquidación agrupa los
+// equipos/materiales por despacho en vez de por "equipo retirado".
+
+export interface DespachoSotItem {
+  id: number;
+  numero: string;
+  sot: string;
+  fecha: string;
+  productos: DocumentoProductoItem[];
+}
+
+export interface LiquidacionMeta {
+  modo_operativo: "pext_por_despacho" | "estandar";
+  usa_equipos_retirados: boolean;
+}
+
 export interface SotSearchResponse {
   liquidacion: LiquidacionResource;
   documentos_equipos_retirados: DocumentoEquiposRetirados[];
+  /** Solo presente para usuarios PEXT (meta.modo_operativo === "pext_por_despacho"). */
+  despachos_sot?: DespachoSotItem[];
+  /** Ausente en despliegues/backends que aún no distinguen el modo operativo. */
+  meta?: LiquidacionMeta;
+}
+
+export interface SaveProductosLiquidacionResult extends SaveProductosResponse {
+  /** Leído del header `X-Guia-Remision-Pdf` de la respuesta, si viene. */
+  guiaRemisionPdfUrl: string | null;
 }
 
 // ── Productos guardados en la liquidación ─────────────────────────────────────

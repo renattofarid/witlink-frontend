@@ -4,7 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, ArrowRight, X, Package } from "lucide-react";
 import { getSeriesRetiradas } from "../lib/devolucion.actions";
-import type { SerieRetiradaResource } from "../lib/devolucion.interface";
+import {
+  SITUACION_BLOQUEADA_DEVOLUCION,
+  type SerieRetiradaResource,
+  type SeriesRetiradasParams,
+} from "../lib/devolucion.interface";
 
 export interface DevolucionSerieCartItem {
   id: number;
@@ -13,15 +17,19 @@ export interface DevolucionSerieCartItem {
   producto: string;
   sap: string;
   marca?: string;
+  situacion?: string;
+  despacho?: SerieRetiradaResource["despacho"];
 }
 
 interface Props {
   items: DevolucionSerieCartItem[];
   onAdd: (item: DevolucionSerieCartItem) => void;
   onRemove: (id: number) => void;
+  /** Filtros adicionales (flujo PEXT: sot/despacho_id). */
+  extraParams?: Omit<SeriesRetiradasParams, "search">;
 }
 
-export default function DevolucionSeriesInput({ items, onAdd, onRemove }: Props) {
+export default function DevolucionSeriesInput({ items, onAdd, onRemove, extraParams }: Props) {
   const [input, setInput] = useState("");
   const [searching, setSearching] = useState(false);
   const [matches, setMatches] = useState<SerieRetiradaResource[]>([]);
@@ -33,12 +41,18 @@ export default function DevolucionSeriesInput({ items, onAdd, onRemove }: Props)
       setError("Esta serie ya fue agregada");
       return;
     }
+    if (serie.situacion === SITUACION_BLOQUEADA_DEVOLUCION) {
+      setError("Esta serie ya fue devuelta a Claro y no puede seleccionarse");
+      return;
+    }
     onAdd({
       id: serie.id,
       serie: serie.serie,
       producto_id: serie.producto_id,
       producto: serie.producto,
       sap: serie.sap,
+      situacion: serie.situacion,
+      despacho: serie.despacho,
     });
     setInput("");
     setMatches([]);
@@ -53,10 +67,13 @@ export default function DevolucionSeriesInput({ items, onAdd, onRemove }: Props)
     setError(null);
     setMatches([]);
     try {
-      const result = await getSeriesRetiradas(val);
-      const found = result.data ?? [];
+      const result = await getSeriesRetiradas({ search: val, ...extraParams });
+      // Las series ya "Devuelto a Claro" (DC) no pueden reingresar a una guía de devolución.
+      const found = (result.data ?? []).filter(
+        (s) => s.situacion !== SITUACION_BLOQUEADA_DEVOLUCION,
+      );
       if (found.length === 0) {
-        setError(`No se encontró ninguna serie retirada con "${val}"`);
+        setError(`No se encontró ninguna serie disponible con "${val}"`);
       } else if (found.length === 1) {
         addFromResource(found[0]);
       } else {
@@ -115,8 +132,19 @@ export default function DevolucionSeriesInput({ items, onAdd, onRemove }: Props)
             >
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-sm font-mono">{item.serie}</p>
-                <p className="text-xs text-muted-foreground truncate">{item.producto}</p>
+                <p className="text-xs text-muted-foreground truncate">
+                  {item.producto}
+                  {item.despacho && (
+                    <>
+                      <span className="mx-1 text-border">·</span>
+                      Despacho {item.despacho.numero} (SOT {item.despacho.sot})
+                    </>
+                  )}
+                </p>
               </div>
+              <Badge variant="outline" className="text-xs shrink-0 hidden sm:flex">
+                {item.situacion}
+              </Badge>
               <ArrowRight className="size-3.5 text-muted-foreground shrink-0" />
             </button>
           ))}
@@ -144,10 +172,16 @@ export default function DevolucionSeriesInput({ items, onAdd, onRemove }: Props)
                   {item.producto}
                   <span className="mx-1 text-border">·</span>
                   {item.sap}
+                  {item.despacho && (
+                    <>
+                      <span className="mx-1 text-border">·</span>
+                      Despacho {item.despacho.numero} (SOT {item.despacho.sot})
+                    </>
+                  )}
                 </p>
               </div>
               <Badge variant="outline" className="text-xs shrink-0 hidden sm:flex">
-                RE
+                {item.situacion ?? "RE"}
               </Badge>
               <Button
                 type="button"

@@ -158,9 +158,9 @@ export default function ActualizarAtendidasDialog({ open, onClose }: Props) {
         <DialogHeader>
           <DialogTitle>Actualizar atendidas desde SOTs</DialogTitle>
           <DialogDescription>
-            Importa SOT con estado ATENDIDA del consolidado SOTs. El rango usa la
-            fecha de atención en SOTs. Se procesa por semanas para ir más rápido
-            y mostrar el avance.
+            Importa SOT ATENDIDA del consolidado SOTs de todas las sedes y las
+            asigna a su almacén correspondiente. El rango usa la fecha de
+            atención en SOTs. Se procesa por semanas para mostrar el avance.
           </DialogDescription>
         </DialogHeader>
 

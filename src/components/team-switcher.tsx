@@ -190,7 +190,7 @@ export function TeamSwitcher() {
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+            className="w-(--radix-dropdown-menu-trigger-width) min-w-64 rounded-lg"
             align="start"
             side={isMobile ? "bottom" : "right"}
             sideOffset={4}
@@ -199,71 +199,60 @@ export function TeamSwitcher() {
               Almacenes
             </DropdownMenuLabel>
 
-            {headquarterList.length > 0 && (
-              <DropdownMenuSub>
+            {headquarterList.map((hq, idx) => (
+              <DropdownMenuSub key={hq.id ?? idx}>
                 <DropdownMenuSubTrigger className="gap-2 p-2 font-medium">
                   <div className="flex size-6 items-center justify-center rounded-md border">
                     <Building2 className="size-3.5 shrink-0" />
                   </div>
-                  <span>Almacén Corporativo</span>
+                  <span>{hq.nombre}</span>
                 </DropdownMenuSubTrigger>
 
-                <DropdownMenuSubContent className="min-w-64">
-                  {headquarterList.map((hq, idx) => (
-                    <DropdownMenuSub key={hq.id ?? idx}>
-                      <DropdownMenuSubTrigger className="gap-2 p-2 font-medium">
-                        <div className="flex size-6 items-center justify-center rounded-md border">
-                          <Building2 className="size-3.5 shrink-0" />
-                        </div>
-                        <span>{hq.nombre}</span>
-                      </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent className="min-w-56">
+                  {/* Planta Interna (PINT) */}
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger className="gap-2 p-2">
+                      <div className="flex size-6 items-center justify-center rounded-md border">
+                        <Warehouse className="size-3.5 shrink-0" />
+                      </div>
+                      <span>Planta Interna (PINT)</span>
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent className="min-w-52">
+                      {pintList.length > 0 ? (
+                        pintList.map(renderMenuItem)
+                      ) : (
+                        <DropdownMenuItem disabled className="text-xs text-muted-foreground">
+                          Sin subalmacenes
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
 
-                      <DropdownMenuSubContent className="min-w-56">
-                        {/* Planta Interna (PINT) */}
-                        <DropdownMenuSub>
-                          <DropdownMenuSubTrigger className="gap-2 p-2">
-                            <div className="flex size-6 items-center justify-center rounded-md border">
-                              <Warehouse className="size-3.5 shrink-0" />
-                            </div>
-                            <span>Planta Interna (PINT)</span>
-                          </DropdownMenuSubTrigger>
-                          <DropdownMenuSubContent className="min-w-52">
-                            {pintList.length > 0 ? (
-                              pintList.map(renderMenuItem)
-                            ) : (
-                              <DropdownMenuItem disabled className="text-xs text-muted-foreground">
-                                Sin subalmacenes
-                              </DropdownMenuItem>
-                            )}
-                          </DropdownMenuSubContent>
-                        </DropdownMenuSub>
-
-                        {/* Planta Externa (PEXT) */}
-                        <DropdownMenuSub>
-                          <DropdownMenuSubTrigger className="gap-2 p-2">
-                            <div className="flex size-6 items-center justify-center rounded-md border">
-                              <Warehouse className="size-3.5 shrink-0" />
-                            </div>
-                            <span>Planta Externa (PEXT)</span>
-                          </DropdownMenuSubTrigger>
-                          <DropdownMenuSubContent className="min-w-52">
-                            {pextList.length > 0 ? (
-                              pextList.map(renderMenuItem)
-                            ) : (
-                              <DropdownMenuItem disabled className="text-xs text-muted-foreground">
-                                Sin subalmacenes
-                              </DropdownMenuItem>
-                            )}
-                          </DropdownMenuSubContent>
-                        </DropdownMenuSub>
-                      </DropdownMenuSubContent>
-                    </DropdownMenuSub>
-                  ))}
+                  {/* Planta Externa (PEXT) */}
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger className="gap-2 p-2">
+                      <div className="flex size-6 items-center justify-center rounded-md border">
+                        <Warehouse className="size-3.5 shrink-0" />
+                      </div>
+                      <span>Planta Externa (PEXT)</span>
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent className="min-w-52">
+                      {pextList.length > 0 ? (
+                        pextList.map(renderMenuItem)
+                      ) : (
+                        <DropdownMenuItem disabled className="text-xs text-muted-foreground">
+                          Sin subalmacenes
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
-            )}
+            ))}
 
-            {regionalesList.length > 0 && <DropdownMenuSeparator />}
+            {headquarterList.length > 0 && regionalesList.length > 0 && (
+              <DropdownMenuSeparator />
+            )}
 
             {regionalesList.map(renderMenuItem)}
 

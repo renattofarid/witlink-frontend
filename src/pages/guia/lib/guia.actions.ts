@@ -140,7 +140,6 @@ function buildGuiaFormData(body: GuiaCreateBody): FormData {
   const formData = new FormData();
   formData.append("numero", body.numero);
   formData.append("fecha", body.fecha);
-  if (body.almacen_id != null) formData.append("almacen_id", String(body.almacen_id));
   // formData.append("proveedor_id", String(body.proveedor_id));
   if (body.archivo) formData.append("archivo", body.archivo);
 

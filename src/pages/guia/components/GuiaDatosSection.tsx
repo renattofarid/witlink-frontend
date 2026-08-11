@@ -1,19 +1,15 @@
 import { Controller, type Control } from "react-hook-form";
 import { Separator } from "@/components/ui/separator";
 import { FormInput } from "@/components/FormInput";
-import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import { Input } from "@/components/ui/input";
 import { Paperclip } from "lucide-react";
 import type { GuiaCreateFormValues } from "../lib/guia.schema";
-import type { Option } from "@/lib/core.interface";
 
 interface GuiaDatosSectionProps {
   control: Control<GuiaCreateFormValues>;
   mode: "create" | "edit";
   existingFileName?: string | null;
-  almacenOptions?: Option[];
-  loadingAlmacenes?: boolean;
 }
 
 function getFilename(path: string): string {
@@ -24,8 +20,6 @@ export function GuiaDatosSection({
   control,
   mode,
   existingFileName,
-  almacenOptions,
-  loadingAlmacenes,
 }: GuiaDatosSectionProps) {
   return (
     <div className="space-y-2">
@@ -54,21 +48,6 @@ export function GuiaDatosSection({
           disabledRange={[{ after: new Date() }]}
         />
 
-        {almacenOptions && mode === "create" && (
-          <FormSelect
-            name="almacen_id"
-            label="Almacén"
-            control={control}
-            placeholder={
-              loadingAlmacenes
-                ? "Cargando almacenes..."
-                : "Seleccionar subalmacén..."
-            }
-            options={almacenOptions}
-            disabled={loadingAlmacenes}
-            required
-          />
-        )}
         <Controller
           name="archivo"
           control={control}

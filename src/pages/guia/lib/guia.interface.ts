@@ -121,7 +121,6 @@ export interface GuiaProductoBody {
 export interface GuiaCreateBody {
   numero: string;
   fecha: string;
-  almacen_id?: number | null;
   archivo?: File | null;
   productos: GuiaProductoBody[];
 }

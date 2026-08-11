@@ -7,7 +7,6 @@ import DatePicker from "@/components/DatePicker";
 import { SearchableSelect } from "@/components/SearchableSelect";
 import { getAlmacenes } from "@/pages/auth/lib/auth.actions";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
-import { getSubalmacenesOperativos } from "@/pages/auth/lib/auth.utils";
 
 interface GuiaFiltersProps {
   params: Record<string, string>;
@@ -57,12 +56,11 @@ export default function GuiaFilters({ params, setParams }: GuiaFiltersProps) {
       { value: "retirados", label: "Retirados" },
     ];
     if (!isCorporativo) return base;
-    const subalmacenes = getSubalmacenesOperativos(user, almacenesAll);
     return [
       ...base,
-      ...subalmacenes.map((a) => ({ value: String(a.id), label: a.nombre })),
+      ...almacenesAll.map((a) => ({ value: String(a.id), label: a.nombre })),
     ];
-  }, [isCorporativo, user, almacenesAll]);
+  }, [isCorporativo, almacenesAll]);
 
   return (
     <FilterWrapper>

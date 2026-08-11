@@ -8,8 +8,7 @@ import type { TrasladoListItem } from "../lib/traslado.interface";
 interface ColumnActions {
   onConfirmar: (item: TrasladoListItem) => void;
   onAnular: (item: TrasladoListItem) => void;
-  /** Almacenes sobre los que el usuario puede operar: su propio almacén, o
-   * todos los subalmacenes de su grupo si es corporativo. */
+  /** Almacén sobre el que el usuario puede operar: el almacén activo de su sesión. */
   operativosIds: number[];
 }
 

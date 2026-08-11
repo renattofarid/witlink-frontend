@@ -53,7 +53,6 @@ export interface TrasladoProductoItem {
 }
 
 export interface TrasladoCreateBody {
-  almacen_origen_id?: number;
   almacen_destino_id: number;
   productos: TrasladoProductoItem[];
 }

@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Warehouse, Waypoints } from "lucide-react";
 import { getAlmacenes, selectAlmacen } from "../lib/auth.actions";
 import { useAuthStore } from "../lib/auth.store";
+import { getAlmacenesPermitidos } from "../lib/auth.utils";
 import { errorToast } from "@/lib/core.function";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,6 +31,7 @@ export default function WarehouseSelect({
   const [isContinuing, setIsContinuing] = useState(false);
   const navigate = useNavigate();
   const setAlmacenId = useAuthStore((s) => s.setAlmacenId);
+  const user = useAuthStore((s) => s.user);
 
   const { data: almacenesAll = [], isLoading } = useQuery({
     queryKey: ["almacenes-select"],
@@ -37,17 +39,20 @@ export default function WarehouseSelect({
     refetchOnWindowFocus: false,
   });
 
-  // El almacén elegido aquí queda fijo en el token (ability almacen_id de
-  // Sanctum) y es el que usa el backend en cualquier operación posterior, sin
-  // importar si el usuario es corporativo.
+  // Usuarios corporativos solo pueden operar sobre sus subalmacenes del grupo
+  const almacenes = useMemo(
+    () => getAlmacenesPermitidos(user, almacenesAll),
+    [almacenesAll, user],
+  );
+
   const options = useMemo(
     () =>
-      almacenesAll.map((a) => ({
+      almacenes.map((a) => ({
         value: String(a.id),
         label: a.nombre,
         description: a.direccion,
       })),
-    [almacenesAll],
+    [almacenes],
   );
 
   const handleContinue = async () => {
@@ -64,7 +69,7 @@ export default function WarehouseSelect({
     }
   };
 
-  const noAlmacenes = !isLoading && almacenesAll.length === 0;
+  const noAlmacenes = !isLoading && almacenes.length === 0;
 
   return (
     <>

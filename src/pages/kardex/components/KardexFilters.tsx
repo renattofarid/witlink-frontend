@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { format } from "date-fns";
 import FilterWrapper from "@/components/FilterWrapper";
 import SearchInput from "@/components/SearchInput";
@@ -5,6 +6,8 @@ import { SearchableSelect } from "@/components/SearchableSelect";
 import DatePicker from "@/components/DatePicker";
 import { useQuery } from "@tanstack/react-query";
 import { getAlmacenes } from "@/pages/auth/lib/auth.actions";
+import { useAuthStore } from "@/pages/auth/lib/auth.store";
+import { getAlmacenesPermitidos } from "@/pages/auth/lib/auth.utils";
 
 interface KardexFiltersProps {
   params: Record<string, string>;
@@ -20,19 +23,38 @@ const TIPO_MOVIMIENTO_OPTIONS = [
 ];
 
 export default function KardexFilters({ params, setParams }: KardexFiltersProps) {
+  const user = useAuthStore((s) => s.user);
+  const almacen_id = useAuthStore((s) => s.almacen_id);
+
   const { data: almacenes = [] } = useQuery({
     queryKey: ["almacenes-list"],
     queryFn: getAlmacenes,
     refetchOnWindowFocus: false,
   });
 
-  const almacenOptions = [
-    { value: "all", label: "Todos los almacenes" },
-    ...almacenes.map((a) => ({ value: String(a.id), label: a.nombre })),
-  ];
+  const almacenOptions = useMemo(() => {
+    const permitidos = getAlmacenesPermitidos(user, almacenes);
+    return [
+      { value: "all", label: "Todos los almacenes" },
+      ...permitidos.map((a) => ({ value: String(a.id), label: a.nombre })),
+    ];
+  }, [user, almacenes]);
 
   const set = (key: string, value: string) =>
-    setParams((prev) => ({ ...prev, [key]: value === "all" ? "" : value, page: "1" }));
+    setParams((prev) => ({
+      ...prev,
+      [key]: value === "all" ? "" : value,
+      page: "1",
+    }));
+
+  const activeAlmacenVal =
+    params.almacen_id !== undefined
+      ? params.almacen_id === ""
+        ? "all"
+        : params.almacen_id
+      : almacen_id
+      ? String(almacen_id)
+      : "all";
 
   return (
     <FilterWrapper>
@@ -66,7 +88,7 @@ export default function KardexFilters({ params, setParams }: KardexFiltersProps)
       <SearchableSelect
         placeholder="Almacén"
         options={almacenOptions}
-        value={params.almacen_id || "all"}
+        value={activeAlmacenVal}
         onChange={(v) => set("almacen_id", v)}
       />
       <SearchableSelect

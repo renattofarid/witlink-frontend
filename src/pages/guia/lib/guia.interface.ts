@@ -67,6 +67,8 @@ export interface GuiaListResource {
   almacen: string | null;
   sot: string | null;
   motivo: string | null;
+  tipo?: string | null;
+  nombre_tipo?: string | null;
   cantidad_materiales: number;
   cantidad_series: number;
   usuario: string;

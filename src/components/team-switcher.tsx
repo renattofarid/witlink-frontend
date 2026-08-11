@@ -47,41 +47,71 @@ export function TeamSwitcher() {
     useMemo(() => {
       const almacenesPermitidos = getAlmacenesPermitidos(user, almacenesAll);
 
+      const defaultHqs = [
+        { codigo: "CORP_LALIB", nombre: "Corporativo Instalación La Libertad" },
+        { codigo: "CORP_LAMB", nombre: "Corporativo Instalación Lambayeque" },
+        { codigo: "CORP_LIMA", nombre: "Corporativo Instalación Lima" },
+      ];
+
       const hqsMap = new Map<string, { id?: number; nombre: string; codigo: string }>();
-      hqsMap.set("CORP_LALIB", { codigo: "CORP_LALIB", nombre: "Corporativo Instalación La Libertad" });
-      hqsMap.set("CORP_LAMB", { codigo: "CORP_LAMB", nombre: "Corporativo Instalación Lambayeque" });
-      hqsMap.set("CORP_LIMA", { codigo: "CORP_LIMA", nombre: "Corporativo Instalación Lima" });
+      for (const hq of defaultHqs) {
+        hqsMap.set(hq.codigo, hq);
+      }
 
       const pintMap = new Map<string, AlmacenResource>();
       const pextMap = new Map<string, AlmacenResource>();
       const regionales: AlmacenResource[] = [];
 
+      const PINT_CODES = ["ALMACEN_PMO", "ALMACEN_PINT"];
+      const PEXT_CODES = ["ALMACEN_PEXT", "ALMACEN_NORTE", "ALMACEN_ORIENTE"];
+
       for (const a of almacenesPermitidos) {
         const code = (a.codigo ?? "").toUpperCase();
         const name = (a.nombre ?? "").toUpperCase();
 
-        if (code === "CORP_LALIB" || name.includes("LA LIBERTAD")) {
-          hqsMap.set("CORP_LALIB", { id: a.id, codigo: "CORP_LALIB", nombre: a.nombre });
-        } else if (code === "CORP_LAMB" || name.includes("LAMBAYEQUE")) {
-          hqsMap.set("CORP_LAMB", { id: a.id, codigo: "CORP_LAMB", nombre: a.nombre });
-        } else if (code === "CORP_LIMA" || name.includes("LIMA")) {
-          if (code.startsWith("CORP_") || a.is_corporativo || name.includes("CORPORATIVO")) {
-            hqsMap.set("CORP_LIMA", { id: a.id, codigo: "CORP_LIMA", nombre: a.nombre });
-          } else {
-            regionales.push(a);
-          }
-        } else if (code === "ALMACEN_PMO" || name.includes("PMO")) {
-          pintMap.set("PMO", a);
-        } else if (code === "ALMACEN_PINT" || name.includes("PLANTA INTERNA")) {
-          pintMap.set("PINT", a);
-        } else if (code === "ALMACEN_PEXT" || (name.includes("PLANTA EXTERNA") && !name.includes("CORP"))) {
-          pextMap.set("PEXT", a);
-        } else if (code === "ALMACEN_NORTE" || name.includes("NORTE")) {
-          pextMap.set("NORTE", a);
-        } else if (code === "ALMACEN_ORIENTE" || name.includes("ORIENTE")) {
-          pextMap.set("ORIENTE", a);
-        } else if (a.is_corporativo || a.es_subalmacen_corporativo || code.includes("CORP")) {
-          // Ignores orphan corp entries
+        if (
+          code === "CORP_LALIB" ||
+          name === "CORPORATIVO INSTALACIÓN LA LIBERTAD" ||
+          name === "CORPORATIVO INSTALACION LA LIBERTAD"
+        ) {
+          hqsMap.set("CORP_LALIB", {
+            id: a.id,
+            codigo: "CORP_LALIB",
+            nombre: "Corporativo Instalación La Libertad",
+          });
+        } else if (
+          code === "CORP_LAMB" ||
+          name === "CORPORATIVO INSTALACIÓN LAMBAYEQUE" ||
+          name === "CORPORATIVO INSTALACION LAMBAYEQUE"
+        ) {
+          hqsMap.set("CORP_LAMB", {
+            id: a.id,
+            codigo: "CORP_LAMB",
+            nombre: "Corporativo Instalación Lambayeque",
+          });
+        } else if (
+          code === "CORP_LIMA" ||
+          name === "CORPORATIVO INSTALACIÓN LIMA" ||
+          name === "CORPORATIVO INSTALACION LIMA"
+        ) {
+          hqsMap.set("CORP_LIMA", {
+            id: a.id,
+            codigo: "CORP_LIMA",
+            nombre: "Corporativo Instalación Lima",
+          });
+        } else if (
+          PINT_CODES.includes(code) ||
+          (code.includes("PMO") && !code.startsWith("CORP")) ||
+          (code === "PINT" || name === "ALMACEN PLANTA INTERNA" || name === "ALMACEN PMO")
+        ) {
+          pintMap.set(code || a.nombre, a);
+        } else if (
+          PEXT_CODES.includes(code) ||
+          (code.includes("NORTE") && !code.startsWith("CORP")) ||
+          (code.includes("ORIENTE") && !code.startsWith("CORP")) ||
+          (code === "PEXT" || name === "ALMACEN PLANTA EXTERNA" || name === "ALMACEN NORTE" || name === "ALMACEN ORIENTE")
+        ) {
+          pextMap.set(code || a.nombre, a);
         } else {
           regionales.push(a);
         }

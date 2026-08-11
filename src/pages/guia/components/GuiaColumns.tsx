@@ -114,7 +114,27 @@ export const getGuiaColumns = ({
   {
     accessorKey: "motivo",
     header: "Motivo",
-    cell: ({ row }) => row.original.motivo ?? "-",
+    cell: ({ row }) => {
+      const { motivo, type } = row.original;
+      if (type === "retirado") {
+        const val = (row.original.nombre_tipo || motivo || "").trim();
+        if (val === "P" || val === "POST VENTA" || val === "POSTVENTA") {
+          return "POST VENTA";
+        }
+        if (
+          val === "C" ||
+          val === "CAMBIO" ||
+          val === "CAMBIO POR INCIDENCIA"
+        ) {
+          return "CAMBIO POR INCIDENCIA";
+        }
+        if (val === "O" || val === "OTRO") {
+          return "OTRO";
+        }
+        return val || "-";
+      }
+      return motivo ?? "-";
+    },
   },
   {
     accessorKey: "usuario",

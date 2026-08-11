@@ -20,7 +20,6 @@ import { FormSelect } from "@/components/FormSelect";
 import { successToast, errorToast } from "@/lib/core.function";
 import { getAlmacenes } from "@/pages/auth/lib/auth.actions";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
-import { getSubalmacenesOperativos } from "@/pages/auth/lib/auth.utils";
 import { getSeries, validarSerie } from "@/pages/serie/lib/serie.actions";
 import { getMateriales } from "@/pages/materiales/lib/materiales.actions";
 import { createTraslado } from "../lib/traslado.actions";
@@ -43,9 +42,7 @@ interface TrasladoFormProps {
 
 export default function TrasladoForm({ onSuccess }: TrasladoFormProps) {
   const queryClient = useQueryClient();
-  const user = useAuthStore((s) => s.user);
   const almacen_id = useAuthStore((s) => s.almacen_id);
-  const isCorporativo = !!user?.is_corporativo;
   const { draft, setDraft, clearDraft } = useTrasladoDraftStore();
   const submittedRef = useRef(false);
 
@@ -81,15 +78,12 @@ export default function TrasladoForm({ onSuccess }: TrasladoFormProps) {
     defaultValues: {
       tipo: draft?.tipo ?? "serie",
       serie_id: "",
-      almacen_origen_id: "",
       destino_almacen_id: draft?.destino_almacen_id ?? "",
       modo_retirados: false,
       material_id: "",
       cantidad: "",
     },
   });
-
-  const origenSeleccionado = form.watch("almacen_origen_id");
 
   const seriesCartRef = useRef(seriesCart);
   seriesCartRef.current = seriesCart;
@@ -118,22 +112,12 @@ export default function TrasladoForm({ onSuccess }: TrasladoFormProps) {
     refetchOnWindowFocus: false,
   });
 
-  // Los almacenes corporativos "padre" (p.ej. PINT/PEXT) son agrupadores
-  // administrativos sin operativa propia: nunca son un destino válido, solo
-  // sus subalmacenes lo son.
-  const origenActual = isCorporativo
-    ? Number(origenSeleccionado) || null
-    : almacen_id;
+  // El origen es siempre el almacén activo de la sesión (almacen_id del
+  // token), sin importar si el usuario es corporativo.
+  const origenActual = almacen_id;
   const almacenOptions = almacenes
     .filter((a) => a.id !== origenActual && !a.is_corporativo)
     .map((a) => ({ value: String(a.id), label: a.nombre }));
-
-  // Origen (solo corporativo): el almacén activo de sesión puede ser el
-  // "padre" del grupo, que nunca contiene stock propio, así que se exige
-  // elegir explícitamente el subalmacén de origen para esta operación.
-  const origenOptions = getSubalmacenesOperativos(user, almacenes).map(
-    (a) => ({ value: String(a.id), label: a.nombre }),
-  );
 
   const mutation = useMutation({
     mutationFn: (values: TrasladoCreateFormValues) => {
@@ -157,9 +141,6 @@ export default function TrasladoForm({ onSuccess }: TrasladoFormProps) {
         series: null,
       }));
       return createTraslado({
-        ...(isCorporativo
-          ? { almacen_origen_id: Number(values.almacen_origen_id) }
-          : {}),
         almacen_destino_id: Number(values.destino_almacen_id),
         productos: [...seriesProductos, ...materialesProductos],
       });
@@ -351,13 +332,6 @@ export default function TrasladoForm({ onSuccess }: TrasladoFormProps) {
       setCartError("Agregue al menos una serie o un material a la lista");
       return;
     }
-    if (isCorporativo && !values.almacen_origen_id) {
-      form.setError("almacen_origen_id", {
-        type: "manual",
-        message: "Seleccione el almacén origen.",
-      });
-      return;
-    }
     setCartError(null);
     mutation.mutate(values);
   });
@@ -366,22 +340,7 @@ export default function TrasladoForm({ onSuccess }: TrasladoFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-      <div className="bg-muted/40 rounded-lg p-4 border grid grid-cols-1 md:grid-cols-2 gap-3">
-        {isCorporativo && (
-          <FormSelect
-            name="almacen_origen_id"
-            label="Almacén origen"
-            control={form.control}
-            placeholder={
-              loadingAlmacenes
-                ? "Cargando almacenes..."
-                : "Seleccionar almacén origen..."
-            }
-            options={origenOptions}
-            disabled={loadingAlmacenes}
-            required
-          />
-        )}
+      <div className="bg-muted/40 rounded-lg p-4 border grid grid-cols-1 gap-3">
         <FormSelect
           name="destino_almacen_id"
           label="Almacén destino"

@@ -31,6 +31,7 @@ export function TeamSwitcher() {
   const { isMobile } = useSidebar();
   const almacen_id = useAuthStore((s) => s.almacen_id);
   const setAlmacenId = useAuthStore((s) => s.setAlmacenId);
+  const authenticate = useAuthStore((s) => s.authenticate);
   const user = useAuthStore((s) => s.user);
   const [switching, setSwitching] = useState<number | null>(null);
   const queryClient = useQueryClient();
@@ -132,7 +133,12 @@ export function TeamSwitcher() {
     try {
       await selectAlmacen(id);
       setAlmacenId(id);
-      queryClient.invalidateQueries();
+      // El token nuevo ya trae el almacen_id activo, pero se vuelve a pedir
+      // /auth/me para sincronizar el usuario completo (grupos_menu, etc.) y
+      // luego se anulan todas las queries para que todo se refetchee fresco
+      // contra el almacén recién seleccionado.
+      await authenticate();
+      await queryClient.invalidateQueries();
     } catch {
       errorToast("Error al cambiar de almacén");
     } finally {

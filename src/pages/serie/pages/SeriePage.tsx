@@ -23,17 +23,14 @@ import type { SerieResource } from "../lib/serie.interface";
 export default function SeriePage() {
   const queryClient = useQueryClient();
 
-  const { almacen_id, user } = useAuthStore();
-  const isCorporativo = !!user?.is_corporativo;
+  const almacen_id = useAuthStore((s) => s.almacen_id);
 
-  // Para usuarios no corporativos, el backend filtra por el almacén de la
-  // sesión activa; se precarga como valor por defecto del filtro. Los
-  // corporativos (o usuarios con subalmacenes) eligen el almacén desde el
-  // filtro de la tabla (ver SerieFilters).
+  // El almacén activo de la sesión precarga el filtro por defecto; los
+  // corporativos pueden cambiarlo desde el filtro de la tabla (ver SerieFilters).
   const [params, setParams] = useTabParams(SerieComplete.ABSOLUTE_ROUTE, {
     page: "1",
     per_page: String(DEFAULT_PER_PAGE),
-    ...(almacen_id && !isCorporativo ? { almacen_id: String(almacen_id) } : {}),
+    ...(almacen_id ? { almacen_id: String(almacen_id) } : {}),
   });
 
   const [modalOpen, setModalOpen] = useState(false);

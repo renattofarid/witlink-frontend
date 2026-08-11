@@ -14,7 +14,7 @@ interface AuthState {
   setMessage: (message: string) => void;
   setAllowedRoutes: (routes: string[]) => void;
   setAlmacenId: (id: number) => void;
-  authenticate: () => void;
+  authenticate: () => Promise<void>;
   logout: () => void;
 }
 

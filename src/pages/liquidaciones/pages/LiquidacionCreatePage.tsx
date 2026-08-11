@@ -88,6 +88,11 @@ export default function LiquidacionCreatePage() {
         <LiquidacionLiquidadaView
           liquidacion={currentSot.liquidacion}
           documentosEquiposRetirados={currentSot.documentos_equipos_retirados}
+          despachosSot={
+            currentSot.meta?.modo_operativo === "pext_por_despacho"
+              ? (currentSot.despachos_sot ?? [])
+              : undefined
+          }
         />
       )}
 

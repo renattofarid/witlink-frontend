@@ -22,6 +22,13 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Sheet,
   SheetContent,
   SheetHeader,
@@ -40,6 +47,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useInventarioTecnicoLiquidacionQuery } from "../lib/liquidaciones.hook";
 import { useLiquidacionStore } from "../lib/liquidaciones.store";
+import { useAuthStore } from "@/pages/auth/lib/auth.store";
 import type {
   LiquidacionCartItem,
   LiquidacionResource,
@@ -86,6 +94,16 @@ export default function AddProductosModal({
 }: AddProductosModalProps) {
   const { selectedInventoryTecnicoId, setSelectedInventoryTecnico } =
     useLiquidacionStore();
+
+  // Flujo PEXT: la búsqueda global de series debe restringirse a un almacén
+  // elegido explícitamente entre los subalmacenes del usuario
+  // (auth.user.subalmacenes), para no mostrar/permitir seleccionar equipos de
+  // almacenes ajenos a su grupo.
+  const user = useAuthStore((s) => s.user);
+  const subalmacenes = user?.is_corporativo ? user.subalmacenes : [];
+  const [almacenBusquedaId, setAlmacenBusquedaId] = useState(
+    subalmacenes[0] ? String(subalmacenes[0].id) : "",
+  );
 
   const [tecnicoId, setTecnicoId] = useState(
     selectedInventoryTecnicoId ||
@@ -449,12 +467,39 @@ export default function AddProductosModal({
                     Busca cualquier serie en el sistema. Si pertenece a otro
                     técnico se te avisará antes de agregar.
                   </p>
+
+                  {subalmacenes.length > 0 && (
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">
+                        Almacén a buscar
+                      </Label>
+                      <Select
+                        value={almacenBusquedaId}
+                        onValueChange={setAlmacenBusquedaId}
+                      >
+                        <SelectTrigger className="h-8 text-xs w-full">
+                          <SelectValue placeholder="Seleccionar almacén..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {subalmacenes.map((a) => (
+                            <SelectItem key={a.id} value={String(a.id)}>
+                              {a.nombre} ({a.codigo})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
                   <SerieAsyncSearch
                     onSelect={addExternSerie}
                     selectedIds={selectedSerieIds}
                     initialTecnicoId={initialTecnicoId}
                     initialSearch={serieSearch}
                     notRepetidos={notRepetidos}
+                    almacenId={
+                      almacenBusquedaId ? Number(almacenBusquedaId) : undefined
+                    }
                   />
                 </div>
               )}
@@ -608,12 +653,15 @@ function SerieAsyncSearch({
   initialTecnicoId,
   initialSearch,
   notRepetidos,
+  almacenId,
 }: {
   onSelect: (serie: SelectedExternSerie) => void;
   selectedIds: Set<number>;
   initialTecnicoId?: string;
   initialSearch?: string;
   notRepetidos?: boolean;
+  /** Flujo PEXT: restringe la búsqueda al almacén elegido (auth.user.subalmacenes). */
+  almacenId?: number;
 }) {
   const [search, setSearch] = useState(initialSearch ?? "");
   const [debouncedSearch, setDebouncedSearch] = useState(initialSearch ?? "");
@@ -623,9 +671,14 @@ function SerieAsyncSearch({
   );
 
   const { data, isLoading } = useQuery({
-    queryKey: ["series-search-liquidacion", debouncedSearch],
+    queryKey: ["series-search-liquidacion", debouncedSearch, almacenId],
     queryFn: () =>
-      getSeries({ search: debouncedSearch, por_pagina: "10", pagina: "1" }),
+      getSeries({
+        search: debouncedSearch,
+        por_pagina: "10",
+        pagina: "1",
+        ...(almacenId ? { almacen_id: almacenId } : {}),
+      }),
     enabled: debouncedSearch.length >= 2,
   });
 

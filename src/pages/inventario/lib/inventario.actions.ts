@@ -4,6 +4,7 @@ import type {
   InventarioSerieResponse,
   InventarioMaterialResponse,
   SerieMovimientoResource,
+  SerieHistorialResponse,
 } from "./inventario.interface";
 
 function buildParams(params: Record<string, string>) {
@@ -99,6 +100,18 @@ export const devolverClaroInventarioSerie = async (
 
 export const getSerieMovimientos = async (serieId: number): Promise<SerieMovimientoResource[]> => {
   const { data } = await api.get(`/series/${serieId}/movimientos`);
+  return data;
+};
+
+/**
+ * Trazabilidad completa de una serie: datos generales, técnico actual, SOT
+ * vinculada, cierre definitivo (si fue liquidada) y timeline de eventos +
+ * kardex. Reemplaza a `getSerieMovimientos` como fuente del historial.
+ */
+export const getSerieHistorial = async (
+  serieId: number,
+): Promise<SerieHistorialResponse> => {
+  const { data } = await api.get(`/series/${serieId}/historial`);
   return data;
 };
 

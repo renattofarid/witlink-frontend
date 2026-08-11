@@ -14,7 +14,7 @@ export interface ExcelResponse {
 }
 
 export const getSeries = async (
-  params: Record<string, string>
+  params: Record<string, unknown>
 ): Promise<SerieResponse> => {
   const { data } = await api.get(SerieComplete.ENDPOINT, { params });
   return data;

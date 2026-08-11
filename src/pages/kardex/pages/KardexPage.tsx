@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useTabParams } from "@/hooks/useTabParams";
 import PageWrapper from "@/components/PageWrapper";
 import TitleComponent from "@/components/TitleComponent";
@@ -6,6 +7,7 @@ import ExportButtons from "@/components/ExportButtons";
 import { DataTable } from "@/components/DataTable";
 import DataTablePagination from "@/components/DataTablePagination";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
+import { useAuthStore } from "@/pages/auth/lib/auth.store";
 import { KardexComplete } from "../lib/kardex.constants";
 import { useKardexQuery } from "../lib/kardex.hook";
 import { getKardexColumns } from "../components/KardexColumns";
@@ -14,10 +16,22 @@ import KardexFilters from "../components/KardexFilters";
 const columns = getKardexColumns();
 
 export default function KardexPage() {
+  const almacen_id = useAuthStore((s) => s.almacen_id);
+
   const [params, setParams] = useTabParams(KardexComplete.ABSOLUTE_ROUTE, {
     page: "1",
     per_page: String(DEFAULT_PER_PAGE),
+    ...(almacen_id ? { almacen_id: String(almacen_id) } : {}),
   });
+
+  useEffect(() => {
+    if (almacen_id && (params.almacen_id === undefined || params.almacen_id === null)) {
+      setParams((prev) => ({
+        ...prev,
+        almacen_id: String(almacen_id),
+      }));
+    }
+  }, [almacen_id, params.almacen_id, setParams]);
 
   const { data, isLoading } = useKardexQuery(params);
 

@@ -20,15 +20,6 @@ export interface AuthUsuario {
   tipo_usuario: TipoUsuario;
   grupos_menu: GruposMenu[];
   is_corporativo: boolean;
-  subalmacenes: SubalmacenResumen[];
-  almacen_padre_id: number | null;
-  es_subalmacen_corporativo: boolean;
-}
-
-export interface SubalmacenResumen {
-  id: number;
-  nombre: string;
-  codigo: string;
 }
 
 export interface GruposMenu {

@@ -9,7 +9,6 @@ import { SearchableSelect } from "@/components/SearchableSelect";
 import { useTecnicoDespachoQuery } from "../lib/despacho.hook";
 import { getAlmacenes } from "@/pages/auth/lib/auth.actions";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
-import { getSubalmacenesOperativos } from "@/pages/auth/lib/auth.utils";
 import type { PersonaResource } from "@/pages/persona/lib/persona.interface";
 
 interface DespachoFiltersProps {
@@ -35,13 +34,13 @@ export default function DespachoFilters({
     enabled: isCorporativo,
   });
 
-  const almacenOptions = useMemo(() => {
-    const almacenes = getSubalmacenesOperativos(user, almacenesAll);
-    return [
+  const almacenOptions = useMemo(
+    () => [
       { value: "all", label: "Todos los almacenes" },
-      ...almacenes.map((a) => ({ value: String(a.id), label: a.nombre })),
-    ];
-  }, [almacenesAll, user]);
+      ...almacenesAll.map((a) => ({ value: String(a.id), label: a.nombre })),
+    ],
+    [almacenesAll],
+  );
 
   const dateFrom = params.fecha_inicio
     ? new Date(params.fecha_inicio + "T00:00:00")

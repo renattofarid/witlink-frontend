@@ -12,7 +12,6 @@ import { successToast, errorToast } from "@/lib/core.function";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
 import { getAlmacenes } from "@/pages/auth/lib/auth.actions";
-import { getSubalmacenesOperativos } from "@/pages/auth/lib/auth.utils";
 import {
   useInventarioSeriesQuery,
   useInventarioMaterialesQuery,
@@ -87,17 +86,13 @@ export default function InventarioPage() {
     refetchOnWindowFocus: false,
     enabled: isCorporativo,
   });
-  const subalmacenesOperativos = useMemo(
-    () => getSubalmacenesOperativos(user, almacenesAll),
-    [user, almacenesAll],
-  );
   const reservaAlmacenOptions = useMemo(
     () =>
-      subalmacenesOperativos.map((a) => ({
+      almacenesAll.map((a) => ({
         value: String(a.id),
         label: a.nombre,
       })),
-    [subalmacenesOperativos],
+    [almacenesAll],
   );
 
   const [selectedSerie, setSelectedSerie] =
@@ -142,15 +137,14 @@ export default function InventarioPage() {
   const [reservaMasivaSot, setReservaMasivaSot] = useState("");
   const [reservaMasivaAlmacenId, setReservaMasivaAlmacenId] = useState("");
 
-  // Para corporativos, el almacén de sesión puede ser el "padre" del grupo
-  // (no contiene stock propio), así que no se usa como valor por defecto:
-  // el usuario debe elegir un subalmacén real en el filtro.
+  // El almacén activo de la sesión (almacen_id del token) precarga el filtro
+  // por defecto, sin importar si el usuario es corporativo.
   const [seriesParams, setSeriesParams] = useTabParams(
     "/inventario/series-tab",
     {
       page: "1",
       per_page: String(DEFAULT_PER_PAGE),
-      ...(almacen_id && !isCorporativo ? { almacen_id: String(almacen_id) } : {}),
+      ...(almacen_id ? { almacen_id: String(almacen_id) } : {}),
     },
   );
 
@@ -159,7 +153,7 @@ export default function InventarioPage() {
     {
       page: "1",
       per_page: String(DEFAULT_PER_PAGE),
-      ...(almacen_id && !isCorporativo ? { almacen_id: String(almacen_id) } : {}),
+      ...(almacen_id ? { almacen_id: String(almacen_id) } : {}),
     },
   );
 

@@ -48,6 +48,7 @@ import { cn } from "@/lib/utils";
 import { useInventarioTecnicoLiquidacionQuery } from "../lib/liquidaciones.hook";
 import { useLiquidacionStore } from "../lib/liquidaciones.store";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
+import { getAlmacenes } from "@/pages/auth/lib/auth.actions";
 import type {
   LiquidacionCartItem,
   LiquidacionResource,
@@ -95,15 +96,17 @@ export default function AddProductosModal({
   const { selectedInventoryTecnicoId, setSelectedInventoryTecnico } =
     useLiquidacionStore();
 
-  // Flujo PEXT: la búsqueda global de series debe restringirse a un almacén
-  // elegido explícitamente entre los subalmacenes del usuario
-  // (auth.user.subalmacenes), para no mostrar/permitir seleccionar equipos de
-  // almacenes ajenos a su grupo.
+  // Flujo corporativo: la búsqueda global de series permite restringirse a
+  // un almacén específico elegido explícitamente entre todos los almacenes.
   const user = useAuthStore((s) => s.user);
-  const subalmacenes = user?.is_corporativo ? user.subalmacenes : [];
-  const [almacenBusquedaId, setAlmacenBusquedaId] = useState(
-    subalmacenes[0] ? String(subalmacenes[0].id) : "",
-  );
+  const { data: almacenesAll = [] } = useQuery({
+    queryKey: ["almacenes-list"],
+    queryFn: getAlmacenes,
+    refetchOnWindowFocus: false,
+    enabled: !!user?.is_corporativo,
+  });
+  const subalmacenes = user?.is_corporativo ? almacenesAll : [];
+  const [almacenBusquedaId, setAlmacenBusquedaId] = useState("");
 
   const [tecnicoId, setTecnicoId] = useState(
     selectedInventoryTecnicoId ||
@@ -660,7 +663,7 @@ function SerieAsyncSearch({
   initialTecnicoId?: string;
   initialSearch?: string;
   notRepetidos?: boolean;
-  /** Flujo PEXT: restringe la búsqueda al almacén elegido (auth.user.subalmacenes). */
+  /** Flujo corporativo: restringe la búsqueda al almacén elegido explícitamente. */
   almacenId?: number;
 }) {
   const [search, setSearch] = useState(initialSearch ?? "");

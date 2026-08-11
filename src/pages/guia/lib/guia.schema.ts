@@ -97,9 +97,6 @@ export const productoSchema = z
 const guiaBaseFields = {
   numero: z.string().min(1, "Requerido"),
   fecha: z.string().min(1, "Requerido"),
-  // Solo requerido para usuarios corporativos: el almacén de sesión puede ser
-  // el almacén "padre" del grupo, que nunca es un almacén físico válido.
-  almacen_id: z.union([z.string(), z.number()]).optional().nullable(),
   productos: z
     .array(productoSchema)
     .min(1, "Debe agregar al menos un producto"),

@@ -35,9 +35,10 @@ export function TeamSwitcher() {
     refetchOnWindowFocus: false,
   });
 
-  const almacenes = almacenesAll.filter(
-    (a) => a.is_corporativo || a.almacen_padre_id === null,
-  );
+  // Cualquier almacén de la lista es elegible: el que se seleccione aquí
+  // queda fijo en el token y es el que usa el backend para toda operación
+  // posterior, sin importar si el usuario es corporativo.
+  const almacenes = almacenesAll;
 
   const activeAlmacen = almacenes.find((a) => a.id === almacen_id) ?? null;
 

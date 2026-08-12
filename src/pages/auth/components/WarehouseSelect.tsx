@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Warehouse, Waypoints } from "lucide-react";
 import { getAlmacenes, selectAlmacen } from "../lib/auth.actions";
 import { useAuthStore } from "../lib/auth.store";
+import { useTabsStore } from "@/store/tabs.store";
 import { getAlmacenesPermitidos } from "../lib/auth.utils";
 import { errorToast } from "@/lib/core.function";
 import { Button } from "@/components/ui/button";
@@ -61,6 +62,7 @@ export default function WarehouseSelect({
     try {
       await selectAlmacen(Number(selectedId));
       setAlmacenId(Number(selectedId));
+      useTabsStore.getState().clearRouteParams();
       navigate("/inicio", { replace: true });
     } catch {
       errorToast("Error al seleccionar el almacén");

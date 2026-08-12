@@ -22,6 +22,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
+import { useTabsStore } from "@/store/tabs.store";
 import { getAlmacenes, selectAlmacen } from "@/pages/auth/lib/auth.actions";
 import { getAlmacenesPermitidos } from "@/pages/auth/lib/auth.utils";
 import { errorToast } from "@/lib/core.function";
@@ -133,11 +134,11 @@ export function TeamSwitcher() {
     try {
       await selectAlmacen(id);
       setAlmacenId(id);
-      // El token nuevo ya trae el almacen_id activo, pero se vuelve a pedir
-      // /auth/me para sincronizar el usuario completo (grupos_menu, etc.) y
-      // luego se anulan todas las queries para que todo se refetchee fresco
-      // contra el almacén recién seleccionado.
+      // El token nuevo ya trae el almacen_id activo, se piden los datos del usuario
+      // y se limpian la memoria de pestañas y cache de queries para refetchear todo.
       await authenticate();
+      useTabsStore.getState().clearRouteParams();
+      queryClient.clear();
       await queryClient.invalidateQueries();
     } catch {
       errorToast("Error al cambiar de almacén");

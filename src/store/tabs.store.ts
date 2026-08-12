@@ -16,6 +16,7 @@ interface TabsState {
   setActiveRoute: (route: string) => void;
   saveParams: (key: string, params: Record<string, string>) => void;
   getParams: (key: string) => Record<string, string> | undefined;
+  clearRouteParams: () => void;
   setLastPath: (route: string, path: string) => void;
   getLastPath: (route: string) => string | undefined;
 }
@@ -55,6 +56,8 @@ export const useTabsStore = create<TabsState>((set, get) => ({
     })),
 
   getParams: (key) => get().routeParams[key],
+
+  clearRouteParams: () => set({ routeParams: {} }),
 
   setLastPath: (route, path) =>
     set((state) => ({ lastPath: { ...state.lastPath, [route]: path } })),

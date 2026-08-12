@@ -157,6 +157,23 @@ export default function InventarioPage() {
     },
   );
 
+  useEffect(() => {
+    if (almacen_id) {
+      setSeriesParams((prev) => {
+        if (prev.almacen_id !== String(almacen_id)) {
+          return { ...prev, almacen_id: String(almacen_id), page: "1" };
+        }
+        return prev;
+      });
+      setMaterialesParams((prev) => {
+        if (prev.almacen_id !== String(almacen_id)) {
+          return { ...prev, almacen_id: String(almacen_id), page: "1" };
+        }
+        return prev;
+      });
+    }
+  }, [almacen_id, setSeriesParams, setMaterialesParams]);
+
   // Al abrir el diálogo de reserva, precarga el almacén: el de sesión si no es
   // corporativo, o el subalmacén actualmente filtrado si es corporativo.
   useEffect(() => {

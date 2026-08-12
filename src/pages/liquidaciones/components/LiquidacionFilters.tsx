@@ -7,6 +7,10 @@ import GeneralSheet from "@/components/GeneralSheet";
 import NoRegistradosBanner from "@/components/NoRegistradosBanner";
 import ExportExcelButton from "@/components/ExportExcelButton";
 import { X } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { getAlmacenes } from "@/pages/auth/lib/auth.actions";
+import { useAuthStore } from "@/pages/auth/lib/auth.store";
+import { getAlmacenesPermitidos } from "@/pages/auth/lib/auth.utils";
 import {
   ESTADO_OPERATIVO_OPTIONS,
   ESTADO_LIQUIDACION_OPTIONS,
@@ -19,10 +23,12 @@ interface LiquidacionFiltersProps {
   estado: string;
   estadoLiquidacion: string;
   sots: string;
+  almacenId?: string;
   onSearchChange: (v: string) => void;
   onEstadoChange: (v: string) => void;
   onEstadoLiquidacionChange: (v: string) => void;
   onSotsChange: (v: string) => void;
+  onAlmacenChange?: (v: string) => void;
   /** Bulk-search SOTs with no matches under the applied filters. */
   noRegistrados?: string[];
   /** Filters currently applied to the list, used to export the filtered set. */
@@ -36,14 +42,41 @@ export default function LiquidacionFilters({
   estado,
   estadoLiquidacion,
   sots,
+  almacenId,
   onSearchChange,
   onEstadoChange,
   onEstadoLiquidacionChange,
   onSotsChange,
+  onAlmacenChange,
   noRegistrados = [],
   exportParams = {},
   totalResults = 0,
 }: LiquidacionFiltersProps) {
+  const user = useAuthStore((s) => s.user);
+  const userAlmacenId = useAuthStore((s) => s.almacen_id);
+
+  const { data: almacenes = [] } = useQuery({
+    queryKey: ["almacenes-list"],
+    queryFn: getAlmacenes,
+    refetchOnWindowFocus: false,
+  });
+
+  const almacenOptions = useMemo(() => {
+    const permitidos = getAlmacenesPermitidos(user, almacenes);
+    return [
+      { value: "all", label: "Todos los almacenes" },
+      ...permitidos.map((a) => ({ value: String(a.id), label: a.nombre })),
+    ];
+  }, [user, almacenes]);
+
+  const activeAlmacenVal =
+    almacenId !== undefined
+      ? almacenId === ""
+        ? "all"
+        : almacenId
+      : userAlmacenId
+      ? String(userAlmacenId)
+      : "all";
   const [bulkOpen, setBulkOpen] = useState(false);
   const [bulkText, setBulkText] = useState("");
 
@@ -108,6 +141,12 @@ export default function LiquidacionFilters({
         onChange={onEstadoLiquidacionChange}
         placeholder="Estado liquidación"
         withValue={false}
+      />
+      <SearchableSelect
+        placeholder="Almacén"
+        options={almacenOptions}
+        value={activeAlmacenVal}
+        onChange={(v) => onAlmacenChange?.(v === "all" ? "" : v)}
       />
 
       <div className="flex items-center">

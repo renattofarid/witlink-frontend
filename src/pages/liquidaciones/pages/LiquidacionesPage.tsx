@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTabParams } from "@/hooks/useTabParams";
 import { useNavigate } from "react-router-dom";
 import { Plus, RefreshCw, Upload } from "lucide-react";
@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { GeneralModal } from "@/components/GeneralModal";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import { errorToast, warningToast } from "@/lib/core.function";
+import { useAuthStore } from "@/pages/auth/lib/auth.store";
 import { useLiquidacionesQuery } from "../lib/liquidaciones.hook";
 import { LiquidacionesComplete } from "../lib/liquidaciones.constants";
 import { getLiquidacionColumns } from "../components/LiquidacionColumns";
@@ -23,6 +24,7 @@ import type { LiquidacionResource } from "../lib/liquidaciones.interface";
 
 export default function LiquidacionesPage() {
   const navigate = useNavigate();
+  const almacen_id = useAuthStore((s) => s.almacen_id);
 
   const [actasDialogOpen, setActasDialogOpen] = useState(false);
   const [atendidasDialogOpen, setAtendidasDialogOpen] = useState(false);
@@ -38,8 +40,18 @@ export default function LiquidacionesPage() {
       estado: "",
       estado_liquidacion: "",
       sots: "",
+      ...(almacen_id ? { almacen_id: String(almacen_id) } : {}),
     },
   );
+
+  useEffect(() => {
+    if (almacen_id && (params.almacen_id === undefined || params.almacen_id === null)) {
+      setParams((prev) => ({
+        ...prev,
+        almacen_id: String(almacen_id),
+      }));
+    }
+  }, [almacen_id, params.almacen_id, setParams]);
 
   const queryParams = Object.fromEntries(
     Object.entries(params).filter(([, v]) => v !== ""),
@@ -64,6 +76,9 @@ export default function LiquidacionesPage() {
 
   const handleSotsChange = (v: string) =>
     setParams((prev) => ({ ...prev, sots: v, page: "1" }));
+
+  const handleAlmacenChange = (v: string) =>
+    setParams((prev) => ({ ...prev, almacen_id: v, page: "1" }));
 
   const handleGetActa = async (row: LiquidacionResource) => {
     try {
@@ -136,10 +151,12 @@ export default function LiquidacionesPage() {
           estado={params.estado ?? ""}
           estadoLiquidacion={params.estado_liquidacion ?? ""}
           sots={params.sots ?? ""}
+          almacenId={params.almacen_id}
           onSearchChange={handleSearchChange}
           onEstadoChange={handleEstadoChange}
           onEstadoLiquidacionChange={handleEstadoLiquidacionChange}
           onSotsChange={handleSotsChange}
+          onAlmacenChange={handleAlmacenChange}
           noRegistrados={data?.no_registrados ?? []}
           exportParams={queryParams}
           totalResults={data?.meta.total ?? 0}

@@ -25,13 +25,15 @@ export default function KardexPage() {
   });
 
   useEffect(() => {
-    if (almacen_id && (params.almacen_id === undefined || params.almacen_id === null)) {
-      setParams((prev) => ({
-        ...prev,
-        almacen_id: String(almacen_id),
-      }));
+    if (almacen_id) {
+      setParams((prev) => {
+        if (prev.almacen_id !== String(almacen_id)) {
+          return { ...prev, almacen_id: String(almacen_id), page: "1" };
+        }
+        return prev;
+      });
     }
-  }, [almacen_id, params.almacen_id, setParams]);
+  }, [almacen_id, setParams]);
 
   const { data, isLoading } = useKardexQuery(params);
 

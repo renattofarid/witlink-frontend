@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTabParams } from "@/hooks/useTabParams";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import PageWrapper from "@/components/PageWrapper";
@@ -32,6 +32,17 @@ export default function SeriePage() {
     per_page: String(DEFAULT_PER_PAGE),
     ...(almacen_id ? { almacen_id: String(almacen_id) } : {}),
   });
+
+  useEffect(() => {
+    if (almacen_id) {
+      setParams((prev) => {
+        if (prev.almacen_id !== String(almacen_id)) {
+          return { ...prev, almacen_id: String(almacen_id), page: "1" };
+        }
+        return prev;
+      });
+    }
+  }, [almacen_id, setParams]);
 
   const [modalOpen, setModalOpen] = useState(false);
 

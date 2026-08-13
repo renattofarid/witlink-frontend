@@ -91,7 +91,7 @@ export const getSerieColumns = ({
     id: "antiguedad",
     header: "Antigüedad",
     cell: ({ row }) => {
-      const dias = row.original.dias_en_almacen ?? 0;
+      const dias = Math.max(0, row.original.dias_en_almacen ?? 0);
       let colorClass =
         "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-400/40";
       if (dias > 90) {

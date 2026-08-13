@@ -200,9 +200,6 @@ export default function AddProductosModal({
     return pendingInCart + pendingInModal;
   };
 
-  const getMaterialAvailableQty = (item: MaterialInventarioItem) =>
-    Math.max(0, item.cantidad - getMaterialPendingQty(item));
-
   const handleTecnicoChange = (id: string, nombre: string) => {
     setTecnicoId(id);
     setSelectedInventoryTecnico(id);
@@ -213,10 +210,7 @@ export default function AddProductosModal({
   const handleMaterialQty = (item: MaterialInventarioItem, delta: number) => {
     setMaterialSelections((prev) => {
       const current = prev[item.id]?.cantidad ?? 0;
-      const key = `${Number(tecnicoId)}-${item.material.producto.id}`;
-      const pendingInCart = pendingQtyByMaterial.get(key) ?? 0;
-      const maxAvailable = Math.max(0, item.cantidad - pendingInCart);
-      const next = Math.min(Math.max(0, current + delta), maxAvailable);
+      const next = Math.max(0, current + delta);
       if (next === 0) {
         const { [item.id]: _, ...rest } = prev;
         return rest;
@@ -229,10 +223,7 @@ export default function AddProductosModal({
     item: MaterialInventarioItem,
     val: string,
   ) => {
-    const key = `${Number(tecnicoId)}-${item.material.producto.id}`;
-    const pendingInCart = pendingQtyByMaterial.get(key) ?? 0;
-    const maxAvailable = Math.max(0, item.cantidad - pendingInCart);
-    const n = Math.min(Math.max(0, Number(val) || 0), maxAvailable);
+    const n = Math.max(0, Number(val) || 0);
     setMaterialSelections((prev) => {
       if (n === 0) {
         const { [item.id]: _, ...rest } = prev;
@@ -615,7 +606,6 @@ export default function AddProductosModal({
                         item={item}
                         qty={materialSelections[item.id]?.cantidad ?? 0}
                         pendingQty={getMaterialPendingQty(item)}
-                        availableQty={getMaterialAvailableQty(item)}
                         onQtyChange={(delta) => handleMaterialQty(item, delta)}
                         onQtyInput={(val) => handleMaterialQtyInput(item, val)}
                       />
@@ -671,7 +661,6 @@ export default function AddProductosModal({
                   item={item}
                   qty={materialSelections[item.id]?.cantidad ?? 0}
                   pendingQty={getMaterialPendingQty(item)}
-                  availableQty={getMaterialAvailableQty(item)}
                   onQtyChange={(delta) => handleMaterialQty(item, delta)}
                   onQtyInput={(val) => handleMaterialQtyInput(item, val)}
                 />
@@ -1019,18 +1008,15 @@ function MaterialCard({
   item,
   qty,
   pendingQty,
-  availableQty,
   onQtyChange,
   onQtyInput,
 }: {
   item: MaterialInventarioItem;
   qty: number;
   pendingQty: number;
-  availableQty: number;
   onQtyChange: (delta: number) => void;
   onQtyInput: (val: string) => void;
 }) {
-  const maxSelectable = qty + availableQty;
   const pendingOutsideCurrent = Math.max(0, pendingQty - qty);
 
   return (
@@ -1054,21 +1040,12 @@ function MaterialCard({
             </p>
           )}
         </div>
-        <div className="flex shrink-0 flex-col items-end gap-1">
-          <Badge
-            color={item.cantidad > 0 ? "green" : "red"}
-            className="text-xs"
-          >
-            Stock: {item.cantidad}
-          </Badge>
-          <Badge
-            color={maxSelectable > 0 ? "blue" : "red"}
-            variant="outline"
-            className="text-xs"
-          >
-            Disponible: {maxSelectable}
-          </Badge>
-        </div>
+        <Badge
+          color={item.cantidad > 0 ? "green" : "red"}
+          className="text-xs shrink-0"
+        >
+          Stock: {item.cantidad}
+        </Badge>
       </div>
       <div className="flex items-center gap-2">
         <Button
@@ -1085,17 +1062,14 @@ function MaterialCard({
           type="number"
           className="h-6 w-14 text-center text-xs px-1"
           min={0}
-          max={maxSelectable}
           value={qty}
           onChange={(e) => onQtyInput(e.target.value)}
-          disabled={maxSelectable === 0}
         />
         <Button
           type="button"
           variant="outline"
           size="icon"
           className="size-6"
-          disabled={availableQty <= 0}
           onClick={() => onQtyChange(1)}
         >
           <Plus className="size-3" />

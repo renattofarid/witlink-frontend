@@ -22,6 +22,7 @@ export interface SerieResource {
   producto: ProductoResource;
   tecnico?: Tecnico;
   guia_numero?: string;
+  dias_en_almacen?: number;
   created_at: string;
   updated_at: string;
 }

@@ -499,69 +499,80 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
         )}
 
         {watchedProductos.length > 0 && mode === "edit" && (
-          <div className="space-y-2">
-            {watchedProductos.map((producto, index) => {
-              const pgId = producto.productos_guia_id;
-              const isEquipoWithPanel =
-                producto.tipo === "EQUIPO" &&
-                !!pgId &&
-                (producto.necesita_serie ||
-                  producto.necesita_mac ||
-                  producto.necesita_emta_mac ||
-                  producto.necesita_ua);
+          <div className="border rounded-xl shadow-sm bg-card overflow-hidden">
+            {/* Table Header (Desktop) */}
+            <div className="hidden md:grid grid-cols-[3.5rem_1fr_9rem_7rem_6rem_8rem_6rem] items-center gap-3 px-4 py-3 bg-muted/60 border-b text-xs font-semibold text-muted-foreground tracking-wider uppercase">
+              <span className="text-center">#</span>
+              <span>Producto / Descripción</span>
+              <span>Código SAP</span>
+              <span className="text-center">Tipo</span>
+              <span className="text-center">Cantidad</span>
+              <span className="text-center">Series</span>
+              <span className="text-right">Acciones</span>
+            </div>
 
-              const seriesForProducto = pgId
-                ? Object.values(seriesConcurrentes.seriesLocales).filter(
-                    (s) => s.productoGuiaId === pgId,
-                  )
-                : [];
+            {/* List Rows */}
+            <div className="divide-y divide-border">
+              {watchedProductos.map((producto, index) => {
+                const pgId = producto.productos_guia_id;
+                const isEquipoWithPanel =
+                  producto.tipo === "EQUIPO" &&
+                  !!pgId &&
+                  (producto.necesita_serie ||
+                    producto.necesita_mac ||
+                    producto.necesita_emta_mac ||
+                    producto.necesita_ua);
 
-              const confirmedCount = seriesForProducto.filter(
-                (s) => s.status === "confirmed",
-              ).length;
+                const seriesForProducto = pgId
+                  ? Object.values(seriesConcurrentes.seriesLocales).filter(
+                      (s) => s.productoGuiaId === pgId,
+                    )
+                  : [];
 
-              return (
-                <div
-                  key={pgId ?? `new-${index}`}
-                  className="border rounded-lg overflow-hidden"
-                >
-                  <GuiaProductoRow
-                    producto={producto}
-                    index={index}
-                    editingIndex={editingProductoIndex}
-                    confirmedSeriesCount={
-                      isEquipoWithPanel ? confirmedCount : undefined
-                    }
-                    isSaving={isProductoSaving && !pgId}
-                    onEdit={handleEditProducto}
-                    onDelete={(i) =>
-                      handleDeleteProducto(i, producto.productos_guia_id)
-                    }
-                    onViewSeries={setSeriesDetail}
-                    onCloseEditDialog={handleCloseProductoDialog}
-                  />
+                const confirmedCount = seriesForProducto.filter(
+                  (s) => s.status === "confirmed",
+                ).length;
 
-                  {isEquipoWithPanel && (
-                    <GuiaQuickAddSeriePanel
-                      productoGuiaId={pgId!}
-                      productoNombre={producto.nombre}
-                      cantidad={producto.cantidad}
-                      necesitaSerie={!!producto.necesita_serie}
-                      necesitaMac={!!producto.necesita_mac}
-                      necesitaEmtaMac={!!producto.necesita_emta_mac}
-                      necesitaUa={!!producto.necesita_ua}
-                      seriesLocales={seriesForProducto}
-                      onAgregar={(fields) =>
-                        seriesConcurrentes.agregarSerie(pgId!, fields)
+                return (
+                  <div key={pgId ?? `new-${index}`} className="group">
+                    <GuiaProductoRow
+                      producto={producto}
+                      index={index}
+                      editingIndex={editingProductoIndex}
+                      confirmedSeriesCount={
+                        isEquipoWithPanel ? confirmedCount : undefined
                       }
-                      onEliminar={seriesConcurrentes.eliminarSerie}
-                      onRetry={seriesConcurrentes.retryAgregar}
-                      isPendingEliminar={seriesConcurrentes.isPendingEliminar}
+                      isSaving={isProductoSaving && !pgId}
+                      onEdit={handleEditProducto}
+                      onDelete={(i) =>
+                        handleDeleteProducto(i, producto.productos_guia_id)
+                      }
+                      onViewSeries={setSeriesDetail}
+                      onCloseEditDialog={handleCloseProductoDialog}
                     />
-                  )}
-                </div>
-              );
-            })}
+
+                    {isEquipoWithPanel && (
+                      <GuiaQuickAddSeriePanel
+                        productoGuiaId={pgId!}
+                        productoNombre={producto.nombre}
+                        cantidad={producto.cantidad}
+                        necesitaSerie={!!producto.necesita_serie}
+                        necesitaMac={!!producto.necesita_mac}
+                        necesitaEmtaMac={!!producto.necesita_emta_mac}
+                        necesitaUa={!!producto.necesita_ua}
+                        seriesLocales={seriesForProducto}
+                        onAgregar={(fields) =>
+                          seriesConcurrentes.agregarSerie(pgId!, fields)
+                        }
+                        onEliminar={seriesConcurrentes.eliminarSerie}
+                        onRetry={seriesConcurrentes.retryAgregar}
+                        isPendingEliminar={seriesConcurrentes.isPendingEliminar}
+                      />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 

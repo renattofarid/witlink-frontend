@@ -14,6 +14,10 @@ interface GuiaProductoSelectorProps {
   readonlyCantidad?: boolean;
 }
 
+function isRequiredFlag(value: unknown): boolean {
+  return value === true || value === 1 || value === "1";
+}
+
 export function GuiaProductoSelector({
   productSubForm,
   readonlyCantidad,
@@ -46,19 +50,19 @@ export function GuiaProductoSelector({
                   productSubForm.setValue("tipo", item.tipo);
                   productSubForm.setValue(
                     "necesita_serie",
-                    item.necesita_serie ?? false,
+                    isRequiredFlag(item.necesita_serie),
                   );
                   productSubForm.setValue(
                     "necesita_mac",
-                    item.necesita_mac ?? false,
+                    isRequiredFlag(item.necesita_mac),
                   );
                   productSubForm.setValue(
                     "necesita_emta_mac",
-                    item.necesita_emta_mac ?? false,
+                    isRequiredFlag(item.necesita_emta_mac),
                   );
                   productSubForm.setValue(
                     "necesita_ua",
-                    item.necesita_ua ?? false,
+                    isRequiredFlag(item.necesita_ua),
                   );
                   productSubForm.setValue("origen", item.origen);
                 }

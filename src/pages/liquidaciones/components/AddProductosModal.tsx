@@ -167,6 +167,17 @@ export default function AddProductosModal({
     [seriesInventario, serieSearch],
   );
 
+  const serieStockByProducto = useMemo(() => {
+    const stock = new Map<number, number>();
+
+    for (const item of seriesInventario) {
+      const productoId = item.serie.producto.id;
+      stock.set(productoId, (stock.get(productoId) ?? 0) + 1);
+    }
+
+    return stock;
+  }, [seriesInventario]);
+
   const handleTecnicoChange = (id: string, nombre: string) => {
     setTecnicoId(id);
     setSelectedInventoryTecnico(id);
@@ -442,6 +453,10 @@ export default function AddProductosModal({
                         <SerieInventarioCard
                           key={item.id}
                           item={item}
+                          stock={
+                            serieStockByProducto.get(item.serie.producto.id) ??
+                            0
+                          }
                           selected={selectedSerieIds.has(item.serie.id)}
                           onToggle={() => toggleOwnSerie(item)}
                         />
@@ -872,10 +887,12 @@ function SerieAsyncSearch({
 
 function SerieInventarioCard({
   item,
+  stock,
   selected,
   onToggle,
 }: {
   item: SerieInventarioItem;
+  stock: number;
   selected: boolean;
   onToggle: () => void;
 }) {
@@ -891,9 +908,17 @@ function SerieInventarioCard({
       )}
     >
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium leading-tight truncate">
-          {item.serie.producto.nombre}
-        </p>
+        <div className="flex items-start justify-between gap-2">
+          <p className="text-sm font-medium leading-tight truncate">
+            {item.serie.producto.nombre}
+          </p>
+          <Badge
+            color={stock > 0 ? "green" : "red"}
+            className="text-xs shrink-0"
+          >
+            Stock: {stock}
+          </Badge>
+        </div>
         <p className="text-xs text-muted-foreground font-mono">
           Serie: {item.serie.serie}
         </p>

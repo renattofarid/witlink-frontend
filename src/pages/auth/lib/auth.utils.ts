@@ -15,13 +15,27 @@ const CORPORATE_CODES = new Set([
   "ALMACEN_CENTRAL_CORP",
 ]);
 
+function normalizeAlmacenText(value?: string | null): string {
+  return (value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase()
+    .trim();
+}
+
 export function isCorporateAlmacen(almacen: AlmacenResource): boolean {
   if (almacen.is_corporativo || almacen.es_subalmacen_corporativo) return true;
-  if (almacen.codigo && CORPORATE_CODES.has(almacen.codigo)) return true;
+  const code = normalizeAlmacenText(almacen.codigo);
+  const name = normalizeAlmacenText(almacen.nombre);
+
+  if (code && CORPORATE_CODES.has(code)) return true;
   if (
-    almacen.codigo &&
-    (almacen.codigo.startsWith("CORP_") || almacen.codigo.includes("CORP"))
+    code &&
+    (code.startsWith("CORP_") || code.includes("CORP"))
   ) {
+    return true;
+  }
+  if (name.includes("CORPORATIVO") || name.includes("PLANTA INTERNA") || name.includes("PLANTA EXTERNA")) {
     return true;
   }
   return false;

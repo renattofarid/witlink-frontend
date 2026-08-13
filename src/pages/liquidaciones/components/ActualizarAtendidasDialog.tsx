@@ -86,14 +86,15 @@ function showImportResult(data: ImportarConsolidadoResponse) {
     `${data.actualizados ?? 0} actualizadas`,
   ];
 
-  if (errores > 0) {
-    partes.push(`${errores}+ omitidas (técnico no encontrado)`);
+  const sinTecnico = data.sin_tecnico ?? errores;
+  if (sinTecnico > 0) {
+    partes.push(`${sinTecnico} sin técnico (asignar manualmente)`);
   }
 
   const mensaje = partes.join(" · ");
 
-  if (errores > 0) {
-    warningToast(mensaje);
+  if (sinTecnico > 0) {
+    warningToast(data.mensaje ?? mensaje);
   } else {
     successToast(data.mensaje ?? mensaje);
   }

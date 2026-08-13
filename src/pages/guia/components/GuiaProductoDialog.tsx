@@ -18,6 +18,10 @@ const EMPTY_SERIE: SerieFormValues = {
   observaciones: null,
 };
 
+function isRequiredFlag(value: unknown): boolean {
+  return value === true || value === 1 || value === "1";
+}
+
 interface GuiaProductoDialogProps {
   open: boolean;
   editingIndex: number | null;
@@ -87,12 +91,16 @@ export function GuiaProductoDialog({
   );
 
   const isEquipo = watchedTipo === "EQUIPO";
-  const disabledSerie = necesitaSerie !== true;
-  const disabledMac = necesitaMac !== true;
-  const disabledEmtaMac = necesitaEmtaMac !== true;
-  const disabledUa = necesitaUa !== true;
+  const requiresSerie = isRequiredFlag(necesitaSerie);
+  const requiresMac = isRequiredFlag(necesitaMac);
+  const requiresEmtaMac = isRequiredFlag(necesitaEmtaMac);
+  const requiresUa = isRequiredFlag(necesitaUa);
+  const disabledSerie = !requiresSerie;
+  const disabledMac = !requiresMac;
+  const disabledEmtaMac = !requiresEmtaMac;
+  const disabledUa = !requiresUa;
   const needsSeries =
-    !!necesitaSerie || !!necesitaMac || !!necesitaEmtaMac || !!necesitaUa;
+    requiresSerie || requiresMac || requiresEmtaMac || requiresUa;
 
   // Inicializa con 1 fila vacía cuando el producto es equipo con series
   useEffect(() => {

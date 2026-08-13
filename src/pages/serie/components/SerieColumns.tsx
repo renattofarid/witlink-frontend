@@ -83,6 +83,15 @@ export const getSerieColumns = ({
     ),
   },
   {
+    id: "sap",
+    header: "Código SAP",
+    cell: ({ row }) => (
+      <span className="font-mono text-xs font-medium bg-muted/60 px-2 py-0.5 rounded border border-border/40">
+        {row.original.producto?.sap ?? "—"}
+      </span>
+    ),
+  },
+  {
     id: "producto",
     header: "Producto",
     cell: ({ row }) => row.original.producto?.nombre ?? "-",

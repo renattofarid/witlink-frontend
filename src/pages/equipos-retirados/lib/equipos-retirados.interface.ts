@@ -57,6 +57,12 @@ export interface EquipoRetiradoProductoResource {
   series: EquipoRetiradoProductoSeriesResource[];
 }
 
+export interface EquipoRetiradoAlmacenRef {
+  id: number;
+  nombre: string;
+  codigo: string;
+}
+
 export interface EquipoRetiradoResource {
   id: number;
   sot: string;
@@ -67,6 +73,12 @@ export interface EquipoRetiradoResource {
   updated_at: string;
   deleted_at: string | null;
   productos: EquipoRetiradoProductoResource[];
+  /** Almacén donde reside el documento (p.ej. el consolidado de retirados corporativo). */
+  almacen_id?: number;
+  almacen?: EquipoRetiradoAlmacenRef | null;
+  /** Subalmacén operativo al que pertenece el retirado (PINT, PMO, PEXT, Norte, Oriente, etc.). */
+  almacen_pertenencia_id?: number | null;
+  almacen_pertenencia?: EquipoRetiradoAlmacenRef | null;
 }
 
 export type EquiposRetiradosResponse = PaginationResponse<EquipoRetiradoResource>;

@@ -8,6 +8,7 @@ import type {
   GuiaEditBody,
   GuiaProductoBody,
   DetalleSeriesGuiaBody,
+  ImportarGuiasCorporativoResponse,
 } from "./guia.interface";
 import type { AxiosRequestConfig } from "axios";
 
@@ -258,6 +259,37 @@ export const deleteGuia = async (id: number) => {
 export const restoreGuia = async (id: number) => {
   const { data } = await api.post(`${GuiaComplete.ENDPOINT}/${id}/restaurar`);
   return data;
+};
+
+/**
+ * Importación masiva de guías corporativas desde el Excel SAPUI5 del cliente.
+ * El backend responde 201 cuando todo se procesó sin observaciones y 422
+ * cuando hubo filas/guías omitidas — en ambos casos trae el mismo resumen
+ * útil, así que se trata el 422 como un resultado válido en vez de un error
+ * de red. `almacen_id` solo aplica para usuarios de almacén corporativo.
+ */
+export const importarGuiasCorporativo = async (
+  archivo: File,
+  opciones?: { fecha?: string | null; almacen_id?: number | null },
+): Promise<ImportarGuiasCorporativoResponse> => {
+  const formData = new FormData();
+  formData.append("archivo", archivo);
+  if (opciones?.fecha) formData.append("fecha", opciones.fecha);
+  if (opciones?.almacen_id != null)
+    formData.append("almacen_id", String(opciones.almacen_id));
+  try {
+    const { data } = await api.post(
+      `${GuiaComplete.ENDPOINT}/importar-corporativo`,
+      formData,
+      { headers: { "Content-Type": "multipart/form-data" } },
+    );
+    return data;
+  } catch (error: any) {
+    if (error?.response?.status === 422 && error.response.data) {
+      return error.response.data;
+    }
+    throw error;
+  }
 };
 
 export const getSeries = async (params: Record<string, any>) => {

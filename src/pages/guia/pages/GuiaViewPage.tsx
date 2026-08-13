@@ -83,6 +83,44 @@ export default function GuiaViewPage() {
             <p className="text-xs text-muted-foreground uppercase tracking-wide">Registrado por</p>
             <p className="font-medium">{nombreUsuario}</p>
           </div>
+          {guia.origen_importacion && (
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground uppercase tracking-wide">Origen</p>
+              <Badge variant="outline" className="text-xs">
+                {guia.origen_importacion}
+              </Badge>
+            </div>
+          )}
+          {guia.numero_entrega && (
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground uppercase tracking-wide">N° Entrega</p>
+              <p className="font-medium">{guia.numero_entrega}</p>
+            </div>
+          )}
+          {guia.numero_guia_1 && (
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground uppercase tracking-wide">N° Guía 1</p>
+              <p className="font-medium">{guia.numero_guia_1}</p>
+            </div>
+          )}
+          {guia.numero_guia_2 && (
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground uppercase tracking-wide">N° Guía 2</p>
+              <p className="font-medium">{guia.numero_guia_2}</p>
+            </div>
+          )}
+          {guia.sol_abastecimiento && (
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground uppercase tracking-wide">Sol. Abastecimiento</p>
+              <p className="font-medium">{guia.sol_abastecimiento}</p>
+            </div>
+          )}
+          {guia.pedido_traslado && (
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground uppercase tracking-wide">Pedido Traslado</p>
+              <p className="font-medium">{guia.pedido_traslado}</p>
+            </div>
+          )}
         </div>
 
         {guia.ruta_pdf_guia && (
@@ -137,14 +175,35 @@ export default function GuiaViewPage() {
                         </TableCell>
                         <TableCell>
                           <p className="text-sm font-medium leading-tight">{producto.producto.nombre}</p>
-                          <p className="text-xs text-muted-foreground font-mono mt-0.5">{producto.producto.sap}</p>
+                          <p className="text-xs text-muted-foreground font-mono mt-0.5">
+                            {producto.producto.sap}
+                            {producto.posicion && (
+                              <>
+                                {" · Pos. "}
+                                {producto.posicion}
+                              </>
+                            )}
+                            {producto.nro_lote && (
+                              <>
+                                {" · Lote "}
+                                {producto.nro_lote}
+                              </>
+                            )}
+                          </p>
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline" className="text-xs">
                             {producto.producto.tipo}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-right">{Number(producto.cantidad)}</TableCell>
+                        <TableCell className="text-right">
+                          {Number(producto.cantidad)}
+                          {producto.unidad_medida && (
+                            <span className="text-xs text-muted-foreground ml-1">
+                              {producto.unidad_medida}
+                            </span>
+                          )}
+                        </TableCell>
                         <TableCell>
                           <Badge variant="default" color={isProductConfirmado ? "green" : "muted"} className="text-xs">
                             {isProductConfirmado ? "Confirmado" : "Pendiente"}

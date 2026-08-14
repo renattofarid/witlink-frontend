@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, ArrowRight, X, Package } from "lucide-react";
+import { Loader2, ArrowRight, X, Package, Warehouse } from "lucide-react";
 import { getSeriesRetiradas } from "../lib/devolucion.actions";
 import {
   SITUACION_BLOQUEADA_DEVOLUCION,
@@ -19,6 +19,12 @@ export interface DevolucionSerieCartItem {
   marca?: string;
   situacion?: string;
   despacho?: SerieRetiradaResource["despacho"];
+  almacenPertenencia?: string | null;
+}
+
+/** row.almacen_pertenencia?.nombre con fallback a row.almacen?.nombre (retirados corporativos). */
+function getAlmacenPertenenciaNombre(serie: SerieRetiradaResource): string | null {
+  return serie.almacen_pertenencia?.nombre ?? serie.almacen?.nombre ?? null;
 }
 
 interface Props {
@@ -53,6 +59,7 @@ export default function DevolucionSeriesInput({ items, onAdd, onRemove, extraPar
       sap: serie.sap,
       situacion: serie.situacion,
       despacho: serie.despacho,
+      almacenPertenencia: getAlmacenPertenenciaNombre(serie),
     });
     setInput("");
     setMatches([]);
@@ -123,31 +130,45 @@ export default function DevolucionSeriesInput({ items, onAdd, onRemove, extraPar
               {matches.length} resultado{matches.length !== 1 ? "s" : ""} — seleccione uno
             </p>
           </div>
-          {matches.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className="w-full text-left px-3 py-2.5 hover:bg-muted flex items-center gap-3 border-b last:border-0 transition-colors"
-              onClick={() => addFromResource(item)}
-            >
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm font-mono">{item.serie}</p>
-                <p className="text-xs text-muted-foreground truncate">
-                  {item.producto}
-                  {item.despacho && (
-                    <>
-                      <span className="mx-1 text-border">·</span>
-                      Despacho {item.despacho.numero} (SOT {item.despacho.sot})
-                    </>
-                  )}
-                </p>
-              </div>
-              <Badge variant="outline" className="text-xs shrink-0 hidden sm:flex">
-                {item.situacion}
-              </Badge>
-              <ArrowRight className="size-3.5 text-muted-foreground shrink-0" />
-            </button>
-          ))}
+          {matches.map((item) => {
+            const almacenPertenencia = getAlmacenPertenenciaNombre(item);
+            return (
+              <button
+                key={item.id}
+                type="button"
+                className="w-full text-left px-3 py-2.5 hover:bg-muted flex items-center gap-3 border-b last:border-0 transition-colors"
+                onClick={() => addFromResource(item)}
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm font-mono">{item.serie}</p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {item.producto}
+                    {item.despacho && (
+                      <>
+                        <span className="mx-1 text-border">·</span>
+                        Despacho {item.despacho.numero} (SOT {item.despacho.sot})
+                      </>
+                    )}
+                  </p>
+                </div>
+                {almacenPertenencia && (
+                  <Badge
+                    variant="ghost"
+                    color="blue"
+                    className="text-xs shrink-0 gap-1"
+                    title={item.almacen?.nombre}
+                  >
+                    <Warehouse className="size-3" />
+                    {almacenPertenencia}
+                  </Badge>
+                )}
+                <Badge variant="outline" className="text-xs shrink-0 hidden sm:flex">
+                  {item.situacion}
+                </Badge>
+                <ArrowRight className="size-3.5 text-muted-foreground shrink-0" />
+              </button>
+            );
+          })}
         </div>
       )}
 
@@ -180,6 +201,12 @@ export default function DevolucionSeriesInput({ items, onAdd, onRemove, extraPar
                   )}
                 </p>
               </div>
+              {item.almacenPertenencia && (
+                <Badge variant="ghost" color="blue" className="text-xs shrink-0 gap-1">
+                  <Warehouse className="size-3" />
+                  {item.almacenPertenencia}
+                </Badge>
+              )}
               <Badge variant="outline" className="text-xs shrink-0 hidden sm:flex">
                 {item.situacion ?? "RE"}
               </Badge>

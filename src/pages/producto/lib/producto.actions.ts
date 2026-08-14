@@ -5,7 +5,6 @@ import type {
   ProductoResource,
   ProductoCreateBody,
   ProductoUpdateBody,
-  ImportarSapResponse,
 } from "./producto.interface";
 
 export const getProductos = async (
@@ -49,29 +48,3 @@ export const restoreProducto = async (id: number) => {
   return data;
 };
 
-/**
- * Importación masiva de códigos SAP. El backend responde 201 cuando todo se
- * procesó sin errores y 422 cuando hubo filas omitidas con observaciones —
- * en ambos casos el body trae el mismo resumen útil (`creados`,
- * `actualizados`, `errores`, etc.), así que se trata el 422 como un
- * resultado válido en vez de un error de red.
- */
-export const importarCodigosSap = async (
-  archivo: File,
-): Promise<ImportarSapResponse> => {
-  const formData = new FormData();
-  formData.append("archivo", archivo);
-  try {
-    const { data } = await api.post(
-      `${ProductoComplete.ENDPOINT}/importar-sap`,
-      formData,
-      { headers: { "Content-Type": "multipart/form-data" } },
-    );
-    return data;
-  } catch (error: any) {
-    if (error?.response?.status === 422 && error.response.data) {
-      return error.response.data;
-    }
-    throw error;
-  }
-};

@@ -51,26 +51,3 @@ export interface ProductoUpdateBody {
   lote?: string;
 }
 
-// Importación masiva de códigos SAP (POST /productos/importar-sap)
-export interface ImportarSapError {
-  fila: number;
-  sap: string;
-  motivo: string;
-}
-
-export interface ImportarSapRegistro {
-  fila: number;
-  producto_id: number;
-  sap: string;
-  accion: "creados" | "actualizados" | "restaurados" | string;
-}
-
-export interface ImportarSapResponse {
-  creados: number;
-  actualizados: number;
-  restaurados: number;
-  omitidos: number;
-  errores: ImportarSapError[];
-  registros: ImportarSapRegistro[];
-  mensaje: string;
-}

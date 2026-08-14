@@ -32,6 +32,10 @@ export interface GuiaProductoResource {
   cantidad: string;
   confirmado: number;
   observaciones: string | null;
+  /** Propios de productos importados desde el Excel SAPUI5 del cliente. */
+  posicion?: string | null;
+  unidad_medida?: string | null;
+  nro_lote?: string | null;
   series: Array<{
     serie?: GuiaSerieResource | null;
     confirmado: number;
@@ -65,6 +69,8 @@ export interface GuiaListResource {
   numero: string;
   fecha: string;
   almacen: string | null;
+  /** Solo en filas `type: "retirado"` de almacenes corporativos: subalmacén operativo real (PINT, PMO, PEXT, Norte, Oriente...). Si viene null, usar `almacen` como fallback. */
+  almacen_pertenencia?: string | null;
   sot: string | null;
   motivo: string | null;
   tipo?: string | null;
@@ -88,6 +94,13 @@ export interface GuiaResource {
   created_at: string;
   updated_at: string;
   deleted_at?: string | null;
+  /** Campos propios de guías importadas desde el Excel SAPUI5 del cliente. */
+  numero_entrega?: string | null;
+  numero_guia_1?: string | null;
+  numero_guia_2?: string | null;
+  sol_abastecimiento?: string | null;
+  pedido_traslado?: string | null;
+  origen_importacion?: string | null;
 }
 
 export type GuiaResponse = PaginationResponse<GuiaListResource>;
@@ -162,6 +175,30 @@ export interface DetalleSeriesGuiaBody {
     emta_mac?: string | null;
     ua?: string | null;
   }>;
+}
+
+// Importación masiva de guías corporativas desde el formato SAPUI5 del cliente
+// (POST /guias/importar-corporativo).
+export interface ImportarGuiasCorporativoGuia {
+  id: number;
+  numero: string;
+  numero_entrega: string | null;
+  numero_guia_1: string | null;
+  numero_guia_2: string | null;
+  productos: number;
+}
+
+export interface ImportarGuiasCorporativoResponse {
+  guias_creadas: number;
+  guias_omitidas: number;
+  productos_creados: number;
+  productos_actualizados: number;
+  productos_restaurados: number;
+  filas_procesadas: number;
+  filas_omitidas: number;
+  errores: string[];
+  guias: ImportarGuiasCorporativoGuia[];
+  mensaje: string;
 }
 
 export type SerieLocalStatus = "pending" | "confirmed" | "error";

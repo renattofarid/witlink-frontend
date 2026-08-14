@@ -27,6 +27,13 @@ export interface SerieRetiradaDespachoRef {
   fecha: string;
 }
 
+export interface SerieRetiradaAlmacenRef {
+  id: number;
+  nombre: string;
+  codigo: string;
+  direccion: string;
+}
+
 export interface SerieRetiradaResource {
   id: number;
   serie: string;
@@ -37,6 +44,12 @@ export interface SerieRetiradaResource {
   producto_id: number;
   sap: string;
   producto: string;
+  /** Almacén donde reside físicamente la serie (p.ej. el consolidado de retirados). */
+  almacen_id?: number;
+  almacen?: SerieRetiradaAlmacenRef | null;
+  /** Subalmacén operativo al que pertenece el retirado (PINT, PMO, PEXT, Norte, Oriente, etc.). */
+  almacen_pertenencia_id?: number | null;
+  almacen_pertenencia?: SerieRetiradaAlmacenRef | null;
   /** Solo presente cuando la búsqueda se filtra por `sot`/`despacho_id` (flujo PEXT). */
   despacho?: SerieRetiradaDespachoRef;
 }

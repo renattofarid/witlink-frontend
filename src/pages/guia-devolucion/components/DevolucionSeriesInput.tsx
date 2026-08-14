@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, ArrowRight, X, Package } from "lucide-react";
+import { Loader2, ArrowRight, X, Package, Warehouse } from "lucide-react";
 import { getSeriesRetiradas } from "../lib/devolucion.actions";
 import {
   SITUACION_BLOQUEADA_DEVOLUCION,
@@ -149,14 +149,19 @@ export default function DevolucionSeriesInput({ items, onAdd, onRemove, extraPar
                         Despacho {item.despacho.numero} (SOT {item.despacho.sot})
                       </>
                     )}
-                    {almacenPertenencia && (
-                      <>
-                        <span className="mx-1 text-border">·</span>
-                        {almacenPertenencia}
-                      </>
-                    )}
                   </p>
                 </div>
+                {almacenPertenencia && (
+                  <Badge
+                    variant="ghost"
+                    color="blue"
+                    className="text-xs shrink-0 gap-1"
+                    title={item.almacen?.nombre}
+                  >
+                    <Warehouse className="size-3" />
+                    {almacenPertenencia}
+                  </Badge>
+                )}
                 <Badge variant="outline" className="text-xs shrink-0 hidden sm:flex">
                   {item.situacion}
                 </Badge>
@@ -194,14 +199,14 @@ export default function DevolucionSeriesInput({ items, onAdd, onRemove, extraPar
                       Despacho {item.despacho.numero} (SOT {item.despacho.sot})
                     </>
                   )}
-                  {item.almacenPertenencia && (
-                    <>
-                      <span className="mx-1 text-border">·</span>
-                      {item.almacenPertenencia}
-                    </>
-                  )}
                 </p>
               </div>
+              {item.almacenPertenencia && (
+                <Badge variant="ghost" color="blue" className="text-xs shrink-0 gap-1">
+                  <Warehouse className="size-3" />
+                  {item.almacenPertenencia}
+                </Badge>
+              )}
               <Badge variant="outline" className="text-xs shrink-0 hidden sm:flex">
                 {item.situacion ?? "RE"}
               </Badge>

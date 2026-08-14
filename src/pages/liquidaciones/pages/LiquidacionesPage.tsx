@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTabParams } from "@/hooks/useTabParams";
 import { useNavigate } from "react-router-dom";
 import { Plus, RefreshCw, Upload } from "lucide-react";
@@ -11,7 +11,6 @@ import { Button } from "@/components/ui/button";
 import { GeneralModal } from "@/components/GeneralModal";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import { errorToast, warningToast } from "@/lib/core.function";
-import { useAuthStore } from "@/pages/auth/lib/auth.store";
 import { useLiquidacionesQuery } from "../lib/liquidaciones.hook";
 import { LiquidacionesComplete } from "../lib/liquidaciones.constants";
 import { getLiquidacionColumns } from "../components/LiquidacionColumns";
@@ -24,7 +23,6 @@ import type { LiquidacionResource } from "../lib/liquidaciones.interface";
 
 export default function LiquidacionesPage() {
   const navigate = useNavigate();
-  const almacen_id = useAuthStore((s) => s.almacen_id);
 
   const [actasDialogOpen, setActasDialogOpen] = useState(false);
   const [atendidasDialogOpen, setAtendidasDialogOpen] = useState(false);
@@ -40,20 +38,9 @@ export default function LiquidacionesPage() {
       estado: "",
       estado_liquidacion: "",
       sots: "",
-      ...(almacen_id ? { almacen_id: String(almacen_id) } : {}),
+      almacen_id: "",
     },
   );
-
-  useEffect(() => {
-    if (almacen_id) {
-      setParams((prev) => {
-        if (prev.almacen_id !== String(almacen_id)) {
-          return { ...prev, almacen_id: String(almacen_id), page: "1" };
-        }
-        return prev;
-      });
-    }
-  }, [almacen_id, setParams]);
 
   const queryParams = Object.fromEntries(
     Object.entries(params).filter(([, v]) => v !== ""),

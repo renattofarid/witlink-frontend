@@ -9,8 +9,7 @@ import ExportExcelButton from "@/components/ExportExcelButton";
 import { X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getAlmacenes } from "@/pages/auth/lib/auth.actions";
-import { useAuthStore } from "@/pages/auth/lib/auth.store";
-import { getAlmacenesPermitidos } from "@/pages/auth/lib/auth.utils";
+import { isCorporateAlmacen } from "@/pages/auth/lib/auth.utils";
 import {
   ESTADO_OPERATIVO_OPTIONS,
   ESTADO_LIQUIDACION_OPTIONS,
@@ -52,9 +51,6 @@ export default function LiquidacionFilters({
   exportParams = {},
   totalResults = 0,
 }: LiquidacionFiltersProps) {
-  const user = useAuthStore((s) => s.user);
-  const userAlmacenId = useAuthStore((s) => s.almacen_id);
-
   const { data: almacenes = [] } = useQuery({
     queryKey: ["almacenes-list"],
     queryFn: getAlmacenes,
@@ -62,21 +58,14 @@ export default function LiquidacionFilters({
   });
 
   const almacenOptions = useMemo(() => {
-    const permitidos = getAlmacenesPermitidos(user, almacenes);
+    const operativos = almacenes.filter((a) => !isCorporateAlmacen(a));
     return [
       { value: "all", label: "Todos los almacenes" },
-      ...permitidos.map((a) => ({ value: String(a.id), label: a.nombre })),
+      ...operativos.map((a) => ({ value: String(a.id), label: a.nombre })),
     ];
-  }, [user, almacenes]);
+  }, [almacenes]);
 
-  const activeAlmacenVal =
-    almacenId !== undefined
-      ? almacenId === ""
-        ? "all"
-        : almacenId
-      : userAlmacenId
-      ? String(userAlmacenId)
-      : "all";
+  const activeAlmacenVal = !almacenId ? "all" : almacenId;
   const [bulkOpen, setBulkOpen] = useState(false);
   const [bulkText, setBulkText] = useState("");
 

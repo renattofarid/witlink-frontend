@@ -734,6 +734,11 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
             <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground whitespace-nowrap">
               Datos del equipo retirado
             </h3>
+            {(equipo?.almacen_pertenencia?.nombre ?? equipo?.almacen?.nombre) && (
+              <Badge variant="outline" className="text-xs shrink-0" title={equipo?.almacen?.nombre}>
+                {equipo?.almacen_pertenencia?.nombre ?? equipo?.almacen?.nombre}
+              </Badge>
+            )}
             <Separator className="flex-1" />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">

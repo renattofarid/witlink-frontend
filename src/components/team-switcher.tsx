@@ -24,7 +24,6 @@ import {
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
 import { useTabsStore } from "@/store/tabs.store";
 import { getAlmacenes, selectAlmacen } from "@/pages/auth/lib/auth.actions";
-import { getAlmacenesPermitidos } from "@/pages/auth/lib/auth.utils";
 import { errorToast } from "@/lib/core.function";
 import type { AlmacenResource } from "@/pages/almacenes/lib/almacen.interface";
 
@@ -33,7 +32,6 @@ export function TeamSwitcher() {
   const almacen_id = useAuthStore((s) => s.almacen_id);
   const setAlmacenId = useAuthStore((s) => s.setAlmacenId);
   const authenticate = useAuthStore((s) => s.authenticate);
-  const user = useAuthStore((s) => s.user);
   const [switching, setSwitching] = useState<number | null>(null);
   const queryClient = useQueryClient();
 
@@ -47,7 +45,10 @@ export function TeamSwitcher() {
 
   const { headquarterList, pintList, pextList, regionalesList, totalDisponibles } =
     useMemo(() => {
-      const almacenesPermitidos = getAlmacenesPermitidos(user, almacenesAll);
+      // El switcher siempre lista todos los almacenes (sin filtrar por el
+      // is_corporativo/subalmacenes del contexto actualmente activo), para
+      // poder cambiar libremente entre corporativos y no-corporativos.
+      const almacenesPermitidos = almacenesAll;
 
       const defaultHqs = [
         { codigo: "CORP_LALIB", nombre: "Corporativo Instalación La Libertad" },
@@ -126,7 +127,7 @@ export function TeamSwitcher() {
         regionalesList: regionales,
         totalDisponibles: almacenesPermitidos.length,
       };
-    }, [almacenesAll, user]);
+    }, [almacenesAll]);
 
   const handleSelect = async (id: number) => {
     if (id === almacen_id || switching !== null) return;

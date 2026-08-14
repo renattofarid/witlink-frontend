@@ -3,6 +3,7 @@ import type { PaginationResponse } from "@/lib/core.interface";
 export interface AlmacenResource {
   id: number;
   nombre: string;
+  nombre_display?: string;
   codigo: string;
   direccion: string;
   created_at: string;

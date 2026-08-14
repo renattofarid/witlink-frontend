@@ -87,15 +87,19 @@ const EMPTY_PRODUCTO: ProductoFormValues = {
   series: [],
 };
 
+function isRequiredFlag(value: unknown): boolean {
+  return value === true || value === 1 || value === "1";
+}
+
 // ── Helper: valida que una fila de serie tenga todos los campos requeridos ────
 
 function needsSeriesRows(values: ProductoFormValues): boolean {
   return (
     values.tipo === "EQUIPO" &&
-    (!!values.necesita_serie ||
-      !!values.necesita_mac ||
-      !!values.necesita_emta_mac ||
-      !!values.necesita_ua)
+    (isRequiredFlag(values.necesita_serie) ||
+      isRequiredFlag(values.necesita_mac) ||
+      isRequiredFlag(values.necesita_emta_mac) ||
+      isRequiredFlag(values.necesita_ua))
   );
 }
 
@@ -106,10 +110,10 @@ function isSerieComplete(
     "necesita_serie" | "necesita_mac" | "necesita_emta_mac" | "necesita_ua"
   >,
 ): boolean {
-  if (flags.necesita_serie && !serie.serie?.trim()) return false;
-  if (flags.necesita_mac && !serie.mac?.trim()) return false;
-  if (flags.necesita_emta_mac && !serie.emta_mac?.trim()) return false;
-  if (flags.necesita_ua && !serie.ua?.trim()) return false;
+  if (isRequiredFlag(flags.necesita_serie) && !serie.serie?.trim()) return false;
+  if (isRequiredFlag(flags.necesita_mac) && !serie.mac?.trim()) return false;
+  if (isRequiredFlag(flags.necesita_emta_mac) && !serie.emta_mac?.trim()) return false;
+  if (isRequiredFlag(flags.necesita_ua) && !serie.ua?.trim()) return false;
   return true;
 }
 
@@ -353,10 +357,11 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
   const addSerieProducto = (equipo?.productos ?? []).find(
     (p) => p.id === addSerieForDetailId,
   );
-  const addSerieRequiresMac = addSerieProducto?.producto.necesita_mac === 1;
-  const addSerieRequiresEmtaMac =
-    String(addSerieProducto?.producto.necesita_emta_mac) === "1";
-  const addSerieRequiresUa = addSerieProducto?.producto.necesita_ua === 1;
+  const addSerieRequiresMac = isRequiredFlag(addSerieProducto?.producto.necesita_mac);
+  const addSerieRequiresEmtaMac = isRequiredFlag(
+    addSerieProducto?.producto.necesita_emta_mac,
+  );
+  const addSerieRequiresUa = isRequiredFlag(addSerieProducto?.producto.necesita_ua);
 
   // ── Requeridos + duplicados + existencia (edit mode inline add) ───────────
   const handleSubmitSerie = serieForm.handleSubmit(async (values) => {
@@ -816,7 +821,10 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
           {productos.length > 0 ? (
             <div className="space-y-2">
               {productos.map((p) => {
-                const necesitaSerie = p.producto.necesita_serie === 1;
+                const necesitaSerie = isRequiredFlag(p.producto.necesita_serie);
+                const necesitaMac = isRequiredFlag(p.producto.necesita_mac);
+                const necesitaEmtaMac = isRequiredFlag(p.producto.necesita_emta_mac);
+                const necesitaUa = isRequiredFlag(p.producto.necesita_ua);
                 const isAddingSerieHere = addSerieForDetailId === p.id;
                 return (
                   <div key={p.id} className="border rounded-lg p-3 space-y-2 bg-muted/10">
@@ -911,16 +919,16 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
                             label="MAC"
                             control={serieForm.control}
                             placeholder="001A2B3C4D5E"
-                            required={p.producto.necesita_mac === 1}
-                            disabled={p.producto.necesita_mac !== 1}
+                            required={necesitaMac}
+                            disabled={!necesitaMac}
                           />
                           <FormInput
                             name="emta_mac"
                             label="EMTA MAC"
                             control={serieForm.control}
                             placeholder="001A2B3C4D5E"
-                            required={String(p.producto.necesita_emta_mac) === "1"}
-                            disabled={String(p.producto.necesita_emta_mac) !== "1"}
+                            required={necesitaEmtaMac}
+                            disabled={!necesitaEmtaMac}
                           />
                           <FormInput
                             name="ua"
@@ -928,8 +936,8 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
                             control={serieForm.control}
                             placeholder="Ingrese UA"
                             uppercase
-                            required={p.producto.necesita_ua === 1}
-                            disabled={p.producto.necesita_ua !== 1}
+                            required={necesitaUa}
+                            disabled={!necesitaUa}
                           />
                           <FormInput
                             name="observaciones"

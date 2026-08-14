@@ -64,6 +64,7 @@ interface AddProductosModalProps {
   open: boolean;
   onClose: () => void;
   liquidacion: LiquidacionResource;
+  currentItems?: LiquidacionCartItem[];
   onConfirm: (items: LiquidacionCartItem[]) => void;
   initialTecnicoId?: string;
   notRepetidos?: boolean;
@@ -89,6 +90,7 @@ export default function AddProductosModal({
   open,
   onClose,
   liquidacion,
+  currentItems = [],
   onConfirm,
   initialTecnicoId,
   notRepetidos,
@@ -167,6 +169,37 @@ export default function AddProductosModal({
     [seriesInventario, serieSearch],
   );
 
+  const pendingQtyByMaterial = useMemo(() => {
+    const pending = new Map<string, number>();
+
+    for (const item of currentItems) {
+      if (item.tipo !== "material" || item.detalle_id) continue;
+      const key = `${item.tecnico_id}-${item.producto_id}`;
+      pending.set(key, (pending.get(key) ?? 0) + item.cantidad);
+    }
+
+    return pending;
+  }, [currentItems]);
+
+  const serieStockByProducto = useMemo(() => {
+    const stock = new Map<number, number>();
+
+    for (const item of seriesInventario) {
+      const productoId = item.serie.producto.id;
+      stock.set(productoId, (stock.get(productoId) ?? 0) + 1);
+    }
+
+    return stock;
+  }, [seriesInventario]);
+
+  const getMaterialPendingQty = (item: MaterialInventarioItem) => {
+    const key = `${Number(tecnicoId)}-${item.material.producto.id}`;
+    const pendingInCart = pendingQtyByMaterial.get(key) ?? 0;
+    const pendingInModal = materialSelections[item.id]?.cantidad ?? 0;
+
+    return pendingInCart + pendingInModal;
+  };
+
   const handleTecnicoChange = (id: string, nombre: string) => {
     setTecnicoId(id);
     setSelectedInventoryTecnico(id);
@@ -177,7 +210,7 @@ export default function AddProductosModal({
   const handleMaterialQty = (item: MaterialInventarioItem, delta: number) => {
     setMaterialSelections((prev) => {
       const current = prev[item.id]?.cantidad ?? 0;
-      const next = Math.min(Math.max(0, current + delta), item.cantidad);
+      const next = Math.max(0, current + delta);
       if (next === 0) {
         const { [item.id]: _, ...rest } = prev;
         return rest;
@@ -190,7 +223,7 @@ export default function AddProductosModal({
     item: MaterialInventarioItem,
     val: string,
   ) => {
-    const n = Math.min(Math.max(0, Number(val) || 0), item.cantidad);
+    const n = Math.max(0, Number(val) || 0);
     setMaterialSelections((prev) => {
       if (n === 0) {
         const { [item.id]: _, ...rest } = prev;
@@ -442,6 +475,10 @@ export default function AddProductosModal({
                         <SerieInventarioCard
                           key={item.id}
                           item={item}
+                          stock={
+                            serieStockByProducto.get(item.serie.producto.id) ??
+                            0
+                          }
                           selected={selectedSerieIds.has(item.serie.id)}
                           onToggle={() => toggleOwnSerie(item)}
                         />
@@ -568,6 +605,7 @@ export default function AddProductosModal({
                         key={item.id}
                         item={item}
                         qty={materialSelections[item.id]?.cantidad ?? 0}
+                        pendingQty={getMaterialPendingQty(item)}
                         onQtyChange={(delta) => handleMaterialQty(item, delta)}
                         onQtyInput={(val) => handleMaterialQtyInput(item, val)}
                       />
@@ -622,6 +660,7 @@ export default function AddProductosModal({
                   key={item.id}
                   item={item}
                   qty={materialSelections[item.id]?.cantidad ?? 0}
+                  pendingQty={getMaterialPendingQty(item)}
                   onQtyChange={(delta) => handleMaterialQty(item, delta)}
                   onQtyInput={(val) => handleMaterialQtyInput(item, val)}
                 />
@@ -872,10 +911,12 @@ function SerieAsyncSearch({
 
 function SerieInventarioCard({
   item,
+  stock,
   selected,
   onToggle,
 }: {
   item: SerieInventarioItem;
+  stock: number;
   selected: boolean;
   onToggle: () => void;
 }) {
@@ -891,9 +932,17 @@ function SerieInventarioCard({
       )}
     >
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium leading-tight truncate">
-          {item.serie.producto.nombre}
-        </p>
+        <div className="flex items-start justify-between gap-2">
+          <p className="text-sm font-medium leading-tight truncate">
+            {item.serie.producto.nombre}
+          </p>
+          <Badge
+            color={stock > 0 ? "green" : "red"}
+            className="text-xs shrink-0"
+          >
+            Stock: {stock}
+          </Badge>
+        </div>
         <p className="text-xs text-muted-foreground font-mono">
           Serie: {item.serie.serie}
         </p>
@@ -958,14 +1007,18 @@ function ExternSerieCard({
 function MaterialCard({
   item,
   qty,
+  pendingQty,
   onQtyChange,
   onQtyInput,
 }: {
   item: MaterialInventarioItem;
   qty: number;
+  pendingQty: number;
   onQtyChange: (delta: number) => void;
   onQtyInput: (val: string) => void;
 }) {
+  const pendingOutsideCurrent = Math.max(0, pendingQty - qty);
+
   return (
     <div
       className={cn(
@@ -981,6 +1034,11 @@ function MaterialCard({
           <p className="text-xs text-muted-foreground font-mono">
             {item.material.producto.sap}
           </p>
+          {pendingOutsideCurrent > 0 && (
+            <p className="text-xs text-amber-600 dark:text-amber-400">
+              Ya agregado: {pendingOutsideCurrent}
+            </p>
+          )}
         </div>
         <Badge
           color={item.cantidad > 0 ? "green" : "red"}
@@ -995,7 +1053,7 @@ function MaterialCard({
           variant="outline"
           size="icon"
           className="size-6"
-          disabled={qty === 0 || item.cantidad === 0}
+          disabled={qty === 0}
           onClick={() => onQtyChange(-1)}
         >
           <Minus className="size-3" />
@@ -1004,17 +1062,14 @@ function MaterialCard({
           type="number"
           className="h-6 w-14 text-center text-xs px-1"
           min={0}
-          max={item.cantidad}
           value={qty}
           onChange={(e) => onQtyInput(e.target.value)}
-          disabled={item.cantidad === 0}
         />
         <Button
           type="button"
           variant="outline"
           size="icon"
           className="size-6"
-          disabled={qty >= item.cantidad}
           onClick={() => onQtyChange(1)}
         >
           <Plus className="size-3" />

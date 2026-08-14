@@ -20,6 +20,7 @@ import { FormSelect } from "@/components/FormSelect";
 import { successToast, errorToast } from "@/lib/core.function";
 import { getAlmacenes } from "@/pages/auth/lib/auth.actions";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
+import { getAlmacenesPermitidos } from "@/pages/auth/lib/auth.utils";
 import { getSeries, validarSerie } from "@/pages/serie/lib/serie.actions";
 import { getMateriales } from "@/pages/materiales/lib/materiales.actions";
 import { createTraslado } from "../lib/traslado.actions";
@@ -112,11 +113,11 @@ export default function TrasladoForm({ onSuccess }: TrasladoFormProps) {
     refetchOnWindowFocus: false,
   });
 
-  // El origen es siempre el almacén activo de la sesión (almacen_id del
-  // token), sin importar si el usuario es corporativo.
+  const user = useAuthStore((s) => s.user);
   const origenActual = almacen_id;
-  const almacenOptions = almacenes
-    .filter((a) => a.id !== origenActual && !a.is_corporativo)
+  const almacenesPermitidos = getAlmacenesPermitidos(user, almacenes);
+  const almacenOptions = almacenesPermitidos
+    .filter((a) => a.id !== origenActual)
     .map((a) => ({ value: String(a.id), label: a.nombre }));
 
   const mutation = useMutation({

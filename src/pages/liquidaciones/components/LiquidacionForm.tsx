@@ -314,6 +314,7 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
           open={isProductModalOpen}
           onClose={closeProductModal}
           liquidacion={liquidacion}
+          currentItems={items}
           onConfirm={handleAddItems}
           initialTecnicoId={tecnico1Value || undefined}
           notRepetidos={true}

@@ -198,41 +198,43 @@ export function GuiaQuickAddSeriePanel({
   const visibleNonErrors = nonErrorEntries.slice(hiddenCount);
 
   return (
-    <div className="border-t bg-muted/20">
+    <div className="border-t border-border/50 bg-muted/20">
       {/* Header toggle */}
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center gap-1.5 px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+        className="flex w-full items-center justify-between px-4 py-2 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors"
       >
-        {open ? (
-          <ChevronDown className="size-3 shrink-0" />
-        ) : (
-          <ChevronRight className="size-3 shrink-0" />
-        )}
-        <span className="flex-1 text-left">Registro rápido de series</span>
+        <div className="flex items-center gap-2">
+          {open ? (
+            <ChevronDown className="size-3.5 shrink-0 text-primary" />
+          ) : (
+            <ChevronRight className="size-3.5 shrink-0 text-muted-foreground" />
+          )}
+          <span className="font-medium text-foreground/80">Registro rápido de series</span>
+        </div>
 
-        <div className="flex items-center gap-1.5 mr-0.5">
+        <div className="flex items-center gap-2">
           {cantidad != null && seriesLocales.length > 0 && (
-            <span className="text-[10px] tabular-nums text-muted-foreground">
+            <span className="text-xs font-mono font-semibold text-muted-foreground bg-muted/80 px-2 py-0.5 rounded border border-border/50">
               {confirmedCount}/{cantidad}
             </span>
           )}
           {confirmedCount > 0 && (
-            <span className="inline-flex items-center gap-0.5 text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-1.5 py-0.5 rounded text-[10px] font-medium">
-              <CheckCircle2 className="size-2.5" />
+            <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 px-2 py-0.5 rounded text-xs font-medium border border-emerald-500/20">
+              <CheckCircle2 className="size-3" />
               {confirmedCount}
             </span>
           )}
           {pendingCount > 0 && (
-            <span className="inline-flex items-center gap-0.5 text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/30 px-1.5 py-0.5 rounded text-[10px] font-medium">
-              <Loader2 className="size-2.5 animate-spin" />
+            <span className="inline-flex items-center gap-1 text-amber-700 dark:text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded text-xs font-medium border border-amber-500/20">
+              <Loader2 className="size-3 animate-spin" />
               {pendingCount}
             </span>
           )}
           {errorCount > 0 && (
-            <span className="inline-flex items-center gap-0.5 text-destructive bg-destructive/10 px-1.5 py-0.5 rounded text-[10px] font-medium">
-              <AlertCircle className="size-2.5" />
+            <span className="inline-flex items-center gap-1 text-destructive bg-destructive/10 px-2 py-0.5 rounded text-xs font-medium border border-destructive/20">
+              <AlertCircle className="size-3" />
               {errorCount}
             </span>
           )}

@@ -102,6 +102,7 @@ export interface ImportarConsolidadoResponse {
   creados: number;
   actualizados: number;
   omitidos: number;
+  sin_tecnico?: number;
   mensaje?: string;
   errores?: Array<{ sot: string; motivo: string }>;
   sots_no_importados?: string[];
@@ -175,6 +176,7 @@ export const actualizarSotsConsolidadoAtendidasPorTramos = async (
     creados: 0,
     actualizados: 0,
     omitidos: 0,
+    sin_tecnico: 0,
     errores: [],
     sots_no_importados: [],
   };
@@ -194,6 +196,7 @@ export const actualizarSotsConsolidadoAtendidasPorTramos = async (
     aggregate.creados += data.creados ?? 0;
     aggregate.actualizados += data.actualizados ?? 0;
     aggregate.omitidos += data.omitidos ?? 0;
+    aggregate.sin_tecnico = (aggregate.sin_tecnico ?? 0) + (data.sin_tecnico ?? 0);
 
     if (data.errores?.length) {
       aggregate.errores = [...(aggregate.errores ?? []), ...data.errores].slice(0, 50);
@@ -207,12 +210,10 @@ export const actualizarSotsConsolidadoAtendidasPorTramos = async (
   }
 
   const total = aggregate.creados + aggregate.actualizados;
-  if (aggregate.errores?.length && total === 0) {
-    aggregate.mensaje = `Ninguna SOT se guardó en el rango. Recibidas: ${aggregate.recibidos}.`;
-  } else if (aggregate.errores?.length) {
-    aggregate.mensaje = "Algunas SOT no se importaron porque no se encontraron técnicos asociados.";
-  } else if (total === 0 && (aggregate.recibidos ?? 0) === 0) {
+  if (total === 0 && (aggregate.recibidos ?? 0) === 0) {
     aggregate.mensaje = "No hay SOT atendidas en SOTs para el rango de fechas seleccionado.";
+  } else if ((aggregate.sin_tecnico ?? 0) > 0) {
+    aggregate.mensaje = `Las SOT atendidas se actualizaron. ${aggregate.sin_tecnico} quedaron sin técnico para asignarlo manualmente.`;
   } else {
     aggregate.mensaje = "Las SOT atendidas se actualizaron correctamente.";
   }

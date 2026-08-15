@@ -24,12 +24,17 @@ export const getUsuariosColumns = ({
   {
     id: "nombre_completo",
     header: "Nombre completo",
-    cell: ({ row }) => row.original.persona.nombre_completo,
+    cell: ({ row }) => row.original.persona?.nombre_completo || "-",
+  },
+  {
+    id: "correo",
+    header: "Correo",
+    cell: ({ row }) => row.original.persona?.correo || "-",
   },
   {
     id: "dni",
     header: "DNI",
-    cell: ({ row }) => row.original.persona.dni,
+    cell: ({ row }) => row.original.persona?.dni || "-",
   },
   {
     id: "tipo_empleado",

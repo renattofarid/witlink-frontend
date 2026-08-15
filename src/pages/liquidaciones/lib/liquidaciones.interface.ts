@@ -25,6 +25,14 @@ export interface UsuarioLiquidacion {
   };
 }
 
+export interface AlmacenLiquidacion {
+  id: number;
+  nombre: string;
+  nombre_display?: string;
+  codigo?: string;
+  region?: string;
+}
+
 // ── SOT / Liquidación principal ───────────────────────────────────────────────
 
 export interface LiquidacionResource {
@@ -43,6 +51,7 @@ export interface LiquidacionResource {
   updated_at: string;
   deleted_at: string | null;
   almacen_id: number;
+  almacen?: AlmacenLiquidacion | null;
   nombre: string;
   tecnico1: TecnicoPersona | null;
   tecnico2: TecnicoPersona | null;

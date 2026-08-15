@@ -3,7 +3,7 @@ import { Pencil, Trash2, RotateCcw } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import type { EquipoRetiradoResource } from "../lib/equipos-retirados.interface";
-import { TIPO_EQUIPO_RETIRADO_OPTIONS } from "../lib/equipos-retirados.constants";
+import { TIPO_EQUIPO_RETIRADO_OPTIONS, ALL_TIPO_EQUIPO_RETIRADO_OPTIONS } from "../lib/equipos-retirados.constants";
 
 interface ColumnActions {
   onEdit: (row: EquipoRetiradoResource) => void;
@@ -40,7 +40,7 @@ export const getEquiposRetiradosColumns = ({
       const tipo = row.original.tipo;
       const nombre =
         row.original.nombre_tipo ||
-        TIPO_EQUIPO_RETIRADO_OPTIONS.find((o) => o.value === tipo)?.label ||
+        ALL_TIPO_EQUIPO_RETIRADO_OPTIONS.find((o) => o.value === tipo)?.label ||
         tipo;
       return (
         <Badge variant="outline" className="text-xs">

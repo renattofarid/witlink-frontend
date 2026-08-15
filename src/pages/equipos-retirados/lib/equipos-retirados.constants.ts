@@ -20,3 +20,12 @@ export const TIPO_EQUIPO_RETIRADO_OPTIONS = [
   { value: "P", label: "POST VENTA" },
   { value: "C", label: "CAMBIO POR INCIDENCIA" },
 ];
+
+export const TIPO_EQUIPO_RETIRADO_CORPORATIVO_OPTIONS = [
+  { value: "D", label: "DESMONTAJE" },
+];
+
+export const ALL_TIPO_EQUIPO_RETIRADO_OPTIONS = [
+  ...TIPO_EQUIPO_RETIRADO_OPTIONS,
+  ...TIPO_EQUIPO_RETIRADO_CORPORATIVO_OPTIONS,
+];

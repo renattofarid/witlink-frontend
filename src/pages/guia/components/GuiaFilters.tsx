@@ -17,9 +17,11 @@ const TIPOS_OPTIONS = [
   { value: "todos", label: "TODOS" },
   { value: "P", label: "P" },
   { value: "C", label: "C" },
+  { value: "D", label: "D" },
   { value: "O", label: "O" },
   { value: "POST VENTA", label: "POST VENTA" },
   { value: "CAMBIO POR INCIDENCIA", label: "CAMBIO POR INCIDENCIA" },
+  { value: "DESMONTAJE", label: "DESMONTAJE" },
   { value: "OTRO", label: "OTRO" },
 ];
 

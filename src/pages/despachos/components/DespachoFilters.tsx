@@ -52,11 +52,21 @@ export default function DespachoFilters({
   return (
     <FilterWrapper>
       <SearchInput
-        value={params.numero ?? ""}
+        value={params.numero ?? params.search ?? ""}
         onChange={(v) =>
-          setParams((prev) => ({ ...prev, numero: v, page: "1" }))
+          setParams((prev) => {
+            const next: Record<string, string> = { ...prev, page: "1" };
+            if (v) {
+              next.numero = v;
+            } else {
+              delete next.numero;
+              delete next.search;
+            }
+            delete next.sot;
+            return next;
+          })
         }
-        placeholder="Buscar por número..."
+        placeholder="Buscar por número o SOT..."
       />
       {isCorporativo && (
         <SearchableSelect

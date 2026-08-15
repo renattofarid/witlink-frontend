@@ -4,9 +4,14 @@ import type { PaginationResponse } from "@/lib/core.interface";
 
 export interface TecnicoPersona {
   id: number;
-  favorito: boolean | null;
-  created_at: string;
-  updated_at: string;
+  nombre?: string;
+  apellido_paterno?: string;
+  apellido_materno?: string;
+  nombre_completo?: string;
+  dni?: string;
+  favorito?: boolean | null;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface UsuarioLiquidacion {

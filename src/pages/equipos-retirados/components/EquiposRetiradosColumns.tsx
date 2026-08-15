@@ -3,7 +3,7 @@ import { Pencil, Trash2, RotateCcw } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import type { EquipoRetiradoResource } from "../lib/equipos-retirados.interface";
-import { TIPO_EQUIPO_RETIRADO_OPTIONS, ALL_TIPO_EQUIPO_RETIRADO_OPTIONS } from "../lib/equipos-retirados.constants";
+import { ALL_TIPO_EQUIPO_RETIRADO_OPTIONS } from "../lib/equipos-retirados.constants";
 
 interface ColumnActions {
   onEdit: (row: EquipoRetiradoResource) => void;

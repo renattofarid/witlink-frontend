@@ -36,8 +36,8 @@ export const erProductoSchema = z
 export const equipoRetiradoSchema = z.object({
   fecha: z.string().min(1, "Requerido"),
   sot: z.string().min(1, "Requerido"),
-  tipo: z.enum(["P", "C", "O"], {
-    error: "Debe ser P, C u O",
+  tipo: z.enum(["P", "C", "O", "D", "DESMONTAJE"], {
+    error: "Debe ser P, C, O o D",
   }),
   productos: z
     .array(erProductoSchema)
@@ -47,8 +47,8 @@ export const equipoRetiradoSchema = z.object({
 export const equipoRetiradoEditHeaderSchema = z.object({
   fecha: z.string().min(1, "Requerido"),
   sot: z.string().min(1, "Requerido"),
-  tipo: z.enum(["P", "C", "O"], {
-    error: "Debe ser P, C u O",
+  tipo: z.enum(["P", "C", "O", "D", "DESMONTAJE"], {
+    error: "Debe ser P, C, O o D",
   }),
 });
 

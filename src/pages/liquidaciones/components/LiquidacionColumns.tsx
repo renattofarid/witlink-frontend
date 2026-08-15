@@ -56,6 +56,36 @@ export function getLiquidacionColumns(
       },
     },
     {
+      id: "tecnico",
+      header: "Técnico",
+      cell: ({ row }) => {
+        const t1 = row.original.tecnico1;
+        const t2 = row.original.tecnico2;
+
+        const name1 =
+          t1?.nombre_completo ||
+          [t1?.nombre, t1?.apellido_paterno, t1?.apellido_materno]
+            .filter(Boolean)
+            .join(" ");
+
+        const name2 =
+          t2?.nombre_completo ||
+          [t2?.nombre, t2?.apellido_paterno, t2?.apellido_materno]
+            .filter(Boolean)
+            .join(" ");
+
+        if (!name1 && !name2)
+          return <span className="text-muted-foreground text-xs">—</span>;
+
+        return (
+          <div className="flex flex-col text-xs max-w-44 truncate">
+            {name1 && <span className="font-medium truncate">{name1}</span>}
+            {name2 && <span className="text-muted-foreground truncate">{name2}</span>}
+          </div>
+        );
+      },
+    },
+    {
       accessorKey: "tipo_trabajo",
       header: "Tipo trabajo",
       cell: ({ row }) => (

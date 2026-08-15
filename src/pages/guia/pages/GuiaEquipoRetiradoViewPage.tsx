@@ -13,15 +13,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { GuiaComplete } from "../lib/guia.constants";
-import { getEquipoRetirado } from "@/pages/equipo-retirado/lib/equipo-retirado.actions";
-import { EquipoRetiradoComplete } from "@/pages/equipo-retirado/lib/equipo-retirado.constants";
+import { getEquipoRetirado } from "@/pages/equipos-retirados/lib/equipos-retirados.actions";
+import { EquiposRetiradosComplete } from "@/pages/equipos-retirados/lib/equipos-retirados.constants";
 import FormSkeleton from "@/components/FormSkeleton";
 
 export default function GuiaEquipoRetiradoViewPage() {
   const { id } = useParams();
 
   const { data: retirado, isLoading } = useQuery({
-    queryKey: [EquipoRetiradoComplete.QUERY_KEY, "detail", id],
+    queryKey: [EquiposRetiradosComplete.QUERY_KEY, "detail", id],
     queryFn: () => getEquipoRetirado(Number(id)),
     enabled: !!id,
     refetchOnWindowFocus: true,
@@ -74,6 +74,12 @@ export default function GuiaEquipoRetiradoViewPage() {
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground uppercase tracking-wide">Tipo</p>
             <p className="font-medium">{retirado.nombre_tipo || retirado.tipo || "—"}</p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">Almacén</p>
+            <p className="font-medium" title={retirado.almacen?.nombre}>
+              {retirado.almacen_pertenencia?.nombre ?? retirado.almacen?.nombre ?? "—"}
+            </p>
           </div>
         </div>
       </div>

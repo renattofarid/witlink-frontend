@@ -109,7 +109,16 @@ export const getGuiaColumns = ({
   {
     accessorKey: "almacen",
     header: "Almacén",
-    cell: ({ row }) => row.original.almacen ?? "-",
+    cell: ({ row }) => {
+      const { almacen, almacen_pertenencia } = row.original;
+      const nombre = almacen_pertenencia ?? almacen;
+      if (!nombre) return "-";
+      return (
+        <span title={almacen_pertenencia ? (almacen ?? undefined) : undefined}>
+          {nombre}
+        </span>
+      );
+    },
   },
   {
     accessorKey: "motivo",

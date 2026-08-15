@@ -4,7 +4,7 @@ import { useHasPermission } from "@/hooks/useHasPermission";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus } from "lucide-react";
+import { Plus, Upload } from "lucide-react";
 import PageWrapper from "@/components/PageWrapper";
 import TitleComponent from "@/components/TitleComponent";
 import ActionsWrapper from "@/components/ActionsWrapper";
@@ -31,6 +31,7 @@ import {
 } from "../lib/guia.constants";
 import { getGuiaColumns } from "../components/GuiaColumns";
 import GuiaFilters from "../components/GuiaFilters";
+import ImportarGuiasCorporativoDialog from "../components/ImportarGuiasCorporativoDialog";
 import type { GuiaListResource } from "../lib/guia.interface";
 
 import {
@@ -55,6 +56,7 @@ export default function GuiaPage() {
   const [toDelete, setToDelete] = useState<GuiaListResource | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [toConfirm, setToConfirm] = useState<GuiaListResource | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
 
   const { data, isLoading } = useGuiaQuery(params);
 
@@ -146,6 +148,14 @@ export default function GuiaPage() {
           />
           <Button
             size="sm"
+            variant="outline"
+            onClick={() => setImportOpen(true)}
+          >
+            <Upload />
+            Importar
+          </Button>
+          <Button
+            size="sm"
             onClick={() =>
               navigate(`${GuiaComplete.ROUTE_ADD}?tipo=equipo_retirado`)
             }
@@ -204,6 +214,11 @@ export default function GuiaPage() {
         onConfirm={async () => {
           await confirmarMutation.mutateAsync();
         }}
+      />
+
+      <ImportarGuiasCorporativoDialog
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
       />
     </PageWrapper>
   );

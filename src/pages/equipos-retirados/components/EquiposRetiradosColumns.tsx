@@ -50,6 +50,20 @@ export const getEquiposRetiradosColumns = ({
     },
   },
   {
+    id: "almacen_pertenencia",
+    header: "Almacén",
+    cell: ({ row }) => {
+      const nombre =
+        row.original.almacen_pertenencia?.nombre ?? row.original.almacen?.nombre;
+      if (!nombre) return <span className="text-muted-foreground text-xs">—</span>;
+      return (
+        <span className="text-xs" title={row.original.almacen?.nombre}>
+          {nombre}
+        </span>
+      );
+    },
+  },
+  {
     id: "productos",
     header: "Productos",
     cell: ({ row }) => {

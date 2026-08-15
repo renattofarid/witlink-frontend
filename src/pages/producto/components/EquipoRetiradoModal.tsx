@@ -26,10 +26,16 @@ import type { EquipoRetiradoBody } from "@/pages/equipo-retirado/lib/equipo-reti
 import { EquipoRetiradoProductoDialog } from "./EquipoRetiradoProductoDialog";
 import { EquipoRetiradoSerieDialog } from "./EquipoRetiradoSerieDialog";
 
+import { useAuthStore } from "@/pages/auth/lib/auth.store";
+
 const TIPO_OPTIONS = [
   { value: "P", label: "Post venta" },
   { value: "C", label: "Cambio" },
   { value: "O", label: "Otro" },
+];
+
+const TIPO_CORPORATIVO_OPTIONS = [
+  { value: "D", label: "Desmontaje" },
 ];
 
 const EMPTY_SERIE: ErSerieFormValues = {
@@ -57,6 +63,11 @@ export default function EquipoRetiradoModal({
   open,
   onClose,
 }: EquipoRetiradoModalProps) {
+  const user = useAuthStore((s) => s.user);
+  const isCorporativo = !!user?.is_corporativo;
+
+  const tipoOptions = isCorporativo ? TIPO_CORPORATIVO_OPTIONS : TIPO_OPTIONS;
+
   const [editingProductoIndex, setEditingProductoIndex] = useState<number | null>(null);
   const [editingSerieIndex, setEditingSerieIndex] = useState<number | null>(null);
   const [productoDialogOpen, setProductoDialogOpen] = useState(false);
@@ -65,7 +76,7 @@ export default function EquipoRetiradoModal({
   // ── Main form ──────────────────────────────────────────────────────────────
   const form = useForm<EquipoRetiradoFormValues>({
     resolver: zodResolver(equipoRetiradoSchema),
-    defaultValues: { fecha: "", sot: "", tipo: "P", productos: [] },
+    defaultValues: { fecha: "", sot: "", tipo: isCorporativo ? "D" : "P", productos: [] },
     mode: "onChange",
   });
 
@@ -359,7 +370,7 @@ export default function EquipoRetiradoModal({
               label="Tipo"
               control={form.control}
               placeholder="Seleccione un tipo"
-              options={TIPO_OPTIONS}
+              options={tipoOptions}
             />
           </div>
         </div>

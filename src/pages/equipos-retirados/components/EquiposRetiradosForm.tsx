@@ -34,7 +34,9 @@ import {
 import {
   EquiposRetiradosComplete,
   TIPO_EQUIPO_RETIRADO_OPTIONS,
+  TIPO_EQUIPO_RETIRADO_CORPORATIVO_OPTIONS,
 } from "../lib/equipos-retirados.constants";
+import { useAuthStore } from "@/pages/auth/lib/auth.store";
 import type {
   EquipoRetiradoResource,
   EquipoRetiradoCreateBody,
@@ -75,6 +77,12 @@ export default function EquiposRetiradosForm({
   onSuccess,
 }: EquiposRetiradosFormProps) {
   const queryClient = useQueryClient();
+  const user = useAuthStore((s) => s.user);
+  const isCorporativo = !!user?.is_corporativo;
+
+  const tipoOptions = isCorporativo
+    ? TIPO_EQUIPO_RETIRADO_CORPORATIVO_OPTIONS
+    : TIPO_EQUIPO_RETIRADO_OPTIONS;
 
   const [editingProductoIndex, setEditingProductoIndex] = useState<
     number | null
@@ -100,7 +108,7 @@ export default function EquiposRetiradosForm({
   // ── Forms ──────────────────────────────────────────────────────────────────
   const createForm = useForm<EquipoRetiradoCreateFormValues>({
     resolver: zodResolver(equipoRetiradoCreateSchema),
-    defaultValues: { fecha: "", sot: "", tipo: "", productos: [] },
+    defaultValues: { fecha: "", sot: "", tipo: isCorporativo ? "D" : "", productos: [] },
     mode: "onChange",
   });
 
@@ -566,7 +574,7 @@ export default function EquiposRetiradosForm({
               label="Tipo"
               control={editForm.control}
               placeholder="Seleccione un tipo"
-              options={TIPO_EQUIPO_RETIRADO_OPTIONS}
+              options={tipoOptions}
             />
           </div>
           <div className="flex justify-end">
@@ -799,7 +807,7 @@ export default function EquiposRetiradosForm({
             label="Tipo"
             control={createForm.control}
             placeholder="Seleccione un tipo"
-            options={TIPO_EQUIPO_RETIRADO_OPTIONS}
+            options={tipoOptions}
           />
         </div>
       </div>

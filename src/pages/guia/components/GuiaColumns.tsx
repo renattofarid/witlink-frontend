@@ -131,6 +131,9 @@ export const getGuiaColumns = ({
         if (val === "O" || val === "OTRO") {
           return "OTRO";
         }
+        if (val === "D" || val === "DESMONTAJE") {
+          return "DESMONTAJE";
+        }
         return val || "-";
       }
       return motivo ?? "-";

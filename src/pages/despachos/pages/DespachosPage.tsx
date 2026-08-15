@@ -33,6 +33,7 @@ export default function DespachosPage() {
     fecha_fin: format(today, "yyyy-MM-dd"),
     tecnico_id: "",
     almacen_id: "",
+    sot: "",
   });
 
   const [deleteOpen, setDeleteOpen] = useState(false);

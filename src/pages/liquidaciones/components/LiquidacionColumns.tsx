@@ -42,6 +42,15 @@ export function getLiquidacionColumns(
       ),
     },
     {
+      id: "almacen",
+      header: "Almacén",
+      cell: ({ row }) => (
+        <span className="text-xs font-medium">
+          {row.original.almacen?.nombre_display || row.original.almacen?.nombre || "—"}
+        </span>
+      ),
+    },
+    {
       accessorKey: "fecha",
       header: "Fecha",
       cell: ({ row }) => {

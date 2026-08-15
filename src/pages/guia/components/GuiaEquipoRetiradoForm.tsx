@@ -75,25 +75,6 @@ type HeaderCreateFormValues = z.infer<typeof headerCreateSchema>;
 type HeaderEditFormValues = z.infer<typeof headerEditSchema>;
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-// ── Schemas ───────────────────────────────────────────────────────────────────
-
-const headerCreateSchema = z.object({
-  sot: z.string().min(1, "Requerido"),
-  tipo: z.string().min(1, "Requerido"),
-  fecha: z.string().min(1, "Requerido"),
-  productos: z.array(productoSchema).min(1, "Debe agregar al menos un producto"),
-});
-
-const headerEditSchema = z.object({
-  sot: z.string().min(1, "Requerido"),
-  tipo: z.string().min(1, "Requerido"),
-  fecha: z.string().min(1, "Requerido"),
-});
-
-type HeaderCreateFormValues = z.infer<typeof headerCreateSchema>;
-type HeaderEditFormValues = z.infer<typeof headerEditSchema>;
-
-// ── Constants ─────────────────────────────────────────────────────────────────
 
 const EMPTY_PRODUCTO: ProductoFormValues = {
   producto_id: "",
@@ -139,6 +120,96 @@ function isSerieComplete(
   if (isRequiredFlag(flags.necesita_ua) && !serie.ua?.trim()) return false;
   return true;
 }
+
+// ── Helper: map ProductoFormValues → equipo retirado body ─────────────────────
+
+function mapProducto(p: ProductoFormValues) {
+  const isEquipo = p.tipo === "EQUIPO";
+  const series = (p.series ?? []).map((s) => ({
+    serie: s.serie ?? null,
+    mac: s.mac ?? null,
+    emta_mac: s.emta_mac ?? null,
+    ua: s.ua ?? null,
+    observaciones: s.observaciones ?? null,
+  }));
+
+  return {
+    producto_id: Number(p.producto_id),
+    origen: p.origen ?? "",
+    necesita_serie: isEquipo ? (p.necesita_serie ?? false) : false,
+    necesita_mac: isEquipo ? (p.necesita_mac ?? false) : false,
+    necesita_emta_mac: isEquipo ? (p.necesita_emta_mac ?? false) : false,
+    necesita_ua: isEquipo ? (p.necesita_ua ?? false) : false,
+    cantidad: p.cantidad,
+    series,
+  };
+}
+
+// ── Component ─────────────────────────────────────────────────────────────────
+
+interface Props {
+  mode: "create" | "edit";
+  equipo?: EquipoRetiradoResource;
+  onSuccess?: () => void;
+}
+
+export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Props) {
+  const queryClient = useQueryClient();
+  const user = useAuthStore((s) => s.user);
+  const isCorporativo = !!user?.is_corporativo;
+
+  const tipoOptions = isCorporativo
+    ? TIPO_EQUIPO_RETIRADO_CORPORATIVO_OPTIONS
+    : TIPO_EQUIPO_RETIRADO_OPTIONS;
+
+  const { equipoRetiradoDraft, setEquipoRetiradoDraft, clearDrafts } = useGuiaDraftStore();
+  const submittedRef = useRef(false);
+
+  // Cliente display
+  const [selectedCliente, setSelectedCliente] = useState<string | null>(null);
+  const { data: initialSotData } = useSotSearchQuery(
+    mode === "edit" && equipo?.sot ? equipo.sot : null,
+  );
+  useEffect(() => {
+    if (mode === "edit" && initialSotData?.liquidacion) {
+      setSelectedCliente(initialSotData.liquidacion.nombre);
+    }
+  }, [initialSotData, mode]);
+
+  // Product dialog state
+  const [editingProductoIndex, setEditingProductoIndex] = useState<number | null>(null);
+  const [productoDialogOpen, setProductoDialogOpen] = useState(false);
+
+  // Edit mode: which product detail id is getting a new serie
+  const [addSerieForDetailId, setAddSerieForDetailId] = useState<number | null>(null);
+
+  // Guardas de reenvío (evita doble clic mientras se valida/envía al backend)
+  const addProductoSubmitLockRef = useRef(false);
+  const addSerieSubmitLockRef = useRef(false);
+  const createSubmitLockRef = useRef(false);
+  const editSubmitLockRef = useRef(false);
+  const [isAddingSerie, setIsAddingSerie] = useState(false);
+
+  // Delete producto confirmation (edit mode)
+  const [deleteProductoConfirm, setDeleteProductoConfirm] = useState<{
+    id: number;
+    series: Array<{ serie?: string; mac?: string }>;
+  } | null>(null);
+
+  // ── Main form (create mode) ────────────────────────────────────────────────
+  const createForm = useForm<HeaderCreateFormValues>({
+    resolver: zodResolver(headerCreateSchema) as any,
+    defaultValues: {
+      sot: "",
+      tipo: isCorporativo ? "D" : "",
+      fecha: format(new Date(), "yyyy-MM-dd"),
+      productos: [],
+    },
+    mode: "onChange",
+  });
+
+  const {
+    append: appendProducto,
     remove: removeProducto,
     update: updateProductoField,
   } = useFieldArray({ control: createForm.control, name: "productos" });
@@ -922,6 +993,27 @@ function isSerieComplete(
         </div>
 
         <ConfirmationDialog
+          open={!!deleteProductoConfirm}
+          onOpenChange={(open) => {
+            if (!open) setDeleteProductoConfirm(null);
+          }}
+          title="¿Eliminar producto con series asociadas?"
+          description="Este producto tiene series asociadas que también serán eliminadas:"
+          confirmText="Forzar eliminación"
+          onConfirm={() => {
+            if (deleteProductoConfirm?.id) {
+              deleteProductoMutation.mutate({ id: deleteProductoConfirm.id, forzar: true });
+            }
+          }}
+        >
+          <ul className="text-sm space-y-1 max-h-48 overflow-y-auto border rounded p-2">
+            {deleteProductoConfirm?.series.map((s, i) => (
+              <li key={i} className="font-mono text-xs">
+                {[s.serie, s.mac].filter(Boolean).join(" · ")}
+              </li>
+            ))}
+          </ul>
+        </ConfirmationDialog>
       </div>
     );
   }
@@ -940,6 +1032,43 @@ function isSerieComplete(
       <div className="space-y-2">
         <div className="flex items-center gap-2">
           <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground whitespace-nowrap">
+            Datos del equipo retirado
+          </h3>
+          <Separator className="flex-1" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <FormSelectAsync
+            name="sot"
+            label="SOT"
+            control={createForm.control}
+            placeholder="Buscar SOT..."
+            required
+            useQueryHook={useLiquidacionesForSelectQuery}
+            mapOptionFn={mapLiquidacionOption}
+            onValueChange={(value, item: LiquidacionResource) => setSelectedCliente(value ? (item?.nombre ?? null) : null)}
+          />
+          <DatePickerFormField name="fecha" label="Fecha" control={createForm.control} />
+          <FormSelect
+            name="tipo"
+            label="Tipo"
+            control={createForm.control}
+            placeholder="Seleccione un tipo"
+            options={tipoOptions}
+          />
+        </div>
+        {selectedCliente && (
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <User className="size-3" />
+            <span>Cliente:</span>
+            <span className="font-medium text-foreground">{selectedCliente}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Productos */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 flex-1">
             <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground whitespace-nowrap">
               Productos
             </h3>

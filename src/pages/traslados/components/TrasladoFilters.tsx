@@ -5,6 +5,9 @@ import { SearchableSelect } from "@/components/SearchableSelect";
 import DatePicker from "@/components/DatePicker";
 import { useQuery } from "@tanstack/react-query";
 import { getAlmacenes } from "@/pages/auth/lib/auth.actions";
+import { useAuthStore } from "@/pages/auth/lib/auth.store";
+import { getAlmacenFilterOptions } from "@/pages/auth/lib/almacen-options";
+import { useMemo } from "react";
 
 interface TrasladoFiltersProps {
   params: Record<string, string>;
@@ -24,16 +27,18 @@ const CONFIRMADO_OPTIONS = [
 ];
 
 export default function TrasladoFilters({ params, setParams }: TrasladoFiltersProps) {
+  const user = useAuthStore((s) => s.user);
+
   const { data: almacenes = [] } = useQuery({
     queryKey: ["almacenes-list"],
     queryFn: getAlmacenes,
     refetchOnWindowFocus: false,
   });
 
-  const almacenOptions = [
-    { value: "all", label: "Todos los almacenes" },
-    ...almacenes.map((a) => ({ value: String(a.id), label: a.nombre })),
-  ];
+  const almacenOptions = useMemo(
+    () => getAlmacenFilterOptions(user, almacenes),
+    [user, almacenes],
+  );
 
   const set = (key: string, value: string) =>
     setParams((prev) => ({ ...prev, [key]: value === "all" ? "" : value, page: "1" }));

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTabParams } from "@/hooks/useTabParams";
 import { format } from "date-fns";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -20,10 +20,12 @@ import DespachoButtons from "../components/DespachoButtons";
 import { DespachoReasignarTecnicoDialog } from "../components/DespachoReasignarTecnicoDialog";
 import type { DespachoResource } from "../lib/despacho.interface";
 import { DESPACHO_ROUTE_VIEW } from "../lib/despacho.constants";
+import { useAuthStore } from "@/pages/auth/lib/auth.store";
 
 export default function DespachosPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const activeAlmacenId = useAuthStore((s) => s.almacen_id);
 
   const today = new Date();
   const [params, setParams] = useTabParams(DespachoComplete.ABSOLUTE_ROUTE, {
@@ -32,9 +34,20 @@ export default function DespachosPage() {
     fecha_inicio: format(new Date(today.getFullYear(), 0, 1), "yyyy-MM-dd"),
     fecha_fin: format(today, "yyyy-MM-dd"),
     tecnico_id: "",
-    almacen_id: "",
+    ...(activeAlmacenId ? { almacen_id: String(activeAlmacenId) } : {}),
     sot: "",
   });
+
+  useEffect(() => {
+    if (activeAlmacenId) {
+      setParams((prev) => {
+        if (prev.almacen_id !== String(activeAlmacenId)) {
+          return { ...prev, almacen_id: String(activeAlmacenId), page: "1" };
+        }
+        return prev;
+      });
+    }
+  }, [activeAlmacenId, setParams]);
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [toDelete, setToDelete] = useState<DespachoResource | null>(null);

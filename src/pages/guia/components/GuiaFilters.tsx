@@ -7,6 +7,7 @@ import DatePicker from "@/components/DatePicker";
 import { SearchableSelect } from "@/components/SearchableSelect";
 import { getAlmacenes } from "@/pages/auth/lib/auth.actions";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
+import { getAlmacenFilterOptions } from "@/pages/auth/lib/almacen-options";
 
 interface GuiaFiltersProps {
   params: Record<string, string>;
@@ -43,13 +44,11 @@ const DIRECTION_OPTIONS = [
 
 export default function GuiaFilters({ params, setParams }: GuiaFiltersProps) {
   const user = useAuthStore((s) => s.user);
-  const isCorporativo = !!user?.is_corporativo;
 
   const { data: almacenesAll = [] } = useQuery({
     queryKey: ["almacenes-list"],
     queryFn: getAlmacenes,
     refetchOnWindowFocus: false,
-    enabled: isCorporativo,
   });
 
   const almacenOptions = useMemo(() => {
@@ -57,12 +56,12 @@ export default function GuiaFilters({ params, setParams }: GuiaFiltersProps) {
       { value: "todos", label: "Todos" },
       { value: "retirados", label: "Retirados" },
     ];
-    if (!isCorporativo) return base;
     return [
       ...base,
-      ...almacenesAll.map((a) => ({ value: String(a.id), label: a.nombre })),
+      ...getAlmacenFilterOptions(user, almacenesAll)
+        .filter((a) => a.value !== "all"),
     ];
-  }, [isCorporativo, almacenesAll]);
+  }, [user, almacenesAll]);
 
   return (
     <FilterWrapper>

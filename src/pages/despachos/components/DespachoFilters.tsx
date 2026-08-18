@@ -9,6 +9,7 @@ import { SearchableSelect } from "@/components/SearchableSelect";
 import { useTecnicoDespachoQuery } from "../lib/despacho.hook";
 import { getAlmacenes } from "@/pages/auth/lib/auth.actions";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
+import { getAlmacenFilterOptions } from "@/pages/auth/lib/almacen-options";
 import type { PersonaResource } from "@/pages/persona/lib/persona.interface";
 
 interface DespachoFiltersProps {
@@ -25,21 +26,16 @@ export default function DespachoFilters({
   onTecnicoChange,
 }: DespachoFiltersProps) {
   const user = useAuthStore((s) => s.user);
-  const isCorporativo = !!user?.is_corporativo;
 
   const { data: almacenesAll = [] } = useQuery({
     queryKey: ["almacenes-list"],
     queryFn: getAlmacenes,
     refetchOnWindowFocus: false,
-    enabled: isCorporativo,
   });
 
   const almacenOptions = useMemo(
-    () => [
-      { value: "all", label: "Todos los almacenes" },
-      ...almacenesAll.map((a) => ({ value: String(a.id), label: a.nombre })),
-    ],
-    [almacenesAll],
+    () => getAlmacenFilterOptions(user, almacenesAll),
+    [user, almacenesAll],
   );
 
   const dateFrom = params.fecha_inicio
@@ -68,7 +64,7 @@ export default function DespachoFilters({
         }
         placeholder="Buscar por número o SOT..."
       />
-      {isCorporativo && (
+      
         <SearchableSelect
           placeholder="Almacén"
           options={almacenOptions}
@@ -81,7 +77,7 @@ export default function DespachoFilters({
             }))
           }
         />
-      )}
+      
       <DateRangePickerFilter
         dateFrom={dateFrom}
         dateTo={dateTo}

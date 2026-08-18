@@ -1,6 +1,8 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getAlmacenes } from "@/pages/auth/lib/auth.actions";
+import { useAuthStore } from "@/pages/auth/lib/auth.store";
+import { getAlmacenFilterOptions } from "@/pages/auth/lib/almacen-options";
 import FilterWrapper from "@/components/FilterWrapper";
 import { SearchableSelect } from "@/components/SearchableSelect";
 import SearchInput from "@/components/SearchInput";
@@ -20,6 +22,8 @@ export default function InventarioMaterialesFilters({
   params,
   setParams,
 }: InventarioMaterialesFiltersProps) {
+  const user = useAuthStore((s) => s.user);
+
   const { data: almacenesAll = [] } = useQuery({
     queryKey: ["almacenes-list"],
     queryFn: getAlmacenes,
@@ -27,11 +31,8 @@ export default function InventarioMaterialesFilters({
   });
 
   const almacenOptions = useMemo(
-    () => [
-      { value: "all", label: "Todos" },
-      ...almacenesAll.map((a) => ({ value: String(a.id), label: a.nombre })),
-    ],
-    [almacenesAll],
+    () => getAlmacenFilterOptions(user, almacenesAll, "Todos"),
+    [user, almacenesAll],
   );
 
   return (

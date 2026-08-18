@@ -5,6 +5,7 @@ import { SearchableSelect } from "@/components/SearchableSelect";
 import { getProductosAll } from "@/pages/producto/lib/producto.actions";
 import { getAlmacenes } from "@/pages/auth/lib/auth.actions";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
+import { getAlmacenFilterOptions } from "@/pages/auth/lib/almacen-options";
 
 interface SerieFiltersProps {
   params: Record<string, string>;
@@ -43,24 +44,18 @@ export default function SerieFilters({ params, setParams }: SerieFiltersProps) {
   });
 
   const user = useAuthStore((s) => s.user);
-  const isCorporativo = !!user?.is_corporativo;
 
   // Solo se consulta/muestra el filtro de almacén cuando aplica: para
   // usuarios no corporativos, el backend ya filtra por el almacén de la
   // sesión activa.
-  const showAlmacenFilter = isCorporativo;
 
   const { data: almacenesAll = [] } = useQuery({
     queryKey: ["almacenes-list"],
     queryFn: getAlmacenes,
     refetchOnWindowFocus: false,
-    enabled: showAlmacenFilter,
   });
 
-  const almacenOptions = [
-    { value: "all", label: "Todos los almacenes" },
-    ...almacenesAll.map((a) => ({ value: String(a.id), label: a.nombre })),
-  ];
+  const almacenOptions = getAlmacenFilterOptions(user, almacenesAll);
 
   const productoOptions = [
     { value: "all", label: "Todos los productos" },
@@ -80,14 +75,14 @@ export default function SerieFilters({ params, setParams }: SerieFiltersProps) {
         onChange={(v) => setText("search", v)}
         placeholder="Buscar serie, MAC, UA, producto..."
       />
-      {showAlmacenFilter && (
+      
         <SearchableSelect
           placeholder="Almacén"
           options={almacenOptions}
           value={params.almacen_id || "all"}
           onChange={(v) => set("almacen_id", v)}
         />
-      )}
+      
       <SearchableSelect
         placeholder="Situación"
         options={SITUACION_OPTIONS}

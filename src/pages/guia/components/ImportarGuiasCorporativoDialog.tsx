@@ -97,21 +97,48 @@ const OPTIONAL_COLUMNS = [
   "EsLiquidacion",
 ];
 
-function csvCell(value: string) {
-  return `"${value.replace(/"/g, '""')}"`;
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
 function downloadTemplate() {
   const rows = [TEMPLATE_HEADERS, TEMPLATE_SAMPLE]
-    .map((row) => row.map(csvCell).join(","))
-    .join("\r\n");
-  const blob = new Blob([`\uFEFF${rows}`], {
-    type: "text/csv;charset=utf-8;",
+    .map(
+      (row, index) =>
+        `<tr>${row
+          .map((cell) =>
+            index === 0
+              ? `<th>${escapeHtml(cell)}</th>`
+              : `<td>${escapeHtml(cell)}</td>`,
+          )
+          .join("")}</tr>`,
+    )
+    .join("");
+  const html = `<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    table { border-collapse: collapse; font-family: Arial, sans-serif; font-size: 12px; }
+    th, td { border: 1px solid #999; padding: 6px 8px; mso-number-format: "\\@"; }
+    th { background: #d9eaf7; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <table>${rows}</table>
+</body>
+</html>`;
+  const blob = new Blob([html], {
+    type: "application/vnd.ms-excel;charset=utf-8;",
   });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = "plantilla-guias-corporativas-sapui5.csv";
+  link.download = "plantilla-guias-corporativas-sapui5.xls";
   document.body.appendChild(link);
   link.click();
   link.remove();

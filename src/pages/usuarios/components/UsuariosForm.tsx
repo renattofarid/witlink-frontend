@@ -25,9 +25,6 @@ import type { PersonaResource } from "@/pages/persona/lib/persona.interface";
 import TipoUsuarioForm from "@/pages/tipo-usuario/components/TipoUsuarioForm";
 import type { TipoUsuarioResource } from "@/pages/tipo-usuario/lib/tipo-usuario.interface";
 import type { Option } from "@/lib/core.interface";
-import type { AlmacenResource } from "@/pages/almacenes/lib/almacen.interface";
-import { AlmacenComplete } from "@/pages/almacenes/lib/almacen.constants";
-import AlmacenForm from "@/pages/almacenes/components/AlmacenForm";
 import { useAlmacenQuery } from "@/pages/almacenes/lib/almacen.hook";
 
 interface UsuariosFormProps {
@@ -50,11 +47,6 @@ export default function UsuariosForm({
 
   const [tipoUsuarioModalOpen, setTipoUsuarioModalOpen] = useState(false);
   const [tipoUsuarioDefaultOption, setTipoUsuarioDefaultOption] = useState<
-    Option | undefined
-  >(undefined);
-
-  const [almacenModalOpen, setAlmacenModalOpen] = useState(false);
-  const [almacenDefaultOption, setAlmacenDefaultOption] = useState<
     Option | undefined
   >(undefined);
 
@@ -143,16 +135,6 @@ export default function UsuariosForm({
     setTipoUsuarioModalOpen(false);
   };
 
-  const handleAlmacenCreated = (almacen?: AlmacenResource) => {
-    if (!almacen) return;
-    const option: Option = { value: String(almacen.id), label: almacen.nombre };
-    setAlmacenDefaultOption(option);
-    form.setValue("almacen_id", String(almacen.id), { shouldValidate: true });
-    queryClient.invalidateQueries({ queryKey: [AlmacenComplete.QUERY_KEY] });
-    queryClient.invalidateQueries({ queryKey: ["almacenes-select"] });
-    setAlmacenModalOpen(false);
-  };
-
   return (
     <FormWrapper>
       <form
@@ -222,28 +204,18 @@ export default function UsuariosForm({
           placeholder="Seleccione un almacén"
           required
           useQueryHook={useAlmacenQuery}
+          additionalParams={{ solo_subalmacenes_corporativos: "true" }}
           mapOptionFn={(item) => ({
             value: String(item.id),
-            label: item.nombre,
-            description: item.direccion,
+            label: item.nombre_display || item.nombre,
+            description: item.codigo,
           })}
           preloadItemId={
             defaultValues?.almacen?.id
               ? String(defaultValues.almacen.id)
               : undefined
           }
-          defaultOption={almacenDefaultOption}
-        >
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            className="shrink-0"
-            onClick={() => setAlmacenModalOpen(true)}
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
-        </FormSelectAsync>
+        />
         <FormInput
           name="nombre_usuario"
           label="Nombre de Usuario"
@@ -297,13 +269,13 @@ export default function UsuariosForm({
       </GeneralModal>
 
       <GeneralModal
-        open={almacenModalOpen}
-        onClose={() => setAlmacenModalOpen(false)}
+        open={false}
+        onClose={() => undefined}
         title="Nuevo Almacén"
         icon="Building2"
         size="md"
       >
-        <AlmacenForm mode="create" onSuccess={handleAlmacenCreated} />
+        {null}
       </GeneralModal>
     </FormWrapper>
   );

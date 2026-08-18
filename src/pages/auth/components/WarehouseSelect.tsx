@@ -106,7 +106,7 @@ export default function WarehouseSelect({
     () =>
       almacenes.map((a) => ({
         value: String(a.id),
-        label: a.nombre,
+        label: a.nombre_display || a.nombre,
         description: a.direccion,
       })),
     [almacenes],
@@ -177,7 +177,9 @@ export default function WarehouseSelect({
           )}
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate font-medium">{almacen.nombre}</span>
+          <span className="block truncate font-medium">
+            {almacen.nombre_display || almacen.nombre}
+          </span>
           <span
             className={cn(
               "block truncate text-xs",

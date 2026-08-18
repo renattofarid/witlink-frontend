@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -20,7 +20,7 @@ import { FormSelect } from "@/components/FormSelect";
 import { successToast, errorToast } from "@/lib/core.function";
 import { getAlmacenes } from "@/pages/auth/lib/auth.actions";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
-import { getAlmacenesPermitidos } from "@/pages/auth/lib/auth.utils";
+import { getAlmacenFilterOptions } from "@/pages/auth/lib/almacen-options";
 import { getSeries, validarSerie } from "@/pages/serie/lib/serie.actions";
 import { getMateriales } from "@/pages/materiales/lib/materiales.actions";
 import { createTraslado } from "../lib/traslado.actions";
@@ -115,10 +115,13 @@ export default function TrasladoForm({ onSuccess }: TrasladoFormProps) {
 
   const user = useAuthStore((s) => s.user);
   const origenActual = almacen_id;
-  const almacenesPermitidos = getAlmacenesPermitidos(user, almacenes);
-  const almacenOptions = almacenesPermitidos
-    .filter((a) => a.id !== origenActual)
-    .map((a) => ({ value: String(a.id), label: a.nombre }));
+  const almacenOptions = useMemo(
+    () =>
+      getAlmacenFilterOptions(user, almacenes)
+        .filter((a) => a.value !== "all")
+        .filter((a) => Number(a.value) !== origenActual),
+    [almacenes, origenActual, user],
+  );
 
   const mutation = useMutation({
     mutationFn: (values: TrasladoCreateFormValues) => {

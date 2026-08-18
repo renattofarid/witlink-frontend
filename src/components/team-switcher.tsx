@@ -27,6 +27,87 @@ import { getAlmacenes, selectAlmacen } from "@/pages/auth/lib/auth.actions";
 import { errorToast } from "@/lib/core.function";
 import type { AlmacenResource } from "@/pages/almacenes/lib/almacen.interface";
 
+type CorporateWarehouseGroup = {
+  id?: number;
+  nombre: string;
+  codigo: string;
+  pint: AlmacenResource[];
+  pext: AlmacenResource[];
+};
+
+const CORPORATE_HEADQUARTERS = [
+  { codigo: "CORP_LALIB", nombre: "Corporativo Instalacion La Libertad" },
+  { codigo: "CORP_LAMB", nombre: "Corporativo Instalacion Lambayeque" },
+  { codigo: "CORP_LIMA", nombre: "Corporativo Instalacion Lima" },
+];
+
+const LAMBAYEQUE_LEGACY_SUBWAREHOUSE_CODES = new Set([
+  "ALMACEN_PMO",
+  "ALMACEN_PINT",
+  "ALMACEN_NORTE",
+  "ALMACEN_ORIENTE",
+]);
+
+function normalizeAlmacenText(value?: string | null): string {
+  return (value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase()
+    .trim();
+}
+
+function getCorporateHeadquarterCode(almacen: AlmacenResource): string | null {
+  const code = normalizeAlmacenText(almacen.codigo);
+  const name = normalizeAlmacenText(almacen.nombre);
+
+  if (code === "CORP_LALIB" || name === "CORPORATIVO INSTALACION LA LIBERTAD") {
+    return "CORP_LALIB";
+  }
+  if (code === "CORP_LAMB" || name === "CORPORATIVO INSTALACION LAMBAYEQUE") {
+    return "CORP_LAMB";
+  }
+  if (code === "CORP_LIMA" || name === "CORPORATIVO INSTALACION LIMA") {
+    return "CORP_LIMA";
+  }
+
+  return null;
+}
+
+function getSubwarehouseParentCode(almacen: AlmacenResource): string | null {
+  const explicitParent = normalizeAlmacenText(almacen.almacen_padre_codigo);
+  if (explicitParent) return explicitParent;
+
+  const code = normalizeAlmacenText(almacen.codigo);
+  if (code.startsWith("LALIB_")) return "CORP_LALIB";
+  if (code.startsWith("LIMA_")) return "CORP_LIMA";
+  if (LAMBAYEQUE_LEGACY_SUBWAREHOUSE_CODES.has(code)) return "CORP_LAMB";
+
+  return null;
+}
+
+function isPintSubwarehouse(almacen: AlmacenResource): boolean {
+  const code = normalizeAlmacenText(almacen.codigo);
+  const name = normalizeAlmacenText(almacen.nombre);
+
+  return code.includes("PMO") || code.includes("PINT") || name.includes("PLANTA INTERNA");
+}
+
+function isPextSubwarehouse(almacen: AlmacenResource): boolean {
+  const code = normalizeAlmacenText(almacen.codigo);
+  const name = normalizeAlmacenText(almacen.nombre);
+
+  return (
+    code.includes("PEXT") ||
+    code.includes("NORTE") ||
+    code.includes("ORIENTE") ||
+    name.includes("PLANTA EXTERNA")
+  );
+}
+
+function getAlmacenLabel(almacen: AlmacenResource): string {
+  return almacen.nombre_display || almacen.nombre;
+}
+
 export function TeamSwitcher() {
   const { isMobile } = useSidebar();
   const almacen_id = useAuthStore((s) => s.almacen_id);
@@ -43,91 +124,50 @@ export function TeamSwitcher() {
 
   const activeAlmacen = almacenesAll.find((a) => a.id === almacen_id) ?? null;
 
-  const { headquarterList, pintList, pextList, regionalesList, totalDisponibles } =
-    useMemo(() => {
-      // El switcher siempre lista todos los almacenes (sin filtrar por el
-      // is_corporativo/subalmacenes del contexto actualmente activo), para
-      // poder cambiar libremente entre corporativos y no-corporativos.
-      const almacenesPermitidos = almacenesAll;
+  const { headquarterList, regionalesList, totalDisponibles } = useMemo(() => {
+    const hqsMap = new Map<string, CorporateWarehouseGroup>();
+    for (const hq of CORPORATE_HEADQUARTERS) {
+      hqsMap.set(hq.codigo, { ...hq, pint: [], pext: [] });
+    }
 
-      const defaultHqs = [
-        { codigo: "CORP_LALIB", nombre: "Corporativo Instalación La Libertad" },
-        { codigo: "CORP_LAMB", nombre: "Corporativo Instalación Lambayeque" },
-        { codigo: "CORP_LIMA", nombre: "Corporativo Instalación Lima" },
-      ];
+    const regionales: AlmacenResource[] = [];
 
-      const hqsMap = new Map<string, { id?: number; nombre: string; codigo: string }>();
-      for (const hq of defaultHqs) {
-        hqsMap.set(hq.codigo, hq);
+    for (const almacen of almacenesAll) {
+      const hqCode = getCorporateHeadquarterCode(almacen);
+      if (hqCode) {
+        const current = hqsMap.get(hqCode);
+        hqsMap.set(hqCode, {
+          id: almacen.id,
+          nombre: almacen.nombre,
+          codigo: hqCode,
+          pint: current?.pint ?? [],
+          pext: current?.pext ?? [],
+        });
+        continue;
       }
 
-      const pintMap = new Map<string, AlmacenResource>();
-      const pextMap = new Map<string, AlmacenResource>();
-      const regionales: AlmacenResource[] = [];
-
-      const PINT_CODES = ["ALMACEN_PMO", "ALMACEN_PINT"];
-      const PEXT_CODES = ["ALMACEN_PEXT", "ALMACEN_NORTE", "ALMACEN_ORIENTE"];
-
-      for (const a of almacenesPermitidos) {
-        const code = (a.codigo ?? "").toUpperCase();
-        const name = (a.nombre ?? "").toUpperCase();
-
-        if (
-          code === "CORP_LALIB" ||
-          name === "CORPORATIVO INSTALACIÓN LA LIBERTAD" ||
-          name === "CORPORATIVO INSTALACION LA LIBERTAD"
-        ) {
-          hqsMap.set("CORP_LALIB", {
-            id: a.id,
-            codigo: "CORP_LALIB",
-            nombre: "Corporativo Instalación La Libertad",
-          });
-        } else if (
-          code === "CORP_LAMB" ||
-          name === "CORPORATIVO INSTALACIÓN LAMBAYEQUE" ||
-          name === "CORPORATIVO INSTALACION LAMBAYEQUE"
-        ) {
-          hqsMap.set("CORP_LAMB", {
-            id: a.id,
-            codigo: "CORP_LAMB",
-            nombre: "Corporativo Instalación Lambayeque",
-          });
-        } else if (
-          code === "CORP_LIMA" ||
-          name === "CORPORATIVO INSTALACIÓN LIMA" ||
-          name === "CORPORATIVO INSTALACION LIMA"
-        ) {
-          hqsMap.set("CORP_LIMA", {
-            id: a.id,
-            codigo: "CORP_LIMA",
-            nombre: "Corporativo Instalación Lima",
-          });
-        } else if (
-          PINT_CODES.includes(code) ||
-          (code.includes("PMO") && !code.startsWith("CORP")) ||
-          (code === "PINT" || name === "ALMACEN PLANTA INTERNA" || name === "ALMACEN PMO")
-        ) {
-          pintMap.set(code || a.nombre, a);
-        } else if (
-          PEXT_CODES.includes(code) ||
-          (code.includes("NORTE") && !code.startsWith("CORP")) ||
-          (code.includes("ORIENTE") && !code.startsWith("CORP")) ||
-          (code === "PEXT" || name === "ALMACEN PLANTA EXTERNA" || name === "ALMACEN NORTE" || name === "ALMACEN ORIENTE")
-        ) {
-          pextMap.set(code || a.nombre, a);
-        } else {
-          regionales.push(a);
+      const parentCode = getSubwarehouseParentCode(almacen);
+      const group = parentCode ? hqsMap.get(parentCode) : null;
+      if (group) {
+        if (isPintSubwarehouse(almacen)) {
+          group.pint.push(almacen);
+        } else if (isPextSubwarehouse(almacen)) {
+          group.pext.push(almacen);
         }
+        continue;
       }
 
-      return {
-        headquarterList: Array.from(hqsMap.values()),
-        pintList: Array.from(pintMap.values()),
-        pextList: Array.from(pextMap.values()),
-        regionalesList: regionales,
-        totalDisponibles: almacenesPermitidos.length,
-      };
-    }, [almacenesAll]);
+      if (!almacen.es_subalmacen_corporativo) {
+        regionales.push(almacen);
+      }
+    }
+
+    return {
+      headquarterList: Array.from(hqsMap.values()),
+      regionalesList: regionales,
+      totalDisponibles: almacenesAll.length,
+    };
+  }, [almacenesAll]);
 
   const handleSelect = async (id: number) => {
     if (id === almacen_id || switching !== null) return;
@@ -135,14 +175,12 @@ export function TeamSwitcher() {
     try {
       await selectAlmacen(id);
       setAlmacenId(id);
-      // El token nuevo ya trae el almacen_id activo, se piden los datos del usuario
-      // y se limpian la memoria de pestañas y cache de queries para refetchear todo.
       await authenticate();
       useTabsStore.getState().clearRouteParams();
       queryClient.clear();
       await queryClient.invalidateQueries();
     } catch {
-      errorToast("Error al cambiar de almacén");
+      errorToast("Error al cambiar de almacen");
     } finally {
       setSwitching(null);
     }
@@ -163,7 +201,7 @@ export function TeamSwitcher() {
           <Warehouse className="size-3.5 shrink-0" />
         )}
       </div>
-      {almacen.nombre}
+      <span className="min-w-0 flex-1 truncate">{getAlmacenLabel(almacen)}</span>
       {almacen.id === almacen_id && (
         <span className="ml-auto text-xs text-muted-foreground">activo</span>
       )}
@@ -188,10 +226,10 @@ export function TeamSwitcher() {
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">
-                  {activeAlmacen?.nombre ?? "Sin almacén"}
+                  {activeAlmacen?.nombre ?? "Sin almacen"}
                 </span>
                 <span className="truncate text-xs text-muted-foreground">
-                  Almacén activo
+                  Almacen activo
                 </span>
               </div>
               <ChevronsUpDown className="ml-auto" />
@@ -207,17 +245,16 @@ export function TeamSwitcher() {
               Almacenes
             </DropdownMenuLabel>
 
-            {headquarterList.map((hq, idx) => (
-              <DropdownMenuSub key={hq.id ?? idx}>
+            {headquarterList.map((hq) => (
+              <DropdownMenuSub key={hq.codigo}>
                 <DropdownMenuSubTrigger className="gap-2 p-2 font-medium">
                   <div className="flex size-6 items-center justify-center rounded-md border">
                     <Building2 className="size-3.5 shrink-0" />
                   </div>
-                  <span>{hq.nombre}</span>
+                  <span className="min-w-0 flex-1 truncate">{hq.nombre}</span>
                 </DropdownMenuSubTrigger>
 
                 <DropdownMenuSubContent className="min-w-56">
-                  {/* Planta Interna (PINT) */}
                   <DropdownMenuSub>
                     <DropdownMenuSubTrigger className="gap-2 p-2">
                       <div className="flex size-6 items-center justify-center rounded-md border">
@@ -226,8 +263,8 @@ export function TeamSwitcher() {
                       <span>Planta Interna (PINT)</span>
                     </DropdownMenuSubTrigger>
                     <DropdownMenuSubContent className="min-w-52">
-                      {pintList.length > 0 ? (
-                        pintList.map(renderMenuItem)
+                      {hq.pint.length > 0 ? (
+                        hq.pint.map(renderMenuItem)
                       ) : (
                         <DropdownMenuItem disabled className="text-xs text-muted-foreground">
                           Sin subalmacenes
@@ -236,7 +273,6 @@ export function TeamSwitcher() {
                     </DropdownMenuSubContent>
                   </DropdownMenuSub>
 
-                  {/* Planta Externa (PEXT) */}
                   <DropdownMenuSub>
                     <DropdownMenuSubTrigger className="gap-2 p-2">
                       <div className="flex size-6 items-center justify-center rounded-md border">
@@ -245,8 +281,8 @@ export function TeamSwitcher() {
                       <span>Planta Externa (PEXT)</span>
                     </DropdownMenuSubTrigger>
                     <DropdownMenuSubContent className="min-w-52">
-                      {pextList.length > 0 ? (
-                        pextList.map(renderMenuItem)
+                      {hq.pext.length > 0 ? (
+                        hq.pext.map(renderMenuItem)
                       ) : (
                         <DropdownMenuItem disabled className="text-xs text-muted-foreground">
                           Sin subalmacenes

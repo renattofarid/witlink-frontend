@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,8 @@ import { createDespacho } from "../lib/despacho.actions";
 import { DespachoComplete } from "../lib/despacho.constants";
 import { useTecnicoDespachoQuery } from "../lib/despacho.hook";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
+import { getAlmacenes } from "@/pages/auth/lib/auth.actions";
+import { isCorporateAlmacen } from "@/pages/auth/lib/auth.utils";
 import type { PersonaResource } from "@/pages/persona/lib/persona.interface";
 import type {
   DespachoCreateBody,
@@ -55,7 +57,17 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
   const almacen_id = useAuthStore((s) => s.almacen_id);
-  const isCorporativo = !!user?.is_corporativo;
+  const { data: almacenesAll = [] } = useQuery({
+    queryKey: ["almacenes-select"],
+    queryFn: getAlmacenes,
+    refetchOnWindowFocus: false,
+  });
+  const activeAlmacen =
+    almacenesAll.find((a) => a.id === almacen_id) ?? null;
+  const isCorporativo =
+    !!user?.is_corporativo ||
+    !!user?.es_subalmacen_corporativo ||
+    (activeAlmacen ? isCorporateAlmacen(activeAlmacen) : false);
 
   const [masivoSeries, setMasivoSeries] = useState<MasivoSerieValidadaItem[]>([]);
   const [masivoError, setMasivoError] = useState("");

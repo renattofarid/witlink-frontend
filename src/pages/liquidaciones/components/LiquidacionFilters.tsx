@@ -9,8 +9,8 @@ import ExportExcelButton from "@/components/ExportExcelButton";
 import { X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getAlmacenes } from "@/pages/auth/lib/auth.actions";
-import { getAlmacenesPermitidos } from "@/pages/auth/lib/auth.utils";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
+import { getAlmacenFilterOptions } from "@/pages/auth/lib/almacen-options";
 import {
   ESTADO_OPERATIVO_OPTIONS,
   ESTADO_LIQUIDACION_OPTIONS,
@@ -61,19 +61,7 @@ export default function LiquidacionFilters({
   });
 
   const almacenOptions = useMemo(() => {
-    const permitidos = getAlmacenesPermitidos(user, almacenes);
-    const operativos = user?.is_corporativo
-      ? permitidos.filter((a) => a.es_subalmacen_corporativo)
-      : permitidos;
-
-    return [
-      { value: "all", label: "Todos los almacenes" },
-      ...operativos.map((a) => ({
-        value: String(a.id),
-        label: a.nombre_display || a.nombre,
-        description: a.codigo,
-      })),
-    ];
+    return getAlmacenFilterOptions(user, almacenes);
   }, [almacenes, user]);
 
   const activeAlmacenVal = !almacenId ? "all" : almacenId;

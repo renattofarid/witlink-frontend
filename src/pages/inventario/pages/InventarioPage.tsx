@@ -12,6 +12,7 @@ import { successToast, errorToast } from "@/lib/core.function";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
 import { getAlmacenes } from "@/pages/auth/lib/auth.actions";
+import { getAlmacenFilterOptions } from "@/pages/auth/lib/almacen-options";
 import {
   useInventarioSeriesQuery,
   useInventarioMaterialesQuery,
@@ -88,11 +89,9 @@ export default function InventarioPage() {
   });
   const reservaAlmacenOptions = useMemo(
     () =>
-      almacenesAll.map((a) => ({
-        value: String(a.id),
-        label: a.nombre,
-      })),
-    [almacenesAll],
+      getAlmacenFilterOptions(user, almacenesAll)
+        .filter((a) => a.value !== "all"),
+    [user, almacenesAll],
   );
 
   const [selectedSerie, setSelectedSerie] =
@@ -693,7 +692,7 @@ export default function InventarioPage() {
                 <SelectContent>
                   {reservaAlmacenOptions.map((a) => (
                     <SelectItem key={a.value} value={a.value}>
-                      {a.label}
+                      {typeof a.label === "function" ? a.label() : a.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -747,7 +746,7 @@ export default function InventarioPage() {
               <SelectContent>
                 {reservaAlmacenOptions.map((a) => (
                   <SelectItem key={a.value} value={a.value}>
-                    {a.label}
+                    {typeof a.label === "function" ? a.label() : a.label}
                   </SelectItem>
                 ))}
               </SelectContent>

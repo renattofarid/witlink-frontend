@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTabParams } from "@/hooks/useTabParams";
 import { useHasPermission } from "@/hooks/useHasPermission";
 import { format } from "date-fns";
@@ -38,11 +38,13 @@ import {
   deleteEquipoRetirado,
   restoreEquipoRetirado,
 } from "@/pages/equipos-retirados/lib/equipos-retirados.actions";
+import { useAuthStore } from "@/pages/auth/lib/auth.store";
 
 export default function GuiaPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const canConfirm = useHasPermission("confirmar-ingreso");
+  const almacen_id = useAuthStore((s) => s.almacen_id);
 
   const today = new Date();
   const [params, setParams] = useTabParams(GuiaComplete.ABSOLUTE_ROUTE, {
@@ -50,7 +52,19 @@ export default function GuiaPage() {
     per_page: String(DEFAULT_PER_PAGE),
     fecha_inicio: format(new Date(today.getFullYear(), 0, 1), "yyyy-MM-dd"),
     fecha_fin: format(today, "yyyy-MM-dd"),
+    ...(almacen_id ? { almacen: String(almacen_id) } : {}),
   });
+
+  useEffect(() => {
+    if (almacen_id) {
+      setParams((prev) => {
+        if (prev.almacen !== String(almacen_id)) {
+          return { ...prev, almacen: String(almacen_id), page: "1" };
+        }
+        return prev;
+      });
+    }
+  }, [almacen_id, setParams]);
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [toDelete, setToDelete] = useState<GuiaListResource | null>(null);

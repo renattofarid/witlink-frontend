@@ -7,7 +7,7 @@ import DatePicker from "@/components/DatePicker";
 import { useQuery } from "@tanstack/react-query";
 import { getAlmacenes } from "@/pages/auth/lib/auth.actions";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
-import { getAlmacenesPermitidos } from "@/pages/auth/lib/auth.utils";
+import { getAlmacenFilterOptions } from "@/pages/auth/lib/almacen-options";
 
 interface KardexFiltersProps {
   params: Record<string, string>;
@@ -33,11 +33,7 @@ export default function KardexFilters({ params, setParams }: KardexFiltersProps)
   });
 
   const almacenOptions = useMemo(() => {
-    const permitidos = getAlmacenesPermitidos(user, almacenes);
-    return [
-      { value: "all", label: "Todos los almacenes" },
-      ...permitidos.map((a) => ({ value: String(a.id), label: a.nombre })),
-    ];
+    return getAlmacenFilterOptions(user, almacenes);
   }, [user, almacenes]);
 
   const set = (key: string, value: string) =>

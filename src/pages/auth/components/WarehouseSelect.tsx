@@ -88,6 +88,7 @@ export default function WarehouseSelect({
   const [isContinuing, setIsContinuing] = useState(false);
   const navigate = useNavigate();
   const setAlmacenId = useAuthStore((s) => s.setAlmacenId);
+  const authenticate = useAuthStore((s) => s.authenticate);
   const user = useAuthStore((s) => s.user);
 
   const { data: almacenesAll = [], isLoading } = useQuery({
@@ -139,6 +140,7 @@ export default function WarehouseSelect({
     try {
       await selectAlmacen(Number(selectedId));
       setAlmacenId(Number(selectedId));
+      await authenticate();
       useTabsStore.getState().clearRouteParams();
       navigate("/inicio", { replace: true });
     } catch {

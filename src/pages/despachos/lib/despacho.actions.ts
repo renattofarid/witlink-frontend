@@ -26,7 +26,7 @@ export const createDespacho = async (
 ) => {
   const { user, almacen_id } = useAuthStore.getState();
 
-  if (user?.is_corporativo) {
+  if (user?.is_corporativo || user?.es_subalmacen_corporativo || body.sot) {
     const { data } = await api.post("/corporativo/despachos", {
       ...body,
       almacen_id: body.almacen_id ?? almacen_id,

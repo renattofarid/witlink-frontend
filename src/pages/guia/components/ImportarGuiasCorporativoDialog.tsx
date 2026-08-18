@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Upload, X, FileSpreadsheet } from "lucide-react";
+import { Download, Upload, X, FileSpreadsheet } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -33,6 +33,90 @@ interface Props {
 }
 
 const ACCEPTED_EXTENSIONS = [".xlsx", ".xls", ".csv", ".txt"];
+
+const TEMPLATE_HEADERS = [
+  "NroEntrega",
+  "NroGuia1",
+  "NroGuia2",
+  "Posicion",
+  "SolAbastecimiento",
+  "PedidoTraslado",
+  "NroMaterial",
+  "TextoBreve",
+  "Cantidad",
+  "UnidadMedida",
+  "NroLote",
+  "Tipo",
+  "Serie",
+  "NumeroSerie",
+  "Mac",
+  "IncluirEnCarga",
+  "EsLiquidacion",
+];
+
+const TEMPLATE_SAMPLE = [
+  "800000001",
+  "T001-00000001",
+  "",
+  "10",
+  "10000001",
+  "45000001",
+  "SAP001",
+  "CABLE DROP 100M",
+  "5",
+  "UND",
+  "",
+  "Material",
+  "No",
+  "",
+  "No",
+  "No",
+  "Si",
+];
+
+const REQUIRED_COLUMNS = [
+  "NroEntrega",
+  "NroGuia1",
+  "NroMaterial",
+  "TextoBreve",
+  "Cantidad",
+  "Tipo",
+];
+
+const OPTIONAL_COLUMNS = [
+  "NroGuia2",
+  "Posicion",
+  "SolAbastecimiento",
+  "PedidoTraslado",
+  "UnidadMedida",
+  "NroLote",
+  "Serie",
+  "NumeroSerie",
+  "Mac",
+  "IncluirEnCarga",
+  "EsLiquidacion",
+];
+
+function csvCell(value: string) {
+  return `"${value.replace(/"/g, '""')}"`;
+}
+
+function downloadTemplate() {
+  const rows = [TEMPLATE_HEADERS, TEMPLATE_SAMPLE]
+    .map((row) => row.map(csvCell).join(","))
+    .join("\r\n");
+  const blob = new Blob([`\uFEFF${rows}`], {
+    type: "text/csv;charset=utf-8;",
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "plantilla-guias-corporativas-sapui5.csv";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
 
 export default function ImportarGuiasCorporativoDialog({ open, onClose }: Props) {
   const queryClient = useQueryClient();
@@ -96,7 +180,7 @@ export default function ImportarGuiasCorporativoDialog({ open, onClose }: Props)
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Importar guías corporativas (SAPUI5)</DialogTitle>
         </DialogHeader>
@@ -140,11 +224,71 @@ export default function ImportarGuiasCorporativoDialog({ open, onClose }: Props)
             )}
 
             <FieldError>{archivoError}</FieldError>
-            <p className="text-xs text-muted-foreground">
-              Formatos aceptados: .xlsx, .xls, .csv o .txt. Excel del cliente en
-              formato SAPUI5 (NroEntrega, NroGuia1, NroGuia2, NroMaterial,
-              TextoBreve, Cantidad, etc.).
-            </p>
+          </div>
+
+          <div className="rounded-md border bg-muted/30 p-3 text-sm">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="space-y-1">
+                <p className="font-medium">Formato esperado por el sistema</p>
+                <p className="text-xs text-muted-foreground">
+                  Formatos aceptados: .xlsx, .xls, .csv o .txt. La primera fila
+                  debe contener los encabezados.
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={downloadTemplate}
+                className="shrink-0"
+              >
+                <Download className="size-4 mr-1" />
+                Descargar plantilla
+              </Button>
+            </div>
+
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              <div>
+                <p className="mb-1 text-xs font-medium uppercase text-muted-foreground">
+                  Columnas obligatorias
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {REQUIRED_COLUMNS.map((column) => (
+                    <Badge key={column} variant="default" color="blue">
+                      {column}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className="mb-1 text-xs font-medium uppercase text-muted-foreground">
+                  Columnas opcionales
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {OPTIONAL_COLUMNS.map((column) => (
+                    <Badge key={column} variant="outline">
+                      {column}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-3 rounded border bg-background p-2 text-xs text-muted-foreground">
+              <p>
+                <span className="font-medium text-foreground">Tipo:</span> debe
+                ser Material o Equipo.
+              </p>
+              <p>
+                <span className="font-medium text-foreground">Serie/Mac:</span>{" "}
+                acepta Si/No, 1/0 o X. Si Tipo es Equipo y Serie es Si, el
+                archivo debe traer NumeroSerie.
+              </p>
+              <p>
+                <span className="font-medium text-foreground">Guia:</span> se
+                agrupa por NroGuia1; si viene vacio, usa NroEntrega.
+              </p>
+            </div>
           </div>
 
           <div className="space-y-1.5">

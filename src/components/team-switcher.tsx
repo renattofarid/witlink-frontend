@@ -236,7 +236,7 @@ export function TeamSwitcher() {
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-(--radix-dropdown-menu-trigger-width) min-w-64 rounded-lg"
+            className="w-80 rounded-lg"
             align="start"
             side={isMobile ? "bottom" : "right"}
             sideOffset={4}
@@ -251,7 +251,9 @@ export function TeamSwitcher() {
                   <div className="flex size-6 items-center justify-center rounded-md border">
                     <Building2 className="size-3.5 shrink-0" />
                   </div>
-                  <span className="min-w-0 flex-1 truncate">{hq.nombre}</span>
+                  <span className="min-w-0 flex-1 whitespace-normal leading-snug">
+                    {hq.nombre}
+                  </span>
                 </DropdownMenuSubTrigger>
 
                 <DropdownMenuSubContent className="min-w-56">

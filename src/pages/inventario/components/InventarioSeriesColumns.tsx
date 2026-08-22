@@ -47,7 +47,12 @@ export const getInventarioSeriesColumns = ({
           id: "select",
           header: ({ table }) => {
             const rows = table.getRowModel().rows;
-            const eligible = rows.filter((r) => !r.original.reserva_sot);
+            // La reserva de SOT solo aplica a series Disponibles.
+            const eligible = rows.filter(
+              (r) =>
+                !r.original.reserva_sot &&
+                r.original.situacion_label === SITUACION.DISPONIBLE,
+            );
             const eligibleSelected = eligible.filter((r) => r.getIsSelected());
             const allSelected =
               eligible.length > 0 && eligibleSelected.length === eligible.length;
@@ -66,7 +71,10 @@ export const getInventarioSeriesColumns = ({
           cell: ({ row }) => (
             <Checkbox
               checked={row.getIsSelected()}
-              disabled={!!row.original.reserva_sot}
+              disabled={
+                !!row.original.reserva_sot ||
+                row.original.situacion_label !== SITUACION.DISPONIBLE
+              }
               onCheckedChange={(value) => row.toggleSelected(!!value)}
             />
           ),
@@ -248,7 +256,11 @@ export const getInventarioSeriesColumns = ({
           color="amber"
           tooltip="Reservar por SOT"
           canRender={
-            !!isCorporativo && !!onReservarSot && !row.original.reserva_sot
+            !!isCorporativo &&
+            !!onReservarSot &&
+            !row.original.reserva_sot &&
+            // La reserva de SOT solo aplica a series Disponibles.
+            row.original.situacion_label === SITUACION.DISPONIBLE
           }
           onClick={() => onReservarSot?.(row.original)}
         />

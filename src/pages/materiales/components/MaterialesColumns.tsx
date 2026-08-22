@@ -1,6 +1,7 @@
 import { ButtonAction } from "@/components/ButtonAction";
 import { Pencil, Trash2, RotateCcw } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
+import { Badge } from "@/components/ui/badge";
 import type { MaterialResource } from "../lib/materiales.interface";
 
 interface ColumnActions {
@@ -32,6 +33,15 @@ export const getMaterialesColumns = ({
     id: "tipo",
     header: "Tipo",
     cell: ({ row }) => row.original.producto.tipo,
+  },
+  {
+    id: "origen",
+    header: "Origen",
+    cell: ({ row }) => {
+      const { origen, origen_label } = row.original;
+      const label = origen_label || origen;
+      return label ? <Badge>{label}</Badge> : "—";
+    },
   },
   {
     accessorKey: "cantidad",

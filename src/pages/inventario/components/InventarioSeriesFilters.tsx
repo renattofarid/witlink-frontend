@@ -113,6 +113,13 @@ export default function InventarioSeriesFilters({
           }
         />
         <SearchInput
+          value={params.serie ?? ""}
+          onChange={(v) =>
+            setParams((prev) => ({ ...prev, serie: v, page: "1" }))
+          }
+          placeholder="Filtrar por serie..."
+        />
+        <SearchInput
           value={params.producto ?? ""}
           onChange={(v) =>
             setParams((prev) => ({ ...prev, producto: v, page: "1" }))

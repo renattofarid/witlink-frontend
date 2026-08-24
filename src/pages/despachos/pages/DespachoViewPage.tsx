@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Building2, CalendarDays, Package, Pencil, User, Wrench } from "lucide-react";
 import FormWrapper from "@/components/FormWrapper";
@@ -17,6 +17,7 @@ import { DespachoViewProductos } from "../components/DespachoViewProductos";
 import { DespachoReasignarTecnicoDialog } from "../components/DespachoReasignarTecnicoDialog";
 
 export default function DespachoViewPage() {
+  const navigate = useNavigate();
   const { id } = useParams();
   const queryClient = useQueryClient();
 
@@ -109,11 +110,23 @@ export default function DespachoViewPage() {
           </p>
         </div>
 
-        <ExportButtons
-          pdfEndpoint={`/despachos/${id}/pdf`}
-          pdfFileName={`despacho-${despacho.numero ?? id}.pdf`}
-          variant="detail"
-        />
+        <div className="flex items-center gap-2">
+          {!despacho.deleted_at && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => navigate(`${DespachoComplete.ROUTE_UPDATE}/${id}`)}
+            >
+              <Pencil className="size-3.5" />
+              Editar
+            </Button>
+          )}
+          <ExportButtons
+            pdfEndpoint={`/despachos/${id}/pdf`}
+            pdfFileName={`despacho-${despacho.numero ?? id}.pdf`}
+            variant="detail"
+          />
+        </div>
       </div>
 
       {/* ── Metadatos ────────────────────────────────────────────────────────── */}

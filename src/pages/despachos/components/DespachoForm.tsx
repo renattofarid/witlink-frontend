@@ -20,7 +20,7 @@ import {
   type DespachoProductoFormValues,
   type DespachoSerieFormValues,
 } from "../lib/despacho.schema";
-import { createDespacho } from "../lib/despacho.actions";
+import { createDespacho, updateDespacho } from "../lib/despacho.actions";
 import { DespachoComplete } from "../lib/despacho.constants";
 import { useTecnicoDespachoQuery } from "../lib/despacho.hook";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
@@ -29,6 +29,7 @@ import { isCorporateAlmacen } from "@/pages/auth/lib/auth.utils";
 import type { PersonaResource } from "@/pages/persona/lib/persona.interface";
 import type {
   DespachoCreateBody,
+  DespachoResource,
   MasivoSerieValidadaItem,
 } from "../lib/despacho.interface";
 import { DespachoProductoDialog } from "./DespachoProductoDialog";
@@ -49,10 +50,16 @@ const EMPTY_PRODUCTO: DespachoProductoFormValues = {
 };
 
 interface DespachoFormProps {
+  mode?: "create" | "edit";
+  despacho?: DespachoResource;
   onSuccess?: () => void;
 }
 
-export default function DespachoForm({ onSuccess }: DespachoFormProps) {
+export default function DespachoForm({
+  mode = "create",
+  despacho,
+  onSuccess,
+}: DespachoFormProps) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
@@ -88,6 +95,30 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
     remove: removeProducto,
     update: updateProductoField,
   } = useFieldArray({ control: form.control, name: "productos" });
+
+  useEffect(() => {
+    if (mode !== "edit" || !despacho) return;
+
+    form.reset({
+      tecnico_id: despacho.tecnico?.id ? String(despacho.tecnico.id) : "",
+      sot: despacho.sot ?? despacho.numero_sot ?? "",
+      productos: (despacho.productos ?? []).map((detalle) => ({
+        producto_id: String(detalle.producto?.id ?? ""),
+        nombre: detalle.producto?.nombre ?? null,
+        sap: detalle.producto?.sap ?? null,
+        tipo: detalle.producto?.tipo as "MATERIAL" | "EQUIPO" | null,
+        cantidad: Number(detalle.cantidad),
+        series: (detalle.series ?? [])
+          .map((s) => s.serie)
+          .filter(Boolean)
+          .map((serie) => ({
+            serie_id: serie!.id,
+            serie: serie!.serie,
+          })),
+      })),
+    });
+    setMasivoSeries([]);
+  }, [despacho, form, mode]);
 
   // Debounce de la SOT para no disparar la búsqueda de reservas en cada tecla.
   const sotValue = form.watch("sot") ?? "";
@@ -157,11 +188,24 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
 
   // ── Mutation ───────────────────────────────────────────────────────────────
   const mutation = useMutation({
-    mutationFn: (body: DespachoCreateBody) => createDespacho(body),
+    mutationFn: (body: DespachoCreateBody) =>
+      mode === "edit" && despacho
+        ? updateDespacho(despacho.id, body)
+        : createDespacho(body),
     onSuccess: (_data, variables) => {
       form.reset({ tecnico_id: "", productos: [], sot: "" });
       setMasivoSeries([]);
       queryClient.invalidateQueries({ queryKey: [DespachoComplete.QUERY_KEY] });
+      if (mode === "edit") {
+        queryClient.invalidateQueries({
+          queryKey: [DespachoComplete.QUERY_KEY, "detail", String(despacho?.id)],
+        });
+        toast.success("Despacho actualizado correctamente.", {
+          action: { label: "Listo", onClick: () => toast.dismiss() },
+        });
+        onSuccess?.();
+        return;
+      }
       const sot = variables.sot?.trim().toUpperCase();
       if (sot) {
         toast.success("Despacho creado correctamente.", {
@@ -183,7 +227,10 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
     },
     onError: (error: any) => {
       errorToast(
-        error.response?.data?.message ?? "Error al crear el despacho.",
+        error.response?.data?.message ??
+          (mode === "edit"
+            ? "Error al actualizar el despacho."
+            : "Error al crear el despacho."),
       );
     },
   });
@@ -461,7 +508,11 @@ export default function DespachoForm({ onSuccess }: DespachoFormProps) {
 
       <div className="flex justify-end">
         <Button type="submit" disabled={mutation.isPending}>
-          {mutation.isPending ? "Guardando..." : "Crear despacho"}
+          {mutation.isPending
+            ? "Guardando..."
+            : mode === "edit"
+              ? "Actualizar despacho"
+              : "Crear despacho"}
         </Button>
       </div>
     </form>

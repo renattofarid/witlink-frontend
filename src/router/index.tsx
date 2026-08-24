@@ -42,6 +42,7 @@ import InventarioPage from "../pages/inventario/pages/InventarioPage";
 import { InventarioComplete } from "../pages/inventario/lib/inventario.constants";
 import DespachosPage from "../pages/despachos/pages/DespachosPage";
 import DespachoAddPage from "../pages/despachos/pages/DespachoAddPage";
+import DespachoEditPage from "../pages/despachos/pages/DespachoEditPage";
 import DespachoViewPage from "../pages/despachos/pages/DespachoViewPage";
 import {
   DespachoComplete,
@@ -381,6 +382,14 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <DespachoAddPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={`${DespachoComplete.ROUTE_UPDATE}/:id`}
+        element={
+          <ProtectedRoute>
+            <DespachoEditPage />
           </ProtectedRoute>
         }
       />

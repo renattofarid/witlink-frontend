@@ -1,19 +1,21 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { ButtonAction } from "@/components/ButtonAction";
-import { Trash2, Eye, UserCog } from "lucide-react";
+import { Trash2, Edit, Eye, UserCog } from "lucide-react";
 import ExportButtons from "@/components/ExportButtons";
 import { DespachoProductosModal } from "./DespachoProductosModal";
 import type { DespachoResource } from "../lib/despacho.interface";
 
 interface ColumnActions {
   onDelete: (row: DespachoResource) => void;
+  onEdit: (row: DespachoResource) => void;
   onView: (row: DespachoResource) => void;
   onReassign: (row: DespachoResource) => void;
 }
 
 export const getDespachoColumns = ({
   onDelete,
+  onEdit,
   onView,
   onReassign,
 }: ColumnActions): ColumnDef<DespachoResource>[] => [
@@ -96,6 +98,12 @@ export const getDespachoColumns = ({
       return (
         <div className="flex gap-1 items-center">
           <ButtonAction icon={Eye} onClick={() => onView(item)} />
+          <ButtonAction
+            icon={Edit}
+            canRender={!isDeleted}
+            onClick={() => onEdit(item)}
+            tooltip="Editar despacho"
+          />
           <ExportButtons
             pdfEndpoint={`/despachos/${item.id}/pdf`}
             pdfFileName={`despacho-${item.numero ?? item.id}.pdf`}

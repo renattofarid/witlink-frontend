@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTabParams } from "@/hooks/useTabParams";
 import PageWrapper from "@/components/PageWrapper";
 import TitleComponent from "@/components/TitleComponent";
@@ -15,6 +16,7 @@ import TraspasoContrataDetalleSheet from "../components/TraspasoContrataDetalleS
 import type { TraspasoContrataResource } from "../lib/traspaso-contrata.interface";
 
 export default function TraspasoContrataPage() {
+  const navigate = useNavigate();
   const [viewItem, setViewItem] = useState<TraspasoContrataResource | null>(
     null,
   );
@@ -31,6 +33,8 @@ export default function TraspasoContrataPage() {
 
   const columns = getTraspasoContrataColumns({
     onView: (item) => setViewItem(item),
+    onEdit: (item) =>
+      navigate(`${TraspasoContrataComplete.ROUTE_UPDATE}/${item.id}`),
   });
 
   return (

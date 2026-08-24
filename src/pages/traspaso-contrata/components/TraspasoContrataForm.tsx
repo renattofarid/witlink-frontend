@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -20,8 +20,14 @@ import {
   type TraspasoContrataMaterialFormValues,
 } from "../lib/traspaso-contrata.schema";
 import { TraspasoContrataComplete } from "../lib/traspaso-contrata.constants";
-import { createTraspasoContrata } from "../lib/traspaso-contrata.actions";
-import type { TraspasoContrataCreateBody } from "../lib/traspaso-contrata.interface";
+import {
+  createTraspasoContrata,
+  updateTraspasoContrata,
+} from "../lib/traspaso-contrata.actions";
+import type {
+  TraspasoContrataCreateBody,
+  TraspasoContrataResource,
+} from "../lib/traspaso-contrata.interface";
 
 interface MaterialRow {
   producto_id: number;
@@ -32,11 +38,12 @@ interface MaterialRow {
 }
 
 interface Props {
-  mode: "create";
+  mode: "create" | "edit";
+  guia?: TraspasoContrataResource;
   onSuccess?: () => void;
 }
 
-export default function TraspasoContrataForm({ onSuccess }: Props) {
+export default function TraspasoContrataForm({ mode, guia, onSuccess }: Props) {
   const queryClient = useQueryClient();
   const today = format(new Date(), "yyyy-MM-dd");
 
@@ -57,6 +64,35 @@ export default function TraspasoContrataForm({ onSuccess }: Props) {
     mode: "onChange",
   });
 
+  const cantidadesOriginales = useMemo(() => {
+    const map = new Map<number, number>();
+    guia?.materiales?.forEach((m) => {
+      map.set(m.producto_id, (map.get(m.producto_id) ?? 0) + Number(m.cantidad));
+    });
+    return map;
+  }, [guia]);
+
+  useEffect(() => {
+    if (mode !== "edit" || !guia) return;
+
+    form.reset({
+      fecha: guia.fecha,
+      ruc_contrata: guia.ruc_contrata,
+      descripcion_contrata: guia.descripcion_contrata,
+      direccion_contrata: guia.direccion_contrata,
+      observaciones: guia.observaciones ?? "",
+    });
+    setMateriales(
+      (guia.materiales ?? []).map((m) => ({
+        producto_id: m.producto_id,
+        sap: m.sap ?? "",
+        nombre: m.producto ?? "",
+        cantidad: Number(m.cantidad),
+        stock: 0,
+      })),
+    );
+  }, [form, guia, mode]);
+
   const materialForm = useForm<TraspasoContrataMaterialFormValues>({
     resolver: zodResolver(traspasoContrataMaterialSchema) as any,
     defaultValues: { producto_id: "", cantidad: 1 },
@@ -71,9 +107,13 @@ export default function TraspasoContrataForm({ onSuccess }: Props) {
       });
       return;
     }
-    if (selectedProducto && values.cantidad > selectedProducto.stock) {
+    const stockDisponible =
+      (selectedProducto?.stock ?? 0) +
+      (cantidadesOriginales.get(producto_id) ?? 0);
+
+    if (selectedProducto && values.cantidad > stockDisponible) {
       materialForm.setError("cantidad", {
-        message: `Stock insuficiente. Solo hay ${selectedProducto.stock} disponible(s).`,
+        message: `Stock insuficiente. Solo hay ${stockDisponible} disponible(s).`,
       });
       return;
     }
@@ -98,18 +138,26 @@ export default function TraspasoContrataForm({ onSuccess }: Props) {
 
   const mutation = useMutation({
     mutationFn: (body: TraspasoContrataCreateBody) =>
-      createTraspasoContrata(body),
+      mode === "edit" && guia
+        ? updateTraspasoContrata(guia.id, body)
+        : createTraspasoContrata(body),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [TraspasoContrataComplete.QUERY_KEY],
       });
-      successToast("Traspaso a contrata creado correctamente.");
+      successToast(
+        mode === "edit"
+          ? "Traspaso a contrata actualizado correctamente."
+          : "Traspaso a contrata creado correctamente.",
+      );
       onSuccess?.();
     },
     onError: (error: any) => {
       errorToast(
         error.response?.data?.message ??
-          "Error al crear el traspaso a contrata.",
+          (mode === "edit"
+            ? "Error al actualizar el traspaso a contrata."
+            : "Error al crear el traspaso a contrata."),
       );
     },
   });
@@ -274,7 +322,11 @@ export default function TraspasoContrataForm({ onSuccess }: Props) {
 
       <div className="flex justify-end">
         <Button type="submit" disabled={mutation.isPending}>
-          {mutation.isPending ? "Guardando..." : "Crear traspaso"}
+          {mutation.isPending
+            ? "Guardando..."
+            : mode === "edit"
+              ? "Actualizar traspaso"
+              : "Crear traspaso"}
         </Button>
       </div>
     </form>

@@ -38,6 +38,23 @@ export const createDespacho = async (
   return data;
 };
 
+export const updateDespacho = async (
+  id: number,
+  body: DespachoCreateBody & { sot?: string },
+) => {
+  const { user, almacen_id } = useAuthStore.getState();
+  const endpoint =
+    user?.is_corporativo || user?.es_subalmacen_corporativo || body.sot
+      ? `/corporativo/despachos/${id}`
+      : `${DespachoComplete.ENDPOINT}/${id}`;
+
+  const { data } = await api.put(endpoint, {
+    ...body,
+    almacen_id: body.almacen_id ?? almacen_id,
+  });
+  return data;
+};
+
 export const deleteDespacho = async (id: number) => {
   const { data } = await api.delete(`${DespachoComplete.ENDPOINT}/${id}`);
   return data;

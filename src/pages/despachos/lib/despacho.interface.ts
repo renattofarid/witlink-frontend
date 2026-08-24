@@ -70,6 +70,7 @@ export interface DespachoSerieDetalleResource {
 export interface DespachoProductoDetalleResource {
   id: number;
   cantidad: number;
+  movimiento_id?: number;
   producto: {
     id: number;
     nombre: string;

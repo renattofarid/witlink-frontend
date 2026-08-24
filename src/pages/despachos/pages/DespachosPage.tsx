@@ -101,6 +101,10 @@ export default function DespachosPage() {
     navigate(`${DESPACHO_ROUTE_VIEW}/${row.id}`);
   };
 
+  const handleEdit = (row: DespachoResource) => {
+    navigate(`${DespachoComplete.ROUTE_UPDATE}/${row.id}`);
+  };
+
   const handleDelete = (row: DespachoResource) => {
     setToDelete(row);
     setDeleteOpen(true);
@@ -122,6 +126,7 @@ export default function DespachosPage() {
 
   const columns = getDespachoColumns({
     onDelete: handleDelete,
+    onEdit: handleEdit,
     onView: handleView,
     onReassign: handleReassign,
   });

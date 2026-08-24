@@ -15,6 +15,7 @@ export interface TraspasoContrataCreateBody {
 }
 
 export interface TraspasoContrataMaterialResource {
+  id?: number;
   producto_id: number;
   sap: string;
   producto: string;

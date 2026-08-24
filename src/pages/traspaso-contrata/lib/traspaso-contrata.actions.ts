@@ -30,3 +30,14 @@ export const createTraspasoContrata = async (
   const { data } = await api.post(TraspasoContrataComplete.ENDPOINT, body);
   return data;
 };
+
+export const updateTraspasoContrata = async (
+  id: number,
+  body: TraspasoContrataCreateBody,
+): Promise<TraspasoContrataResource> => {
+  const { data } = await api.put(
+    `${TraspasoContrataComplete.ENDPOINT}/${id}`,
+    body,
+  );
+  return data;
+};

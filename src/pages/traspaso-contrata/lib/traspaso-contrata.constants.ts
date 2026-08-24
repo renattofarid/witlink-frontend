@@ -14,4 +14,5 @@ export const TraspasoContrataComplete: ModelComplete = {
   // Endpoint del backend: no cambia, sigue viviendo bajo /guias-salida/...
   ENDPOINT: "/guias-salida/traspasos-contrata",
   ROUTE_ADD: "/traspasos-contrata/agregar",
+  ROUTE_UPDATE: "/traspasos-contrata/editar",
 };

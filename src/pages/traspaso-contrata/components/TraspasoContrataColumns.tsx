@@ -1,10 +1,11 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
-import { Eye } from "lucide-react";
+import { Edit, Eye } from "lucide-react";
 import type { TraspasoContrataResource } from "../lib/traspaso-contrata.interface";
 
 interface ColumnActions {
   onView: (item: TraspasoContrataResource) => void;
+  onEdit: (item: TraspasoContrataResource) => void;
 }
 
 function formatISODate(iso: string | null | undefined): string {
@@ -57,16 +58,26 @@ export const getTraspasoContrataColumns = (
   },
   {
     id: "acciones",
-    size: 80,
+    size: 110,
     cell: ({ row }) => (
-      <Button
-        size="sm"
-        variant="secondary"
-        tooltip="Ver detalle"
-        onClick={() => actions.onView(row.original)}
-      >
-        <Eye className="size-3.5" />
-      </Button>
+      <div className="flex items-center gap-1">
+        <Button
+          size="sm"
+          variant="secondary"
+          tooltip="Ver detalle"
+          onClick={() => actions.onView(row.original)}
+        >
+          <Eye className="size-3.5" />
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          tooltip="Editar guia de salida"
+          onClick={() => actions.onEdit(row.original)}
+        >
+          <Edit className="size-3.5" />
+        </Button>
+      </div>
     ),
   },
 ];

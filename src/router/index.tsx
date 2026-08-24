@@ -87,6 +87,7 @@ import DevolucionEditPage from "@/pages/guia-devolucion/pages/DevolucionEditPage
 import { TraspasoContrataComplete } from "@/pages/traspaso-contrata/lib/traspaso-contrata.constants";
 import TraspasoContrataPage from "@/pages/traspaso-contrata/pages/TraspasoContrataPage";
 import TraspasoContrataAddPage from "@/pages/traspaso-contrata/pages/TraspasoContrataAddPage";
+import TraspasoContrataEditPage from "@/pages/traspaso-contrata/pages/TraspasoContrataEditPage";
 import { SotRemisionComplete } from "@/pages/sots-remision/lib/sot-remision.constants";
 import SotsRemisionPage from "@/pages/sots-remision/pages/SotsRemisionPage";
 
@@ -354,6 +355,14 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <TraspasoContrataAddPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={`${TraspasoContrataComplete.ROUTE_UPDATE}/:id`}
+        element={
+          <ProtectedRoute>
+            <TraspasoContrataEditPage />
           </ProtectedRoute>
         }
       />

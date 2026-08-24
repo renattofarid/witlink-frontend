@@ -9,7 +9,6 @@ export const useMaterialesQuery = (params: Record<string, string>) => {
   return useQuery({
     queryKey: [MaterialesComplete.QUERY_KEY, params],
     queryFn: () => getMateriales(params),
-    refetchOnWindowFocus: true,
   });
 };
 

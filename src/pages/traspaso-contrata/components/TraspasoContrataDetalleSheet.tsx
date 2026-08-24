@@ -1,5 +1,9 @@
 import GeneralSheet from "@/components/GeneralSheet";
+import { Button } from "@/components/ui/button";
+import { Edit } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useTraspasoContrataDetailQuery } from "../lib/traspaso-contrata.hook";
+import { TraspasoContrataComplete } from "../lib/traspaso-contrata.constants";
 import type { TraspasoContrataResource } from "../lib/traspaso-contrata.interface";
 
 function formatISODate(iso: string | null | undefined): string {
@@ -35,6 +39,7 @@ interface Props {
 }
 
 export default function TraspasoContrataDetalleSheet({ item, onClose }: Props) {
+  const navigate = useNavigate();
   const { data, isLoading } = useTraspasoContrataDetailQuery(item?.id ?? null);
   const detalle = data ?? item;
 
@@ -47,6 +52,20 @@ export default function TraspasoContrataDetalleSheet({ item, onClose }: Props) {
       icon="Truck"
       isLoading={isLoading}
       size="lg"
+      childrenFooter={
+        detalle ? (
+          <Button
+            type="button"
+            onClick={() => {
+              onClose();
+              navigate(`${TraspasoContrataComplete.ROUTE_UPDATE}/${detalle.id}`);
+            }}
+          >
+            <Edit className="size-3.5" />
+            Editar
+          </Button>
+        ) : null
+      }
     >
       {detalle && (
         <div className="space-y-4 pb-4">

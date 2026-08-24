@@ -2,13 +2,23 @@ import type { PaginationResponse } from "@/lib/core.interface";
 
 export interface MaterialProducto {
   id: number;
-  categoria_id: number;
+  categoria_id?: number;
   sap: string;
   nombre: string;
+  lote: string;
+  incluir_en_carga: boolean;
+  es_liquidacion: boolean;
+  costo: string;
   tipo: string;
   created_at: string;
   updated_at: string;
-  deleted_at: string | null;
+  deleted_at?: string;
+  necesita_serie: boolean;
+  necesita_mac: boolean;
+  necesita_emta_mac: boolean;
+  necesita_ua: boolean;
+  origen: string;
+  categoria?: string;
 }
 
 export interface MaterialResource {
@@ -21,7 +31,6 @@ export interface MaterialResource {
   origen_label?: string | null;
   created_at: string;
   updated_at: string;
-  deleted_at?: string | null;
 }
 
 export type MaterialResponse = PaginationResponse<MaterialResource>;

@@ -119,7 +119,7 @@ export type ProductoFormValues = z.infer<typeof productoSchema>;
 export type GuiaCreateFormValues = z.infer<typeof guiaCreateSchema>;
 export type GuiaEditFormValues = GuiaCreateFormValues;
 
-const macRegexQuick = /^[0-9A-Fa-f]$/;
+const macRegexQuick = /^[0-9A-Fa-f]{12}$/;
 
 export const quickAddSerieSchema = z
   .object({

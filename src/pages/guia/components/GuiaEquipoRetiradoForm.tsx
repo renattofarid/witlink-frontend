@@ -296,6 +296,7 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
       rowIndex: number,
       field: "serie" | "mac" | "emta_mac" | "ua",
       value: string | null | undefined,
+      excludeIndex: number | null = editingProductoIndex,
     ) => {
       const key = `${rowIndex}.${field}`;
       if (!value?.trim()) {
@@ -313,8 +314,8 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
       if (mode === "create") {
         const allProducts = createForm.getValues("productos");
         const otherProducts =
-          editingProductoIndex !== null
-            ? allProducts.filter((_, i) => i !== editingProductoIndex)
+          excludeIndex !== null
+            ? allProducts.filter((_, i) => i !== excludeIndex)
             : allProducts;
         exists = otherProducts.some((p) =>
           (p.series ?? []).some(
@@ -352,6 +353,61 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
       } else {
         productSubForm.clearErrors(`series.${rowIndex}.${field}` as any);
       }
+    },
+    [mode, createForm, editingProductoIndex, productSubForm, equipo],
+  );
+
+  // Red de seguridad al enviar (Agregar/Actualizar): repite la misma
+  // comparación que checkCrossProductDuplicate pero sobre TODAS las filas de
+  // `values`, sin depender de que el usuario haya disparado el blur de cada
+  // campo en esta sesión (p.ej. al editar un producto cuyos valores ya
+  // quedaron duplicados contra otro producto por una edición anterior).
+  const findCrossConflicts = useCallback(
+    (values: ProductoFormValues) => {
+      let hasCrossConflict = false;
+      (values.series ?? []).forEach((s, i) => {
+        (["serie", "mac", "emta_mac", "ua"] as const).forEach((field) => {
+          const val = s[field];
+          if (!val?.trim()) return;
+          const upper = val.trim().toUpperCase();
+          let exists = false;
+          if (mode === "create") {
+            const allProducts = createForm.getValues("productos");
+            const otherProducts =
+              editingProductoIndex !== null
+                ? allProducts.filter((_, idx) => idx !== editingProductoIndex)
+                : allProducts;
+            exists = otherProducts.some((p) =>
+              (p.series ?? []).some(
+                (os) => os[field] && os[field]!.toUpperCase() === upper,
+              ),
+            );
+          } else {
+            const productos = equipo?.productos ?? [];
+            exists = productos.some((p) =>
+              (p.series ?? []).some((os) => {
+                const fieldValue =
+                  field === "serie"
+                    ? os.serie.serie
+                    : field === "mac"
+                      ? os.serie.mac
+                      : field === "ua"
+                        ? os.serie.ua
+                        : os.serie.emta_mac;
+                return !!fieldValue && fieldValue.toUpperCase() === upper;
+              }),
+            );
+          }
+          if (exists) {
+            productSubForm.setError(`series.${i}.${field}` as any, {
+              type: "manual",
+              message: "Ya existe en otro producto",
+            });
+            hasCrossConflict = true;
+          }
+        });
+      });
+      return hasCrossConflict;
     },
     [mode, createForm, editingProductoIndex, productSubForm, equipo],
   );
@@ -526,6 +582,7 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
     try {
       const values = prepareProductoValues(rawValues);
       if (!values) return;
+      if (findCrossConflicts(values)) return;
       if (editingProductoIndex === null) {
         appendProducto(values);
       } else {
@@ -553,6 +610,14 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
     productSubForm.reset(producto);
     setProductoDialogOpen(true);
     setCrossProductDuplicates({});
+    // Revalida de inmediato lo que ya trae el producto: si sus series ya
+    // coinciden con otro producto (p.ej. quedaron así por una edición
+    // previa), debe marcarse sin esperar a que el usuario toque un campo.
+    (producto.series ?? []).forEach((s, rowIndex) => {
+      (["serie", "mac", "emta_mac", "ua"] as const).forEach((field) => {
+        checkCrossProductDuplicate(rowIndex, field, s[field], index);
+      });
+    });
   };
 
   const handleCloseProductoDialog = () => {
@@ -854,6 +919,7 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
               if (addProductoSubmitLockRef.current || addProductoEditMutation.isPending) return;
               const values = prepareProductoValues(rawValues);
               if (!values) return;
+              if (findCrossConflicts(values)) return;
               addProductoSubmitLockRef.current = true;
               addProductoEditMutation.mutate(values, {
                 onSettled: () => {

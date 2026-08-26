@@ -17,9 +17,11 @@ interface KardexFiltersProps {
 const TIPO_MOVIMIENTO_OPTIONS = [
   { value: "all", label: "Todos" },
   { value: "ingreso", label: "Ingreso" },
+  { value: "salida", label: "Salida" },
+  { value: "liquidado", label: "Liquidado" },
+  { value: "retirado", label: "Retirado" },
   { value: "devolucion", label: "Devolución" },
-  { value: "liquidacion_instalado", label: "Liquidación instalado" },
-  { value: "liquidacion_retirado", label: "Liquidación retirado" },
+  { value: "traslado", label: "Traslado" },
 ];
 
 export default function KardexFilters({ params, setParams }: KardexFiltersProps) {

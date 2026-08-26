@@ -5,10 +5,16 @@ import { cn } from "@/lib/utils";
 
 const movimientoBadgeColor: Record<string, BadgeColor> = {
   INGRESO: "green",
+  "INGRESO PENDIENTE": "amber",
+  "INGRESO CONFIRMADO": "green",
   SALIDA: "red",
+  DESPACHADO: "red",
   DEVOLUCION: "blue",
+  LIQUIDADO: "yellow",
   LIQUIDACION_INSTALADO: "yellow",
   RETIRADO: "gray",
+  TRASLADO: "purple",
+  DEVUELTO: "blue",
 };
 
 export const getKardexColumns = (): ColumnDef<KardexResource>[] => [

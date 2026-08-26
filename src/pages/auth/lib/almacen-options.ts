@@ -22,3 +22,22 @@ export function getAlmacenFilterOptions(
     })),
   ];
 }
+
+export function getAlmacenDestinoTrasladoOptions(
+  almacenes: AlmacenResource[],
+  origenId?: number | string | null,
+): Option[] {
+  const origen = origenId === undefined || origenId === null || origenId === ""
+    ? null
+    : Number(origenId);
+
+  return almacenes
+    .filter((a) => Number(a.id) !== origen)
+    .filter((a) => !(a.is_corporativo && !a.es_subalmacen_corporativo))
+    .map((a) => ({
+      value: String(a.id),
+      label: a.nombre_display || a.nombre,
+      description: a.codigo,
+      searchCode: a.codigo,
+    }));
+}

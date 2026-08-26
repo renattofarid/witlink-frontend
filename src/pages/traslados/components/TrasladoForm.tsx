@@ -20,7 +20,7 @@ import { FormSelect } from "@/components/FormSelect";
 import { successToast, errorToast } from "@/lib/core.function";
 import { getAlmacenes } from "@/pages/auth/lib/auth.actions";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
-import { getAlmacenFilterOptions } from "@/pages/auth/lib/almacen-options";
+import { getAlmacenDestinoTrasladoOptions } from "@/pages/auth/lib/almacen-options";
 import { getSeries, validarSerie } from "@/pages/serie/lib/serie.actions";
 import { getMateriales } from "@/pages/materiales/lib/materiales.actions";
 import { createTraslado } from "../lib/traslado.actions";
@@ -113,14 +113,10 @@ export default function TrasladoForm({ onSuccess }: TrasladoFormProps) {
     refetchOnWindowFocus: false,
   });
 
-  const user = useAuthStore((s) => s.user);
   const origenActual = almacen_id;
   const almacenOptions = useMemo(
-    () =>
-      getAlmacenFilterOptions(user, almacenes)
-        .filter((a) => a.value !== "all")
-        .filter((a) => Number(a.value) !== origenActual),
-    [almacenes, origenActual, user],
+    () => getAlmacenDestinoTrasladoOptions(almacenes, origenActual),
+    [almacenes, origenActual],
   );
 
   const mutation = useMutation({

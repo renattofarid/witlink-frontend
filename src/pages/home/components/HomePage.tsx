@@ -12,9 +12,15 @@ import { useDashboardQuery } from "../lib/home.hook";
 import type { MovimientoReciente } from "../lib/home.interface";
 
 const MOVIMIENTO_COLORS: Record<string, BadgeColor> = {
+  INGRESO: "green",
   "INGRESO PENDIENTE": "amber",
+  "INGRESO CONFIRMADO": "green",
+  SALIDA: "red",
   TRASLADO: "blue",
   DESPACHADO: "green",
+  LIQUIDADO: "purple",
+  RETIRADO: "red",
+  DEVOLUCION: "teal",
 };
 
 const TIPO_COLORS: Record<string, BadgeColor> = {

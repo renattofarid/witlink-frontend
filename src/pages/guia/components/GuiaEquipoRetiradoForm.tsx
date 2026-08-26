@@ -277,6 +277,17 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
     Record<string, "idle" | "loading" | "valid" | "invalid">
   >({});
 
+  // Duplicados contra OTRO producto ya agregado/guardado. Se guarda en
+  // estado propio (no en formState.errors de productSubForm) porque el
+  // resolver de Zod corre en cada "onChange" y reemplaza por completo el
+  // árbol de errores; un setError manual para algo que el schema no conoce
+  // se pierde en cuanto el usuario toca cualquier otro campo del mismo
+  // producto, dejando pasar el duplicado sin que el usuario lo haya
+  // corregido realmente.
+  const [crossProductDuplicates, setCrossProductDuplicates] = useState<
+    Record<string, boolean>
+  >({});
+
   // Evita que la misma serie/mac/emta_mac/ua se repita en otro producto del
   // mismo documento (ya sea otro producto del formulario en creación, o un
   // producto ya guardado en el documento en edición).
@@ -286,7 +297,17 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
       field: "serie" | "mac" | "emta_mac" | "ua",
       value: string | null | undefined,
     ) => {
-      if (!value?.trim()) return;
+      const key = `${rowIndex}.${field}`;
+      if (!value?.trim()) {
+        setCrossProductDuplicates((prev) => {
+          if (!prev[key]) return prev;
+          const next = { ...prev };
+          delete next[key];
+          return next;
+        });
+        productSubForm.clearErrors(`series.${rowIndex}.${field}` as any);
+        return;
+      }
       const upper = value.trim().toUpperCase();
       let exists = false;
       if (mode === "create") {
@@ -316,11 +337,20 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
           }),
         );
       }
+      setCrossProductDuplicates((prev) => {
+        if (!!prev[key] === exists) return prev;
+        const next = { ...prev };
+        if (exists) next[key] = true;
+        else delete next[key];
+        return next;
+      });
       if (exists) {
         productSubForm.setError(`series.${rowIndex}.${field}` as any, {
           type: "manual",
           message: "Ya existe en otro producto",
         });
+      } else {
+        productSubForm.clearErrors(`series.${rowIndex}.${field}` as any);
       }
     },
     [mode, createForm, editingProductoIndex, productSubForm, equipo],
@@ -504,6 +534,7 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
       }
       productSubForm.reset(EMPTY_PRODUCTO);
       setProductoDialogOpen(false);
+      setCrossProductDuplicates({});
     } finally {
       addProductoSubmitLockRef.current = false;
     }
@@ -513,6 +544,7 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
     productSubForm.reset(EMPTY_PRODUCTO);
     setEditingProductoIndex(null);
     setProductoDialogOpen(true);
+    setCrossProductDuplicates({});
   };
 
   const handleEditProducto = (index: number) => {
@@ -520,12 +552,14 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
     setEditingProductoIndex(index);
     productSubForm.reset(producto);
     setProductoDialogOpen(true);
+    setCrossProductDuplicates({});
   };
 
   const handleCloseProductoDialog = () => {
     setProductoDialogOpen(false);
     setEditingProductoIndex(null);
     productSubForm.reset(EMPTY_PRODUCTO);
+    setCrossProductDuplicates({});
   };
 
   // ── Mutations: CREATE ──────────────────────────────────────────────────────
@@ -575,6 +609,7 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
       successToast("Producto agregado correctamente.");
       productSubForm.reset(EMPTY_PRODUCTO);
       setProductoDialogOpen(false);
+      setCrossProductDuplicates({});
     },
     onError: (error: any) => {
       errorToast(error.response?.data?.message ?? "Error al agregar el producto.");
@@ -831,6 +866,7 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
             onCheckDuplicate={checkCrossProductDuplicate}
             onValidateField={validateSerieField}
             fieldValidationStatus={fieldValidationStatus}
+            crossProductDuplicates={crossProductDuplicates}
             isSubmitting={addProductoEditMutation.isPending}
           />
 
@@ -1100,6 +1136,7 @@ export default function GuiaEquipoRetiradoForm({ mode, equipo, onSuccess }: Prop
           onCheckDuplicate={checkCrossProductDuplicate}
           onValidateField={validateSerieField}
           fieldValidationStatus={fieldValidationStatus}
+          crossProductDuplicates={crossProductDuplicates}
         />
 
         {watchedProductos.length > 0 && (

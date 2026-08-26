@@ -42,6 +42,11 @@ interface GuiaProductoDialogProps {
     value: string | null | undefined,
   ) => Promise<void>;
   fieldValidationStatus?: Record<string, "idle" | "loading" | "valid" | "invalid">;
+  // Duplicados contra otro producto ya agregado a la guía, mantenidos en
+  // estado propio del padre (no en formState.errors) porque la revalidación
+  // onChange del schema de Zod pisa cualquier error manual apenas se edita
+  // otro campo del mismo producto. Ver comentario en GuiaForm.tsx.
+  crossProductDuplicates?: Record<string, boolean>;
   onGenerarSeries?: (series: SerieFormValues[]) => void;
   isSubmitting?: boolean;
 }
@@ -58,6 +63,7 @@ export function GuiaProductoDialog({
   onCheckDuplicate,
   onValidateField,
   fieldValidationStatus,
+  crossProductDuplicates,
   onGenerarSeries,
   isSubmitting,
 }: GuiaProductoDialogProps) {
@@ -89,6 +95,22 @@ export function GuiaProductoDialog({
   const hasBlockingFieldValidation = Object.values(fieldValidationStatus ?? {}).some(
     (status) => status === "invalid" || status === "loading",
   );
+
+  // Errores del formulario a nivel de series: duplicados dentro del mismo
+  // producto (marcados por el schema, ver serieSchema en guia.schema.ts) o
+  // duplicados contra otro producto de la guía (ver checkCrossProductDuplicate).
+  // Antes no se consultaban aquí, por lo que el botón "Agregar/Actualizar"
+  // quedaba habilitado aunque el formulario mostrara series marcadas como
+  // "Duplicado" o "Ya existe en otro producto".
+  const seriesErrors = productSubForm.formState.errors.series;
+  const hasSeriesFieldErrors = Array.isArray(seriesErrors)
+    ? seriesErrors.some(
+        (rowError) => rowError && Object.keys(rowError).length > 0,
+      )
+    : !!seriesErrors;
+  const hasCrossProductDuplicates = Object.values(
+    crossProductDuplicates ?? {},
+  ).some(Boolean);
 
   const isEquipo = watchedTipo === "EQUIPO";
   const requiresSerie = isRequiredFlag(necesitaSerie);
@@ -185,6 +207,7 @@ export function GuiaProductoDialog({
           onCheckDuplicate={onCheckDuplicate}
           onValidateField={onValidateField}
           fieldValidationStatus={fieldValidationStatus}
+          crossProductDuplicates={crossProductDuplicates}
           onGenerarSeries={onGenerarSeries}
         />
       )}
@@ -198,7 +221,12 @@ export function GuiaProductoDialog({
           type="button"
           size="sm"
           onClick={onSubmit}
-          disabled={hasBlockingFieldValidation || isSubmitting}
+          disabled={
+            hasBlockingFieldValidation ||
+            hasSeriesFieldErrors ||
+            hasCrossProductDuplicates ||
+            isSubmitting
+          }
         >
           <Check className="size-3 mr-1" />
           {isSubmitting ? "Guardando..." : editingIndex !== null ? "Actualizar" : "Agregar"}

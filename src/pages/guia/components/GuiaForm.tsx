@@ -204,6 +204,17 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
     [productSubForm],
   );
 
+  // Duplicados contra OTRO producto ya agregado al formulario. Se guarda en
+  // estado propio (no en formState.errors de productSubForm) porque el
+  // resolver de Zod corre en cada "onChange" y reemplaza por completo el
+  // árbol de errores; un setError manual para algo que el schema no conoce
+  // (esto compara contra `form`, no contra `productSubForm`) se pierde en
+  // cuanto el usuario toca cualquier otro campo del mismo producto, dejando
+  // pasar el duplicado sin que el usuario lo haya corregido realmente.
+  const [crossProductDuplicates, setCrossProductDuplicates] = useState<
+    Record<string, boolean>
+  >({});
+
   // Valida en tiempo real que un valor de serie/MAC/etc. no exista en otros
   // productos ya agregados al formulario (solo aplica en modo creación).
   const checkCrossProductDuplicate = useCallback(
@@ -212,8 +223,17 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
       field: "serie" | "mac" | "emta_mac" | "ua",
       value: string | null | undefined,
     ) => {
-      if (mode !== "create") return;
-      if (!value?.trim()) return;
+      const key = `${rowIndex}.${field}`;
+      if (mode !== "create" || !value?.trim()) {
+        setCrossProductDuplicates((prev) => {
+          if (!prev[key]) return prev;
+          const next = { ...prev };
+          delete next[key];
+          return next;
+        });
+        productSubForm.clearErrors(`series.${rowIndex}.${field}` as any);
+        return;
+      }
       const allProducts = form.getValues("productos");
       const otherProducts =
         editingProductoIndex !== null
@@ -224,11 +244,20 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
           (s) => s[field] && s[field]!.toUpperCase() === value.toUpperCase(),
         ),
       );
+      setCrossProductDuplicates((prev) => {
+        if (!!prev[key] === exists) return prev;
+        const next = { ...prev };
+        if (exists) next[key] = true;
+        else delete next[key];
+        return next;
+      });
       if (exists) {
         productSubForm.setError(`series.${rowIndex}.${field}` as any, {
           type: "manual",
           message: "Ya existe en otro producto",
         });
+      } else {
+        productSubForm.clearErrors(`series.${rowIndex}.${field}` as any);
       }
     },
     [mode, form, editingProductoIndex, productSubForm],
@@ -394,14 +423,16 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
     setEditingProductoIndex(null);
     setProductoDialogOpen(true);
     setFieldValidationStatus({});
+    setCrossProductDuplicates({});
   };
 
-  const handleEditProducto = (index: number) => { 
+  const handleEditProducto = (index: number) => {
     const producto = form.getValues(`productos.${index}`);
     setEditingProductoIndex(index);
     productSubForm.reset(producto);
     setProductoDialogOpen(true);
     setFieldValidationStatus({});
+    setCrossProductDuplicates({});
   };
 
   const handleCloseProductoDialog = () => {
@@ -409,6 +440,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
     setEditingProductoIndex(null);
     productSubForm.reset(EMPTY_PRODUCTO);
     setFieldValidationStatus({});
+    setCrossProductDuplicates({});
   };
 
   // ── Mutation + delete ──────────────────────────────────────────────────────
@@ -485,6 +517,7 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
           onCheckDuplicate={checkCrossProductDuplicate}
           onValidateField={validateSerieField}
           fieldValidationStatus={fieldValidationStatus}
+          crossProductDuplicates={crossProductDuplicates}
           onGenerarSeries={handleGenerarSeries}
         />
 

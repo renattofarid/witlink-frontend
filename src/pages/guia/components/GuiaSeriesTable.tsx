@@ -24,6 +24,19 @@ function formatMac(value: string): string {
   return value.replace(/[^0-9A-Fa-f]/g, "").toUpperCase().substring(0, 12);
 }
 
+// Mensaje persistente para duplicados contra otro producto de la guía. No usa
+// fieldState.error de react-hook-form porque ese error se pisa apenas se
+// revalida el schema (p.ej. al editar cualquier otro campo de la fila), lo
+// que dejaba el campo bloqueando el guardado sin explicar por qué.
+function CrossDuplicateMessage({ show }: { show: boolean }) {
+  if (!show) return null;
+  return (
+    <p className="text-[10px] text-destructive leading-tight">
+      Ya existe en otro producto
+    </p>
+  );
+}
+
 interface GuiaSeriesTableProps {
   productSubForm: UseFormReturn<ProductoFormValues>;
   watchedSeries: SerieFormValues[];
@@ -45,6 +58,8 @@ interface GuiaSeriesTableProps {
     value: string | null | undefined,
   ) => Promise<void>;
   fieldValidationStatus?: Record<string, FieldValidationStatus>;
+  // Duplicados contra otro producto de la guía; ver CrossDuplicateMessage.
+  crossProductDuplicates?: Record<string, boolean>;
   onGenerarSeries?: (series: SerieFormValues[]) => void;
 }
 
@@ -61,6 +76,7 @@ export function GuiaSeriesTable({
   onCheckDuplicate,
   onValidateField,
   fieldValidationStatus,
+  crossProductDuplicates,
   onGenerarSeries,
 }: GuiaSeriesTableProps) {
   const [generarModalOpen, setGenerarModalOpen] = useState(false);
@@ -80,6 +96,8 @@ export function GuiaSeriesTable({
   onValidateFieldRef.current = onValidateField;
   const fieldValidationStatusRef = useRef(fieldValidationStatus);
   fieldValidationStatusRef.current = fieldValidationStatus;
+  const crossProductDuplicatesRef = useRef(crossProductDuplicates);
+  crossProductDuplicatesRef.current = crossProductDuplicates;
   const watchedSeriesRef = useRef(watchedSeries);
   watchedSeriesRef.current = watchedSeries;
 
@@ -103,23 +121,26 @@ export function GuiaSeriesTable({
         const form = formRef.current;
         const index = row.index;
         return (
-          <div className="flex items-center gap-1">
-            <FormInput
-              id={`series-${index}-serie`}
-              name={`series.${index}.serie`}
-              control={form.control}
-              disabled={disabledSerie}
-              placeholder="SN123456"
-              uppercase
-              className={cn("h-7 text-xs", disabledSerie && "opacity-40 cursor-not-allowed")}
-              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onAdvanceRef.current(index, "serie"); } }}
-              onBlur={() => {
-                const val = formRef.current.getValues(`series.${index}.serie`);
-                onCheckDuplicateRef.current?.(index, "serie", val);
-                if (!skipValidationRef.current) void onValidateFieldRef.current?.(index, "serie", val);
-              }}
-            />
-            <ValidationIcon status={fieldValidationStatusRef.current?.[`${index}.serie`]} />
+          <div className="flex flex-col gap-0.5">
+            <div className="flex items-center gap-1">
+              <FormInput
+                id={`series-${index}-serie`}
+                name={`series.${index}.serie`}
+                control={form.control}
+                disabled={disabledSerie}
+                placeholder="SN123456"
+                uppercase
+                className={cn("h-7 text-xs", disabledSerie && "opacity-40 cursor-not-allowed")}
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onAdvanceRef.current(index, "serie"); } }}
+                onBlur={() => {
+                  const val = formRef.current.getValues(`series.${index}.serie`);
+                  onCheckDuplicateRef.current?.(index, "serie", val);
+                  if (!skipValidationRef.current) void onValidateFieldRef.current?.(index, "serie", val);
+                }}
+              />
+              <ValidationIcon status={fieldValidationStatusRef.current?.[`${index}.serie`]} />
+            </div>
+            <CrossDuplicateMessage show={!!crossProductDuplicatesRef.current?.[`${index}.serie`]} />
           </div>
         );
       },
@@ -136,30 +157,33 @@ export function GuiaSeriesTable({
         const form = formRef.current;
         const index = row.index;
         return (
-          <div className="flex items-center gap-1">
-            <Controller
-              control={form.control}
-              name={`series.${index}.mac` as any}
-              render={({ field, fieldState }) => (
-                <FormInput
-                  id={`series-${index}-mac`}
-                  name={`series.${index}.mac`}
-                  value={field.value ?? ""}
-                  onChange={(e) => field.onChange(formatMac(e.target.value))}
-                  onBlur={() => {
-                    field.onBlur();
-                    onCheckDuplicateRef.current?.(index, "mac", field.value);
-                    if (!skipValidationRef.current) void onValidateFieldRef.current?.(index, "mac", field.value);
-                  }}
-                  disabled={disabledMac}
-                  placeholder="001A2B3C4D5E"
-                  error={fieldState.error?.message}
-                  className={cn("h-7 text-xs font-mono", disabledMac && "opacity-40 cursor-not-allowed")}
-                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onAdvanceRef.current(index, "mac"); } }}
-                />
-              )}
-            />
-            <ValidationIcon status={fieldValidationStatusRef.current?.[`${index}.mac`]} />
+          <div className="flex flex-col gap-0.5">
+            <div className="flex items-center gap-1">
+              <Controller
+                control={form.control}
+                name={`series.${index}.mac` as any}
+                render={({ field, fieldState }) => (
+                  <FormInput
+                    id={`series-${index}-mac`}
+                    name={`series.${index}.mac`}
+                    value={field.value ?? ""}
+                    onChange={(e) => field.onChange(formatMac(e.target.value))}
+                    onBlur={() => {
+                      field.onBlur();
+                      onCheckDuplicateRef.current?.(index, "mac", field.value);
+                      if (!skipValidationRef.current) void onValidateFieldRef.current?.(index, "mac", field.value);
+                    }}
+                    disabled={disabledMac}
+                    placeholder="001A2B3C4D5E"
+                    error={fieldState.error?.message}
+                    className={cn("h-7 text-xs font-mono", disabledMac && "opacity-40 cursor-not-allowed")}
+                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onAdvanceRef.current(index, "mac"); } }}
+                  />
+                )}
+              />
+              <ValidationIcon status={fieldValidationStatusRef.current?.[`${index}.mac`]} />
+            </div>
+            <CrossDuplicateMessage show={!!crossProductDuplicatesRef.current?.[`${index}.mac`]} />
           </div>
         );
       },
@@ -176,22 +200,25 @@ export function GuiaSeriesTable({
         const form = formRef.current;
         const index = row.index;
         return (
-          <div className="flex items-center gap-1">
-            <FormInput
-              id={`series-${index}-emta_mac`}
-              name={`series.${index}.emta_mac`}
-              control={form.control}
-              disabled={disabledEmtaMac}
-              placeholder="001A2B3C4D5E"
-              className={cn("h-7 text-xs font-mono", disabledEmtaMac && "opacity-40 cursor-not-allowed")}
-              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onAdvanceRef.current(index, "emta_mac"); } }}
-              onBlur={() => {
-                const val = formRef.current.getValues(`series.${index}.emta_mac`);
-                onCheckDuplicateRef.current?.(index, "emta_mac", val);
-                if (!skipValidationRef.current) void onValidateFieldRef.current?.(index, "emta_mac", val);
-              }}
-            />
-            <ValidationIcon status={fieldValidationStatusRef.current?.[`${index}.emta_mac`]} />
+          <div className="flex flex-col gap-0.5">
+            <div className="flex items-center gap-1">
+              <FormInput
+                id={`series-${index}-emta_mac`}
+                name={`series.${index}.emta_mac`}
+                control={form.control}
+                disabled={disabledEmtaMac}
+                placeholder="001A2B3C4D5E"
+                className={cn("h-7 text-xs font-mono", disabledEmtaMac && "opacity-40 cursor-not-allowed")}
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onAdvanceRef.current(index, "emta_mac"); } }}
+                onBlur={() => {
+                  const val = formRef.current.getValues(`series.${index}.emta_mac`);
+                  onCheckDuplicateRef.current?.(index, "emta_mac", val);
+                  if (!skipValidationRef.current) void onValidateFieldRef.current?.(index, "emta_mac", val);
+                }}
+              />
+              <ValidationIcon status={fieldValidationStatusRef.current?.[`${index}.emta_mac`]} />
+            </div>
+            <CrossDuplicateMessage show={!!crossProductDuplicatesRef.current?.[`${index}.emta_mac`]} />
           </div>
         );
       },
@@ -208,23 +235,26 @@ export function GuiaSeriesTable({
         const form = formRef.current;
         const index = row.index;
         return (
-          <div className="flex items-center gap-1">
-            <FormInput
-              id={`series-${index}-ua`}
-              name={`series.${index}.ua`}
-              control={form.control}
-              disabled={disabledUa}
-              placeholder="Ingrese UA"
-              uppercase
-              className={cn("h-7 text-xs font-mono", disabledUa && "opacity-40 cursor-not-allowed")}
-              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onAdvanceRef.current(index, "ua"); } }}
-              onBlur={() => {
-                const val = formRef.current.getValues(`series.${index}.ua`);
-                onCheckDuplicateRef.current?.(index, "ua", val);
-                if (!skipValidationRef.current) void onValidateFieldRef.current?.(index, "ua", val);
-              }}
-            />
-            <ValidationIcon status={fieldValidationStatusRef.current?.[`${index}.ua`]} />
+          <div className="flex flex-col gap-0.5">
+            <div className="flex items-center gap-1">
+              <FormInput
+                id={`series-${index}-ua`}
+                name={`series.${index}.ua`}
+                control={form.control}
+                disabled={disabledUa}
+                placeholder="Ingrese UA"
+                uppercase
+                className={cn("h-7 text-xs font-mono", disabledUa && "opacity-40 cursor-not-allowed")}
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onAdvanceRef.current(index, "ua"); } }}
+                onBlur={() => {
+                  const val = formRef.current.getValues(`series.${index}.ua`);
+                  onCheckDuplicateRef.current?.(index, "ua", val);
+                  if (!skipValidationRef.current) void onValidateFieldRef.current?.(index, "ua", val);
+                }}
+              />
+              <ValidationIcon status={fieldValidationStatusRef.current?.[`${index}.ua`]} />
+            </div>
+            <CrossDuplicateMessage show={!!crossProductDuplicatesRef.current?.[`${index}.ua`]} />
           </div>
         );
       },

@@ -13,8 +13,14 @@ export interface MovimientoReciente {
 export interface DashboardData {
   equipos_almacen: number;
   equipos_tecnicos: number;
-  materiales_disponibles: string;
+  materiales_disponibles: string | number;
   movimientos_recientes: MovimientoReciente[];
   ingresos_hoy: number;
-  material_consumido: string;
+  material_consumido: string | number;
+}
+
+export interface DashboardDetalleResponse<T = Record<string, any>> {
+  titulo: string;
+  tipo: string;
+  data: T[];
 }

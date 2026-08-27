@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   ArrowDownCircle,
@@ -5,11 +6,13 @@ import {
   Minus,
   Warehouse,
   Wrench,
+  ChevronRight,
 } from "lucide-react";
 import { Badge, type BadgeColor } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDashboardQuery } from "../lib/home.hook";
 import type { MovimientoReciente } from "../lib/home.interface";
+import { DashboardDetalleModal } from "./DashboardDetalleModal";
 
 const MOVIMIENTO_COLORS: Record<string, BadgeColor> = {
   INGRESO: "green",
@@ -29,23 +32,23 @@ const TIPO_COLORS: Record<string, BadgeColor> = {
 };
 
 const CARD_COLORS = {
-  blue: { bg: "bg-blue-500", icon: "bg-blue-600", text: "text-blue-100" },
+  blue: { bg: "bg-blue-500 hover:bg-blue-600", icon: "bg-blue-600", text: "text-blue-100" },
   orange: {
-    bg: "bg-orange-500",
+    bg: "bg-orange-500 hover:bg-orange-600",
     icon: "bg-orange-600",
     text: "text-orange-100",
   },
   green: {
-    bg: "bg-emerald-500",
+    bg: "bg-emerald-500 hover:bg-emerald-600",
     icon: "bg-emerald-600",
     text: "text-emerald-100",
   },
   violet: {
-    bg: "bg-violet-500",
+    bg: "bg-violet-500 hover:bg-violet-600",
     icon: "bg-violet-600",
     text: "text-violet-100",
   },
-  red: { bg: "bg-rose-500", icon: "bg-rose-600", text: "text-rose-100" },
+  red: { bg: "bg-rose-500 hover:bg-rose-600", icon: "bg-rose-600", text: "text-rose-100" },
 } as const;
 
 type CardColor = keyof typeof CARD_COLORS;
@@ -56,32 +59,41 @@ function StatCard({
   icon: Icon,
   isLoading,
   color,
+  onClick,
 }: {
   title: string;
   value: number | string | undefined;
   icon: LucideIcon;
   isLoading: boolean;
   color: CardColor;
+  onClick?: () => void;
 }) {
   const c = CARD_COLORS[color];
   return (
-    <div
-      className={`${c.bg} rounded-xl p-4 text-white shadow-md flex flex-col gap-3`}
+    <button
+      type="button"
+      onClick={onClick}
+      className={`${c.bg} rounded-xl p-4 text-white shadow-md flex flex-col gap-3 text-left transition-all duration-150 hover:scale-[1.02] active:scale-[0.99] cursor-pointer group relative overflow-hidden`}
     >
       <div className="flex items-start justify-between gap-2">
         <p className={`text-sm font-medium ${c.text} leading-tight`}>{title}</p>
-        <div className={`${c.icon} rounded-lg p-1.5 shrink-0`}>
+        <div className={`${c.icon} rounded-lg p-1.5 shrink-0 group-hover:rotate-6 transition-transform`}>
           <Icon className="h-4 w-4 text-white" />
         </div>
       </div>
       {isLoading ? (
         <div className="h-8 w-20 animate-pulse rounded bg-white/30" />
       ) : (
-        <p className="text-3xl font-bold tracking-tight">
-          {value !== undefined ? Number(value).toLocaleString("es-PE") : "—"}
-        </p>
+        <div className="flex items-end justify-between">
+          <p className="text-3xl font-bold tracking-tight">
+            {value !== undefined ? Number(value).toLocaleString("es-PE") : "—"}
+          </p>
+          <span className="text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center font-medium bg-black/20 px-1.5 py-0.5 rounded">
+            Ver detalle <ChevronRight className="h-3 w-3 ml-0.5" />
+          </span>
+        </div>
       )}
-    </div>
+    </button>
   );
 }
 
@@ -139,6 +151,7 @@ function MovimientoRow({
 
 export default function HomePage() {
   const { data, isLoading } = useDashboardQuery();
+  const [activeModalTipo, setActiveModalTipo] = useState<string | null>(null);
 
   return (
     <div className="space-y-6 p-4 md:p-6">
@@ -149,6 +162,7 @@ export default function HomePage() {
           icon={Warehouse}
           isLoading={isLoading}
           color="blue"
+          onClick={() => setActiveModalTipo("equipos_almacen")}
         />
         <StatCard
           title="Equipos con Técnicos"
@@ -156,6 +170,7 @@ export default function HomePage() {
           icon={Wrench}
           isLoading={isLoading}
           color="orange"
+          onClick={() => setActiveModalTipo("equipos_tecnicos")}
         />
         <StatCard
           title="Materiales Disponibles"
@@ -163,6 +178,7 @@ export default function HomePage() {
           icon={Layers}
           isLoading={isLoading}
           color="green"
+          onClick={() => setActiveModalTipo("materiales_disponibles")}
         />
         <StatCard
           title="Ingresos Hoy"
@@ -170,6 +186,7 @@ export default function HomePage() {
           icon={ArrowDownCircle}
           isLoading={isLoading}
           color="violet"
+          onClick={() => setActiveModalTipo("ingresos_hoy")}
         />
         <StatCard
           title="Material Consumido"
@@ -177,6 +194,7 @@ export default function HomePage() {
           icon={Minus}
           isLoading={isLoading}
           color="red"
+          onClick={() => setActiveModalTipo("material_consumido")}
         />
       </div>
 
@@ -242,6 +260,11 @@ export default function HomePage() {
           </div>
         </CardContent>
       </Card>
+
+      <DashboardDetalleModal
+        tipo={activeModalTipo}
+        onClose={() => setActiveModalTipo(null)}
+      />
     </div>
   );
 }

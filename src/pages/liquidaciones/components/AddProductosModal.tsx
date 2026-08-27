@@ -822,11 +822,11 @@ function SerieAsyncSearch({
                           <p className="font-medium truncate">
                             {serie.producto?.nombre}
                           </p>
-                          <p className="text-foreground font-mono">
+                          <p className="text-foreground font-bold font-mono">
                             Serie: {serie.serie}
                           </p>
                           {serie.mac && (
-                            <p className="text-foreground">
+                            <p className="text-foreground font-bold font-mono">
                               MAC: {serie.mac}
                             </p>
                           )}
@@ -943,11 +943,13 @@ function SerieInventarioCard({
             Stock: {stock}
           </Badge>
         </div>
-        <p className="text-xs text-foreground font-mono">
+        <p className="text-xs text-foreground font-bold font-mono">
           Serie: {item.serie.serie}
         </p>
         {item.serie.mac && (
-          <p className="text-xs text-foreground">MAC: {item.serie.mac}</p>
+          <p className="text-xs text-foreground font-bold font-mono">
+            MAC: {item.serie.mac}
+          </p>
         )}
       </div>
       {selected && (
@@ -972,11 +974,13 @@ function ExternSerieCard({
         <p className="text-sm font-medium leading-tight truncate">
           {item.producto_nombre}
         </p>
-        <p className="text-xs text-foreground font-mono">
+        <p className="text-xs text-foreground font-bold font-mono">
           Serie: {item.serie_str}
         </p>
         {item.mac && (
-          <p className="text-xs text-foreground">MAC: {item.mac}</p>
+          <p className="text-xs text-foreground font-bold font-mono">
+            MAC: {item.mac}
+          </p>
         )}
         <div className="flex items-center gap-1 mt-1 flex-wrap">
           <MapPin className="size-3 text-muted-foreground" />

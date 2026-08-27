@@ -668,7 +668,7 @@ export default function AddProductosModal({
             )}
           </div>
           <div className="px-4 py-3 border-t flex items-center justify-between">
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-foreground">
               {matCount > 0
                 ? `${matCount} material${matCount !== 1 ? "es" : ""} seleccionado${matCount !== 1 ? "s" : ""}`
                 : "Sin selección"}
@@ -822,11 +822,11 @@ function SerieAsyncSearch({
                           <p className="font-medium truncate">
                             {serie.producto?.nombre}
                           </p>
-                          <p className="text-muted-foreground font-mono">
+                          <p className="text-foreground font-mono">
                             Serie: {serie.serie}
                           </p>
                           {serie.mac && (
-                            <p className="text-muted-foreground">
+                            <p className="text-foreground">
                               MAC: {serie.mac}
                             </p>
                           )}
@@ -943,11 +943,11 @@ function SerieInventarioCard({
             Stock: {stock}
           </Badge>
         </div>
-        <p className="text-xs text-muted-foreground font-mono">
+        <p className="text-xs text-foreground font-mono">
           Serie: {item.serie.serie}
         </p>
         {item.serie.mac && (
-          <p className="text-xs text-muted-foreground">MAC: {item.serie.mac}</p>
+          <p className="text-xs text-foreground">MAC: {item.serie.mac}</p>
         )}
       </div>
       {selected && (
@@ -972,11 +972,11 @@ function ExternSerieCard({
         <p className="text-sm font-medium leading-tight truncate">
           {item.producto_nombre}
         </p>
-        <p className="text-xs text-muted-foreground font-mono">
+        <p className="text-xs text-foreground font-mono">
           Serie: {item.serie_str}
         </p>
         {item.mac && (
-          <p className="text-xs text-muted-foreground">MAC: {item.mac}</p>
+          <p className="text-xs text-foreground">MAC: {item.mac}</p>
         )}
         <div className="flex items-center gap-1 mt-1 flex-wrap">
           <MapPin className="size-3 text-muted-foreground" />
@@ -1031,7 +1031,7 @@ function MaterialCard({
           <p className="text-sm font-medium leading-tight">
             {item.material.producto.nombre}
           </p>
-          <p className="text-xs text-muted-foreground font-mono">
+          <p className="text-xs text-foreground font-mono">
             {item.material.producto.sap}
           </p>
           {pendingOutsideCurrent > 0 && (

@@ -204,7 +204,7 @@ export default function UsuariosForm({
           placeholder="Seleccione un almacén"
           required
           useQueryHook={useAlmacenQuery}
-          additionalParams={{ solo_subalmacenes_corporativos: "true" }}
+          additionalParams={{ para_usuarios: "true" }}
           mapOptionFn={(item) => ({
             value: String(item.id),
             label: item.nombre_display || item.nombre,

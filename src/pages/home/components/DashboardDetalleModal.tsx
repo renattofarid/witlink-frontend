@@ -49,7 +49,7 @@ export function DashboardDetalleModal({
             <DialogTitle className="text-lg font-semibold flex items-center gap-2">
               {data?.titulo || "Detalle"}
               {data?.data && (
-                <Badge color="blue" size="sm" variant="subtle">
+                <Badge color="blue" size="sm" variant="ghost">
                   {data.data.length} total
                 </Badge>
               )}

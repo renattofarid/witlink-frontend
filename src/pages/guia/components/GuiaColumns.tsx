@@ -8,7 +8,7 @@ import {
   CheckCircle,
   Sheet,
 } from "lucide-react";
-import type { ColumnDef } from "@tanstack/react-table";
+import type { CellContext, ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import type { GuiaListResource } from "../lib/guia.interface";
 import { openPdf, exportGuiaExcel } from "../lib/guia.actions";
@@ -165,6 +165,34 @@ export const getGuiaColumns = ({
       </span>
     ),
   },
+  ...(isCorporativo
+    ? [
+        {
+          id: "solicitud",
+          header: "N° Solicitud",
+          cell: ({ row }: CellContext<GuiaListResource, unknown>) => {
+            if (row.original.type === "retirado") return "-";
+            return (
+              <span className="text-xs tabular-nums">
+                {row.original.sol_abastecimiento || "-"}
+              </span>
+            );
+          },
+        },
+        {
+          id: "pedido",
+          header: "N° Pedido",
+          cell: ({ row }: CellContext<GuiaListResource, unknown>) => {
+            if (row.original.type === "retirado") return "-";
+            return (
+              <span className="text-xs tabular-nums">
+                {row.original.pedido_traslado || "-"}
+              </span>
+            );
+          },
+        },
+      ]
+    : [] as ColumnDef<GuiaListResource>[]),
   {
     id: "pdf",
     header: "PDF",

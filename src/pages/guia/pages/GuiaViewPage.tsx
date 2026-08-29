@@ -52,7 +52,16 @@ export default function GuiaViewPage() {
         year: "numeric",
       })
     : "—";
-  const isCorporativo = guia.is_corporativo === true || !!user?.is_corporativo;
+  const hasCorporateMetadata = Boolean(
+    guia.origen_importacion ||
+      guia.numero_entrega ||
+      guia.numero_guia_1 ||
+      guia.numero_guia_2 ||
+      guia.sol_abastecimiento ||
+      guia.pedido_traslado,
+  );
+  const showCorporateMetadata =
+    guia.is_corporativo === true || !!user?.is_corporativo || hasCorporateMetadata;
       
   return (
     <FormWrapper>
@@ -85,7 +94,7 @@ export default function GuiaViewPage() {
             <p className="text-xs text-muted-foreground uppercase tracking-wide">Registrado por</p>
             <p className="font-medium">{nombreUsuario}</p>
           </div>
-          {isCorporativo && guia.origen_importacion && (
+          {showCorporateMetadata && guia.origen_importacion && (
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground uppercase tracking-wide">Origen</p>
               <Badge variant="outline" className="text-xs">
@@ -93,31 +102,31 @@ export default function GuiaViewPage() {
               </Badge>
             </div>
           )}
-          {isCorporativo && guia.numero_entrega && (
+          {showCorporateMetadata && guia.numero_entrega && (
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground uppercase tracking-wide">N° Entrega</p>
               <p className="font-medium">{guia.numero_entrega}</p>
             </div>
           )}
-          {isCorporativo && guia.numero_guia_1 && (
+          {showCorporateMetadata && guia.numero_guia_1 && (
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground uppercase tracking-wide">N° Guía 1</p>
               <p className="font-medium">{guia.numero_guia_1}</p>
             </div>
           )}
-          {isCorporativo && guia.numero_guia_2 && (
+          {showCorporateMetadata && guia.numero_guia_2 && (
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground uppercase tracking-wide">N° Guía 2</p>
               <p className="font-medium">{guia.numero_guia_2}</p>
             </div>
           )}
-          {isCorporativo && guia.sol_abastecimiento && (
+          {showCorporateMetadata && guia.sol_abastecimiento && (
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground uppercase tracking-wide">N° Solicitud</p>
               <p className="font-medium">{guia.sol_abastecimiento}</p>
             </div>
           )}
-          {isCorporativo && guia.pedido_traslado && (
+          {showCorporateMetadata && guia.pedido_traslado && (
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground uppercase tracking-wide">N° Pedido</p>
               <p className="font-medium">{guia.pedido_traslado}</p>

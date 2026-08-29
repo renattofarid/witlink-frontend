@@ -50,7 +50,7 @@ export default function GuiaViewPage() {
         year: "numeric",
       })
     : "—";
-      console.log(guia.fecha);
+  const isCorporativo = guia.is_corporativo === true;
       
   return (
     <FormWrapper>
@@ -83,7 +83,7 @@ export default function GuiaViewPage() {
             <p className="text-xs text-muted-foreground uppercase tracking-wide">Registrado por</p>
             <p className="font-medium">{nombreUsuario}</p>
           </div>
-          {guia.origen_importacion && (
+          {isCorporativo && guia.origen_importacion && (
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground uppercase tracking-wide">Origen</p>
               <Badge variant="outline" className="text-xs">
@@ -91,31 +91,31 @@ export default function GuiaViewPage() {
               </Badge>
             </div>
           )}
-          {guia.numero_entrega && (
+          {isCorporativo && guia.numero_entrega && (
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground uppercase tracking-wide">N° Entrega</p>
               <p className="font-medium">{guia.numero_entrega}</p>
             </div>
           )}
-          {guia.numero_guia_1 && (
+          {isCorporativo && guia.numero_guia_1 && (
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground uppercase tracking-wide">N° Guía 1</p>
               <p className="font-medium">{guia.numero_guia_1}</p>
             </div>
           )}
-          {guia.numero_guia_2 && (
+          {isCorporativo && guia.numero_guia_2 && (
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground uppercase tracking-wide">N° Guía 2</p>
               <p className="font-medium">{guia.numero_guia_2}</p>
             </div>
           )}
-          {guia.sol_abastecimiento && (
+          {isCorporativo && guia.sol_abastecimiento && (
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground uppercase tracking-wide">Sol. Abastecimiento</p>
               <p className="font-medium">{guia.sol_abastecimiento}</p>
             </div>
           )}
-          {guia.pedido_traslado && (
+          {isCorporativo && guia.pedido_traslado && (
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground uppercase tracking-wide">Pedido Traslado</p>
               <p className="font-medium">{guia.pedido_traslado}</p>

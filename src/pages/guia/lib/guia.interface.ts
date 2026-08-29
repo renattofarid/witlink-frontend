@@ -68,6 +68,8 @@ export interface GuiaListResource {
   id: number;
   numero: string;
   fecha: string;
+  sol_abastecimiento?: string | null;
+  pedido_traslado?: string | null;
   almacen: string | null;
   /** Solo en filas `type: "retirado"` de almacenes corporativos: subalmacén operativo real (PINT, PMO, PEXT, Norte, Oriente...). Si viene null, usar `almacen` como fallback. */
   almacen_pertenencia?: string | null;
@@ -80,6 +82,7 @@ export interface GuiaListResource {
   usuario: string;
   ruta_pdf_guia: string | null;
   confirmado: number;
+  is_corporativo?: boolean;
   deleted_at?: string | null;
 }
 
@@ -89,6 +92,7 @@ export interface GuiaResource {
   fecha: string;
   ruta_pdf_guia: string | null;
   confirmado: number;
+  is_corporativo?: boolean;
   usuario: GuiaUsuarioResource;
   productos?: GuiaProductoResource[];
   created_at: string;

@@ -238,13 +238,7 @@ export const getGuiaColumns = ({
           />
           <ButtonAction
             icon={CheckCircle}
-            canRender={
-              canConfirm &&
-              !isCorporativo &&
-              !isDeleted &&
-              !isRetirado &&
-              !item.confirmado
-            }
+            canRender={canConfirm && !isDeleted && !isRetirado && !item.is_corporativo && !item.confirmado}
             onClick={() => onConfirm(item)}
           />
           <ButtonAction

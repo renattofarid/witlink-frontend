@@ -213,7 +213,6 @@ export const getGuiaColumns = ({
       const isDeleted = !!item.deleted_at;
       const isRetirado = item.type === "retirado";
 
-
       return (
         <div className="flex gap-1">
           <ButtonAction
@@ -238,7 +237,13 @@ export const getGuiaColumns = ({
           />
           <ButtonAction
             icon={CheckCircle}
-            canRender={canConfirm && !isDeleted && !isRetirado && !item.is_corporativo && !item.confirmado}
+            canRender={
+              canConfirm &&
+              !isDeleted &&
+              !isRetirado &&
+              !item.is_corporativo &&
+              !item.confirmado
+            }
             onClick={() => onConfirm(item)}
           />
           <ButtonAction

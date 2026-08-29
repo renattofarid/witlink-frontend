@@ -79,7 +79,7 @@ export default function GuiaFilters({ params, setParams }: GuiaFiltersProps) {
           onChange={(v) =>
             setParams((prev) => ({ ...prev, pedido_traslado: v, page: "1" }))
           }
-          placeholder="NÂ° Pedido"
+          placeholder="N° Pedido"
         />
       ) : null}
       <SearchableSelect

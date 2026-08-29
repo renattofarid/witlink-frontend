@@ -44,6 +44,7 @@ const DIRECTION_OPTIONS = [
 
 export default function GuiaFilters({ params, setParams }: GuiaFiltersProps) {
   const user = useAuthStore((s) => s.user);
+  const isCorporativo = !!user?.is_corporativo;
 
   const { data: almacenesAll = [] } = useQuery({
     queryKey: ["almacenes-list"],
@@ -72,6 +73,15 @@ export default function GuiaFilters({ params, setParams }: GuiaFiltersProps) {
         }
         placeholder="Buscar guía..."
       />
+      {isCorporativo ? (
+        <SearchInput
+          value={params.pedido_traslado ?? ""}
+          onChange={(v) =>
+            setParams((prev) => ({ ...prev, pedido_traslado: v, page: "1" }))
+          }
+          placeholder="NÂ° Pedido"
+        />
+      ) : null}
       <SearchableSelect
         placeholder="Almacén"
         options={almacenOptions}

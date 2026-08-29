@@ -68,6 +68,8 @@ export interface GuiaListResource {
   id: number;
   numero: string;
   fecha: string;
+  sol_abastecimiento?: string | null;
+  pedido_traslado?: string | null;
   almacen: string | null;
   /** Solo en filas `type: "retirado"` de almacenes corporativos: subalmacén operativo real (PINT, PMO, PEXT, Norte, Oriente...). Si viene null, usar `almacen` como fallback. */
   almacen_pertenencia?: string | null;

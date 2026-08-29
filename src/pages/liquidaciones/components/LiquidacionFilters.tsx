@@ -35,6 +35,7 @@ interface LiquidacionFiltersProps {
   exportParams?: Record<string, string>;
   /** Total results under the current filter; the export button shows only when > 0. */
   totalResults?: number;
+  isCorporativo?: boolean;
 }
 
 export default function LiquidacionFilters({
@@ -51,6 +52,7 @@ export default function LiquidacionFilters({
   noRegistrados = [],
   exportParams = {},
   totalResults = 0,
+  isCorporativo = false,
 }: LiquidacionFiltersProps) {
   const user = useAuthStore((s) => s.user);
 
@@ -116,13 +118,15 @@ export default function LiquidacionFilters({
         onChange={onSearchChange}
         placeholder="Buscar SOT, cliente..."
       />
-      <SearchableSelect
-        options={ESTADO_OPERATIVO_OPTIONS}
-        value={estado}
-        onChange={onEstadoChange}
-        placeholder="Estado operativo"
-        withValue={false}
-      />
+      {!isCorporativo && (
+        <SearchableSelect
+          options={ESTADO_OPERATIVO_OPTIONS}
+          value={estado}
+          onChange={onEstadoChange}
+          placeholder="Estado operativo"
+          withValue={false}
+        />
+      )}
       <SearchableSelect
         options={ESTADO_LIQUIDACION_OPTIONS}
         value={estadoLiquidacion}

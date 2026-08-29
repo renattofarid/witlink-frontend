@@ -13,12 +13,15 @@ import { openGuiaRemisionPdf } from "../lib/liquidaciones.actions";
 interface ColumnOptions {
   onExport?: (row: LiquidacionResource) => void;
   onGetActa?: (row: LiquidacionResource) => void;
+  isCorporativo?: boolean;
 }
 
 export function getLiquidacionColumns(
   options: ColumnOptions = {},
 ): ColumnDef<LiquidacionResource>[] {
-  return [
+  const isCorporativo = options.isCorporativo === true;
+  const columns: ColumnDef<LiquidacionResource>[] = [
+
     {
       accessorKey: "sot",
       header: "SOT",
@@ -157,6 +160,15 @@ export function getLiquidacionColumns(
       ),
     },
   ];
+
+  return columns.filter(
+    (column) =>
+      !(
+        isCorporativo &&
+        "accessorKey" in column &&
+        column.accessorKey === "estado"
+      ),
+  );
 }
 
 function LiquidacionRowActions({

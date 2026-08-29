@@ -25,6 +25,7 @@ import { useAuthStore } from "@/pages/auth/lib/auth.store";
 export default function LiquidacionesPage() {
   const navigate = useNavigate();
   const almacen_id = useAuthStore((s) => s.almacen_id);
+  const isCorporativo = useAuthStore((s) => !!s.user?.is_corporativo);
 
   const [actasDialogOpen, setActasDialogOpen] = useState(false);
   const [atendidasDialogOpen, setAtendidasDialogOpen] = useState(false);
@@ -55,8 +56,14 @@ export default function LiquidacionesPage() {
     }
   }, [almacen_id, setParams]);
 
+  useEffect(() => {
+    if (isCorporativo && params.estado) {
+      setParams((prev) => ({ ...prev, estado: "", page: "1" }));
+    }
+  }, [isCorporativo, params.estado, setParams]);
+
   const queryParams = Object.fromEntries(
-    Object.entries(params).filter(([, v]) => v !== ""),
+    Object.entries(params).filter(([k, v]) => v !== "" && !(isCorporativo && k === "estado")),
   );
 
   const { data, isLoading } = useLiquidacionesQuery(queryParams);
@@ -162,6 +169,7 @@ export default function LiquidacionesPage() {
           noRegistrados={data?.no_registrados ?? []}
           exportParams={queryParams}
           totalResults={data?.meta.total ?? 0}
+          isCorporativo={isCorporativo}
         />
       </DataTable>
 

@@ -80,6 +80,7 @@ export interface GuiaListResource {
   usuario: string;
   ruta_pdf_guia: string | null;
   confirmado: number;
+  is_corporativo?: boolean;
   deleted_at?: string | null;
 }
 
@@ -89,6 +90,7 @@ export interface GuiaResource {
   fecha: string;
   ruta_pdf_guia: string | null;
   confirmado: number;
+  is_corporativo?: boolean;
   usuario: GuiaUsuarioResource;
   productos?: GuiaProductoResource[];
   created_at: string;

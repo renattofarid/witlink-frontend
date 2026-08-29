@@ -17,9 +17,11 @@ import { FileText } from "lucide-react";
 import { GuiaComplete } from "../lib/guia.constants";
 import { getGuia, openPdf } from "../lib/guia.actions";
 import FormSkeleton from "@/components/FormSkeleton";
+import { useAuthStore } from "@/pages/auth/lib/auth.store";
 
 export default function GuiaViewPage() {
   const { id } = useParams();
+  const user = useAuthStore((s) => s.user);
 
   const { data: guia, isLoading } = useQuery({
     queryKey: [GuiaComplete.QUERY_KEY, "detail", id],
@@ -50,7 +52,7 @@ export default function GuiaViewPage() {
         year: "numeric",
       })
     : "—";
-  const isCorporativo = guia.is_corporativo === true;
+  const isCorporativo = guia.is_corporativo === true || !!user?.is_corporativo;
       
   return (
     <FormWrapper>
@@ -111,13 +113,13 @@ export default function GuiaViewPage() {
           )}
           {isCorporativo && guia.sol_abastecimiento && (
             <div className="space-y-1">
-              <p className="text-xs text-muted-foreground uppercase tracking-wide">Sol. Abastecimiento</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wide">N° Solicitud</p>
               <p className="font-medium">{guia.sol_abastecimiento}</p>
             </div>
           )}
           {isCorporativo && guia.pedido_traslado && (
             <div className="space-y-1">
-              <p className="text-xs text-muted-foreground uppercase tracking-wide">Pedido Traslado</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wide">N° Pedido</p>
               <p className="font-medium">{guia.pedido_traslado}</p>
             </div>
           )}

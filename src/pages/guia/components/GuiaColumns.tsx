@@ -23,6 +23,8 @@ interface ColumnActions {
   onRestore: (row: GuiaListResource) => void;
   onConfirm: (row: GuiaListResource) => void;
   canConfirm: boolean;
+  /** Corporativo (Lambayeque / Lima / Trujillo) no requiere validación de ingresos. */
+  isCorporativo: boolean;
 }
 
 function formatFechaConHora(raw: string | null | undefined) {
@@ -64,6 +66,7 @@ export const getGuiaColumns = ({
   onRestore,
   onConfirm,
   canConfirm,
+  isCorporativo,
 }: ColumnActions): ColumnDef<GuiaListResource>[] => [
   {
     id: "tipo",
@@ -181,6 +184,13 @@ export const getGuiaColumns = ({
     header: "Estado",
     cell: ({ row }) => {
       if (row.original.type === "retirado") return null;
+      if (isCorporativo && !row.original.confirmado) {
+        return (
+          <Badge variant="ghost" color="gray" className="text-xs">
+            No requiere validación
+          </Badge>
+        );
+      }
       return row.original.confirmado ? (
         <Badge
           variant="default"
@@ -228,7 +238,13 @@ export const getGuiaColumns = ({
           />
           <ButtonAction
             icon={CheckCircle}
-            canRender={canConfirm && !isDeleted && !isRetirado && !item.confirmado}
+            canRender={
+              canConfirm &&
+              !isCorporativo &&
+              !isDeleted &&
+              !isRetirado &&
+              !item.confirmado
+            }
             onClick={() => onConfirm(item)}
           />
           <ButtonAction

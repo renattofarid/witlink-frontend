@@ -4,6 +4,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "./app-sidebar";
 import HeaderComponent from "./header";
 import { AuthInitializer } from "./AuthInitializer";
+import { ErrorBoundary } from "./ErrorBoundary";
 import { useTabsStore } from "@/store/tabs.store";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
 
@@ -37,6 +38,15 @@ function TabTracker() {
   return null;
 }
 
+function PageContent({ children }: Props) {
+  const location = useLocation();
+  return (
+    <div className="flex flex-1 flex-col gap-4 p-2 w-full">
+      <ErrorBoundary resetKey={location.pathname}>{children}</ErrorBoundary>
+    </div>
+  );
+}
+
 export default function LayoutComponent({ children }: Props) {
   return (
     <SidebarProvider>
@@ -45,7 +55,7 @@ export default function LayoutComponent({ children }: Props) {
       <SidebarInset className="overflow-auto">
         <HeaderComponent />
         <TabTracker />
-        <div className="flex flex-1 flex-col gap-4 p-2 w-full">{children}</div>
+        <PageContent>{children}</PageContent>
       </SidebarInset>
     </SidebarProvider>
   );

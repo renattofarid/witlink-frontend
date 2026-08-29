@@ -45,6 +45,7 @@ export default function GuiaPage() {
   const queryClient = useQueryClient();
   const canConfirm = useHasPermission("confirmar-ingreso");
   const almacen_id = useAuthStore((s) => s.almacen_id);
+  const isCorporativo = useAuthStore((s) => !!s.user?.is_corporativo);
 
   const today = new Date();
   const [params, setParams] = useTabParams(GuiaComplete.ABSOLUTE_ROUTE, {
@@ -140,6 +141,7 @@ export default function GuiaPage() {
       setConfirmOpen(true);
     },
     canConfirm,
+    isCorporativo,
   });
 
   const exportParams = Object.fromEntries(

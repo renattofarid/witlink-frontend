@@ -285,8 +285,21 @@ export const importarGuiasCorporativo = async (
     );
     return data;
   } catch (error: any) {
-    if (error?.response?.status === 422 && error.response.data) {
-      return error.response.data;
+    const data = error?.response?.data;
+    // El backend responde 422 en dos escenarios distintos:
+    //  a) Resumen de importación con observaciones (trae filas_procesadas /
+    //     guias_creadas): es un resultado válido y se devuelve como tal.
+    //  b) Error de validación de Laravel al subir un archivo inválido
+    //     ({ message, errors: { archivo: [...] } }): NO es un resumen, se
+    //     re-lanza para que la UI muestre el error real.
+    if (
+      error?.response?.status === 422 &&
+      data &&
+      (typeof data.filas_procesadas === "number" ||
+        typeof data.guias_creadas === "number" ||
+        Array.isArray(data.guias))
+    ) {
+      return data;
     }
     throw error;
   }

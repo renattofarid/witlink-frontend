@@ -1,6 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { useNavigate } from "react-router-dom";
-import { Eye, FileText, Pencil, Sheet } from "lucide-react";
+import { Download, Eye, FileText, Pencil, Sheet } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { LiquidacionResource } from "../lib/liquidaciones.interface";
 import {
@@ -8,6 +8,7 @@ import {
   LIQUIDACION_ROUTE_EDIT,
 } from "../lib/liquidaciones.constants";
 import { ButtonAction } from "@/components/ButtonAction";
+import { openGuiaRemisionPdf } from "../lib/liquidaciones.actions";
 
 interface ColumnOptions {
   onExport?: (row: LiquidacionResource) => void;
@@ -168,8 +169,16 @@ function LiquidacionRowActions({
   onGetActa?: (row: LiquidacionResource) => void;
 }) {
   const navigate = useNavigate();
+  const isLiquidada =
+    (row.estado_liquidacion ?? "").toLowerCase() === "liquidada";
   return (
     <div className="flex gap-1">
+      <ButtonAction
+        icon={Download}
+        tooltip="Descargar guía de remisión"
+        canRender={isLiquidada}
+        onClick={() => openGuiaRemisionPdf(row.sot)}
+      />
       <ButtonAction
         icon={Eye}
         tooltip="Ver detalle"

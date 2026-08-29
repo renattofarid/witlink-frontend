@@ -97,6 +97,37 @@ const OPTIONAL_COLUMNS = [
   "EsLiquidacion",
 ];
 
+/**
+ * El backend responde el mismo resumen tanto en 201 (todo ok) como en 422
+ * (con observaciones). Si el despliegue devuelve una forma inesperada
+ * (campos ausentes, `errores` no-array, etc.) normalizamos para que el
+ * render nunca reviente y deje la pantalla en blanco.
+ */
+function normalizarResultado(
+  raw: unknown,
+): ImportarGuiasCorporativoResponse {
+  const data = (raw ?? {}) as Partial<ImportarGuiasCorporativoResponse>;
+  const num = (v: unknown) => (typeof v === "number" && !isNaN(v) ? v : 0);
+  const errores = Array.isArray(data.errores)
+    ? data.errores.map((e) => (typeof e === "string" ? e : JSON.stringify(e)))
+    : [];
+  return {
+    guias_creadas: num(data.guias_creadas),
+    guias_omitidas: num(data.guias_omitidas),
+    productos_creados: num(data.productos_creados),
+    productos_actualizados: num(data.productos_actualizados),
+    productos_restaurados: num(data.productos_restaurados),
+    filas_procesadas: num(data.filas_procesadas),
+    filas_omitidas: num(data.filas_omitidas),
+    errores,
+    guias: Array.isArray(data.guias) ? data.guias : [],
+    mensaje:
+      typeof data.mensaje === "string" && data.mensaje
+        ? data.mensaje
+        : "Importación procesada.",
+  };
+}
+
 function escapeHtml(value: string) {
   return value
     .replace(/&/g, "&amp;")
@@ -156,6 +187,7 @@ export default function ImportarGuiasCorporativoDialog({ open, onClose }: Props)
   const [fecha, setFecha] = useState<string>("");
   const [almacenId, setAlmacenId] = useState<string>("");
   const [resultado, setResultado] = useState<ImportarGuiasCorporativoResponse | null>(null);
+  const [errorGeneral, setErrorGeneral] = useState("");
 
   const mutation = useMutation({
     mutationFn: (file: File) => {
@@ -166,7 +198,7 @@ export default function ImportarGuiasCorporativoDialog({ open, onClose }: Props)
       });
       promiseToast(promise, {
         loading: "Importando guías corporativas...",
-        success: (data) => data.mensaje ?? "Importación completada.",
+        success: (data) => data?.mensaje ?? "Importación completada.",
         error: (error: any) =>
           error?.response?.data?.message ??
           "Error al importar las guías corporativas.",
@@ -175,7 +207,32 @@ export default function ImportarGuiasCorporativoDialog({ open, onClose }: Props)
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: [GuiaComplete.QUERY_KEY] });
-      setResultado(data);
+      setErrorGeneral("");
+      setResultado(normalizarResultado(data));
+    },
+    onError: (error: unknown) => {
+      setResultado(null);
+      const data = (
+        error as {
+          response?: {
+            data?: {
+              message?: string;
+              errors?: Record<string, string[]>;
+            };
+          };
+        }
+      )?.response?.data;
+      const archivoError = data?.errors?.archivo?.[0];
+      if (archivoError) {
+        setErrorGeneral(
+          "El archivo no tiene un formato válido. Usa la plantilla en formato .xlsx, .xls, .csv o .txt.",
+        );
+        return;
+      }
+      setErrorGeneral(
+        data?.message ??
+          "No se pudo procesar el archivo. Verifica que sea la plantilla correcta e inténtalo nuevamente.",
+      );
     },
   });
 
@@ -185,6 +242,7 @@ export default function ImportarGuiasCorporativoDialog({ open, onClose }: Props)
     setFecha("");
     setAlmacenId("");
     setResultado(null);
+    setErrorGeneral("");
     onClose();
   };
 
@@ -193,6 +251,7 @@ export default function ImportarGuiasCorporativoDialog({ open, onClose }: Props)
     setArchivo(file);
     setArchivoError("");
     setResultado(null);
+    setErrorGeneral("");
     e.target.value = "";
   };
 
@@ -342,6 +401,15 @@ export default function ImportarGuiasCorporativoDialog({ open, onClose }: Props)
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+          )}
+
+          {errorGeneral && (
+            <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm">
+              <p className="font-medium text-destructive">
+                La carga tiene errores
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">{errorGeneral}</p>
             </div>
           )}
 

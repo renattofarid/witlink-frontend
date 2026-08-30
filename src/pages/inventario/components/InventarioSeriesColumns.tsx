@@ -55,12 +55,14 @@ export const getInventarioSeriesColumns = ({
             );
             const eligibleSelected = eligible.filter((r) => r.getIsSelected());
             const allSelected =
-              eligible.length > 0 && eligibleSelected.length === eligible.length;
-            const someSelected =
-              eligibleSelected.length > 0 && !allSelected;
+              eligible.length > 0 &&
+              eligibleSelected.length === eligible.length;
+            const someSelected = eligibleSelected.length > 0 && !allSelected;
             return (
               <Checkbox
-                checked={allSelected ? true : someSelected ? "indeterminate" : false}
+                checked={
+                  allSelected ? true : someSelected ? "indeterminate" : false
+                }
                 disabled={eligible.length === 0}
                 onCheckedChange={(value) =>
                   eligible.forEach((r) => r.toggleSelected(!!value))
@@ -163,6 +165,23 @@ export const getInventarioSeriesColumns = ({
       <span className="text-xs">{row.original.tecnico ?? "—"}</span>
     ),
   },
+
+  ...(isCorporativo
+    ? [
+        {
+          id: "reserva_sot",
+          header: "Reserva",
+          cell: ({ row }) =>
+            row.original.reserva_sot ? (
+              <Badge variant="default" color="amber" className="text-xs">
+                Reservada · {row.original.reserva_sot}
+              </Badge>
+            ) : (
+              <p className="text-xs text-muted-foreground">Libre</p>
+            ),
+        } satisfies ColumnDef<InventarioSerieResource>,
+      ]
+    : []),
   {
     accessorKey: "personal",
     header: "Personal",
@@ -185,22 +204,6 @@ export const getInventarioSeriesColumns = ({
       </div>
     ),
   },
-  ...(isCorporativo
-    ? [
-        {
-          id: "reserva_sot",
-          header: "Reserva",
-          cell: ({ row }) =>
-            row.original.reserva_sot ? (
-              <Badge variant="ghost" color="amber" className="text-xs">
-                Reservada · {row.original.reserva_sot}
-              </Badge>
-            ) : (
-              <p className="text-xs text-muted-foreground">Libre</p>
-            ),
-        } satisfies ColumnDef<InventarioSerieResource>,
-      ]
-    : []),
   {
     accessorKey: "motivo",
     header: "Motivo",
@@ -266,6 +269,7 @@ export const getInventarioSeriesColumns = ({
         />
         <ButtonAction
           icon={Unlock}
+          variant="default"
           color="amber"
           tooltip="Liberar reserva"
           canRender={

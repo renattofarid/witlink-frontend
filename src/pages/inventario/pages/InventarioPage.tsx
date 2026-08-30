@@ -45,7 +45,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { GeneralModal } from "@/components/GeneralModal";
 import {
   Select,
   SelectContent,
@@ -677,35 +679,14 @@ export default function InventarioPage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={reservaOpen} onOpenChange={setReservaOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Reservar por SOT</DialogTitle>
-          </DialogHeader>
-
-          <div className="space-y-4">
-            {isCorporativo && (
-              <Select value={reservaAlmacenId} onValueChange={setReservaAlmacenId}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Seleccionar subalmacén..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {reservaAlmacenOptions.map((a) => (
-                    <SelectItem key={a.value} value={a.value}>
-                      {typeof a.label === "function" ? a.label() : a.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-            <Input
-              value={reservaSot}
-              onChange={(e) => setReservaSot(e.target.value)}
-              placeholder="Ingrese la SOT"
-            />
-          </div>
-
-          <DialogFooter>
+      <GeneralModal
+        open={reservaOpen}
+        onClose={() => setReservaOpen(false)}
+        title="Reservar por SOT"
+        icon="Bookmark"
+        size="md"
+        childrenFooter={
+          <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setReservaOpen(false)}>
               Cancelar
             </Button>
@@ -723,9 +704,47 @@ export default function InventarioPage() {
                 ? "Guardando..."
                 : "Reservar"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </div>
+        }
+      >
+        <div className="space-y-4">
+          {isCorporativo && (
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="reserva-almacen">Subalmacén</Label>
+              <Select
+                value={reservaAlmacenId}
+                onValueChange={setReservaAlmacenId}
+              >
+                <SelectTrigger
+                  id="reserva-almacen"
+                  className="w-full min-w-0 [&>span]:min-w-0 [&>span]:truncate"
+                >
+                  <SelectValue placeholder="Seleccionar subalmacén..." />
+                </SelectTrigger>
+                <SelectContent className="max-w-[min(24rem,calc(100vw-3rem))]">
+                  {reservaAlmacenOptions.map((a) => (
+                    <SelectItem key={a.value} value={a.value}>
+                      <span className="block truncate">
+                        {typeof a.label === "function" ? a.label() : a.label}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="reserva-sot">Número de SOT</Label>
+            <Input
+              id="reserva-sot"
+              value={reservaSot}
+              onChange={(e) => setReservaSot(e.target.value)}
+              placeholder="Ingrese la SOT"
+            />
+          </div>
+        </div>
+      </GeneralModal>
 
       <Dialog open={reservaMasivaOpen} onOpenChange={setReservaMasivaOpen}>
         <DialogContent className="sm:max-w-md">

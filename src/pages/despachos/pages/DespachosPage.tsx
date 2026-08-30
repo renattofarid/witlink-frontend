@@ -18,8 +18,8 @@ import { getDespachoColumns } from "../components/DespachoColumns";
 import DespachoFilters from "../components/DespachoFilters";
 import DespachoButtons from "../components/DespachoButtons";
 import { DespachoReasignarTecnicoDialog } from "../components/DespachoReasignarTecnicoDialog";
+import { DespachoDetailSheet } from "../components/DespachoDetailSheet";
 import type { DespachoResource } from "../lib/despacho.interface";
-import { DESPACHO_ROUTE_VIEW } from "../lib/despacho.constants";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
 
 export default function DespachosPage() {
@@ -54,6 +54,9 @@ export default function DespachosPage() {
 
   const [reassignOpen, setReassignOpen] = useState(false);
   const [toReassign, setToReassign] = useState<DespachoResource | null>(null);
+
+  const [viewOpen, setViewOpen] = useState(false);
+  const [toView, setToView] = useState<DespachoResource | null>(null);
 
   const { fecha_inicio, fecha_fin, tecnico_id, almacen_id, ...restParams } = params;
   const queryParams: Record<string, any> = {
@@ -98,7 +101,8 @@ export default function DespachosPage() {
   });
 
   const handleView = (row: DespachoResource) => {
-    navigate(`${DESPACHO_ROUTE_VIEW}/${row.id}`);
+    setToView(row);
+    setViewOpen(true);
   };
 
   const handleEdit = (row: DespachoResource) => {
@@ -173,6 +177,12 @@ export default function DespachosPage() {
         onConfirm={async () => {
           await deleteMutation.mutateAsync();
         }}
+      />
+
+      <DespachoDetailSheet
+        open={viewOpen}
+        onClose={() => setViewOpen(false)}
+        despachoId={toView?.id ?? null}
       />
 
       <DespachoReasignarTecnicoDialog

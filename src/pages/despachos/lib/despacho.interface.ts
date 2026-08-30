@@ -62,6 +62,7 @@ export interface DespachoSerieDetalleResource {
   id: number;
   serie: string;
   situacion: string;
+  situacion_label?: string | null;
   mac: string | null;
   emta_mac: string | null;
   ua: string | null;

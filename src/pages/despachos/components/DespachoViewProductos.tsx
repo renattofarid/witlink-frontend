@@ -30,6 +30,7 @@ export function DespachoViewProductos({ productos }: Props) {
             <TableHead className="w-10 text-right">#</TableHead>
             <TableHead>Producto</TableHead>
             <TableHead>Tipo</TableHead>
+            <TableHead>Origen</TableHead>
             <TableHead className="text-right">Cant.</TableHead>
             <TableHead>Series</TableHead>
           </TableRow>
@@ -40,14 +41,12 @@ export function DespachoViewProductos({ productos }: Props) {
               .map((s) => s.serie)
               .filter((s): s is NonNullable<typeof s> => !!s);
 
-            const situacionText = (s: (typeof series)[number]) =>
-              s.situacion_label ?? s.situacion;
-
             return (
               <TableRow key={p.id} className="align-top">
                 <TableCell className="text-right text-xs text-muted-foreground">
                   {i + 1}
                 </TableCell>
+
                 <TableCell>
                   <p className="text-sm font-medium">
                     {p.producto.nombre || p.producto.sap || "—"}
@@ -56,53 +55,59 @@ export function DespachoViewProductos({ productos }: Props) {
                     {p.producto.sap}
                   </p>
                 </TableCell>
+
                 <TableCell>
-                  <div className="flex flex-wrap gap-1">
-                    {p.producto.tipo && (
-                      <Badge color="muted" className="text-xs">
-                        {p.producto.tipo}
-                      </Badge>
-                    )}
-                    {p.producto.origen && (
-                      <Badge variant="outline" className="text-xs">
-                        {p.producto.origen}
-                      </Badge>
-                    )}
-                    {!p.producto.tipo && !p.producto.origen && (
-                      <span className="text-xs text-muted-foreground">—</span>
-                    )}
-                  </div>
+                  {p.producto.tipo ? (
+                    <Badge color="muted" className="text-xs">
+                      {p.producto.tipo}
+                    </Badge>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">—</span>
+                  )}
                 </TableCell>
+
+                <TableCell>
+                  {p.producto.origen ? (
+                    <Badge variant="outline" className="text-xs">
+                      {p.producto.origen}
+                    </Badge>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">—</span>
+                  )}
+                </TableCell>
+
                 <TableCell className="text-right text-sm font-semibold">
                   {Number(p.cantidad)}
                 </TableCell>
+
                 <TableCell>
                   {series.length > 0 ? (
-                    <div className="flex flex-wrap gap-1.5">
-                      {series.map((s) => (
-                        <Badge
-                          key={s.id}
-                          variant="outline"
-                          className="font-mono text-xs"
-                          title={
-                            [
-                              situacionText(s) && `Situación: ${situacionText(s)}`,
-                              s.mac && `MAC: ${s.mac}`,
-                              s.emta_mac && `EMTA MAC: ${s.emta_mac}`,
-                              s.ua && `UA: ${s.ua}`,
-                            ]
-                              .filter(Boolean)
-                              .join(" · ") || undefined
-                          }
-                        >
-                          {s.serie}
-                          {situacionText(s) && (
-                            <span className="ml-1 rounded bg-muted px-1 text-[10px] font-semibold text-muted-foreground">
-                              {situacionText(s)}
-                            </span>
-                          )}
-                        </Badge>
-                      ))}
+                    <div className="flex flex-col gap-1">
+                      {series.map((s) => {
+                        const situacion = s.situacion_label ?? s.situacion;
+                        return (
+                          <div
+                            key={s.id}
+                            className="flex items-center gap-2"
+                            title={
+                              [
+                                s.mac && `MAC: ${s.mac}`,
+                                s.emta_mac && `EMTA MAC: ${s.emta_mac}`,
+                                s.ua && `UA: ${s.ua}`,
+                              ]
+                                .filter(Boolean)
+                                .join(" · ") || undefined
+                            }
+                          >
+                            <span className="font-mono text-xs">{s.serie}</span>
+                            {situacion && (
+                              <Badge color="muted" className="text-[10px]">
+                                {situacion}
+                              </Badge>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   ) : (
                     <span className="text-xs text-muted-foreground">—</span>

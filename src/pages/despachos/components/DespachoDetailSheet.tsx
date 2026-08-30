@@ -1,20 +1,17 @@
+import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
   Building2,
-  CalendarClock,
   CalendarDays,
   FileText,
-  IdCard,
   Package,
   Pencil,
-  User,
   Wrench,
 } from "lucide-react";
 import GeneralSheet from "@/components/GeneralSheet";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import ExportButtons from "@/components/ExportButtons";
 import { DespachoComplete } from "../lib/despacho.constants";
 import { getDespacho } from "../lib/despacho.actions";
@@ -27,6 +24,50 @@ interface Props {
   despachoId: number | null;
 }
 
+/* ── Bloques reutilizables ──────────────────────────────────────────────── */
+
+function Section({
+  icon: Icon,
+  title,
+  action,
+  children,
+}: {
+  icon: typeof Package;
+  title: string;
+  action?: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <section className="rounded-lg border">
+      <header className="flex items-center gap-2 border-b bg-muted/40 px-4 py-2.5">
+        <Icon className="size-4 text-muted-foreground" />
+        <h3 className="flex-1 text-sm font-semibold">{title}</h3>
+        {action}
+      </header>
+      <div className="p-4">{children}</div>
+    </section>
+  );
+}
+
+function Field({
+  label,
+  value,
+  className,
+}: {
+  label: string;
+  value: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={className}>
+      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+        {label}
+      </p>
+      <p className="mt-0.5 text-sm font-medium">{value || "—"}</p>
+    </div>
+  );
+}
+
 export function DespachoDetailSheet({ open, onClose, despachoId }: Props) {
   const navigate = useNavigate();
 
@@ -35,8 +76,6 @@ export function DespachoDetailSheet({ open, onClose, despachoId }: Props) {
     queryFn: () => getDespacho(Number(despachoId)) as Promise<DespachoResource>,
     enabled: open && !!despachoId,
   });
-
-  const nombreTecnico = despacho?.tecnico?.nombre_completo;
 
   const nombreUsuario = despacho?.usuario?.persona
     ? `${despacho.usuario.persona.nombre} ${despacho.usuario.persona.apellido_paterno}`
@@ -65,7 +104,13 @@ export function DespachoDetailSheet({ open, onClose, despachoId }: Props) {
     despacho?.almacen?.is_corporativo ||
     despacho?.almacen?.es_subalmacen_corporativo;
 
-  const totalItems = despacho?.productos?.length ?? 0;
+  const productos = despacho?.productos ?? [];
+  const totalItems = productos.length;
+  const totalUnidades = productos.reduce((acc, p) => acc + Number(p.cantidad || 0), 0);
+  const totalSeries = productos.reduce(
+    (acc, p) => acc + (p.series?.filter((s) => s.serie).length ?? 0),
+    0,
+  );
 
   return (
     <GeneralSheet
@@ -74,13 +119,13 @@ export function DespachoDetailSheet({ open, onClose, despachoId }: Props) {
       title={despacho ? `Despacho #${despacho.numero}` : "Despacho"}
       subtitle="Información del despacho"
       icon="List"
-      size="2xl"
+      size="3xl"
       isLoading={isLoading}
     >
       {despacho && (
-        <div className="space-y-5 pb-4">
-          {/* ── Encabezado ──────────────────────────────────────────────── */}
-          <div className="flex items-start justify-between gap-4">
+        <div className="space-y-4 pb-4">
+          {/* ── Encabezado ────────────────────────────────────────────── */}
+          <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="space-y-1">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="font-mono text-xl font-bold tracking-tight">
@@ -121,82 +166,76 @@ export function DespachoDetailSheet({ open, onClose, despachoId }: Props) {
             </div>
           </div>
 
-          {/* ── SOT (solo despachos con SOT asociada) ───────────────────── */}
-          {sot && (
-            <div className="flex items-center gap-2 rounded-md border bg-muted/40 px-3 py-2">
-              <FileText className="size-4 text-muted-foreground" />
-              <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                SOT
-              </span>
-              <span className="font-mono text-sm font-semibold">{sot}</span>
-            </div>
-          )}
-
-          {/* ── Metadatos ───────────────────────────────────────────────── */}
-          <div className="grid grid-cols-1 gap-4 border-y py-4 sm:grid-cols-2">
-            <div className="flex flex-col gap-0.5">
-              <p className="flex items-center gap-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                <Building2 className="size-3" />
-                Almacén
-              </p>
-              <span className="text-sm font-medium">
-                {despacho.almacen?.nombre_display ??
-                  despacho.almacen?.nombre ??
-                  `#${despacho.almacen?.id}`}
-              </span>
-              <span className="text-xs text-muted-foreground">
-                {[despacho.almacen?.codigo, despacho.almacen?.direccion]
-                  .filter(Boolean)
-                  .join(" · ")}
-              </span>
-            </div>
-
-            <div className="flex flex-col gap-0.5">
-              <p className="flex items-center gap-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                <Wrench className="size-3" />
-                Técnico
-              </p>
-              <span className="text-sm font-medium">{nombreTecnico ?? "—"}</span>
-              <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                <IdCard className="size-3" />
-                {[despacho.tecnico?.dni, despacho.tecnico?.tipo_empleado]
-                  .filter(Boolean)
-                  .join(" · ") || "—"}
-              </span>
-            </div>
-
-            <div className="flex flex-col gap-0.5">
-              <p className="flex items-center gap-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                <User className="size-3" />
-                Registrado por
-              </p>
-              <span className="text-sm font-medium">{nombreUsuario}</span>
-            </div>
-
-            {fechaRegistro && (
-              <div className="flex flex-col gap-0.5">
-                <p className="flex items-center gap-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  <CalendarClock className="size-3" />
-                  Fecha de registro
-                </p>
-                <span className="text-sm font-medium">{fechaRegistro}</span>
+          {/* ── Detalle ───────────────────────────────────────────────── */}
+          <Section icon={FileText} title="Detalle">
+            <div className="divide-y">
+              <div className="grid grid-cols-2 gap-x-4 gap-y-3 pb-3 sm:grid-cols-3">
+                <Field label="SOT" value={sot} />
+                <Field label="Fecha de registro" value={fechaRegistro} />
+                <Field label="Registrado por" value={nombreUsuario} />
               </div>
-            )}
-          </div>
 
-          {/* ── Productos ───────────────────────────────────────────────── */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <Package className="size-4 text-muted-foreground" />
-              <h3 className="text-sm font-semibold">Productos</h3>
-              <Separator className="flex-1" />
-              <span className="text-xs text-muted-foreground">
-                {totalItems} {totalItems === 1 ? "ítem" : "ítems"}
-              </span>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-3 py-3 sm:grid-cols-3">
+                <Field
+                  label="Almacén"
+                  value={
+                    <span className="flex items-center gap-1.5">
+                      <Building2 className="size-3.5 shrink-0 text-muted-foreground" />
+                      {despacho.almacen?.nombre_display ??
+                        despacho.almacen?.nombre}
+                    </span>
+                  }
+                  className="col-span-2 sm:col-span-3"
+                />
+                <Field label="Código" value={despacho.almacen?.codigo} />
+                <Field label="Dirección" value={despacho.almacen?.direccion} />
+                <Field
+                  label="Tipo"
+                  value={esCorporativo ? "Corporativo" : "Estándar"}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-x-4 gap-y-3 pt-3 sm:grid-cols-3">
+                <Field
+                  label="Técnico"
+                  value={
+                    <span className="flex items-center gap-1.5">
+                      <Wrench className="size-3.5 shrink-0 text-muted-foreground" />
+                      {despacho.tecnico?.nombre_completo ?? "—"}
+                    </span>
+                  }
+                />
+                <Field label="DNI" value={despacho.tecnico?.dni} />
+                <Field
+                  label="Tipo de empleado"
+                  value={despacho.tecnico?.tipo_empleado}
+                />
+              </div>
             </div>
+          </Section>
 
-            <DespachoViewProductos productos={despacho.productos ?? []} />
-          </div>
+          {/* ── Productos ─────────────────────────────────────────────── */}
+          <Section
+            icon={Package}
+            title="Productos"
+            action={
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Badge color="muted" className="text-xs">
+                  {totalItems} {totalItems === 1 ? "ítem" : "ítems"}
+                </Badge>
+                <Badge color="muted" className="text-xs">
+                  {totalUnidades} und.
+                </Badge>
+                {totalSeries > 0 && (
+                  <Badge color="muted" className="text-xs">
+                    {totalSeries} series
+                  </Badge>
+                )}
+              </div>
+            }
+          >
+            <DespachoViewProductos productos={productos} />
+          </Section>
         </div>
       )}
     </GeneralSheet>

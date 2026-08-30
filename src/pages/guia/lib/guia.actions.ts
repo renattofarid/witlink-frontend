@@ -1,5 +1,6 @@
 import { api } from "@/lib/config";
 import { promiseToast } from "@/lib/core.function";
+import type { ExcelResponse } from "@/lib/exportExcel";
 import { GuiaComplete } from "./guia.constants";
 import type {
   GuiaResponse,
@@ -309,6 +310,19 @@ export const getSeries = async (params: Record<string, any>) => {
   const { data } = await api.get("/series", { params });
   return data;
 };
+
+/**
+ * Descarga la plantilla .xlsx para la importación masiva de guías corporativas.
+ * El backend genera el archivo para mantener las columnas siempre alineadas
+ * con lo que espera el importador.
+ */
+export const descargarPlantillaGuiasCorporativo =
+  async (): Promise<ExcelResponse> => {
+    const { data } = await api.get<ExcelResponse>(
+      `${GuiaComplete.ENDPOINT}/plantilla-corporativa`,
+    );
+    return data;
+  };
 
 export const verificarDisponibilidadIngreso = async (
   codigo: string,

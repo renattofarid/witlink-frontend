@@ -192,6 +192,12 @@ export interface ImportarGuiasCorporativoGuia {
   productos: number;
 }
 
+export interface ImportarGuiasCorporativoError {
+  fila: number | null;
+  guia: string | null;
+  motivo: string;
+}
+
 export interface ImportarGuiasCorporativoResponse {
   guias_creadas: number;
   guias_omitidas: number;
@@ -200,7 +206,7 @@ export interface ImportarGuiasCorporativoResponse {
   productos_restaurados: number;
   filas_procesadas: number;
   filas_omitidas: number;
-  errores: string[];
+  errores: ImportarGuiasCorporativoError[];
   guias: ImportarGuiasCorporativoGuia[];
   mensaje: string;
 }

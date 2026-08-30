@@ -1,13 +1,7 @@
 import { useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Download, Upload, X, FileSpreadsheet } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { GeneralModal } from "@/components/GeneralModal";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { FieldError } from "@/components/ui/field";
@@ -22,57 +16,26 @@ import {
 import DatePicker from "@/components/DatePicker";
 import { format } from "date-fns";
 import { promiseToast } from "@/lib/core.function";
+import { downloadExcelFromBase64 } from "@/lib/exportExcel";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
-import { importarGuiasCorporativo } from "../lib/guia.actions";
+import {
+  descargarPlantillaGuiasCorporativo,
+  importarGuiasCorporativo,
+} from "../lib/guia.actions";
 import { GuiaComplete } from "../lib/guia.constants";
-import type { ImportarGuiasCorporativoResponse } from "../lib/guia.interface";
+import type {
+  ImportarGuiasCorporativoError,
+  ImportarGuiasCorporativoResponse,
+} from "../lib/guia.interface";
 
 interface Props {
   open: boolean;
   onClose: () => void;
 }
 
+const FORM_ID = "importar-guias-corporativo-form";
+
 const ACCEPTED_EXTENSIONS = [".xlsx", ".xls", ".csv", ".txt"];
-
-const TEMPLATE_HEADERS = [
-  "NroEntrega",
-  "NroGuia1",
-  "NroGuia2",
-  "Posicion",
-  "SolAbastecimiento",
-  "PedidoTraslado",
-  "NroMaterial",
-  "TextoBreve",
-  "Cantidad",
-  "UnidadMedida",
-  "NroLote",
-  "Tipo",
-  "Serie",
-  "NumeroSerie",
-  "Mac",
-  "IncluirEnCarga",
-  "EsLiquidacion",
-];
-
-const TEMPLATE_SAMPLE = [
-  "800000001",
-  "T001-00000001",
-  "",
-  "10",
-  "10000001",
-  "45000001",
-  "SAP001",
-  "CABLE DROP 100M",
-  "5",
-  "UND",
-  "",
-  "Material",
-  "No",
-  "",
-  "No",
-  "No",
-  "Si",
-];
 
 const REQUIRED_COLUMNS = [
   "NroEntrega",
@@ -108,8 +71,21 @@ function normalizarResultado(
 ): ImportarGuiasCorporativoResponse {
   const data = (raw ?? {}) as Partial<ImportarGuiasCorporativoResponse>;
   const num = (v: unknown) => (typeof v === "number" && !isNaN(v) ? v : 0);
-  const errores = Array.isArray(data.errores)
-    ? data.errores.map((e) => (typeof e === "string" ? e : JSON.stringify(e)))
+  const errores: ImportarGuiasCorporativoError[] = Array.isArray(data.errores)
+    ? data.errores.map((e): ImportarGuiasCorporativoError => {
+        if (typeof e === "string") {
+          return { fila: null, guia: null, motivo: e };
+        }
+        const obj = (e ?? {}) as Partial<ImportarGuiasCorporativoError>;
+        return {
+          fila: typeof obj.fila === "number" ? obj.fila : null,
+          guia: typeof obj.guia === "string" ? obj.guia : null,
+          motivo:
+            typeof obj.motivo === "string" && obj.motivo
+              ? obj.motivo
+              : JSON.stringify(e),
+        };
+      })
     : [];
   return {
     guias_creadas: num(data.guias_creadas),
@@ -128,54 +104,6 @@ function normalizarResultado(
   };
 }
 
-function escapeHtml(value: string) {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
-function downloadTemplate() {
-  const rows = [TEMPLATE_HEADERS, TEMPLATE_SAMPLE]
-    .map(
-      (row, index) =>
-        `<tr>${row
-          .map((cell) =>
-            index === 0
-              ? `<th>${escapeHtml(cell)}</th>`
-              : `<td>${escapeHtml(cell)}</td>`,
-          )
-          .join("")}</tr>`,
-    )
-    .join("");
-  const html = `<!doctype html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <style>
-    table { border-collapse: collapse; font-family: Arial, sans-serif; font-size: 12px; }
-    th, td { border: 1px solid #999; padding: 6px 8px; mso-number-format: "\\@"; }
-    th { background: #d9eaf7; font-weight: bold; }
-  </style>
-</head>
-<body>
-  <table>${rows}</table>
-</body>
-</html>`;
-  const blob = new Blob([html], {
-    type: "application/vnd.ms-excel;charset=utf-8;",
-  });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "plantilla-guias-corporativas-sapui5.xls";
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
-}
-
 export default function ImportarGuiasCorporativoDialog({ open, onClose }: Props) {
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
@@ -188,6 +116,19 @@ export default function ImportarGuiasCorporativoDialog({ open, onClose }: Props)
   const [almacenId, setAlmacenId] = useState<string>("");
   const [resultado, setResultado] = useState<ImportarGuiasCorporativoResponse | null>(null);
   const [errorGeneral, setErrorGeneral] = useState("");
+
+  const plantillaMutation = useMutation({
+    mutationFn: async () => {
+      const promise = descargarPlantillaGuiasCorporativo();
+      promiseToast(promise, {
+        loading: "Generando plantilla...",
+        success: "Plantilla descargada.",
+        error: "No se pudo generar la plantilla.",
+      });
+      return promise;
+    },
+    onSuccess: (data) => downloadExcelFromBase64(data),
+  });
 
   const mutation = useMutation({
     mutationFn: (file: File) => {
@@ -265,206 +206,228 @@ export default function ImportarGuiasCorporativoDialog({ open, onClose }: Props)
   };
 
   return (
-    <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
-      <DialogContent className="sm:max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Importar guías corporativas (SAPUI5)</DialogTitle>
-        </DialogHeader>
+    <GeneralModal
+      open={open}
+      onClose={handleClose}
+      title="Importar guías corporativas (SAPUI5)"
+      subtitle="Carga masiva de guías desde el Excel del cliente."
+      icon="FileSpreadsheet"
+      size="2xl"
+      childrenFooter={
+        <div className="flex justify-end gap-2">
+          <Button type="button" variant="ghost" onClick={handleClose}>
+            Cerrar
+          </Button>
+          <Button type="submit" form={FORM_ID} disabled={mutation.isPending}>
+            {mutation.isPending ? "Importando..." : "Importar"}
+          </Button>
+        </div>
+      }
+    >
+      <form id={FORM_ID} onSubmit={handleSubmit} className="space-y-4 py-1">
+        <div className="space-y-1.5">
+          <Label>Archivo</Label>
+          <div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept={ACCEPTED_EXTENSIONS.join(",")}
+              className="hidden"
+              onChange={handleFileChange}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Upload className="size-4 mr-1" />
+              Seleccionar archivo
+            </Button>
+          </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4 py-2">
-          <div className="space-y-1.5">
-            <Label>Archivo</Label>
-            <div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept={ACCEPTED_EXTENSIONS.join(",")}
-                className="hidden"
-                onChange={handleFileChange}
-              />
-              <Button
+          {archivo && (
+            <div className="flex items-center justify-between text-sm bg-muted rounded px-2 py-1">
+              <span className="flex items-center gap-1.5 truncate max-w-80">
+                <FileSpreadsheet className="size-3.5 shrink-0" />
+                {archivo.name}
+              </span>
+              <button
                 type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => setArchivo(null)}
+                className="ml-2 text-muted-foreground hover:text-destructive"
               >
-                <Upload className="size-4 mr-1" />
-                Seleccionar archivo
-              </Button>
+                <X className="size-3.5" />
+              </button>
             </div>
+          )}
 
-            {archivo && (
-              <div className="flex items-center justify-between text-sm bg-muted rounded px-2 py-1">
-                <span className="flex items-center gap-1.5 truncate max-w-80">
-                  <FileSpreadsheet className="size-3.5 shrink-0" />
-                  {archivo.name}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setArchivo(null)}
-                  className="ml-2 text-muted-foreground hover:text-destructive"
-                >
-                  <X className="size-3.5" />
-                </button>
+          <FieldError>{archivoError}</FieldError>
+        </div>
+
+        <div className="rounded-md border bg-muted/30 p-3 text-sm">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="space-y-1">
+              <p className="font-medium">Formato esperado por el sistema</p>
+              <p className="text-xs text-muted-foreground">
+                Descarga la plantilla en .xlsx. La primera fila son los
+                encabezados; también se aceptan archivos .xls, .csv o .txt con
+                las mismas columnas.
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => plantillaMutation.mutate()}
+              disabled={plantillaMutation.isPending}
+              className="shrink-0"
+            >
+              <Download className="size-4 mr-1" />
+              {plantillaMutation.isPending
+                ? "Generando..."
+                : "Descargar plantilla (.xlsx)"}
+            </Button>
+          </div>
+
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <div>
+              <p className="mb-1 text-xs font-medium uppercase text-muted-foreground">
+                Columnas obligatorias
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {REQUIRED_COLUMNS.map((column) => (
+                  <Badge key={column} variant="default" color="blue">
+                    {column}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+            <div>
+              <p className="mb-1 text-xs font-medium uppercase text-muted-foreground">
+                Columnas opcionales
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {OPTIONAL_COLUMNS.map((column) => (
+                  <Badge key={column} variant="outline">
+                    {column}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-3 rounded border bg-background p-2 text-xs text-muted-foreground">
+            <p>
+              <span className="font-medium text-foreground">Tipo:</span> debe
+              ser Material o Equipo.
+            </p>
+            <p>
+              <span className="font-medium text-foreground">Serie/Mac:</span>{" "}
+              acepta Si/No, 1/0 o X. Si Tipo es Equipo y Serie es Si, el
+              archivo debe traer NumeroSerie.
+            </p>
+            <p>
+              <span className="font-medium text-foreground">Guia:</span> se
+              agrupa por NroGuia1; si viene vacio, usa NroEntrega.
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label>Fecha (opcional)</Label>
+          <DatePicker
+            value={fecha}
+            onChange={(date) => setFecha(date ? format(date, "yyyy-MM-dd") : "")}
+            placeholder="Usar fecha actual"
+          />
+        </div>
+
+        {isCorporativo && (
+          <div className="space-y-1.5">
+            <Label>Subalmacén destino (opcional)</Label>
+            <Select value={almacenId} onValueChange={setAlmacenId}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Usar almacén de mi sesión" />
+              </SelectTrigger>
+              <SelectContent>
+                {(user?.subalmacenes ?? []).map((a) => (
+                  <SelectItem key={a.id} value={String(a.id)}>
+                    {a.nombre}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        {errorGeneral && (
+          <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm">
+            <p className="font-medium text-destructive">
+              La carga tiene errores
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">{errorGeneral}</p>
+          </div>
+        )}
+
+        {resultado && (
+          <div className="space-y-2 rounded-md border p-3 text-sm">
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="default" color="green">
+                Guías creadas: {resultado.guias_creadas}
+              </Badge>
+              <Badge variant="default" color="gray">
+                Guías omitidas: {resultado.guias_omitidas}
+              </Badge>
+              <Badge variant="default" color="blue">
+                Productos creados: {resultado.productos_creados}
+              </Badge>
+              <Badge variant="default" color="blue">
+                Productos actualizados: {resultado.productos_actualizados}
+              </Badge>
+              <Badge variant="default" color="yellow">
+                Productos restaurados: {resultado.productos_restaurados}
+              </Badge>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Filas procesadas: {resultado.filas_procesadas} · Filas omitidas:{" "}
+              {resultado.filas_omitidas}
+            </p>
+            {resultado.errores.length > 0 && (
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-destructive">
+                  Observaciones ({resultado.errores.length}):
+                </p>
+                <div className="max-h-40 overflow-y-auto rounded border">
+                  <ul className="divide-y text-xs">
+                    {resultado.errores.map((err, i) => (
+                      <li key={i} className="flex flex-col gap-0.5 px-2 py-1.5">
+                        {(err.fila != null || err.guia) && (
+                          <span className="flex flex-wrap gap-1">
+                            {err.fila != null && (
+                              <Badge variant="outline" color="gray">
+                                Fila {err.fila}
+                              </Badge>
+                            )}
+                            {err.guia && (
+                              <Badge variant="outline" color="blue">
+                                {err.guia}
+                              </Badge>
+                            )}
+                          </span>
+                        )}
+                        <span className="text-muted-foreground">
+                          {err.motivo}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
             )}
-
-            <FieldError>{archivoError}</FieldError>
           </div>
-
-          <div className="rounded-md border bg-muted/30 p-3 text-sm">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div className="space-y-1">
-                <p className="font-medium">Formato esperado por el sistema</p>
-                <p className="text-xs text-muted-foreground">
-                  Formatos aceptados: .xlsx, .xls, .csv o .txt. La primera fila
-                  debe contener los encabezados.
-                </p>
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={downloadTemplate}
-                className="shrink-0"
-              >
-                <Download className="size-4 mr-1" />
-                Descargar plantilla
-              </Button>
-            </div>
-
-            <div className="mt-3 grid gap-3 sm:grid-cols-2">
-              <div>
-                <p className="mb-1 text-xs font-medium uppercase text-muted-foreground">
-                  Columnas obligatorias
-                </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {REQUIRED_COLUMNS.map((column) => (
-                    <Badge key={column} variant="default" color="blue">
-                      {column}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <p className="mb-1 text-xs font-medium uppercase text-muted-foreground">
-                  Columnas opcionales
-                </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {OPTIONAL_COLUMNS.map((column) => (
-                    <Badge key={column} variant="outline">
-                      {column}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-3 rounded border bg-background p-2 text-xs text-muted-foreground">
-              <p>
-                <span className="font-medium text-foreground">Tipo:</span> debe
-                ser Material o Equipo.
-              </p>
-              <p>
-                <span className="font-medium text-foreground">Serie/Mac:</span>{" "}
-                acepta Si/No, 1/0 o X. Si Tipo es Equipo y Serie es Si, el
-                archivo debe traer NumeroSerie.
-              </p>
-              <p>
-                <span className="font-medium text-foreground">Guia:</span> se
-                agrupa por NroGuia1; si viene vacio, usa NroEntrega.
-              </p>
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label>Fecha (opcional)</Label>
-            <DatePicker
-              value={fecha}
-              onChange={(date) => setFecha(date ? format(date, "yyyy-MM-dd") : "")}
-              placeholder="Usar fecha actual"
-            />
-          </div>
-
-          {isCorporativo && (
-            <div className="space-y-1.5">
-              <Label>Subalmacén destino (opcional)</Label>
-              <Select value={almacenId} onValueChange={setAlmacenId}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Usar almacén de mi sesión" />
-                </SelectTrigger>
-                <SelectContent>
-                  {(user?.subalmacenes ?? []).map((a) => (
-                    <SelectItem key={a.id} value={String(a.id)}>
-                      {a.nombre}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
-          {errorGeneral && (
-            <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm">
-              <p className="font-medium text-destructive">
-                La carga tiene errores
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">{errorGeneral}</p>
-            </div>
-          )}
-
-          {resultado && (
-            <div className="space-y-2 rounded-md border p-3 text-sm">
-              <div className="flex flex-wrap gap-2">
-                <Badge variant="default" color="green">
-                  Guías creadas: {resultado.guias_creadas}
-                </Badge>
-                <Badge variant="default" color="gray">
-                  Guías omitidas: {resultado.guias_omitidas}
-                </Badge>
-                <Badge variant="default" color="blue">
-                  Productos creados: {resultado.productos_creados}
-                </Badge>
-                <Badge variant="default" color="blue">
-                  Productos actualizados: {resultado.productos_actualizados}
-                </Badge>
-                <Badge variant="default" color="yellow">
-                  Productos restaurados: {resultado.productos_restaurados}
-                </Badge>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Filas procesadas: {resultado.filas_procesadas} · Filas omitidas:{" "}
-                {resultado.filas_omitidas}
-              </p>
-              {resultado.errores.length > 0 && (
-                <div className="space-y-1">
-                  <p className="text-xs font-medium text-destructive">
-                    Observaciones ({resultado.errores.length}):
-                  </p>
-                  <div className="max-h-40 overflow-y-auto rounded border p-2">
-                    <ul className="text-xs space-y-1 list-disc pl-4">
-                      {resultado.errores.map((err, i) => (
-                        <li key={i} className="text-muted-foreground">
-                          {typeof err === "string" ? err : JSON.stringify(err)}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          <DialogFooter>
-            <Button type="button" variant="ghost" onClick={handleClose}>
-              Cerrar
-            </Button>
-            <Button type="submit" disabled={mutation.isPending}>
-              {mutation.isPending ? "Importando..." : "Importar"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+        )}
+      </form>
+    </GeneralModal>
   );
 }

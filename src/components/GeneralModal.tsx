@@ -98,10 +98,15 @@ export function GeneralModal({
         }}
       >
         <DialogContent
-          className={cn(sizes[size], maxWidth, className)}
+          className={cn(
+            "grid max-h-[85vh] grid-rows-[auto_minmax(0,1fr)_auto] gap-0 overflow-hidden",
+            sizes[size],
+            maxWidth,
+            className,
+          )}
           onInteractOutside={(e) => e.preventDefault()}
         >
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 pb-2">
             {icon && IconComponent && (
               <div className="mr-2 bg-primary text-primary-foreground rounded-md p-2">
                 <IconComponent className="size-5" />
@@ -114,10 +119,12 @@ export function GeneralModal({
               </DialogDescription>
             </DialogHeader>
           </div>
-          <div className="no-scrollbar overflow-y-auto py-2 px-4">
+          <div className="no-scrollbar min-h-0 overflow-y-auto py-2 px-4">
             {children}
           </div>
-          <SheetFooter className={childrenFooter ? "block" : "hidden"}>
+          <SheetFooter
+            className={cn("pt-2", childrenFooter ? "block" : "hidden")}
+          >
             {childrenFooter}
           </SheetFooter>
         </DialogContent>

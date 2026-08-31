@@ -11,6 +11,7 @@ export interface KardexResource {
   ubicacion: string;
   serie: string;
   referencia: string;
+  pedido: string;
   stock_anterior: string;
   stock_actual: string;
 }

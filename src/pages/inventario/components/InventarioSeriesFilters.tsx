@@ -157,7 +157,7 @@ export default function InventarioSeriesFilters({
           <ExportExcelButton
             show={totalResults > 0}
             onExport={handleExport}
-            label="Exportar filtrado"
+            label={user?.is_corporativo ? "Descargar base" : "Exportar filtrado"}
           />
         </div>
         <SearchableSelect

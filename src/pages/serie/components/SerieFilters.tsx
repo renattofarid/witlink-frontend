@@ -22,7 +22,7 @@ const SITUACION_OPTIONS = [
   { value: "PE", label: "Pendiente" },
   { value: "DI", label: "Disponible" },
   { value: "DE", label: "Despachado" },
-  { value: "LI", label: "Liquidado" },
+  { value: "IN", label: "Liquidado" },
   { value: "RE", label: "Retirado" },
 ];
 

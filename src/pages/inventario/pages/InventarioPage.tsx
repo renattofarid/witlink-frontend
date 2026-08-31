@@ -599,6 +599,7 @@ export default function InventarioPage() {
             <InventarioMaterialesFilters
               params={materialesParams}
               setParams={setMaterialesParams}
+              totalResults={materialesData?.meta.total ?? 0}
             />
           </DataTable>
 

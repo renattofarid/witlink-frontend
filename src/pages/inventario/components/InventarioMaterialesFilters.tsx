@@ -6,10 +6,14 @@ import { getAlmacenFilterOptions } from "@/pages/auth/lib/almacen-options";
 import FilterWrapper from "@/components/FilterWrapper";
 import { SearchableSelect } from "@/components/SearchableSelect";
 import SearchInput from "@/components/SearchInput";
+import ExportExcelButton from "@/components/ExportExcelButton";
+import { downloadExcelFromBase64 } from "@/lib/exportExcel";
+import { exportarInventarioMaterialesExcel } from "../lib/inventario.actions";
 
 interface InventarioMaterialesFiltersProps {
   params: Record<string, string>;
   setParams: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  totalResults?: number;
 }
 
 const BOOL_OPTIONS = [
@@ -21,6 +25,7 @@ const BOOL_OPTIONS = [
 export default function InventarioMaterialesFilters({
   params,
   setParams,
+  totalResults = 0,
 }: InventarioMaterialesFiltersProps) {
   const user = useAuthStore((s) => s.user);
 
@@ -34,6 +39,11 @@ export default function InventarioMaterialesFilters({
     () => getAlmacenFilterOptions(user, almacenesAll, "Todos"),
     [user, almacenesAll],
   );
+
+  const handleExport = async () => {
+    const res = await exportarInventarioMaterialesExcel(params);
+    downloadExcelFromBase64(res);
+  };
 
   return (
     <FilterWrapper>
@@ -72,6 +82,11 @@ export default function InventarioMaterialesFilters({
             page: "1",
           }))
         }
+      />
+      <ExportExcelButton
+        show={totalResults > 0}
+        onExport={handleExport}
+        label={user?.is_corporativo ? "Descargar base" : "Exportar filtrado"}
       />
     </FilterWrapper>
   );

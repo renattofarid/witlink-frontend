@@ -91,6 +91,16 @@ export const getDevolucionColumns = (
     ),
   },
   {
+    accessorKey: "observacion",
+    header: "Observacion",
+    size: 180,
+    cell: ({ row }) => (
+      <span className="text-sm text-muted-foreground truncate max-w-56 block">
+        {row.original.observacion || "-"}
+      </span>
+    ),
+  },
+  {
     id: "estado",
     header: "Estado",
     size: 120,

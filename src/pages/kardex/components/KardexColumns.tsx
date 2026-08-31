@@ -102,4 +102,8 @@ export const getKardexColumns = (): ColumnDef<KardexResource>[] => [
     accessorKey: "serie",
     header: "Serie",
   },
+  {
+    accessorKey: "pedido",
+    header: "Pedido",
+  },
 ];

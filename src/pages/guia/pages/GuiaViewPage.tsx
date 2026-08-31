@@ -169,7 +169,9 @@ export default function GuiaViewPage() {
                   <TableHead>Producto / Serie</TableHead>
                   <TableHead className="w-28">Tipo</TableHead>
                   <TableHead className="w-16 text-right">Cant.</TableHead>
-                  <TableHead className="w-28">Estado</TableHead>
+                  {!showCorporateMetadata && (
+                    <TableHead className="w-28">Estado</TableHead>
+                  )}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -215,11 +217,13 @@ export default function GuiaViewPage() {
                             </span>
                           )}
                         </TableCell>
-                        <TableCell>
-                          <Badge variant="default" color={isProductConfirmado ? "green" : "muted"} className="text-xs">
-                            {isProductConfirmado ? "Confirmado" : "Pendiente"}
-                          </Badge>
-                        </TableCell>
+                        {!showCorporateMetadata && (
+                          <TableCell>
+                            <Badge variant="default" color={isProductConfirmado ? "green" : "muted"} className="text-xs">
+                              {isProductConfirmado ? "Confirmado" : "Pendiente"}
+                            </Badge>
+                          </TableCell>
+                        )}
                       </TableRow>
 
                       {/* Serie sub-rows */}
@@ -248,11 +252,13 @@ export default function GuiaViewPage() {
                                 </Badge>
                               </TableCell>
                               <TableCell />
-                              <TableCell>
-                                <Badge variant="default" color={isSerieConfirmada ? "green" : "muted"} className="text-xs">
-                                  {isSerieConfirmada ? "Confirmado" : "Pendiente"}
-                                </Badge>
-                              </TableCell>
+                              {!showCorporateMetadata && (
+                                <TableCell>
+                                  <Badge variant="default" color={isSerieConfirmada ? "green" : "muted"} className="text-xs">
+                                    {isSerieConfirmada ? "Confirmado" : "Pendiente"}
+                                  </Badge>
+                                </TableCell>
+                              )}
                             </TableRow>
                           );
                         })}

@@ -78,6 +78,20 @@ export const getInventarioMateriales = async (
   return data;
 };
 
+export const exportarInventarioMaterialesExcel = async (
+  params: Record<string, string>,
+): Promise<ExcelResponse> => {
+  const exportParams = buildParams(
+    Object.fromEntries(
+      Object.entries(params).filter(([key]) => !["page", "per_page"].includes(key)),
+    ),
+  );
+  const { data } = await api.get("/inventarios/materiales/exportar-excel", {
+    params: exportParams,
+  });
+  return data;
+};
+
 export const devolverInventarioMaterial = async (productoId: number, cantidad: number) => {
   const { data } = await api.post(`/inventarios/materiales/${productoId}/devolver`, { cantidad });
   return data;

@@ -288,13 +288,16 @@ export default function ImportarSeriesModal({
         </div>
 
         {/* Resultado de la importación */}
+        {/* Resultado de la importación */}
         {resultado && (
           <div className="rounded-lg border p-3.5 space-y-2.5 bg-muted/20 text-xs">
-            <div className="flex items-center gap-1.5 text-emerald-600 font-semibold">
+            <div className="flex items-center gap-1.5 text-emerald-600 font-semibold text-sm">
               <CheckCircle2 className="size-4" />
-              <span>Resumen de Importación</span>
+              <span>
+                ¡{resultado.series_creadas + resultado.series_actualizadas} Series Listas y Disponibles en Almacén!
+              </span>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+            <div className="grid grid-cols-3 gap-2 pt-1">
               <div className="bg-background rounded-md p-2.5 text-center border shadow-xs">
                 <div className="text-[10px] text-muted-foreground uppercase font-medium">
                   Total Filas
@@ -305,25 +308,17 @@ export default function ImportarSeriesModal({
               </div>
               <div className="bg-emerald-50/70 dark:bg-emerald-950/40 rounded-md p-2.5 text-center border border-emerald-200 dark:border-emerald-800 shadow-xs">
                 <div className="text-[10px] text-emerald-700 dark:text-emerald-400 uppercase font-medium">
-                  Creadas
+                  Series Importadas
                 </div>
                 <div className="text-base font-bold text-emerald-700 dark:text-emerald-400 mt-0.5">
-                  {resultado.series_creadas}
+                  {resultado.series_creadas + resultado.series_actualizadas}
                 </div>
               </div>
-              <div className="bg-blue-50/70 dark:bg-blue-950/40 rounded-md p-2.5 text-center border border-blue-200 dark:border-blue-800 shadow-xs">
-                <div className="text-[10px] text-blue-700 dark:text-blue-400 uppercase font-medium">
-                  Actualizadas
+              <div className="bg-slate-50 dark:bg-slate-800/40 rounded-md p-2.5 text-center border shadow-xs">
+                <div className="text-[10px] text-muted-foreground uppercase font-medium">
+                  Sin Serie / Materiales
                 </div>
-                <div className="text-base font-bold text-blue-700 dark:text-blue-400 mt-0.5">
-                  {resultado.series_actualizadas}
-                </div>
-              </div>
-              <div className="bg-amber-50/70 dark:bg-amber-950/40 rounded-md p-2.5 text-center border border-amber-200 dark:border-amber-800 shadow-xs">
-                <div className="text-[10px] text-amber-700 dark:text-amber-400 uppercase font-medium">
-                  Omitidas
-                </div>
-                <div className="text-base font-bold text-amber-700 dark:text-amber-400 mt-0.5">
+                <div className="text-base font-bold text-muted-foreground mt-0.5">
                   {resultado.series_omitidas}
                 </div>
               </div>

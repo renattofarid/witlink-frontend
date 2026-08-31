@@ -17,6 +17,7 @@ import { getSerieColumns } from "../components/SerieColumns";
 import SerieFilters from "../components/SerieFilters";
 import SerieButtons from "../components/SerieButtons";
 import SerieModal from "../components/SerieModal";
+import ImportarSeriesModal from "../components/ImportarSeriesModal";
 import InventarioSerieHistorialSheet from "@/pages/inventario/components/InventarioSerieHistorialSheet";
 import type { SerieResource } from "../lib/serie.interface";
 
@@ -45,6 +46,7 @@ export default function SeriePage() {
   }, [almacen_id, setParams]);
 
   const [modalOpen, setModalOpen] = useState(false);
+  const [importModalOpen, setImportModalOpen] = useState(false);
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [toDelete, setToDelete] = useState<SerieResource | null>(null);
@@ -71,6 +73,7 @@ export default function SeriePage() {
   });
 
   const handleAdd = () => setModalOpen(true);
+  const handleImport = () => setImportModalOpen(true);
 
   const handleDelete = (row: SerieResource) => {
     setToDelete(row);
@@ -105,7 +108,7 @@ export default function SeriePage() {
         icon="List"
       >
         <ActionsWrapper>
-          <SerieButtons onAdd={handleAdd} />
+          <SerieButtons onAdd={handleAdd} onImport={handleImport} />
         </ActionsWrapper>
       </TitleComponent>
 
@@ -127,6 +130,12 @@ export default function SeriePage() {
       />
 
       <SerieModal open={modalOpen} onClose={() => setModalOpen(false)} />
+
+      <ImportarSeriesModal
+        open={importModalOpen}
+        onClose={() => setImportModalOpen(false)}
+        defaultAlmacenId={params.almacen_id}
+      />
 
       <InventarioSerieHistorialSheet
         open={historialOpen}

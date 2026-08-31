@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, Sheet } from "lucide-react";
+import { Plus, Sheet, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { exportSeries } from "../lib/serie.actions";
 import type { ExcelResponse } from "../lib/serie.actions";
 
 interface SerieButtonsProps {
   onAdd: () => void;
+  onImport: () => void;
 }
 
 function downloadFromBase64({
@@ -29,7 +30,7 @@ function downloadFromBase64({
   window.URL.revokeObjectURL(url);
 }
 
-export default function SerieButtons({ onAdd }: SerieButtonsProps) {
+export default function SerieButtons({ onAdd, onImport }: SerieButtonsProps) {
   const [loadingXlsx, setLoadingXlsx] = useState(false);
   const [loadingCsv, setLoadingCsv] = useState(false);
 
@@ -75,6 +76,11 @@ export default function SerieButtons({ onAdd }: SerieButtonsProps) {
         </Button>
       </div>
 
+      <Button variant="outline" size="default" onClick={onImport} className="gap-1.5">
+        <Upload className="size-4" />
+        Importar
+      </Button>
+
       <Button onClick={onAdd}>
         <Plus className="size-4 mr-1" />
         Agregar
@@ -82,3 +88,4 @@ export default function SerieButtons({ onAdd }: SerieButtonsProps) {
     </div>
   );
 }
+

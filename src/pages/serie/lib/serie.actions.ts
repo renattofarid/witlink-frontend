@@ -5,6 +5,7 @@ import type {
   SerieResource,
   SerieBody,
   SerieValidacionResponse,
+  ImportarSeriesExcelResult,
 } from "./serie.interface";
 
 export interface ExcelResponse {
@@ -55,5 +56,32 @@ export const exportSeries = async (formato: "xlsx" | "csv"): Promise<ExcelRespon
   const { data } = await api.get<ExcelResponse>("/inventarios/series/exportar-excel", {
     params: { formato },
   });
+  return data;
+};
+
+export const descargarPlantillaSeries = async (): Promise<ExcelResponse> => {
+  const { data } = await api.get<ExcelResponse>(`${SerieComplete.ENDPOINT}/plantilla-importacion`);
+  return data;
+};
+
+export const importarSeriesExcel = async (
+  file: File,
+  almacenId?: number | null,
+): Promise<{ message: string; data: ImportarSeriesExcelResult }> => {
+  const formData = new FormData();
+  formData.append("archivo", file);
+  if (almacenId) {
+    formData.append("almacen_id", String(almacenId));
+  }
+
+  const { data } = await api.post<{ message: string; data: ImportarSeriesExcelResult }>(
+    `${SerieComplete.ENDPOINT}/importar-excel`,
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    },
+  );
   return data;
 };

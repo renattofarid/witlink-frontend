@@ -60,3 +60,14 @@ export interface SerieValidacionResponse {
     };
   };
 }
+
+export interface ImportarSeriesExcelResult {
+  total_filas: number;
+  series_creadas: number;
+  series_actualizadas: number;
+  series_omitidas: number;
+  productos_creados?: number;
+  productos_actualizados?: number;
+  errores: string[];
+}
+

@@ -101,9 +101,21 @@ export const getKardexColumns = (): ColumnDef<KardexResource>[] => [
   {
     accessorKey: "serie",
     header: "Serie",
+    cell: ({ getValue }) => {
+      const serie = getValue() as string | null | undefined;
+      return serie && serie.trim() !== "" ? serie : "-";
+    },
   },
   {
     accessorKey: "pedido",
     header: "Pedido",
+    cell: ({ getValue }) => {
+      const pedido = getValue() as string | null | undefined;
+      return pedido && pedido.trim() !== "" ? (
+        <span className="font-mono text-xs">{pedido}</span>
+      ) : (
+        "-"
+      );
+    },
   },
 ];

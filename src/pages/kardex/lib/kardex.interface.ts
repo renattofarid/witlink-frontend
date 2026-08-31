@@ -3,6 +3,7 @@ import type { PaginationResponse } from "@/lib/core.interface";
 export interface KardexResource {
   fecha: string;
   codigo: string;
+  origen: string;
   producto: string;
   tipo: string;
   movimiento: string;

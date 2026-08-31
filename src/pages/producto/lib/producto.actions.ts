@@ -7,6 +7,12 @@ import type {
   ProductoUpdateBody,
 } from "./producto.interface";
 
+export interface ExcelResponse {
+  file_name: string;
+  mime_type: string;
+  file_base64: string;
+}
+
 export const getProductos = async (
   params: Record<string, string>
 ): Promise<ProductoResponse> => {
@@ -45,6 +51,15 @@ export const restoreProducto = async (id: number) => {
   const { data } = await api.post(
     `${ProductoComplete.ENDPOINT}/${id}/restaurar`
   );
+  return data;
+};
+
+export const exportProductosExcel = async (
+  params: Record<string, string>,
+): Promise<ExcelResponse> => {
+  const { data } = await api.get(`${ProductoComplete.ENDPOINT}/exportar-excel`, {
+    params,
+  });
   return data;
 };
 

@@ -38,6 +38,14 @@ export const getKardexColumns = (): ColumnDef<KardexResource>[] => [
     header: "SAP",
   },
   {
+    accessorKey: "origen",
+    header: "Origen",
+    cell: ({ getValue }) => {
+      const origen = String(getValue() ?? "");
+      return <span className="uppercase">{origen}</span>;
+    },
+  },
+  {
     accessorKey: "producto",
     header: "Producto",
   },

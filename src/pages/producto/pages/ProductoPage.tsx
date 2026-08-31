@@ -4,13 +4,17 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import PageWrapper from "@/components/PageWrapper";
 import TitleComponent from "@/components/TitleComponent";
 import ActionsWrapper from "@/components/ActionsWrapper";
+import ExportExcelButton from "@/components/ExportExcelButton";
 import { DataTable } from "@/components/DataTable";
 import DataTablePagination from "@/components/DataTablePagination";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
 import { successToast, errorToast, ERROR_MESSAGE } from "@/lib/core.function";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import { useProductoQuery } from "../lib/producto.hook";
-import { deleteProducto } from "../lib/producto.actions";
+import {
+  deleteProducto,
+  exportProductosExcel,
+} from "../lib/producto.actions";
 import { ProductoComplete } from "../lib/producto.constants";
 import { getProductoColumns } from "../components/ProductoColumns";
 import ProductoFilters from "../components/ProductoFilters";
@@ -18,6 +22,7 @@ import ProductoButtons from "../components/ProductoButtons";
 import ProductoModal from "../components/ProductoModal";
 import EquipoRetiradoModal from "../components/EquipoRetiradoModal";
 import type { ProductoResource } from "../lib/producto.interface";
+import { downloadExcelFromBase64 } from "@/lib/exportExcel";
 
 export default function ProductoPage() {
   const queryClient = useQueryClient();
@@ -82,6 +87,17 @@ export default function ProductoPage() {
   const handleTypeChange = (value: string) =>
     setParams((prev) => ({ ...prev, tipo: value, page: "1" }));
 
+  const exportParams = Object.fromEntries(
+    Object.entries(params).filter(
+      ([k, v]) => v !== "" && !["page", "per_page"].includes(k),
+    ),
+  );
+
+  const handleExport = async () => {
+    const data = await exportProductosExcel(exportParams);
+    downloadExcelFromBase64(data);
+  };
+
   const columns = getProductoColumns({
     onEdit: handleEdit,
     onDelete: handleDelete,
@@ -95,6 +111,11 @@ export default function ProductoPage() {
         icon="Box"
       >
         <ActionsWrapper>
+          <ExportExcelButton
+            show={(data?.meta.total ?? 0) > 0}
+            onExport={handleExport}
+            label="Exportar Excel"
+          />
           <ProductoButtons
             onAdd={handleAdd}
             onRetiro={() => setRetiroOpen(true)}

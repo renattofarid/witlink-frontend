@@ -26,7 +26,9 @@ import {
   devolverInventarioSerie,
   devolverClaroInventarioSerie,
   updateSot,
+  exportarInventarioSeriesExcel,
 } from "../lib/inventario.actions";
+import { downloadExcelFromBase64 } from "@/lib/exportExcel";
 import { getInventarioSeriesColumns } from "../components/InventarioSeriesColumns";
 import { getInventarioMaterialesColumns } from "../components/InventarioMaterialesColumns";
 import InventarioSeriesFilters from "../components/InventarioSeriesFilters";
@@ -472,6 +474,21 @@ export default function InventarioPage() {
     }
   };
 
+  const [isDownloadingBase, setIsDownloadingBase] = useState(false);
+
+  const handleDescargarBase = async () => {
+    setIsDownloadingBase(true);
+    try {
+      const res = await exportarInventarioSeriesExcel(seriesParams);
+      downloadExcelFromBase64(res);
+      successToast("Base descargada exitosamente.");
+    } catch {
+      errorToast("Error al descargar la base.");
+    } finally {
+      setIsDownloadingBase(false);
+    }
+  };
+
   const handleDescargarDiagnostico = async () => {
     try {
       const blob = await getDiagnosticoReservasSot();
@@ -535,12 +552,23 @@ export default function InventarioPage() {
           subtitle="Consulta el inventario de equipos y materiales"
           icon="ClipboardList"
         />
-        {isCorporativo && (
-          <Button variant="outline" size="sm" onClick={handleDescargarDiagnostico}>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleDescargarBase}
+            disabled={isDownloadingBase}
+          >
             <Download className="size-4 mr-1" />
-            Diagnóstico de reservas
+            {isDownloadingBase ? "Descargando..." : "Descargar base"}
           </Button>
-        )}
+          {isCorporativo && (
+            <Button variant="outline" size="sm" onClick={handleDescargarDiagnostico}>
+              <Download className="size-4 mr-1" />
+              Diagnóstico de reservas
+            </Button>
+          )}
+        </div>
       </div>
 
       <Tabs defaultValue="equipos">

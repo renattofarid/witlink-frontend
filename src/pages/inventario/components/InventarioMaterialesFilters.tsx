@@ -46,48 +46,51 @@ export default function InventarioMaterialesFilters({
   };
 
   return (
-    <FilterWrapper>
-      <SearchableSelect
-        placeholder="Almacenes"
-        options={almacenOptions}
-        value={params.almacen_id || "all"}
-        onChange={(v) =>
-          setParams((prev) => ({
-            ...prev,
-            almacen_id: v === "all" ? "" : v,
-            page: "1",
-          }))
-        }
-      />
-      <SearchInput
-        value={params.search ?? ""}
-        onChange={(v) =>
-          setParams((prev) => ({ ...prev, search: v, page: "1" }))
-        }
-        placeholder="Buscar material..."
-      />
-      <SearchInput
-        value={params.sot ?? ""}
-        onChange={(v) => setParams((prev) => ({ ...prev, sot: v, page: "1" }))}
-        placeholder="Buscar por SOT..."
-      />
-      <SearchableSelect
-        placeholder="Retirados"
-        options={BOOL_OPTIONS}
-        value={params.retirados || "all"}
-        onChange={(v) =>
-          setParams((prev) => ({
-            ...prev,
-            retirados: v === "all" ? "" : v,
-            page: "1",
-          }))
-        }
-      />
+    <div className="flex flex-wrap items-center gap-2">
+      <FilterWrapper>
+        <SearchableSelect
+          placeholder="Almacenes"
+          options={almacenOptions}
+          value={params.almacen_id || "all"}
+          onChange={(v) =>
+            setParams((prev) => ({
+              ...prev,
+              almacen_id: v === "all" ? "" : v,
+              page: "1",
+            }))
+          }
+        />
+        <SearchInput
+          value={params.search ?? ""}
+          onChange={(v) =>
+            setParams((prev) => ({ ...prev, search: v, page: "1" }))
+          }
+          placeholder="Buscar material..."
+        />
+        <SearchInput
+          value={params.sot ?? ""}
+          onChange={(v) => setParams((prev) => ({ ...prev, sot: v, page: "1" }))}
+          placeholder="Buscar por SOT..."
+        />
+        <SearchableSelect
+          placeholder="Retirados"
+          options={BOOL_OPTIONS}
+          value={params.retirados || "all"}
+          onChange={(v) =>
+            setParams((prev) => ({
+              ...prev,
+              retirados: v === "all" ? "" : v,
+              page: "1",
+            }))
+          }
+        />
+      </FilterWrapper>
+
       <ExportExcelButton
         show={totalResults > 0}
         onExport={handleExport}
         label={user?.is_corporativo ? "Descargar base" : "Exportar filtrado"}
       />
-    </FilterWrapper>
+    </div>
   );
 }

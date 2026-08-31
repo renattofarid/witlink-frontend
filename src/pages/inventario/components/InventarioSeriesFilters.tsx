@@ -97,9 +97,16 @@ export default function InventarioSeriesFilters({
     downloadExcelFromBase64(res);
   };
 
+  const activeExtraCount = [
+    params.devuelto,
+    params.cliente,
+    params.externos,
+    params.tecnicos,
+  ].filter((v) => v && v !== "all").length;
+
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <FilterWrapper>
+      <FilterWrapper activeExtraCount={activeExtraCount}>
         <SearchableSelect
           placeholder="Almacenes"
           options={almacenOptions}
@@ -136,30 +143,6 @@ export default function InventarioSeriesFilters({
           value={params.retirados || "all"}
           onChange={(v) => set("retirados", v)}
         />
-        <div className="flex items-center gap-1">
-          <Button color={"muted"} onClick={() => setBulkOpen(true)}>
-            {productosSeleccionados.length > 0
-              ? `Buscar masivo (${productosSeleccionados.length})`
-              : "Buscar masivo"}
-          </Button>
-
-          {productosSeleccionados.length > 0 && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleClearBulk}
-              title="Limpiar búsqueda masiva"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          )}
-
-          <ExportExcelButton
-            show={totalResults > 0}
-            onExport={handleExport}
-            label={user?.is_corporativo ? "Descargar base" : "Exportar filtrado"}
-          />
-        </div>
         <SearchableSelect
           placeholder="Devueltos"
           options={[
@@ -201,6 +184,31 @@ export default function InventarioSeriesFilters({
           onChange={(v) => set("tecnicos", v)}
         />
       </FilterWrapper>
+
+      <div className="flex items-center gap-1">
+        <Button variant="outline" size="sm" onClick={() => setBulkOpen(true)}>
+          {productosSeleccionados.length > 0
+            ? `Buscar masivo (${productosSeleccionados.length})`
+            : "Buscar masivo"}
+        </Button>
+
+        {productosSeleccionados.length > 0 && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleClearBulk}
+            title="Limpiar búsqueda masiva"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        )}
+
+        <ExportExcelButton
+          show={totalResults > 0}
+          onExport={handleExport}
+          label="Descargar base"
+        />
+      </div>
 
       <NoRegistradosBanner
         items={noRegistrados}

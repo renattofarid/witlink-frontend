@@ -105,6 +105,13 @@ export const getInventarioSeriesColumns = ({
     ),
   },
   {
+    id: "situacion_label",
+    header: "Situación",
+    cell: ({ row }) => (
+      <SituacionBadge situacion={row.original.situacion_label} />
+    ),
+  },
+  {
     accessorKey: "sap",
     header: "SAP / Producto",
     cell: ({ row }) => (
@@ -211,13 +218,6 @@ export const getInventarioSeriesColumns = ({
       <p className="text-xs text-muted-foreground font-normal">
         {row.original.motivo ?? "Sin Motivo"}
       </p>
-    ),
-  },
-  {
-    id: "situacion_label",
-    header: "Situación",
-    cell: ({ row }) => (
-      <SituacionBadge situacion={row.original.situacion_label} />
     ),
   },
   {

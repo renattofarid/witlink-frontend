@@ -251,7 +251,10 @@ export const getInventarioSeriesColumns = ({
           icon={PackageCheck}
           color="indigo"
           tooltip="Devolver a Claro"
-          canRender={row.original.situacion_label === SITUACION.DISPONIBLE}
+          canRender={
+            row.original.situacion_label === SITUACION.DISPONIBLE ||
+            row.original.situacion_label === SITUACION.RETIRADO
+          }
           onClick={() => onDevolverClaro(row.original)}
         />
         <ButtonAction

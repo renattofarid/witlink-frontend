@@ -73,7 +73,7 @@ export default function InventarioMaterialesFilters({
           placeholder="Buscar por SOT..."
         />
         <SearchableSelect
-          placeholder="Retirados"
+          placeholder="Filtrar Retirados"
           options={BOOL_OPTIONS}
           value={params.retirados || "all"}
           onChange={(v) =>

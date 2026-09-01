@@ -162,15 +162,25 @@ export default function InventarioPage() {
 
   useEffect(() => {
     if (almacen_id) {
+      // Al cambiar el almacén activo de la sesión, los filtros previos ya no
+      // aplican al nuevo almacén: se reinician a los valores por defecto.
       setSeriesParams((prev) => {
         if (prev.almacen_id !== String(almacen_id)) {
-          return { ...prev, almacen_id: String(almacen_id), page: "1" };
+          return {
+            page: "1",
+            per_page: String(DEFAULT_PER_PAGE),
+            almacen_id: String(almacen_id),
+          };
         }
         return prev;
       });
       setMaterialesParams((prev) => {
         if (prev.almacen_id !== String(almacen_id)) {
-          return { ...prev, almacen_id: String(almacen_id), page: "1" };
+          return {
+            page: "1",
+            per_page: String(DEFAULT_PER_PAGE),
+            almacen_id: String(almacen_id),
+          };
         }
         return prev;
       });

@@ -65,7 +65,7 @@ export default function InventarioSeriesFilters({
 
   const parseBulkText = (text: string): string[] => {
     const raw = text
-      .split(/[\s,;]+/) 
+      .split(/[\s,;]+/)
       .map((s) => s.trim())
       .filter(Boolean);
 
@@ -134,7 +134,7 @@ export default function InventarioSeriesFilters({
           placeholder="Buscar producto o SAP..."
         />
         <SearchableSelect
-          placeholder="Retirados"
+          placeholder="Filtrar Retirados"
           options={[
             { value: "all", label: "Todos" },
             { value: "true", label: "Retirados" },

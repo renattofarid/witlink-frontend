@@ -105,6 +105,13 @@ export const getInventarioSeriesColumns = ({
     ),
   },
   {
+    id: "situacion_label",
+    header: "Situación",
+    cell: ({ row }) => (
+      <SituacionBadge situacion={row.original.situacion_label} />
+    ),
+  },
+  {
     accessorKey: "sap",
     header: "SAP / Producto",
     cell: ({ row }) => (
@@ -214,13 +221,6 @@ export const getInventarioSeriesColumns = ({
     ),
   },
   {
-    id: "situacion_label",
-    header: "Situación",
-    cell: ({ row }) => (
-      <SituacionBadge situacion={row.original.situacion_label} />
-    ),
-  },
-  {
     accessorKey: "contabilizado",
     header: "Contabilizado",
     cell: ({ row }) => (
@@ -251,7 +251,10 @@ export const getInventarioSeriesColumns = ({
           icon={PackageCheck}
           color="indigo"
           tooltip="Devolver a Claro"
-          canRender={row.original.situacion_label === SITUACION.DISPONIBLE}
+          canRender={
+            row.original.situacion_label === SITUACION.DISPONIBLE ||
+            row.original.situacion_label === SITUACION.RETIRADO
+          }
           onClick={() => onDevolverClaro(row.original)}
         />
         <ButtonAction

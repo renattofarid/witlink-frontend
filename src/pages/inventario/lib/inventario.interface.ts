@@ -59,6 +59,10 @@ export interface InventarioMaterialResource {
   personal: string | null;
   sot: string | null;
   motivo: string | null;
+  /** SOT que reservó este material (solo corporativo). */
+  reserva_sot?: string | null;
+  /** Tipo de producto ("MATERIAL" | "EQUIPO"). */
+  tipo?: string | null;
   /** Cantidad reservada por SOT dentro de `cantidad` (solo corporativo). */
   cantidad_reservada?: number | string | null;
 }

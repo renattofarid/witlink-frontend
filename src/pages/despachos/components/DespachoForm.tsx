@@ -35,6 +35,7 @@ import type {
 import { DespachoProductoDialog } from "./DespachoProductoDialog";
 import { DespachoMasivoSeriesInput } from "./DespachoMasivoSeriesInput";
 import { DespachoSotSeriesPanel } from "./DespachoSotSeriesPanel";
+import { DespachoSotMaterialsPanel } from "./DespachoSotMaterialsPanel";
 import { DespachoSotRemisionPreview } from "./DespachoSotRemisionPreview";
 import { despachoProductoSchema } from "../lib/despacho.schema";
 
@@ -130,6 +131,13 @@ export default function DespachoForm({
     );
     return () => clearTimeout(timeout);
   }, [sotValue]);
+
+  // Set de productos en el formulario
+  const watchedProductos = form.watch("productos") ?? [];
+  const existingProductsSet = useMemo(
+    () => new Set(watchedProductos.map((p) => String(p.producto_id))),
+    [watchedProductos],
+  );
 
   // ── Product sub-form ───────────────────────────────────────────────────────
   const productSubForm = useForm<DespachoProductoFormValues>({
@@ -234,217 +242,6 @@ export default function DespachoForm({
       );
     },
   });
-
-  // ── Submit handler ─────────────────────────────────────────────────────────
-  const handleFormSubmit = async (e: { preventDefault(): void }) => {
-    e.preventDefault();
-
-    const isTecnicoValid = await form.trigger("tecnico_id");
-    if (!isTecnicoValid) return;
-
-    const productos = form.getValues("productos");
-    const hasProductos = productos.length > 0;
-    const hasSeries = masivoSeries.length > 0;
-
-    if (!hasProductos && !hasSeries) {
-      setCombinedError("Debe agregar al menos un producto o una serie");
-      return;
-    }
-
-    const sotValue = (form.getValues("sot") ?? "").trim();
-    if (isCorporativo && !sotValue) {
-      setCombinedError("La SOT es obligatoria para despachos corporativos");
-      return;
-    }
-    setCombinedError("");
-
-    const body: DespachoCreateBody = {
-      tecnico_id: Number(form.getValues("tecnico_id")),
-      ...(isCorporativo ? { sot: sotValue } : {}),
-    };
-
-    if (hasProductos) {
-      body.productos = productos.map((p) => ({
-        id: Number(p.producto_id),
-        cantidad: p.cantidad,
-        series: (p.series ?? [])
-          .filter((s) => s.serie && s.serie.trim() !== "")
-          .map((s) => ({ serie: s.serie!.trim().toUpperCase() })),
-      }));
-    }
-
-    if (hasSeries) {
-      body.series = masivoSeries.map((s) => s.serie);
-    }
-
-    mutation.mutate(body);
-  };
-
-  // ── Columns: tabla resumen de productos ────────────────────────────────────
-  const watchedProductos = form.watch("productos");
-
-  // Series ya presentes en el despacho (masivo o dentro de un producto), para
-  // no volver a sugerirlas en el panel de reservas SOT.
-  const existingSeriesSet = useMemo(() => {
-    const set = new Set<string>();
-    masivoSeries.forEach((s) => set.add(s.serie.toUpperCase()));
-    watchedProductos.forEach((p) =>
-      (p.series ?? []).forEach((s) => {
-        if (s.serie) set.add(s.serie.trim().toUpperCase());
-      }),
-    );
-    return set;
-  }, [masivoSeries, watchedProductos]);
-
-  const productoColumns: ColumnDef<DespachoProductoFormValues>[] = [
-    {
-      id: "index",
-      header: "#",
-      cell: ({ row }) => (
-        <span className="text-muted-foreground text-xs">{row.index + 1}</span>
-      ),
-    },
-    {
-      id: "producto",
-      header: "Producto",
-      cell: ({ row }) => (
-        <span className="font-medium text-sm">
-          {row.original.nombre || row.original.sap || "—"}
-        </span>
-      ),
-    },
-    {
-      id: "sap",
-      header: "SAP",
-      cell: ({ row }) => (
-        <span className="text-xs text-muted-foreground">
-          {row.original.sap || "—"}
-        </span>
-      ),
-    },
-    {
-      id: "cantidad",
-      header: "Cant.",
-      cell: ({ row }) => row.original.cantidad,
-    },
-    {
-      id: "series",
-      header: "Series",
-      cell: ({ row }) => {
-        const series = (row.original.series ?? []).filter(
-          (s) => s.serie && s.serie.trim() !== "",
-        );
-        if (!series.length)
-          return (
-            <span className="text-muted-foreground text-xs">Sin series</span>
-          );
-        return (
-          <Badge variant="default" className="text-xs">
-            {series.length} serie{series.length !== 1 ? "s" : ""}
-          </Badge>
-        );
-      },
-    },
-    {
-      id: "acciones",
-      header: "",
-      cell: ({ row }) => (
-        <div className="flex gap-1 justify-end">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="size-7"
-            onClick={() => handleEditProducto(row.index)}
-          >
-            <Pencil className="size-3" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="size-7 text-destructive hover:text-destructive"
-            onClick={() => {
-              if (editingProductoIndex === row.index) handleCloseProductoDialog();
-              removeProducto(row.index);
-            }}
-          >
-            <Trash2 className="size-3" />
-          </Button>
-        </div>
-      ),
-    },
-  ];
-
-  return (
-    <form onSubmit={handleFormSubmit} className="space-y-4">
-      {/* ── Sección 1: Técnico ─────────────────────────────────────────────── */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground whitespace-nowrap">
-            Datos del despacho
-          </h3>
-          <Separator className="flex-1" />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <FormSelectAsync
-            name="tecnico_id"
-            label="Técnico"
-            control={form.control}
-            placeholder="Seleccionar técnico..."
-            useQueryHook={useTecnicoDespachoQuery}
-            mapOptionFn={(item: PersonaResource) => ({
-              value: String(item.id),
-              label: `${item.nombre} ${item.apellido_paterno} ${item.apellido_materno}`,
-              description: item.dni,
-            })}
-            perPage={20}
-            required
-          />
-          {isCorporativo && (
-            <FormInput
-              name="sot"
-              label="SOT"
-              control={form.control}
-              placeholder="Ingrese la SOT"
-              required
-            />
-          )}
-        </div>
-
-        {isCorporativo && debouncedSot && (
-          <DespachoSotRemisionPreview sot={debouncedSot} />
-        )}
-      </div>
-
-      {/* ── Sección 2: Productos ───────────────────────────────────────────── */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground whitespace-nowrap">
-            Productos
-          </h3>
-          <Separator className="flex-1" />
-          {!productoDialogOpen && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="h-6 text-xs px-2 shrink-0"
-              onClick={handleOpenProductoDialog}
-            >
-              <PackagePlus className="size-3 mr-1" />
-              Agregar
-            </Button>
-          )}
-        </div>
-
-        <DespachoProductoDialog
-          open={productoDialogOpen}
-          editingIndex={editingProductoIndex}
-          productSubForm={productSubForm}
-          watchedSeries={watchedSeries as DespachoSerieFormValues[]}
-          almacenId={almacen_id}
           onClose={handleCloseProductoDialog}
           onSubmit={handleAddOrUpdateProducto}
           onAppendSerie={appendSerie}

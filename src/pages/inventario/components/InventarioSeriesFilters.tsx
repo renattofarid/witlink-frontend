@@ -98,6 +98,9 @@ export default function InventarioSeriesFilters({
   };
 
   const activeExtraCount = [
+    params.retirados,
+    params.reservados,
+    params.sot,
     params.devuelto,
     params.cliente,
     params.externos,
@@ -127,11 +130,28 @@ export default function InventarioSeriesFilters({
           placeholder="Filtrar por serie..."
         />
         <SearchInput
+          value={params.sot ?? ""}
+          onChange={(v) =>
+            setParams((prev) => ({ ...prev, sot: v, page: "1" }))
+          }
+          placeholder="Filtrar por SOT..."
+        />
+        <SearchInput
           value={params.producto ?? ""}
           onChange={(v) =>
             setParams((prev) => ({ ...prev, producto: v, page: "1" }))
           }
           placeholder="Buscar producto o SAP..."
+        />
+        <SearchableSelect
+          placeholder="Filtrar Reservas"
+          options={[
+            { value: "all", label: "Todas" },
+            { value: "true", label: "Reservadas" },
+            { value: "false", label: "Libres (Sin reserva)" },
+          ]}
+          value={params.reservados || "all"}
+          onChange={(v) => set("reservados", v)}
         />
         <SearchableSelect
           placeholder="Filtrar Retirados"

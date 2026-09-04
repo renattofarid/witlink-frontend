@@ -31,6 +31,7 @@ import {
 import { downloadExcelFromBase64 } from "@/lib/exportExcel";
 import { getInventarioSeriesColumns } from "../components/InventarioSeriesColumns";
 import { getInventarioMaterialesColumns } from "../components/InventarioMaterialesColumns";
+import { SITUACION } from "@/pages/serie/components/SerieColumns";
 import InventarioSeriesFilters from "../components/InventarioSeriesFilters";
 import InventarioMaterialesFilters from "../components/InventarioMaterialesFilters";
 import InventarioSerieHistorialSheet from "../components/InventarioSerieHistorialSheet";
@@ -126,16 +127,8 @@ export default function InventarioPage() {
   const [ubicacionOpen, setUbicacionOpen] = useState(false);
   const [ubicacionSituacion, setUbicacionSituacion] = useState("DI");
   const [ubicacionSot, setUbicacionSot] = useState("");
-
   // ── Corporativo: reserva masiva de SOT ─────────────────────────────────────
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
-  const selectedSerieIds = useMemo(
-    () =>
-      Object.keys(rowSelection)
-        .filter((id) => rowSelection[id])
-        .map(Number),
-    [rowSelection],
-  );
   const [reservaMasivaOpen, setReservaMasivaOpen] = useState(false);
   const [reservaMasivaSot, setReservaMasivaSot] = useState("");
   const [reservaMasivaAlmacenId, setReservaMasivaAlmacenId] = useState("");
@@ -225,6 +218,30 @@ export default function InventarioPage() {
   const materialesLoading = isCorporativo
     ? materialesLoadingCorp
     : materialesLoadingGeneral;
+
+  // Reiniciar la selección al cambiar los filtros de inventario (búsqueda, almacén, etc.)
+  useEffect(() => {
+    setRowSelection({});
+  }, [seriesParams]);
+
+  const eligibleSerieIdsSet = useMemo(() => {
+    const set = new Set<number>();
+    (seriesData?.data ?? []).forEach((row) => {
+      if (!row.reserva_sot && row.situacion_label === SITUACION.DISPONIBLE) {
+        const id = row.serie_id ?? row.id;
+        if (id) set.add(id);
+      }
+    });
+    return set;
+  }, [seriesData]);
+
+  const selectedSerieIds = useMemo(
+    () =>
+      Object.keys(rowSelection)
+        .filter((id) => rowSelection[id] && eligibleSerieIdsSet.has(Number(id)))
+        .map(Number),
+    [rowSelection, eligibleSerieIdsSet],
+  );
 
   // Bulk-search terms with no matches under the applied filters. Surfaced as a
   // persistent, dismissible banner inside the filters (see InventarioSeriesFilters).

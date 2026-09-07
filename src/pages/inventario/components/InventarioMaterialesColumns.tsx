@@ -67,19 +67,20 @@ export const getInventarioMaterialesColumns = ({
           header: "Acciones",
           cell: ({ row }) => {
             const reservada = Number(row.original.cantidad_reservada ?? 0);
+            const cantidad = Number(row.original.cantidad ?? 0);
             return isCorporativo ? (
               <div className="flex gap-1">
                 <ButtonAction
                   icon={Lock}
                   color="amber"
                   tooltip="Reservar por SOT"
-                  canRender={!!onReservarSot && reservada <= 0}
+                  canRender={!!onReservarSot && reservada < cantidad}
                   onClick={() => onReservarSot?.(row.original)}
                 />
                 <ButtonAction
                   icon={Unlock}
                   color="amber"
-                  tooltip="Liberar reserva"
+                  tooltip="Liberar una reserva"
                   canRender={!!onLiberarSot && reservada > 0}
                   onClick={() => onLiberarSot?.(row.original)}
                 />

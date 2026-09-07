@@ -38,8 +38,20 @@ export const reservarMaterialSot = async (materialId: number, body: ReservaSotBo
   return data;
 };
 
-export const liberarMaterialSot = async (materialId: number) => {
-  const { data } = await api.delete(`/corporativo/inventarios/material/${materialId}/sot`);
+export const liberarMaterialSot = async (
+  materialId: number,
+  almacenId: number,
+  numeroSot?: string | null,
+) => {
+  const { data } = await api.delete(
+    `/corporativo/inventarios/material/${materialId}/sot`,
+    {
+      params: {
+        almacen_id: almacenId,
+        ...(numeroSot ? { numero_sot: numeroSot } : {}),
+      },
+    },
+  );
   return data;
 };
 

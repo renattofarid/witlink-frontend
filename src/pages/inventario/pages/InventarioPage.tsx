@@ -377,7 +377,15 @@ export default function InventarioPage() {
   });
 
   const liberarMaterialMutation = useMutation({
-    mutationFn: (id: number) => liberarMaterialSot(id),
+    mutationFn: ({
+      id,
+      almacen_id: reservaAlmacen,
+      numero_sot,
+    }: {
+      id: number;
+      almacen_id: number;
+      numero_sot?: string | null;
+    }) => liberarMaterialSot(id, reservaAlmacen, numero_sot),
     onSuccess: () => {
       invalidateCorporativoInventario();
       successToast("Reserva liberada correctamente.");
@@ -462,7 +470,16 @@ export default function InventarioPage() {
       errorToast("No se pudo identificar el material a liberar.");
       return;
     }
-    liberarMaterialMutation.mutate(id);
+    const reservaAlmacenId = Number(materialesParams.almacen_id ?? almacen_id);
+    if (!reservaAlmacenId) {
+      errorToast("Selecciona un subalmacén para liberar la reserva.");
+      return;
+    }
+    liberarMaterialMutation.mutate({
+      id,
+      almacen_id: reservaAlmacenId,
+      numero_sot: row.reserva_sot,
+    });
   };
 
   const handleCambiarUbicacion = (row: InventarioSerieResource) => {

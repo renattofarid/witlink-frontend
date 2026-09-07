@@ -61,6 +61,14 @@ export interface InventarioMaterialResource {
   motivo: string | null;
   /** SOT que reservó este material (solo corporativo). */
   reserva_sot?: string | null;
+  /** Reservas activas que conforman el contador del material. */
+  reservas_sot?: Array<{
+    id: number;
+    numero_sot: string;
+    almacen_id: number | null;
+    almacen: string | null;
+    fecha: string | null;
+  }>;
   /** Tipo de producto ("MATERIAL" | "EQUIPO"). */
   tipo?: string | null;
   /** Cantidad reservada por SOT dentro de `cantidad` (solo corporativo). */

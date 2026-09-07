@@ -120,6 +120,8 @@ export default function InventarioPage() {
   const [reservaOpen, setReservaOpen] = useState(false);
   const [reservaSot, setReservaSot] = useState("");
   const [reservaAlmacenId, setReservaAlmacenId] = useState("");
+  const [reservasMaterialTarget, setReservasMaterialTarget] =
+    useState<InventarioMaterialResource | null>(null);
 
   // ── Corporativo: cambio de ubicación ───────────────────────────────────────
   const [ubicacionSerie, setUbicacionSerie] =
@@ -463,6 +465,10 @@ export default function InventarioPage() {
     setReservaOpen(true);
   };
 
+  const handleVerReservasMaterial = (row: InventarioMaterialResource) => {
+    setReservasMaterialTarget(row);
+  };
+
   const handleLiberarMaterial = (row: InventarioMaterialResource) => {
     const id = row.producto_id ?? row.id;
     if (!id) {
@@ -565,6 +571,7 @@ export default function InventarioPage() {
   const materialesColumns = getInventarioMaterialesColumns({
     isCorporativo,
     onReservarSot: handleReservarMaterial,
+    onVerReservas: handleVerReservasMaterial,
     onLiberarSot: handleLiberarMaterial,
   });
 
@@ -816,6 +823,51 @@ export default function InventarioPage() {
               placeholder="Ingrese la SOT"
             />
           </div>
+        </div>
+      </GeneralModal>
+
+      <GeneralModal
+        open={!!reservasMaterialTarget}
+        onClose={() => setReservasMaterialTarget(null)}
+        title="SOTs reservadas"
+        subtitle={
+          reservasMaterialTarget
+            ? `${reservasMaterialTarget.sap} - ${reservasMaterialTarget.producto}`
+            : undefined
+        }
+        icon="ListChecks"
+        size="lg"
+        childrenFooter={
+          <div className="flex justify-end">
+            <Button variant="outline" onClick={() => setReservasMaterialTarget(null)}>
+              Cerrar
+            </Button>
+          </div>
+        }
+      >
+        <div className="overflow-hidden rounded-md border">
+          <div className="grid grid-cols-[3rem_minmax(0,1fr)_minmax(0,1.5fr)] gap-3 bg-muted/60 px-3 py-2 text-xs font-medium">
+            <span>#</span>
+            <span>SOT</span>
+            <span>Subalmacén</span>
+          </div>
+          {(reservasMaterialTarget?.reservas_sot ?? []).map((reserva, index) => (
+            <div
+              key={reserva.id}
+              className="grid grid-cols-[3rem_minmax(0,1fr)_minmax(0,1.5fr)] gap-3 border-t px-3 py-2.5 text-sm"
+            >
+              <span className="text-muted-foreground">{index + 1}</span>
+              <span className="break-words font-medium">{reserva.numero_sot}</span>
+              <span className="break-words text-muted-foreground">
+                {reserva.almacen ?? "-"}
+              </span>
+            </div>
+          ))}
+          {(reservasMaterialTarget?.reservas_sot ?? []).length === 0 && (
+            <p className="px-3 py-6 text-center text-sm text-muted-foreground">
+              No hay reservas activas para este material.
+            </p>
+          )}
         </div>
       </GeneralModal>
 

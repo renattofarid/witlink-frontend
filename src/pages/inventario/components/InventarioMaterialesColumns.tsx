@@ -1,17 +1,19 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { ButtonAction } from "@/components/ButtonAction";
-import { Lock, Unlock } from "lucide-react";
+import { Eye, Lock, Unlock } from "lucide-react";
 import type { InventarioMaterialResource } from "../lib/inventario.interface";
 
 interface ColumnActions {
   isCorporativo?: boolean;
   onReservarSot?: (row: InventarioMaterialResource) => void;
+  onVerReservas?: (row: InventarioMaterialResource) => void;
   onLiberarSot?: (row: InventarioMaterialResource) => void;
 }
 
 export const getInventarioMaterialesColumns = ({
   isCorporativo,
   onReservarSot,
+  onVerReservas,
   onLiberarSot,
 }: ColumnActions = {}): ColumnDef<InventarioMaterialResource>[] => [
   {
@@ -60,7 +62,7 @@ export const getInventarioMaterialesColumns = ({
     accessorKey: "motivo",
     header: "Motivo",
   },
-  ...(onReservarSot || onLiberarSot
+  ...(onReservarSot || onVerReservas || onLiberarSot
     ? [
         {
           id: "acciones",
@@ -76,6 +78,12 @@ export const getInventarioMaterialesColumns = ({
                   tooltip="Reservar por SOT"
                   canRender={!!onReservarSot && reservada < cantidad}
                   onClick={() => onReservarSot?.(row.original)}
+                />
+                <ButtonAction
+                  icon={Eye}
+                  tooltip="Ver SOTs reservadas"
+                  canRender={!!onVerReservas && reservada > 0}
+                  onClick={() => onVerReservas?.(row.original)}
                 />
                 <ButtonAction
                   icon={Unlock}

@@ -64,6 +64,11 @@ export const getSerieColumns = ({
     header: "Serie",
   },
   {
+    id: "almacen",
+    header: "AlmacÃ©n",
+    cell: ({ row }) => row.original.almacen?.nombre ?? "â€”",
+  },
+  {
     accessorKey: "mac",
     header: "MAC",
   },

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTabParams } from "@/hooks/useTabParams";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import PageWrapper from "@/components/PageWrapper";
@@ -25,17 +25,29 @@ export default function SeriePage() {
   const queryClient = useQueryClient();
 
   const almacen_id = useAuthStore((s) => s.almacen_id);
+  const isCorporativo = useAuthStore((s) => !!s.user?.is_corporativo);
 
-  // El almacén activo de la sesión precarga el filtro por defecto; los
-  // corporativos pueden cambiarlo desde el filtro de la tabla (ver SerieFilters).
+  // Los usuarios corporativos consultan inicialmente todos sus subalmacenes;
+  // los demas conservan el almacen activo de la sesion.
   const [params, setParams] = useTabParams(SerieComplete.ABSOLUTE_ROUTE, {
     page: "1",
     per_page: String(DEFAULT_PER_PAGE),
-    ...(almacen_id ? { almacen_id: String(almacen_id) } : {}),
+    almacen_id:
+      !isCorporativo && almacen_id ? String(almacen_id) : "",
   });
+  const corporateDefaultNormalized = useRef(false);
 
   useEffect(() => {
-    if (almacen_id) {
+    if (corporateDefaultNormalized.current || !isCorporativo) return;
+    corporateDefaultNormalized.current = true;
+
+    if (almacen_id && params.almacen_id === String(almacen_id)) {
+      setParams((prev) => ({ ...prev, almacen_id: "", page: "1" }));
+    }
+  }, [almacen_id, isCorporativo, params.almacen_id, setParams]);
+
+  useEffect(() => {
+    if (almacen_id && !isCorporativo) {
       setParams((prev) => {
         if (prev.almacen_id !== String(almacen_id)) {
           return { ...prev, almacen_id: String(almacen_id), page: "1" };
@@ -43,7 +55,7 @@ export default function SeriePage() {
         return prev;
       });
     }
-  }, [almacen_id, setParams]);
+  }, [almacen_id, isCorporativo, setParams]);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [importModalOpen, setImportModalOpen] = useState(false);

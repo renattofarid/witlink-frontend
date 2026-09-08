@@ -59,7 +59,7 @@ export default function KardexFilters({ params, setParams }: KardexFiltersProps)
       <SearchInput
         value={params.producto ?? ""}
         onChange={(v) => setParams((prev) => ({ ...prev, producto: v, page: "1" }))}
-        placeholder="Buscar producto o SAP..."
+        placeholder="Buscar producto, SAP o serie..."
       />
       <DatePicker
         value={params.fecha_desde ?? ""}

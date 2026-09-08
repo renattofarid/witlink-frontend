@@ -16,6 +16,7 @@ export interface SerieResource {
   situacion: string;
   situacion_label: SituationLabel;
   serie?: string;
+  almacen_claro?: string | null;
   emta_mac?: string;
   mac?: string;
   ua?: string;

@@ -62,6 +62,30 @@ export default function LiquidacionDetailTable({
       ),
     },
     {
+      id: "almacen_claro",
+      header: "Almacén Claro",
+      cell: ({ row }) => {
+        if (row.original.tipo !== "serie") {
+          return <span className="text-xs text-muted-foreground">—</span>;
+        }
+
+        return (
+          <div className="flex flex-col gap-1">
+            {row.original.series.map((serie) => (
+              <div key={serie.id} className="flex items-center gap-1.5 text-xs">
+                <span className="max-w-28 truncate font-mono text-muted-foreground">
+                  {serie.serie}
+                </span>
+                <Badge variant="outline" className="h-5 px-1.5 font-mono text-xs">
+                  {serie.almacen_claro ?? "Sin dato"}
+                </Badge>
+              </div>
+            ))}
+          </div>
+        );
+      },
+    },
+    {
       accessorKey: "tecnico_nombre",
       header: "Origen inventario",
       cell: ({ row }) => (

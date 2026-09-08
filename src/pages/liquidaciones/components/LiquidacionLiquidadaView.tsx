@@ -187,6 +187,14 @@ export default function LiquidacionLiquidadaView({
                           Serie: {seriesStr}
                         </p>
                       )}
+                      {item.series.map((serie) => (
+                        <p
+                          key={serie.serie.id}
+                          className="text-xs text-muted-foreground"
+                        >
+                          Almacén Claro {serie.serie.serie}: {serie.serie.almacen_claro ?? "Sin dato"}
+                        </p>
+                      ))}
                     </div>
                     <span className="text-xs text-muted-foreground shrink-0 mt-0.5">
                       ({cantidad} {cantidad === 1 ? "unidad" : "unidades"})

@@ -78,6 +78,7 @@ interface MaterialSelection {
 interface SelectedExternSerie {
   serie_id: number;
   serie_str: string;
+  almacen_claro?: string | null;
   producto_id: number;
   producto_nombre: string;
   producto_sap: string;
@@ -259,6 +260,7 @@ export default function AddProductosModal({
       producto_sap: item.serie.producto.sap,
       situacion_label: item.serie.situacion,
       mac: item.serie.mac,
+      almacen_claro: item.serie.almacen_claro,
       tecnico_nombre: null,
     });
   };
@@ -284,7 +286,11 @@ export default function AddProductosModal({
     const seriesByProducto: Record<
       number,
       {
-        series: Array<{ id: number; serie: string }>;
+        series: Array<{
+          id: number;
+          serie: string;
+          almacen_claro?: string | null;
+        }>;
         nombre: string;
         sap: string;
       }
@@ -300,6 +306,7 @@ export default function AddProductosModal({
       seriesByProducto[s.producto_id].series.push({
         id: s.serie_id,
         serie: s.serie_str,
+        almacen_claro: s.almacen_claro,
       });
     });
 
@@ -742,6 +749,7 @@ function SerieAsyncSearch({
       producto_sap: serie.producto.sap,
       situacion_label: serie.situacion_label,
       mac: serie.mac ?? null,
+      almacen_claro: serie.almacen_claro,
       tecnico_nombre: serie.tecnico ? `${serie.tecnico.nombre}` : null,
     };
 

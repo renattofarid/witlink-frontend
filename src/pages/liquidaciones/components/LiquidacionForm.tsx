@@ -84,6 +84,7 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
           series: item.series.map((s) => ({
             id: s.serie.id,
             serie: s.serie.serie,
+            almacen_claro: s.serie.almacen_claro,
           })),
         };
       },

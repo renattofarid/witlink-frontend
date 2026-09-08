@@ -72,10 +72,7 @@ export default function LiquidacionDetailTable({
         return (
           <div className="flex flex-col gap-1">
             {row.original.series.map((serie) => (
-              <div key={serie.id} className="flex items-center gap-1.5 text-xs">
-                <span className="max-w-28 truncate font-mono text-muted-foreground">
-                  {serie.serie}
-                </span>
+              <div key={serie.id} className="flex items-center text-xs">
                 <Badge variant="outline" className="h-5 px-1.5 font-mono text-xs">
                   {serie.almacen_claro ?? "Sin dato"}
                 </Badge>

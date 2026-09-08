@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTabParams } from "@/hooks/useTabParams";
 import { useNavigate } from "react-router-dom";
-import { Plus, RefreshCw, Upload } from "lucide-react";
+import { MapPinned, Plus, RefreshCw, Upload } from "lucide-react";
 import PageWrapper from "@/components/PageWrapper";
 import TitleComponent from "@/components/TitleComponent";
 import ActionsWrapper from "@/components/ActionsWrapper";
@@ -19,6 +19,7 @@ import { getActaBySot, getActaBlob } from "../lib/liquidaciones.actions";
 import ImportarActasDialog from "../components/ImportarActasDialog";
 import ActualizarAtendidasDialog from "../components/ActualizarAtendidasDialog";
 import LiquidacionesExportButtons from "../components/LiquidacionesExportButtons";
+import ImportarUbicacionesClaroDialog from "../components/ImportarUbicacionesClaroDialog";
 import type { LiquidacionResource } from "../lib/liquidaciones.interface";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
 
@@ -29,6 +30,7 @@ export default function LiquidacionesPage() {
 
   const [actasDialogOpen, setActasDialogOpen] = useState(false);
   const [atendidasDialogOpen, setAtendidasDialogOpen] = useState(false);
+  const [ubicacionesClaroDialogOpen, setUbicacionesClaroDialogOpen] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [pdfSot, setPdfSot] = useState<string>("");
 
@@ -124,6 +126,16 @@ export default function LiquidacionesPage() {
       >
         <ActionsWrapper>
           <LiquidacionesExportButtons filters={params} />
+          {isCorporativo && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setUbicacionesClaroDialogOpen(true)}
+            >
+              <MapPinned className="size-4 mr-1" />
+              Ubicaciones Claro
+            </Button>
+          )}
           <Button
             variant="outline"
             size="sm"
@@ -190,6 +202,11 @@ export default function LiquidacionesPage() {
       <ActualizarAtendidasDialog
         open={atendidasDialogOpen}
         onClose={() => setAtendidasDialogOpen(false)}
+      />
+
+      <ImportarUbicacionesClaroDialog
+        open={ubicacionesClaroDialogOpen}
+        onClose={() => setUbicacionesClaroDialogOpen(false)}
       />
 
       <GeneralModal

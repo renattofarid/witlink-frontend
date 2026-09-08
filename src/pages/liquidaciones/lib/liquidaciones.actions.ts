@@ -49,6 +49,39 @@ export const getLiquidaciones = async (
   return data;
 };
 
+export interface ImportarUbicacionesClaroResponse {
+  total: number;
+  creados: number;
+  actualizados: number;
+  sin_cambios: number;
+  eliminados: number;
+  por_almacen: Record<"I113" | "I114" | "I115", number>;
+  mensaje: string;
+}
+
+export const descargarPlantillaUbicacionesClaro = async (): Promise<ExcelResponse> => {
+  const { data } = await api.get<ExcelResponse>(
+    `${LiquidacionesComplete.ENDPOINT}/ubicaciones-claro/plantilla`,
+  );
+  return data;
+};
+
+export const importarUbicacionesClaro = async (
+  archivo: File,
+  reemplazar = false,
+): Promise<ImportarUbicacionesClaroResponse> => {
+  const formData = new FormData();
+  formData.append("archivo", archivo);
+  formData.append("reemplazar", reemplazar ? "1" : "0");
+
+  const { data } = await api.post<ImportarUbicacionesClaroResponse>(
+    `${LiquidacionesComplete.ENDPOINT}/ubicaciones-claro/importar`,
+    formData,
+    { headers: { "Content-Type": "multipart/form-data" }, timeout: 180_000 },
+  );
+  return data;
+};
+
 /**
  * Server-side Excel export of the filtered list (bulk SOT search included).
  * Uses the dedicated endpoint that does NOT require a date range, so it exports

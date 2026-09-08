@@ -192,7 +192,7 @@ export default function LiquidacionLiquidadaView({
                           key={serie.serie.id}
                           className="text-xs text-muted-foreground"
                         >
-                          Almacén Claro {serie.serie.serie}: {serie.serie.almacen_claro ?? "Sin dato"}
+                          Almacén Claro: {serie.serie.almacen_claro ?? "Sin dato"}
                         </p>
                       ))}
                     </div>

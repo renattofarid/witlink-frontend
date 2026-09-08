@@ -42,6 +42,7 @@ export const liberarMaterialSot = async (
   materialId: number,
   almacenId: number,
   numeroSot?: string | null,
+  reservaId?: number,
 ) => {
   const { data } = await api.delete(
     `/corporativo/inventarios/material/${materialId}/sot`,
@@ -49,6 +50,7 @@ export const liberarMaterialSot = async (
       params: {
         almacen_id: almacenId,
         ...(numeroSot ? { numero_sot: numeroSot } : {}),
+        ...(reservaId ? { reserva_id: reservaId } : {}),
       },
     },
   );

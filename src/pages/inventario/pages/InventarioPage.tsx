@@ -29,6 +29,7 @@ import {
   exportarInventarioSeriesExcel,
 } from "../lib/inventario.actions";
 import { downloadExcelFromBase64 } from "@/lib/exportExcel";
+import { ButtonAction } from "@/components/ButtonAction";
 import { getInventarioSeriesColumns } from "../components/InventarioSeriesColumns";
 import { getInventarioMaterialesColumns } from "../components/InventarioMaterialesColumns";
 import { SITUACION } from "@/pages/serie/components/SerieColumns";
@@ -58,7 +59,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Download, Lock } from "lucide-react";
+import { Download, Lock, Unlock } from "lucide-react";
 import {
   useInventarioMaterialesCorporativoQuery,
   useInventarioSeriesCorporativoQuery,
@@ -383,14 +384,30 @@ export default function InventarioPage() {
       id,
       almacen_id: reservaAlmacen,
       numero_sot,
+      reserva_id,
     }: {
       id: number;
       almacen_id: number;
       numero_sot?: string | null;
-    }) => liberarMaterialSot(id, reservaAlmacen, numero_sot),
-    onSuccess: () => {
+      reserva_id: number;
+    }) => liberarMaterialSot(id, reservaAlmacen, numero_sot, reserva_id),
+    onSuccess: (_, variables) => {
       invalidateCorporativoInventario();
-      successToast("Reserva liberada correctamente.");
+      setReservasMaterialTarget((material) => {
+        if (!material) return null;
+
+        const reservas = (material.reservas_sot ?? []).filter(
+          (reserva) => reserva.id !== variables.reserva_id,
+        );
+
+        return {
+          ...material,
+          reservas_sot: reservas,
+          cantidad_reservada: reservas.length,
+          reserva_sot: reservas[0]?.numero_sot ?? null,
+        };
+      });
+      successToast(`Reserva de la SOT ${variables.numero_sot} liberada correctamente.`);
     },
     onError: (error: any) => {
       errorToast(error.response?.data?.message ?? "No se pudo liberar la reserva.");
@@ -469,22 +486,24 @@ export default function InventarioPage() {
     setReservasMaterialTarget(row);
   };
 
-  const handleLiberarMaterial = (row: InventarioMaterialResource) => {
-    const id = row.producto_id ?? row.id;
+  const handleLiberarReservaMaterial = (
+    reserva: NonNullable<InventarioMaterialResource["reservas_sot"]>[number],
+  ) => {
+    const id = reservasMaterialTarget?.producto_id ?? reservasMaterialTarget?.id;
     if (!id) {
-      console.warn("Fila de material sin producto_id ni id:", row);
       errorToast("No se pudo identificar el material a liberar.");
       return;
     }
-    const reservaAlmacenId = Number(materialesParams.almacen_id ?? almacen_id);
+    const reservaAlmacenId = Number(reserva.almacen_id);
     if (!reservaAlmacenId) {
-      errorToast("Selecciona un subalmacén para liberar la reserva.");
+      errorToast("No se pudo identificar el subalmacén de la reserva.");
       return;
     }
     liberarMaterialMutation.mutate({
       id,
       almacen_id: reservaAlmacenId,
-      numero_sot: row.reserva_sot,
+      numero_sot: reserva.numero_sot,
+      reserva_id: reserva.id,
     });
   };
 
@@ -572,7 +591,6 @@ export default function InventarioPage() {
     isCorporativo,
     onReservarSot: handleReservarMaterial,
     onVerReservas: handleVerReservasMaterial,
-    onLiberarSot: handleLiberarMaterial,
   });
 
   const handleSeriesPageChange = (page: number) =>
@@ -846,21 +864,31 @@ export default function InventarioPage() {
         }
       >
         <div className="overflow-hidden rounded-md border">
-          <div className="grid grid-cols-[3rem_minmax(0,1fr)_minmax(0,1.5fr)] gap-3 bg-muted/60 px-3 py-2 text-xs font-medium">
+          <div className="grid grid-cols-[3rem_minmax(0,1fr)_minmax(0,1.5fr)_5rem] items-center gap-3 bg-muted/60 px-3 py-2 text-xs font-medium">
             <span>#</span>
             <span>SOT</span>
             <span>Subalmacén</span>
+            <span className="text-center">Acciones</span>
           </div>
           {(reservasMaterialTarget?.reservas_sot ?? []).map((reserva, index) => (
             <div
               key={reserva.id}
-              className="grid grid-cols-[3rem_minmax(0,1fr)_minmax(0,1.5fr)] gap-3 border-t px-3 py-2.5 text-sm"
+              className="grid grid-cols-[3rem_minmax(0,1fr)_minmax(0,1.5fr)_5rem] items-center gap-3 border-t px-3 py-2.5 text-sm"
             >
               <span className="text-muted-foreground">{index + 1}</span>
               <span className="break-words font-medium">{reserva.numero_sot}</span>
               <span className="break-words text-muted-foreground">
                 {reserva.almacen ?? "-"}
               </span>
+              <div className="flex justify-center">
+                <ButtonAction
+                  icon={Unlock}
+                  color="amber"
+                  tooltip={`Liberar SOT ${reserva.numero_sot}`}
+                  disabled={liberarMaterialMutation.isPending}
+                  onClick={() => handleLiberarReservaMaterial(reserva)}
+                />
+              </div>
             </div>
           ))}
           {(reservasMaterialTarget?.reservas_sot ?? []).length === 0 && (

@@ -98,6 +98,7 @@ export default function InventarioSeriesFilters({
   };
 
   const activeExtraCount = [
+    params.situacion,
     params.retirados,
     params.reservados,
     params.sot,
@@ -142,6 +143,22 @@ export default function InventarioSeriesFilters({
             setParams((prev) => ({ ...prev, producto: v, page: "1" }))
           }
           placeholder="Buscar producto o SAP..."
+        />
+        <SearchableSelect
+          placeholder="Situación"
+          options={[
+            { value: "all", label: "Todas las situaciones" },
+            { value: "DISPONIBLE", label: "DISPONIBLE" },
+            { value: "DESPACHADO", label: "DESPACHADO" },
+            { value: "INSTALADO", label: "INSTALADO" },
+            { value: "RETIRADO", label: "RETIRADO" },
+            { value: "DEVUELTO", label: "DEVUELTO" },
+            { value: "DEVUELTO A CLARO", label: "DEVUELTO A CLARO" },
+            { value: "PENDIENTE", label: "PENDIENTE" },
+            { value: "TRASLADO", label: "TRASLADO" },
+          ]}
+          value={params.situacion || "all"}
+          onChange={(v) => set("situacion", v)}
         />
         <SearchableSelect
           placeholder="Filtrar Reservas"

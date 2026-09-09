@@ -107,6 +107,18 @@ export const getKardexColumns = (): ColumnDef<KardexResource>[] => [
     },
   },
   {
+    accessorKey: "sot",
+    header: "SOT",
+    cell: ({ getValue }) => {
+      const sot = getValue() as string | null | undefined;
+      return sot && sot.trim() !== "" ? (
+        <span className="font-mono text-xs font-semibold">{sot}</span>
+      ) : (
+        "-"
+      );
+    },
+  },
+  {
     accessorKey: "pedido",
     header: "Pedido",
     cell: ({ getValue }) => {

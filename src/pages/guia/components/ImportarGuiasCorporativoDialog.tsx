@@ -138,11 +138,11 @@ export default function ImportarGuiasCorporativoDialog({ open, onClose }: Props)
           isCorporativo && almacenId ? Number(almacenId) : undefined,
       });
       promiseToast(promise, {
-        loading: "Importando guías corporativas...",
+        loading: "Importando guías...",
         success: (data) => data?.mensaje ?? "Importación completada.",
         error: (error: any) =>
           error?.response?.data?.message ??
-          "Error al importar las guías corporativas.",
+          "Error al importar las guías.",
       });
       return promise;
     },
@@ -209,7 +209,7 @@ export default function ImportarGuiasCorporativoDialog({ open, onClose }: Props)
     <GeneralModal
       open={open}
       onClose={handleClose}
-      title="Importar guías corporativas (SAPUI5)"
+      title="Importar guías (SAPUI5)"
       subtitle="Carga masiva de guías desde el Excel del cliente."
       icon="FileSpreadsheet"
       size="2xl"

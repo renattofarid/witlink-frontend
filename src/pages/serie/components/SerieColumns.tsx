@@ -65,7 +65,7 @@ export const getSerieColumns = ({
   },
   {
     id: "almacen",
-    header: "AlmacÃ©n",
+    header: "Almacén",
     cell: ({ row }) => row.original.almacen?.nombre ?? "â€”",
   },
   {

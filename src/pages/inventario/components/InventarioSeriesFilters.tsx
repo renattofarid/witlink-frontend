@@ -98,10 +98,8 @@ export default function InventarioSeriesFilters({
   };
 
   const activeExtraCount = [
-    params.situacion,
     params.retirados,
     params.reservados,
-    params.sot,
     params.devuelto,
     params.cliente,
     params.externos,
@@ -110,7 +108,7 @@ export default function InventarioSeriesFilters({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <FilterWrapper activeExtraCount={activeExtraCount}>
+      <FilterWrapper maxVisible={5} activeExtraCount={activeExtraCount}>
         <SearchableSelect
           placeholder="Almacenes"
           options={almacenOptions}
@@ -137,13 +135,6 @@ export default function InventarioSeriesFilters({
           }
           placeholder="Filtrar por SOT..."
         />
-        <SearchInput
-          value={params.producto ?? ""}
-          onChange={(v) =>
-            setParams((prev) => ({ ...prev, producto: v, page: "1" }))
-          }
-          placeholder="Buscar producto o SAP..."
-        />
         <SearchableSelect
           placeholder="Situación"
           options={[
@@ -159,6 +150,13 @@ export default function InventarioSeriesFilters({
           ]}
           value={params.situacion || "all"}
           onChange={(v) => set("situacion", v)}
+        />
+        <SearchInput
+          value={params.producto ?? ""}
+          onChange={(v) =>
+            setParams((prev) => ({ ...prev, producto: v, page: "1" }))
+          }
+          placeholder="Buscar producto o SAP..."
         />
         <SearchableSelect
           placeholder="Filtrar Reservas"

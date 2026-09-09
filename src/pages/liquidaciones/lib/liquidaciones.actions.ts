@@ -55,7 +55,7 @@ export interface ImportarUbicacionesClaroResponse {
   actualizados: number;
   sin_cambios: number;
   eliminados: number;
-  por_almacen: Record<"I113" | "I114" | "I115", number>;
+  por_almacen: Record<string, number>;
   mensaje: string;
 }
 

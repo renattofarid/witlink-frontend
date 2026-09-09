@@ -194,7 +194,7 @@ export default function ImportarUbicacionesClaroDialog({ open, onClose }: Props)
             ))}
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
-            ALMACEN CLARO admite: I113, I114 o I115.
+            ALMACEN CLARO (ej. I113, I114, I115, Y113, Y114, Y115).
           </p>
         </div>
 
@@ -230,9 +230,9 @@ export default function ImportarUbicacionesClaroDialog({ open, onClose }: Props)
               ))}
             </div>
             <div className="flex flex-wrap gap-2">
-              {(["I113", "I114", "I115"] as const).map((almacen) => (
+              {Object.entries(resultado.por_almacen ?? {}).map(([almacen, cantidad]) => (
                 <Badge key={almacen} variant="default" color="blue">
-                  {almacen}: {resultado.por_almacen[almacen] ?? 0}
+                  {almacen}: {cantidad}
                 </Badge>
               ))}
               {resultado.eliminados > 0 && (

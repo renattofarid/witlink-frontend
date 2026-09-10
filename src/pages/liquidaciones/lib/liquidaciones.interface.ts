@@ -273,6 +273,8 @@ export interface SaveProductosBody {
   liquidacion_id: number;
   cantidad: number;
   observaciones?: string;
+  tecnico1: number;
+  tecnico2: number | null;
   productos: Array<{
     cantidad: number;
     tecnico_id: number;
@@ -284,6 +286,8 @@ export interface SaveProductosBody {
 export interface UpdateProductosBody {
   liquidacion_id: number;
   observaciones?: string;
+  tecnico1: number;
+  tecnico2: number | null;
   productos: Array<{
     id?: number;
     producto_id: number;

@@ -133,11 +133,16 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
       if (!liquidacion) throw new Error("No hay SOT cargada");
 
       const observaciones = form.getValues("observaciones");
+      const tecnico1 = Number(form.getValues("tecnico1"));
+      const tecnico2Value = form.getValues("tecnico2");
+      const tecnico2 = tecnico2Value ? Number(tecnico2Value) : null;
 
       if (liquidacion.estado_liquidacion === "liquidada") {
         return updateProductosLiquidacion({
           liquidacion_id: liquidacion.id,
           observaciones,
+          tecnico1,
+          tecnico2,
           productos: items.map((item) => ({
             ...(item.detalle_id ? { id: item.detalle_id } : {}),
             producto_id: item.producto_id,
@@ -180,6 +185,8 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
         liquidacion_id: liquidacion.id,
         cantidad: totalCantidad,
         observaciones,
+        tecnico1,
+        tecnico2,
         productos: Object.values(grouped),
       });
     },

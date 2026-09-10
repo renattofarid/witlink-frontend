@@ -15,7 +15,12 @@ import {
 } from "@/components/ui/select";
 import DatePicker from "@/components/DatePicker";
 import { format } from "date-fns";
-import { promiseToast } from "@/lib/core.function";
+import {
+  promiseToast,
+  successToast,
+  errorToast,
+  warningToast,
+} from "@/lib/core.function";
 import { downloadExcelFromBase64 } from "@/lib/exportExcel";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
 import {
@@ -131,25 +136,31 @@ export default function ImportarGuiasCorporativoDialog({ open, onClose }: Props)
   });
 
   const mutation = useMutation({
-    mutationFn: (file: File) => {
-      const promise = importarGuiasCorporativo(file, {
+    mutationFn: async (file: File) => {
+      return await importarGuiasCorporativo(file, {
         fecha: fecha || undefined,
         almacen_id:
           isCorporativo && almacenId ? Number(almacenId) : undefined,
       });
-      promiseToast(promise, {
-        loading: "Importando guías...",
-        success: (data) => data?.mensaje ?? "Importación completada.",
-        error: (error: any) =>
-          error?.response?.data?.message ??
-          "Error al importar las guías.",
-      });
-      return promise;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: [GuiaComplete.QUERY_KEY] });
-      setErrorGeneral("");
-      setResultado(normalizarResultado(data));
+      const normalizado = normalizarResultado(data);
+      setResultado(normalizado);
+
+      if (normalizado.guias_creadas > 0) {
+        queryClient.invalidateQueries({ queryKey: [GuiaComplete.QUERY_KEY] });
+        if (normalizado.errores.length > 0) {
+          warningToast(normalizado.mensaje);
+        } else {
+          successToast(normalizado.mensaje);
+        }
+        setErrorGeneral("");
+      } else {
+        const msg =
+          normalizado.mensaje || "No se pudo importar ninguna guía debido a errores.";
+        errorToast(msg);
+        setErrorGeneral(msg);
+      }
     },
     onError: (error: unknown) => {
       setResultado(null);
@@ -164,16 +175,12 @@ export default function ImportarGuiasCorporativoDialog({ open, onClose }: Props)
         }
       )?.response?.data;
       const archivoError = data?.errors?.archivo?.[0];
-      if (archivoError) {
-        setErrorGeneral(
-          "El archivo no tiene un formato válido. Usa la plantilla en formato .xlsx, .xls, .csv o .txt.",
-        );
-        return;
-      }
-      setErrorGeneral(
-        data?.message ??
-          "No se pudo procesar el archivo. Verifica que sea la plantilla correcta e inténtalo nuevamente.",
-      );
+      const mensaje = archivoError
+        ? "El archivo no tiene un formato válido. Usa la plantilla en formato .xlsx, .xls, .csv o .txt."
+        : (data?.message ??
+            "No se pudo procesar el archivo. Verifica que sea la plantilla correcta e inténtalo nuevamente.");
+      setErrorGeneral(mensaje);
+      errorToast(mensaje);
     },
   });
 

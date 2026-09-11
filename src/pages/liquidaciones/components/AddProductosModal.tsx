@@ -135,6 +135,7 @@ export default function AddProductosModal({
 
   const { data: inventario, isLoading } = useInventarioTecnicoLiquidacionQuery(
     tecnicoId || null,
+    user?.is_corporativo ? liquidacion.sot : undefined,
   );
 
   const materiales: MaterialInventarioItem[] = inventario?.materiales ?? [];
@@ -206,6 +207,7 @@ export default function AddProductosModal({
     setSelectedInventoryTecnico(id);
     setTecnicoNombre(nombre);
     setMaterialSelections({});
+    setSelectedExternSeries([]);
   };
 
   const handleMaterialQty = (item: MaterialInventarioItem, delta: number) => {
@@ -396,6 +398,7 @@ export default function AddProductosModal({
             </Label>
             <TecnicoSelector
               value={tecnicoId}
+              disabled={!!user?.is_corporativo}
               onChange={handleTecnicoChange}
               onNameResolved={(nombre) => {
                 if (!tecnicoNombre) {
@@ -495,20 +498,22 @@ export default function AddProductosModal({
                 </>
               )}
 
-              <Button
-                type="button"
-                variant={"default"}
-                size="sm"
-                className="h-8 text-xs w-full font-medium shadow-sm"
-                onClick={() => setShowBuscarGlobal((prev) => !prev)}
-              >
-                <Search className="size-3.5 mr-1.5" />
-                {showBuscarGlobal
-                  ? "Ocultar búsqueda en todo el sistema"
-                  : "Buscar equipo en todo el sistema (otros técnicos)"}
-              </Button>
+              {!user?.is_corporativo && (
+                <Button
+                  type="button"
+                  variant="default"
+                  size="sm"
+                  className="h-8 text-xs w-full font-medium shadow-sm"
+                  onClick={() => setShowBuscarGlobal((prev) => !prev)}
+                >
+                  <Search className="size-3.5 mr-1.5" />
+                  {showBuscarGlobal
+                    ? "Ocultar búsqueda en todo el sistema"
+                    : "Buscar equipo en todo el sistema (otros técnicos)"}
+                </Button>
+              )}
 
-              {showBuscarGlobal && (
+              {!user?.is_corporativo && showBuscarGlobal && (
                 <div className="space-y-3 border-t pt-3">
                   <p className="text-xs text-muted-foreground">
                     Busca cualquier serie en el sistema. Si pertenece a otro

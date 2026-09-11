@@ -65,10 +65,11 @@ export const useTecnicosLiquidacionQuery = (
 
 export const useInventarioTecnicoLiquidacionQuery = (
   tecnicoId: string | null,
+  sot?: string,
 ) => {
   return useQuery({
-    queryKey: ["inventario-tecnico-liquidacion", tecnicoId],
-    queryFn: () => getInventarioTecnicoLiquidacion(Number(tecnicoId)),
+    queryKey: ["inventario-tecnico-liquidacion", tecnicoId, sot],
+    queryFn: () => getInventarioTecnicoLiquidacion(Number(tecnicoId), sot),
     enabled: !!tecnicoId,
     refetchOnWindowFocus: false,
   });

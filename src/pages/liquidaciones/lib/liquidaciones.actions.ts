@@ -275,8 +275,13 @@ export const exportarResumenLiquidacion = async (
   return data;
 };
 
-export const getInventarioTecnicoLiquidacion = async (tecnicoId: number) => {
-  const { data } = await api.get(`/tecnicos/${tecnicoId}/inventario`);
+export const getInventarioTecnicoLiquidacion = async (
+  tecnicoId: number,
+  sot?: string,
+) => {
+  const { data } = await api.get(`/tecnicos/${tecnicoId}/inventario`, {
+    params: sot ? { sot } : undefined,
+  });
   return data;
 };
 

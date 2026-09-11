@@ -10,12 +10,14 @@ interface TecnicoSelectorProps {
   onChange: (id: string, nombre: string) => void;
   onNameResolved?: (nombre: string) => void;
   placeholder?: string;
+  disabled?: boolean;
 }
 
 export default function TecnicoSelector({
   value,
   onChange,
   onNameResolved,
+  disabled = false,
   placeholder = "Seleccionar técnico...",
 }: TecnicoSelectorProps) {
   const form = useForm({ defaultValues: { tecnico_id: value } });
@@ -42,6 +44,7 @@ export default function TecnicoSelector({
       })}
       perPage={20}
       required
+      disabled={disabled}
       onValueChange={(id, item) => {
         const persona = item as PersonaResource | undefined;
         const nombre = persona

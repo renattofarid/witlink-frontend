@@ -31,6 +31,8 @@ export interface AlmacenLiquidacion {
   nombre_display?: string;
   codigo?: string;
   region?: string;
+  is_corporativo?: boolean;
+  es_subalmacen_corporativo?: boolean;
 }
 
 // ── SOT / Liquidación principal ───────────────────────────────────────────────

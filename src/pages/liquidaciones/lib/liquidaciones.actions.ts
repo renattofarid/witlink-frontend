@@ -278,9 +278,13 @@ export const exportarResumenLiquidacion = async (
 export const getInventarioTecnicoLiquidacion = async (
   tecnicoId: number,
   sot?: string,
+  almacenId?: number,
 ) => {
   const { data } = await api.get(`/tecnicos/${tecnicoId}/inventario`, {
-    params: sot ? { sot } : undefined,
+    params: {
+      ...(sot ? { sot } : {}),
+      ...(almacenId ? { almacen_id: almacenId } : {}),
+    },
   });
   return data;
 };

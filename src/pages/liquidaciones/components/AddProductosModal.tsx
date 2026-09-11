@@ -102,6 +102,11 @@ export default function AddProductosModal({
   // Flujo corporativo: la búsqueda global de series permite restringirse a
   // un almacén específico elegido explícitamente entre todos los almacenes.
   const user = useAuthStore((s) => s.user);
+  const isCorporateLiquidacion = Boolean(
+    user?.is_corporativo ||
+      liquidacion.almacen?.is_corporativo ||
+      liquidacion.almacen?.es_subalmacen_corporativo,
+  );
   const { data: almacenesAll = [] } = useQuery({
     queryKey: ["almacenes-list"],
     queryFn: getAlmacenes,
@@ -135,7 +140,8 @@ export default function AddProductosModal({
 
   const { data: inventario, isLoading } = useInventarioTecnicoLiquidacionQuery(
     tecnicoId || null,
-    user?.is_corporativo ? liquidacion.sot : undefined,
+    liquidacion.sot,
+    liquidacion.almacen_id,
   );
 
   const materiales: MaterialInventarioItem[] = inventario?.materiales ?? [];
@@ -398,7 +404,7 @@ export default function AddProductosModal({
             </Label>
             <TecnicoSelector
               value={tecnicoId}
-              disabled={!!user?.is_corporativo}
+              disabled={isCorporateLiquidacion}
               onChange={handleTecnicoChange}
               onNameResolved={(nombre) => {
                 if (!tecnicoNombre) {
@@ -498,7 +504,7 @@ export default function AddProductosModal({
                 </>
               )}
 
-              {!user?.is_corporativo && (
+              {!isCorporateLiquidacion && (
                 <Button
                   type="button"
                   variant="default"
@@ -513,7 +519,7 @@ export default function AddProductosModal({
                 </Button>
               )}
 
-              {!user?.is_corporativo && showBuscarGlobal && (
+              {!isCorporateLiquidacion && showBuscarGlobal && (
                 <div className="space-y-3 border-t pt-3">
                   <p className="text-xs text-muted-foreground">
                     Busca cualquier serie en el sistema. Si pertenece a otro

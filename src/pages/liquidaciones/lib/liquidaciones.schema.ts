@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const liquidacionFormSchema = z.object({
-  sot: z.string().trim().min(1, "El numero de SOT es requerido").max(100),
+  sot: z.string().trim().min(1, "El numero de SOT es requerido").max(50),
   observaciones: z.string().optional(),
   tecnico1: z.string().min(1, "El Personal 1 es requerido"),
   tecnico2: z.string().optional(),

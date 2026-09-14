@@ -20,6 +20,7 @@ import ImportarActasDialog from "../components/ImportarActasDialog";
 import ActualizarAtendidasDialog from "../components/ActualizarAtendidasDialog";
 import LiquidacionesExportButtons from "../components/LiquidacionesExportButtons";
 import ImportarUbicacionesClaroDialog from "../components/ImportarUbicacionesClaroDialog";
+import { EditarObservacionModal } from "../components/EditarObservacionModal";
 import type { LiquidacionResource } from "../lib/liquidaciones.interface";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
 
@@ -31,6 +32,7 @@ export default function LiquidacionesPage() {
   const [actasDialogOpen, setActasDialogOpen] = useState(false);
   const [atendidasDialogOpen, setAtendidasDialogOpen] = useState(false);
   const [ubicacionesClaroDialogOpen, setUbicacionesClaroDialogOpen] = useState(false);
+  const [selectedRowForObservaciones, setSelectedRowForObservaciones] = useState<LiquidacionResource | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [pdfSot, setPdfSot] = useState<string>("");
 
@@ -67,59 +69,6 @@ export default function LiquidacionesPage() {
   const queryParams = Object.fromEntries(
     Object.entries(params).filter(([k, v]) => v !== "" && !(isCorporativo && k === "estado")),
   );
-
-  const { data, isLoading } = useLiquidacionesQuery(queryParams);
-
-  const handleSearchChange = (v: string) =>
-    setParams((prev) => ({ ...prev, search: v, page: "1" }));
-
-  const handleEstadoChange = (v: string) =>
-    setParams((prev) => ({ ...prev, estado: v, page: "1" }));
-
-  const handleEstadoLiquidacionChange = (v: string) =>
-    setParams((prev) => ({ ...prev, estado_liquidacion: v, page: "1" }));
-
-  const handlePageChange = (page: number) =>
-    setParams((prev) => ({ ...prev, page: String(page) }));
-
-  const handlePerPageChange = (perPage: number) =>
-    setParams((prev) => ({ ...prev, per_page: String(perPage), page: "1" }));
-
-  const handleSotsChange = (v: string) =>
-    setParams((prev) => ({ ...prev, sots: v, page: "1" }));
-
-  const handleAlmacenChange = (v: string) =>
-    setParams((prev) => ({ ...prev, almacen_id: v, page: "1" }));
-
-  const handleGetActa = async (row: LiquidacionResource) => {
-    try {
-      const actas = await getActaBySot(row.sot);
-      if (!actas.length) {
-        warningToast("No hay acta registrada para este SOT");
-        return;
-      }
-      const blob = await getActaBlob(actas[0].ruta_archivo);
-      const url = window.URL.createObjectURL(blob);
-      setPdfUrl(url);
-      setPdfSot(row.sot);
-    } catch {
-      errorToast("No se pudo obtener el acta para este SOT");
-    }
-  };
-
-  const handleClosePdf = () => {
-    if (pdfUrl) window.URL.revokeObjectURL(pdfUrl);
-    setPdfUrl(null);
-    setPdfSot("");
-  };
-
-  const columns = getLiquidacionColumns({ onGetActa: handleGetActa });
-
-  return (
-    <PageWrapper>
-      <TitleComponent
-        title={
-          LiquidacionesComplete.MODEL.plural ?? LiquidacionesComplete.MODEL.name
         }
         subtitle="Gestión de liquidaciones de órdenes de servicio"
         icon="ClipboardList"
@@ -229,6 +178,27 @@ export default function LiquidacionesPage() {
               </a>
             </div>
             <iframe
+
+      <GeneralModal
+        open={!!pdfUrl}
+        onClose={handleClosePdf}
+        title={`SOT ${pdfSot}`}
+        subtitle="ACTA DE SERVICIO"
+        size="5xl"
+        icon="FileArchive"
+      >
+        {pdfUrl && (
+          <div className="flex flex-col gap-3">
+            <div className="flex justify-end">
+              <a
+                href={pdfUrl}
+                download={`${pdfSot}.pdf`}
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg shadow-sm hover:bg-blue-700 transition-colors"
+              >
+                📥 Descargar Acta ({pdfSot}.pdf)
+              </a>
+            </div>
+            <iframe
               src={pdfUrl}
               className="w-full h-[70vh] rounded border-0"
               title={`Acta SOT ${pdfSot}`}
@@ -236,6 +206,12 @@ export default function LiquidacionesPage() {
           </div>
         )}
       </GeneralModal>
+
+      <EditarObservacionModal
+        open={!!selectedRowForObservaciones}
+        onClose={() => setSelectedRowForObservaciones(null)}
+        liquidacion={selectedRowForObservaciones}
+      />
     </PageWrapper>
   );
 }

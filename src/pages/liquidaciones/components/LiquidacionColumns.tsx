@@ -1,6 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { useNavigate } from "react-router-dom";
-import { Download, Eye, FileText, Pencil, Sheet } from "lucide-react";
+import { Download, Eye, FileText, MessageSquare, Pencil, Sheet } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { LiquidacionResource } from "../lib/liquidaciones.interface";
 import {
@@ -13,6 +13,7 @@ import { openGuiaRemisionPdf } from "../lib/liquidaciones.actions";
 interface ColumnOptions {
   onExport?: (row: LiquidacionResource) => void;
   onGetActa?: (row: LiquidacionResource) => void;
+  onEditObservacion?: (row: LiquidacionResource) => void;
   isCorporativo?: boolean;
 }
 
@@ -106,6 +107,18 @@ export function getLiquidacionColumns(
       ),
     },
     {
+      accessorKey: "observaciones",
+      header: "Observación / Comentario",
+      cell: ({ row }) => (
+        <div
+          className="max-w-44 text-xs truncate font-normal text-muted-foreground"
+          title={row.original.observaciones || ""}
+        >
+          {row.original.observaciones || "—"}
+        </div>
+      ),
+    },
+    {
       accessorKey: "estado",
       header: "Estado",
       cell: ({ row }) => {
@@ -156,6 +169,7 @@ export function getLiquidacionColumns(
           row={row.original}
           onExport={options.onExport}
           onGetActa={options.onGetActa}
+          onEditObservacion={options.onEditObservacion}
         />
       ),
     },
@@ -175,16 +189,25 @@ function LiquidacionRowActions({
   row,
   onExport,
   onGetActa,
+  onEditObservacion,
 }: {
   row: LiquidacionResource;
   onExport?: (row: LiquidacionResource) => void;
   onGetActa?: (row: LiquidacionResource) => void;
+  onEditObservacion?: (row: LiquidacionResource) => void;
 }) {
   const navigate = useNavigate();
   const isLiquidada =
     (row.estado_liquidacion ?? "").toLowerCase() === "liquidada";
   return (
     <div className="flex gap-1">
+      {onEditObservacion && (
+        <ButtonAction
+          icon={MessageSquare}
+          tooltip="Editar comentario / observación"
+          onClick={() => onEditObservacion(row)}
+        />
+      )}
       <ButtonAction
         icon={Download}
         tooltip="Descargar guía de remisión"

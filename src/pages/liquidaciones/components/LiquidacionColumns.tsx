@@ -2,6 +2,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { useNavigate } from "react-router-dom";
 import { Download, Eye, FileText, MessageSquare, Pencil, Sheet } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import type { LiquidacionResource } from "../lib/liquidaciones.interface";
 import {
   LIQUIDACION_ROUTE_VIEW,
@@ -109,14 +110,18 @@ export function getLiquidacionColumns(
     {
       accessorKey: "observaciones",
       header: "Observación / Comentario",
-      cell: ({ row }) => (
-        <div
-          className="max-w-44 text-xs truncate font-normal text-muted-foreground"
-          title={row.original.observaciones || ""}
-        >
-          {row.original.observaciones || "—"}
-        </div>
-      ),
+      cell: ({ row }) => {
+        const obs = row.original.observaciones?.trim();
+        if (!obs) return <span className="text-muted-foreground text-xs">—</span>;
+        return (
+          <div
+            className="max-w-44 text-xs truncate font-medium text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/40 px-2 py-0.5 rounded border border-red-200/60 dark:border-red-900/50"
+            title={obs}
+          >
+            {obs}
+          </div>
+        );
+      },
     },
     {
       accessorKey: "estado",
@@ -199,12 +204,25 @@ function LiquidacionRowActions({
   const navigate = useNavigate();
   const isLiquidada =
     (row.estado_liquidacion ?? "").toLowerCase() === "liquidada";
+  const hasObs = Boolean(row.observaciones && row.observaciones.trim() !== "");
+
   return (
     <div className="flex gap-1">
       {onEditObservacion && (
         <ButtonAction
           icon={MessageSquare}
-          tooltip="Editar comentario / observación"
+          color="red"
+          variant={hasObs ? "secondary" : "outline"}
+          className={cn(
+            "text-red-600 border-red-200 hover:bg-red-100 hover:text-red-700 dark:border-red-800 dark:text-red-400",
+            hasObs &&
+              "bg-red-100 text-red-700 font-semibold border-red-300 dark:bg-red-950 dark:text-red-300"
+          )}
+          tooltip={
+            hasObs
+              ? `Comentario: "${row.observaciones}" (Clic para editar)`
+              : "Agregar comentario / observación"
+          }
           onClick={() => onEditObservacion(row)}
         />
       )}

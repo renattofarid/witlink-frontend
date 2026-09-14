@@ -31,14 +31,31 @@ type CorporateWarehouseGroup = {
   id?: number;
   nombre: string;
   codigo: string;
+  ciudad?: string;
+  labelDisplay?: string;
   pint: AlmacenResource[];
   pext: AlmacenResource[];
 };
 
 const CORPORATE_HEADQUARTERS = [
-  { codigo: "CORP_LALIB", nombre: "Corporativo Instalacion La Libertad" },
-  { codigo: "CORP_LAMB", nombre: "Corporativo Instalacion Lambayeque" },
-  { codigo: "CORP_LIMA", nombre: "Corporativo Instalacion Lima" },
+  {
+    codigo: "CORP_LALIB",
+    nombre: "Corporativo La Libertad",
+    ciudad: "Trujillo",
+    labelDisplay: "Corporativo La Libertad (Trujillo)",
+  },
+  {
+    codigo: "CORP_LAMB",
+    nombre: "Corporativo Lambayeque",
+    ciudad: "Chiclayo",
+    labelDisplay: "Corporativo Lambayeque (Chiclayo)",
+  },
+  {
+    codigo: "CORP_LIMA",
+    nombre: "Corporativo Lima",
+    ciudad: "Lima",
+    labelDisplay: "Corporativo Lima",
+  },
 ];
 
 const LAMBAYEQUE_LEGACY_SUBWAREHOUSE_CODES = new Set([
@@ -60,13 +77,13 @@ function getCorporateHeadquarterCode(almacen: AlmacenResource): string | null {
   const code = normalizeAlmacenText(almacen.codigo);
   const name = normalizeAlmacenText(almacen.nombre);
 
-  if (code === "CORP_LALIB" || name === "CORPORATIVO INSTALACION LA LIBERTAD") {
+  if (code === "CORP_LALIB" || name.includes("LA LIBERTAD")) {
     return "CORP_LALIB";
   }
-  if (code === "CORP_LAMB" || name === "CORPORATIVO INSTALACION LAMBAYEQUE") {
+  if (code === "CORP_LAMB" || name.includes("LAMBAYEQUE")) {
     return "CORP_LAMB";
   }
-  if (code === "CORP_LIMA" || name === "CORPORATIVO INSTALACION LIMA") {
+  if (code === "CORP_LIMA" || name.includes("LIMA")) {
     return "CORP_LIMA";
   }
 
@@ -81,6 +98,34 @@ function getSubwarehouseParentCode(almacen: AlmacenResource): string | null {
   if (code.startsWith("LALIB_")) return "CORP_LALIB";
   if (code.startsWith("LIMA_")) return "CORP_LIMA";
   if (LAMBAYEQUE_LEGACY_SUBWAREHOUSE_CODES.has(code)) return "CORP_LAMB";
+
+  return null;
+}
+
+function getActiveAlmacenSedeInfo(
+  almacen: AlmacenResource | null,
+  almacenesAll: AlmacenResource[],
+) {
+  if (!almacen) return null;
+
+  const selfHqCode = getCorporateHeadquarterCode(almacen);
+  if (selfHqCode) {
+    return CORPORATE_HEADQUARTERS.find((hq) => hq.codigo === selfHqCode) ?? null;
+  }
+
+  let parentCode = getSubwarehouseParentCode(almacen);
+  if (!parentCode && almacen.almacen_padre_id) {
+    const parentAlmacen = almacenesAll.find((a) => a.id === almacen.almacen_padre_id);
+    if (parentAlmacen) {
+      parentCode =
+        getCorporateHeadquarterCode(parentAlmacen) ||
+        getSubwarehouseParentCode(parentAlmacen);
+    }
+  }
+
+  if (parentCode) {
+    return CORPORATE_HEADQUARTERS.find((hq) => hq.codigo === parentCode) ?? null;
+  }
 
   return null;
 }
@@ -124,6 +169,11 @@ export function TeamSwitcher() {
 
   const activeAlmacen = almacenesAll.find((a) => a.id === almacen_id) ?? null;
 
+  const activeSede = useMemo(
+    () => getActiveAlmacenSedeInfo(activeAlmacen, almacenesAll),
+    [activeAlmacen, almacenesAll],
+  );
+
   const { headquarterList, regionalesList, totalDisponibles } = useMemo(() => {
     const hqsMap = new Map<string, CorporateWarehouseGroup>();
     for (const hq of CORPORATE_HEADQUARTERS) {
@@ -140,6 +190,8 @@ export function TeamSwitcher() {
           id: almacen.id,
           nombre: almacen.nombre,
           codigo: hqCode,
+          ciudad: current?.ciudad,
+          labelDisplay: current?.labelDisplay,
           pint: current?.pint ?? [],
           pext: current?.pext ?? [],
         });
@@ -228,8 +280,8 @@ export function TeamSwitcher() {
                 <span className="truncate font-medium">
                   {activeAlmacen?.nombre ?? "Sin almacen"}
                 </span>
-                <span className="truncate text-xs text-muted-foreground">
-                  Almacen activo
+                <span className="truncate text-xs text-muted-foreground font-normal">
+                  {activeSede ? `Sede ${activeSede.ciudad} • Activo` : "Almacén activo"}
                 </span>
               </div>
               <ChevronsUpDown className="ml-auto" />
@@ -252,7 +304,7 @@ export function TeamSwitcher() {
                     <Building2 className="size-3.5 shrink-0" />
                   </div>
                   <span className="min-w-0 flex-1 whitespace-normal leading-snug">
-                    {hq.nombre}
+                    {hq.labelDisplay || hq.nombre}
                   </span>
                 </DropdownMenuSubTrigger>
 

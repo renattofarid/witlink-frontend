@@ -28,14 +28,31 @@ type CorporateWarehouseGroup = {
   id?: number;
   nombre: string;
   codigo: string;
+  ciudad?: string;
+  labelDisplay?: string;
   pint: AlmacenResource[];
   pext: AlmacenResource[];
 };
 
 const CORPORATE_HEADQUARTERS = [
-  { codigo: "CORP_LALIB", nombre: "Corporativo Instalacion La Libertad" },
-  { codigo: "CORP_LAMB", nombre: "Corporativo Instalacion Lambayeque" },
-  { codigo: "CORP_LIMA", nombre: "Corporativo Instalacion Lima" },
+  {
+    codigo: "CORP_LALIB",
+    nombre: "Corporativo La Libertad",
+    ciudad: "Trujillo",
+    labelDisplay: "Corporativo La Libertad (Trujillo)",
+  },
+  {
+    codigo: "CORP_LAMB",
+    nombre: "Corporativo Lambayeque",
+    ciudad: "Chiclayo",
+    labelDisplay: "Corporativo Lambayeque (Chiclayo)",
+  },
+  {
+    codigo: "CORP_LIMA",
+    nombre: "Corporativo Lima",
+    ciudad: "Lima",
+    labelDisplay: "Corporativo Lima",
+  },
 ];
 
 const LAMBAYEQUE_LEGACY_SUBWAREHOUSE_CODES = new Set([
@@ -57,13 +74,13 @@ function getCorporateHeadquarterCode(almacen: AlmacenResource): string | null {
   const code = normalizeAlmacenText(almacen.codigo);
   const name = normalizeAlmacenText(almacen.nombre);
 
-  if (code === "CORP_LALIB" || name === "CORPORATIVO INSTALACION LA LIBERTAD") {
+  if (code === "CORP_LALIB" || name.includes("LA LIBERTAD")) {
     return "CORP_LALIB";
   }
-  if (code === "CORP_LAMB" || name === "CORPORATIVO INSTALACION LAMBAYEQUE") {
+  if (code === "CORP_LAMB" || name.includes("LAMBAYEQUE")) {
     return "CORP_LAMB";
   }
-  if (code === "CORP_LIMA" || name === "CORPORATIVO INSTALACION LIMA") {
+  if (code === "CORP_LIMA" || name.includes("LIMA")) {
     return "CORP_LIMA";
   }
 
@@ -266,7 +283,9 @@ export default function WarehouseSelect({
           <Building2 className="size-4" />
         </div>
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold">{corporativo.nombre}</p>
+          <p className="truncate text-sm font-semibold">
+            {corporativo.labelDisplay || corporativo.nombre}
+          </p>
           <p className="truncate text-xs text-muted-foreground">
             Selecciona un subalmacen operativo
           </p>

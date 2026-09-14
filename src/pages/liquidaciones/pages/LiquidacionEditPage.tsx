@@ -70,7 +70,9 @@ export default function LiquidacionEditPage() {
         </Alert>
       )}
 
-      {!isLoading && currentSot && <LiquidacionForm onSuccess={handleSuccess} />}
+      {!isLoading && currentSot && (
+        <LiquidacionForm onSuccess={handleSuccess} allowSotEdit />
+      )}
     </FormWrapper>
   );
 }

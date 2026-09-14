@@ -4,11 +4,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Controller } from "react-hook-form";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { GroupFormSection } from "@/components/GroupFormSection";
 import { successToast, errorToast, warningToast } from "@/lib/core.function";
-import { Users, MessageSquare } from "lucide-react";
+import { Hash, Users, MessageSquare } from "lucide-react";
 import {
   liquidacionFormSchema,
   type LiquidacionFormValues,
@@ -30,9 +31,13 @@ import type { LiquidacionCartItem } from "../lib/liquidaciones.interface";
 
 interface LiquidacionFormProps {
   onSuccess?: () => void;
+  allowSotEdit?: boolean;
 }
 
-export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
+export default function LiquidacionForm({
+  onSuccess,
+  allowSotEdit = false,
+}: LiquidacionFormProps) {
   const queryClient = useQueryClient();
   const {
     currentSot,
@@ -55,6 +60,7 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
   const form = useForm<LiquidacionFormValues>({
     resolver: zodResolver(liquidacionFormSchema) as any,
     defaultValues: {
+      sot: "",
       observaciones: "",
       tecnico1: "",
       tecnico2: "",
@@ -116,9 +122,11 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
         "observaciones",
         savedFormValues.values.observaciones ?? "",
       );
+      form.setValue("sot", savedFormValues.values.sot ?? liquidacion.sot);
       form.setValue("tecnico1", savedFormValues.values.tecnico1 ?? "");
       form.setValue("tecnico2", savedFormValues.values.tecnico2 ?? "");
     } else {
+      form.setValue("sot", liquidacion.sot);
       form.setValue("observaciones", liquidacion.observaciones ?? "");
       if (liquidacion.tecnico1?.id)
         form.setValue("tecnico1", String(liquidacion.tecnico1.id));
@@ -140,6 +148,7 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
       if (liquidacion.estado_liquidacion === "liquidada") {
         return updateProductosLiquidacion({
           liquidacion_id: liquidacion.id,
+          ...(allowSotEdit ? { sot: form.getValues("sot").trim() } : {}),
           observaciones,
           tecnico1,
           tecnico2,
@@ -240,6 +249,37 @@ export default function LiquidacionForm({ onSuccess }: LiquidacionFormProps) {
   return (
     <div className="space-y-4">
       <LiquidacionHeaderInfo liquidacion={liquidacion} />
+
+      {allowSotEdit && (
+        <GroupFormSection
+          title="Orden de servicio"
+          icon={Hash}
+          cols={{ sm: 1, md: 1 }}
+          iconColor="text-cyan-700 dark:text-cyan-400"
+          bgColor="bg-cyan-50 dark:bg-cyan-950/20"
+        >
+          <Controller
+            control={form.control}
+            name="sot"
+            render={({ field, fieldState }) => (
+              <div className="flex max-w-md flex-col gap-1">
+                <Label htmlFor="liquidacion-sot">Numero de SOT</Label>
+                <Input
+                  {...field}
+                  id="liquidacion-sot"
+                  autoComplete="off"
+                  aria-invalid={fieldState.invalid}
+                />
+                {fieldState.error && (
+                  <p className="text-xs text-destructive">
+                    {fieldState.error.message}
+                  </p>
+                )}
+              </div>
+            )}
+          />
+        </GroupFormSection>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
         <GroupFormSection

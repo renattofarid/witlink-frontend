@@ -340,3 +340,15 @@ export async function openGuiaRemisionPdf(
   });
   return promise;
 }
+
+export const updateObservacionesLiquidacion = async (
+  sot: string,
+  observaciones: string,
+) => {
+  const { data } = await api.put(
+    `${LiquidacionesComplete.ENDPOINT}/${encodeURIComponent(sot)}`,
+    { observaciones },
+  );
+  return data;
+};
+

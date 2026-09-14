@@ -287,6 +287,7 @@ export interface SaveProductosBody {
 
 export interface UpdateProductosBody {
   liquidacion_id: number;
+  sot?: string;
   observaciones?: string;
   tecnico1: number;
   tecnico2: number | null;

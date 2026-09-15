@@ -60,7 +60,7 @@ export function DespachoReasignarTecnicoDialog({
           mapOptionFn={(item: PersonaResource) => ({
             value: String(item.id),
             label: `${item.nombre} ${item.apellido_paterno} ${item.apellido_materno}`,
-            description: item.dni,
+            description: (item.dni || item.carnet_extranjeria) ?? undefined,
           })}
           perPage={20}
         />

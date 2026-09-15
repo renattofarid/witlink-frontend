@@ -95,7 +95,7 @@ export default function GenerarCargasPage() {
               mapOptionFn={(item: PersonaResource) => ({
                 value: String(item.id),
                 label: `${item.apellido_paterno} ${item.apellido_materno}, ${item.nombre}`,
-                description: item.dni,
+                description: (item.dni || item.carnet_extranjeria) ?? undefined,
               })}
               perPage={20}
             />

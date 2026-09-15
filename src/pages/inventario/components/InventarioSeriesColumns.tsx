@@ -7,6 +7,7 @@ import {
   Lock,
   Unlock,
   MapPinned,
+  Trash2,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -26,6 +27,7 @@ interface ColumnActions {
   onReservarSot?: (row: InventarioSerieResource) => void;
   onLiberarSot?: (row: InventarioSerieResource) => void;
   onCambiarUbicacion?: (row: InventarioSerieResource) => void;
+  onEliminarDuplicado?: (row: InventarioSerieResource) => void;
   /** Reserva masiva de SOT: habilita la columna de selección (checkbox nativo de DataTable). */
   enableSeleccionMasiva?: boolean;
 }
@@ -39,6 +41,7 @@ export const getInventarioSeriesColumns = ({
   onReservarSot,
   onLiberarSot,
   onCambiarUbicacion,
+  onEliminarDuplicado,
   enableSeleccionMasiva,
 }: ColumnActions): ColumnDef<InventarioSerieResource>[] => [
   ...(enableSeleccionMasiva
@@ -285,6 +288,15 @@ export const getInventarioSeriesColumns = ({
           tooltip="Cambiar ubicación"
           canRender={!!isCorporativo && !!onCambiarUbicacion}
           onClick={() => onCambiarUbicacion?.(row.original)}
+        />
+        <ButtonAction
+          icon={Trash2}
+          color="red"
+          tooltip="Eliminar registro duplicado"
+          canRender={
+            !!onEliminarDuplicado && Number(row.original.duplicados ?? 0) > 1
+          }
+          onClick={() => onEliminarDuplicado?.(row.original)}
         />
       </div>
     ),

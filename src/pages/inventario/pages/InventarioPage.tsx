@@ -27,6 +27,7 @@ import {
   devolverClaroInventarioSerie,
   updateSot,
   exportarInventarioSeriesExcel,
+  eliminarSerieDuplicada,
 } from "../lib/inventario.actions";
 import { downloadExcelFromBase64 } from "@/lib/exportExcel";
 import { ButtonAction } from "@/components/ButtonAction";
@@ -111,6 +112,9 @@ export default function InventarioPage() {
   const [devolverClaroOpen, setDevolverClaroOpen] = useState(false);
   const [openSot, setOpenSot] = useState(false);
   const [sot, setSot] = useState("");
+  const [serieDuplicada, setSerieDuplicada] =
+    useState<InventarioSerieResource | null>(null);
+  const [eliminarDuplicadoOpen, setEliminarDuplicadoOpen] = useState(false);
 
   // ── Corporativo: reservas SOT ──────────────────────────────────────────────
   const [reservaTarget, setReservaTarget] = useState<
@@ -302,6 +306,22 @@ export default function InventarioPage() {
     },
   });
 
+  const eliminarDuplicadoMutation = useMutation({
+    mutationFn: (id: number) => eliminarSerieDuplicada(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [INVENTARIO_SERIES_QUERY_KEY] });
+      successToast(
+        "Duplicado eliminado. El historial se conservó en la serie válida.",
+      );
+      setSerieDuplicada(null);
+    },
+    onError: (error: any) => {
+      errorToast(
+        error.response?.data?.message ?? "No se pudo eliminar el duplicado.",
+      );
+    },
+  });
+
   const handleDevolverSerie = (row: InventarioSerieResource) => {
     setSelectedSerie(row);
     setDevolverSerieOpen(true);
@@ -321,6 +341,11 @@ export default function InventarioPage() {
     setSelectedSerie(row);
     setSot(row.sot ?? "");
     setOpenSot(true);
+  };
+
+  const handleEliminarDuplicado = (row: InventarioSerieResource) => {
+    setSerieDuplicada(row);
+    setEliminarDuplicadoOpen(true);
   };
 
   const invalidateCorporativoInventario = () => {
@@ -585,6 +610,7 @@ export default function InventarioPage() {
     onReservarSot: handleReservarSerie,
     onLiberarSot: handleLiberarSerie,
     onCambiarUbicacion: handleCambiarUbicacion,
+    onEliminarDuplicado: handleEliminarDuplicado,
     enableSeleccionMasiva: isCorporativo,
   });
   const materialesColumns = getInventarioMaterialesColumns({
@@ -725,6 +751,19 @@ export default function InventarioPage() {
         confirmText="Devolver"
         onConfirm={async () => {
           await devolverSerieMutation.mutateAsync();
+        }}
+      />
+
+      <SimpleDeleteDialog
+        open={eliminarDuplicadoOpen}
+        onOpenChange={setEliminarDuplicadoOpen}
+        title="Eliminar serie duplicada"
+        description={`Se eliminará este registro repetido de la serie ${serieDuplicada?.serie ?? ""}. Sus guías, despachos y movimientos se conservarán en el otro registro.`}
+        confirmText="Eliminar duplicado"
+        isLoading={eliminarDuplicadoMutation.isPending}
+        onConfirm={async () => {
+          const id = serieDuplicada?.serie_id ?? serieDuplicada?.id;
+          if (id) await eliminarDuplicadoMutation.mutateAsync(id);
         }}
       />
 

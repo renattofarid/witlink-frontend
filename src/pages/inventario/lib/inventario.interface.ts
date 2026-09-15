@@ -32,6 +32,8 @@ export interface InventarioSerieResource {
   motivo: string | null;
   almacen_origen: string;
   contabilizado: string | null;
+  /** Cantidad de registros activos con el mismo numero de serie. */
+  duplicados?: number;
   /** SOT que reservó este equipo (solo corporativo); distinto de `sot`, que es el SOT final de despacho/liquidación. */
   reserva_sot?: string | null;
 }

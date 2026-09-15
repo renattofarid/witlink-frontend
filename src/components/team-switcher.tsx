@@ -183,6 +183,17 @@ export function TeamSwitcher() {
     const regionales: AlmacenResource[] = [];
 
     for (const almacen of almacenesAll) {
+      const parentCode = getSubwarehouseParentCode(almacen);
+      const group = parentCode ? hqsMap.get(parentCode) : null;
+      if (group) {
+        if (isPintSubwarehouse(almacen)) {
+          group.pint.push(almacen);
+        } else if (isPextSubwarehouse(almacen)) {
+          group.pext.push(almacen);
+        }
+        continue;
+      }
+
       const hqCode = getCorporateHeadquarterCode(almacen);
       if (hqCode) {
         const current = hqsMap.get(hqCode);
@@ -195,17 +206,6 @@ export function TeamSwitcher() {
           pint: current?.pint ?? [],
           pext: current?.pext ?? [],
         });
-        continue;
-      }
-
-      const parentCode = getSubwarehouseParentCode(almacen);
-      const group = parentCode ? hqsMap.get(parentCode) : null;
-      if (group) {
-        if (isPintSubwarehouse(almacen)) {
-          group.pint.push(almacen);
-        } else if (isPextSubwarehouse(almacen)) {
-          group.pext.push(almacen);
-        }
         continue;
       }
 

@@ -142,22 +142,26 @@ export const getInventarioSeriesColumns = ({
       <p className="text-xs text-muted-foreground">{row.original.mac ?? "-"}</p>
     ),
   },
-  {
-    accessorKey: "emta",
-    header: "EMTA",
-    cell: ({ row }) => (
-      <p className="text-xs text-muted-foreground">
-        {row.original.emta ?? "-"}
-      </p>
-    ),
-  },
-  {
-    accessorKey: "ua",
-    header: "UA",
-    cell: ({ row }) => (
-      <p className="text-xs text-muted-foreground">{row.original.ua ?? "-"}</p>
-    ),
-  },
+  ...(!isCorporativo
+    ? [
+        {
+          accessorKey: "emta",
+          header: "EMTA",
+          cell: ({ row }) => (
+            <p className="text-xs text-muted-foreground">
+              {row.original.emta ?? "-"}
+            </p>
+          ),
+        } satisfies ColumnDef<InventarioSerieResource>,
+        {
+          accessorKey: "ua",
+          header: "UA",
+          cell: ({ row }) => (
+            <p className="text-xs text-muted-foreground">{row.original.ua ?? "-"}</p>
+          ),
+        } satisfies ColumnDef<InventarioSerieResource>,
+      ]
+    : []),
   {
     accessorKey: "dias",
     header: "Días",
@@ -175,7 +179,6 @@ export const getInventarioSeriesColumns = ({
       <span className="text-xs">{row.original.tecnico ?? "—"}</span>
     ),
   },
-
   ...(isCorporativo
     ? [
         {

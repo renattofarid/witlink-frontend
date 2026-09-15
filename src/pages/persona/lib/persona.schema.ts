@@ -13,8 +13,13 @@ export const personaSchema = z.object({
     .string()
     .min(1, "Requerido")
     .regex(/[a-zA-Z]/, "Debe contener al menos un carácter"),
-  dni: z.string().regex(/^[0-9]*$/, "Debe contener solo números"),
-  carnet_extranjeria: z.string().max(20).optional(),
+  dni: z
+    .string()
+    .optional()
+    .refine((val) => !val || (val.length === 8 && /^[0-9]+$/.test(val)), {
+      message: "El DNI debe tener 8 dígitos numéricos",
+    }),
+  carnet_extranjeria: z.string().max(20, "Máximo 20 caracteres").optional(),
   direccion: z
     .string()
     .min(1, "Requerido")
@@ -34,7 +39,7 @@ export const personaSchema = z.object({
   tipo_empleado: z.string().optional(),
   cuadrilla_id: z.string().optional(),
 }).superRefine((data, ctx) => {
-  if (!data.dni && !data.carnet_extranjeria) {
+  if (!data.dni?.trim() && !data.carnet_extranjeria?.trim()) {
     ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Requerido", path: ["dni"] });
     ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Requerido", path: ["carnet_extranjeria"] });
   }

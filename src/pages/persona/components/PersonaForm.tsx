@@ -62,7 +62,7 @@ export default function PersonaForm({
         nombre: values.nombre,
         apellido_paterno: values.apellido_paterno,
         apellido_materno: values.apellido_materno,
-        dni: values.dni,
+        dni: values.dni || null,
         carnet_extranjeria: values.carnet_extranjeria || null,
         direccion: values.direccion,
         telefono: values.telefono || null,
@@ -85,10 +85,15 @@ export default function PersonaForm({
       onSuccess?.(data);
     },
     onError: (error: any) => {
-      errorToast(
-        error.response.data.message ??
-          ERROR_MESSAGE(PersonaComplete.MODEL, mode),
-      );
+      const errorData = error?.response?.data;
+      if (errorData?.errors) {
+        const messages = Object.values(errorData.errors).flat().join(" ");
+        errorToast(messages || errorData.message || ERROR_MESSAGE(PersonaComplete.MODEL, mode));
+      } else {
+        errorToast(
+          errorData?.message ?? ERROR_MESSAGE(PersonaComplete.MODEL, mode),
+        );
+      }
     },
   });
 

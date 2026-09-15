@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
+import { FormSelect } from "@/components/FormSelect";
 import { FormInput } from "@/components/FormInput";
 import { DataTable } from "@/components/DataTable";
 import { Badge } from "@/components/ui/badge";
@@ -50,6 +51,11 @@ const EMPTY_PRODUCTO: DespachoProductoFormValues = {
   series: [],
 };
 
+const TIPO_DESPACHO_OPTIONS = [
+  { value: "OPERATIVO", label: "Operativo (Con Liquidación)" },
+  { value: "HERRAMIENTAS", label: "Herramientas (Sin Liquidación)" },
+];
+
 interface DespachoFormProps {
   mode?: "create" | "edit";
   despacho?: DespachoResource;
@@ -87,7 +93,7 @@ export default function DespachoForm({
   // ── Main form ──────────────────────────────────────────────────────────────
   const form = useForm<DespachoCreateFormValues & { sot?: string }>({
     resolver: zodResolver(despachoCreateSchema) as any,
-    defaultValues: { tecnico_id: "", productos: [], sot: "" },
+    defaultValues: { tecnico_id: "", tipo: "OPERATIVO", productos: [], sot: "" },
     mode: "onChange",
   });
 
@@ -102,6 +108,7 @@ export default function DespachoForm({
 
     form.reset({
       tecnico_id: despacho.tecnico?.id ? String(despacho.tecnico.id) : "",
+      tipo: (despacho.tipo as "OPERATIVO" | "HERRAMIENTAS") ?? "OPERATIVO",
       sot: despacho.sot ?? despacho.numero_sot ?? "",
       productos: (despacho.productos ?? []).map((detalle) => ({
         producto_id: String(detalle.producto?.id ?? ""),
@@ -201,7 +208,7 @@ export default function DespachoForm({
         ? updateDespacho(despacho.id, body)
         : createDespacho(body),
     onSuccess: (_data, variables) => {
-      form.reset({ tecnico_id: "", productos: [], sot: "" });
+      form.reset({ tecnico_id: "", tipo: "OPERATIVO", productos: [], sot: "" });
       setMasivoSeries([]);
       queryClient.invalidateQueries({ queryKey: [DespachoComplete.QUERY_KEY] });
       if (mode === "edit") {
@@ -215,7 +222,8 @@ export default function DespachoForm({
         return;
       }
       const sot = variables.sot?.trim().toUpperCase();
-      if (sot) {
+      const isHerramientas = variables.tipo === "HERRAMIENTAS";
+      if (sot && !isHerramientas) {
         toast.success("Despacho creado correctamente.", {
           description: `SOT ${sot} registrada para liquidación.`,
           action: {
@@ -264,6 +272,7 @@ export default function DespachoForm({
 
     const body: DespachoCreateBody = {
       tecnico_id: Number(values.tecnico_id),
+      tipo: (values.tipo as "OPERATIVO" | "HERRAMIENTAS") || "OPERATIVO",
       ...(isCorporativo ? { sot: values.sot?.trim() } : {}),
     };
 
@@ -388,7 +397,7 @@ export default function DespachoForm({
           <Separator className="flex-1" />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <FormSelectAsync
             name="tecnico_id"
             label="Técnico"
@@ -400,6 +409,13 @@ export default function DespachoForm({
               label: `${p.dni} - ${p.nombre} ${p.apellido_paterno}`,
             })}
             perPage={20}
+            required
+          />
+          <FormSelect
+            name="tipo"
+            label="Tipo de Despacho"
+            control={form.control}
+            options={TIPO_DESPACHO_OPTIONS}
             required
           />
           {isCorporativo && (

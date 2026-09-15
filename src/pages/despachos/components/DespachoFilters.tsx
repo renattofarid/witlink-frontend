@@ -78,6 +78,23 @@ export default function DespachoFilters({
         }
       />
 
+      <SearchableSelect
+        placeholder="Tipo"
+        options={[
+          { label: "Todos los tipos", value: "all" },
+          { label: "Operativo", value: "OPERATIVO" },
+          { label: "Herramientas", value: "HERRAMIENTAS" },
+        ]}
+        value={params.tipo || "all"}
+        onChange={(v) =>
+          setParams((prev) => ({
+            ...prev,
+            tipo: v === "all" ? "" : v,
+            page: "1",
+          }))
+        }
+      />
+
       <DateRangePickerFilter
         dateFrom={dateFrom}
         dateTo={dateTo}

@@ -64,20 +64,20 @@ export default function DespachoFilters({
         }
         placeholder="Buscar por número o SOT..."
       />
-      
-        <SearchableSelect
-          placeholder="Almacén"
-          options={almacenOptions}
-          value={params.almacen_id || "all"}
-          onChange={(v) =>
-            setParams((prev) => ({
-              ...prev,
-              almacen_id: v === "all" ? "" : v,
-              page: "1",
-            }))
-          }
-        />
-      
+
+      <SearchableSelect
+        placeholder="Almacén"
+        options={almacenOptions}
+        value={params.almacen_id || "all"}
+        onChange={(v) =>
+          setParams((prev) => ({
+            ...prev,
+            almacen_id: v === "all" ? "" : v,
+            page: "1",
+          }))
+        }
+      />
+
       <DateRangePickerFilter
         dateFrom={dateFrom}
         dateTo={dateTo}
@@ -99,7 +99,7 @@ export default function DespachoFilters({
         mapOptionFn={(item: PersonaResource) => ({
           value: String(item.id),
           label: `${item.nombre} ${item.apellido_paterno} ${item.apellido_materno}`,
-          description: item.dni,
+          description: (item.dni || item.carnet_extranjeria) ?? undefined,
         })}
         perPage={20}
       />

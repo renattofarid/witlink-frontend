@@ -110,7 +110,7 @@ export default function UsuariosForm({
     const option: Option = {
       value: String(persona.id),
       label: `${persona.nombre} ${persona.apellido_paterno} ${persona.apellido_materno}`,
-      description: persona.dni,
+      description: (persona.dni || persona.carnet_extranjeria) ?? undefined,
     };
     setPersonaDefaultOption(option);
     setPersonaKey((prev) => prev + 1);
@@ -154,7 +154,7 @@ export default function UsuariosForm({
             mapOptionFn={(item) => ({
               value: String(item.id),
               label: `${item.nombre} ${item.apellido_paterno} ${item.apellido_materno}`,
-              description: item.dni,
+              description: (item.dni || item.carnet_extranjeria) ?? undefined,
             })}
             defaultOption={personaDefaultOption}
           >

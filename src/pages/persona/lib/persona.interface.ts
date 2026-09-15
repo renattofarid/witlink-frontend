@@ -11,7 +11,7 @@ export interface PersonaResource {
   nombre: string;
   apellido_paterno: string;
   apellido_materno: string;
-  dni: string;
+  dni: string | null;
   carnet_extranjeria: string | null;
   direccion: string;
   telefono: string | null;
@@ -30,7 +30,7 @@ export interface PersonaBody {
   nombre: string;
   apellido_paterno: string;
   apellido_materno: string;
-  dni: string;
+  dni: string | null;
   carnet_extranjeria?: string | null;
   direccion: string;
   telefono?: string | null;

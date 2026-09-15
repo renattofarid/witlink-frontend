@@ -102,6 +102,11 @@ export const devolverInventarioSerie = async (inventarioTecnicoId: number) => {
   return data;
 };
 
+export const eliminarSerieDuplicada = async (serieId: number) => {
+  const { data } = await api.delete(`/series/${serieId}/duplicado`);
+  return data;
+};
+
 export const devolverClaroInventarioSerie = async (
   serieId: number,
   contabilizado: string,

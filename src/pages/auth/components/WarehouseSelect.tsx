@@ -153,6 +153,17 @@ export default function WarehouseSelect({
     const regionales: AlmacenResource[] = [];
 
     for (const almacen of almacenesAll) {
+      const parentCode = getSubwarehouseParentCode(almacen);
+      const group = parentCode ? corporativos.get(parentCode) : null;
+      if (group) {
+        if (isPintAlmacen(almacen)) {
+          group.pint.push(almacen);
+        } else if (isPextAlmacen(almacen)) {
+          group.pext.push(almacen);
+        }
+        continue;
+      }
+
       const hqCode = getCorporateHeadquarterCode(almacen);
       if (hqCode) {
         const current = corporativos.get(hqCode);
@@ -163,17 +174,6 @@ export default function WarehouseSelect({
           pint: current?.pint ?? [],
           pext: current?.pext ?? [],
         });
-        continue;
-      }
-
-      const parentCode = getSubwarehouseParentCode(almacen);
-      const group = parentCode ? corporativos.get(parentCode) : null;
-      if (group) {
-        if (isPintAlmacen(almacen)) {
-          group.pint.push(almacen);
-        } else if (isPextAlmacen(almacen)) {
-          group.pext.push(almacen);
-        }
         continue;
       }
 

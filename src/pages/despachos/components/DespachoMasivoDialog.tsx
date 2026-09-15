@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
+import { FormSelect } from "@/components/FormSelect";
 import { FormInput } from "@/components/FormInput";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -37,9 +38,14 @@ export function DespachoMasivoDialog({
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
+  const TIPO_DESPACHO_OPTIONS = [
+    { value: "OPERATIVO", label: "Operativo (Con Liquidación)" },
+    { value: "HERRAMIENTAS", label: "Herramientas (Sin Liquidación)" },
+  ];
+
   const form = useForm<DespachoMasivoFormValues>({
-    resolver: zodResolver(despachoMasivoSchema),
-    defaultValues: { tecnico_id: "", series_text: "", sot: "" },
+    resolver: zodResolver(despachoMasivoSchema) as any,
+    defaultValues: { tecnico_id: "", tipo: "OPERATIVO", series_text: "", sot: "" },
   });
 
   const mutation = useMutation({
@@ -51,6 +57,7 @@ export function DespachoMasivoDialog({
       const sot = values.sot?.trim().toUpperCase();
       return createDespacho({
         tecnico_id: Number(values.tecnico_id),
+        tipo: values.tipo || "OPERATIVO",
         series,
         ...(sot ? { sot } : {}),
       });
@@ -58,7 +65,8 @@ export function DespachoMasivoDialog({
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: [DespachoComplete.QUERY_KEY] });
       const sot = variables.sot?.trim().toUpperCase();
-      if (sot) {
+      const isHerramientas = variables.tipo === "HERRAMIENTAS";
+      if (sot && !isHerramientas) {
         toast.success("Despacho masivo creado correctamente.", {
           description: `SOT ${sot} registrada para liquidación.`,
           action: {
@@ -92,7 +100,7 @@ export function DespachoMasivoDialog({
         </DialogHeader>
 
         <form
-          onSubmit={form.control.handleSubmit((v) => mutation.mutate(v))}
+          onSubmit={form.handleSubmit((v) => mutation.mutate(v))}
           className="space-y-4"
         >
           <FormSelectAsync
@@ -107,6 +115,14 @@ export function DespachoMasivoDialog({
               description: (item.dni || item.carnet_extranjeria) ?? undefined,
             })}
             perPage={20}
+            required
+          />
+
+          <FormSelect
+            name="tipo"
+            label="Tipo de Despacho"
+            control={form.control}
+            options={TIPO_DESPACHO_OPTIONS}
             required
           />
 

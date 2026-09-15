@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { useInventarioTecnicoFiltersStore } from "../lib/inventario-tecnico-filters.store";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import PageWrapper from "@/components/PageWrapper";
@@ -23,6 +25,9 @@ export default function InventarioTecnicoPage() {
 
   const { tecnicoId, fecha, setTecnicoId, setFecha } = useInventarioTecnicoFiltersStore();
 
+  const [searchMaterial, setSearchMaterial] = useState("");
+  const [searchSerie, setSearchSerie] = useState("");
+
   const [devolverMaterialOpen, setDevolverMaterialOpen] = useState(false);
   const [devolverSerieOpen, setDevolverSerieOpen] = useState(false);
   const [selected, setSelected] = useState<InventarioTecnicoResource | null>(null);
@@ -33,8 +38,28 @@ export default function InventarioTecnicoPage() {
   const queryParams: Record<string, string> = fecha ? { fecha } : {};
   const { data = [], isLoading } = useInventarioTecnicoQuery(tecnicoId, queryParams);
 
-  const materiales = data.filter((item) => item.tipo === "material");
-  const series = data.filter((item) => item.tipo === "serie");
+  const materiales = useMemo(() => {
+    const raw = data.filter((item) => item.tipo === "material");
+    if (!searchMaterial.trim()) return raw;
+    const q = searchMaterial.toLowerCase().trim();
+    return raw.filter(
+      (item) =>
+        (item.producto && item.producto.toLowerCase().includes(q)) ||
+        (item.sap && item.sap.toLowerCase().includes(q)),
+    );
+  }, [data, searchMaterial]);
+
+  const series = useMemo(() => {
+    const raw = data.filter((item) => item.tipo === "serie");
+    if (!searchSerie.trim()) return raw;
+    const q = searchSerie.toLowerCase().trim();
+    return raw.filter(
+      (item) =>
+        (item.serie && item.serie.toLowerCase().includes(q)) ||
+        (item.producto && item.producto.toLowerCase().includes(q)) ||
+        (item.sap && item.sap.toLowerCase().includes(q)),
+    );
+  }, [data, searchSerie]);
 
   const invalidate = () =>
     queryClient.invalidateQueries({
@@ -61,6 +86,8 @@ export default function InventarioTecnicoPage() {
   const handleTecnicoChange = (value: string) => {
     setTecnicoId(value);
     setFecha("");
+    setSearchMaterial("");
+    setSearchSerie("");
   };
 
   const handleDevolverMaterial = (row: InventarioTecnicoResource) => {
@@ -122,7 +149,18 @@ export default function InventarioTecnicoPage() {
                 </span>
               )}
             </div>
-            <DataTable columns={materialColumns} data={materiales} isLoading={loading} />
+            <DataTable columns={materialColumns} data={materiales} isLoading={loading}>
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="Buscar material..."
+                  value={searchMaterial}
+                  onChange={(e) => setSearchMaterial(e.target.value)}
+                  className="h-8 w-44 md:w-52 pl-8 text-xs"
+                />
+              </div>
+            </DataTable>
           </div>
 
           {/* Tabla de Series */}
@@ -135,7 +173,18 @@ export default function InventarioTecnicoPage() {
                 </span>
               )}
             </div>
-            <DataTable columns={serieColumns} data={series} isLoading={loading} />
+            <DataTable columns={serieColumns} data={series} isLoading={loading}>
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="Buscar serie..."
+                  value={searchSerie}
+                  onChange={(e) => setSearchSerie(e.target.value)}
+                  className="h-8 w-44 md:w-52 pl-8 text-xs"
+                />
+              </div>
+            </DataTable>
           </div>
         </div>
       )}

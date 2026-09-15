@@ -33,6 +33,22 @@ export const getDespachoColumns = ({
     ),
   },
   {
+    accessorKey: "tipo",
+    header: "Tipo",
+    cell: ({ row }) => {
+      const tipo = row.original.tipo ?? "OPERATIVO";
+      return tipo === "HERRAMIENTAS" ? (
+        <Badge variant="outline" className="border-amber-500 text-amber-600 dark:text-amber-400 font-medium">
+          Herramientas
+        </Badge>
+      ) : (
+        <Badge variant="outline" className="border-blue-500 text-blue-600 dark:text-blue-400 font-medium">
+          Operativo
+        </Badge>
+      );
+    },
+  },
+  {
     accessorKey: "fecha",
     header: "Fecha",
     cell: ({ row }) => {
@@ -51,7 +67,6 @@ export const getDespachoColumns = ({
     cell: ({ row }) => (
       <span className="text-xs text-muted-foreground">
         #{row.original.almacen.nombre}
-        {/* {row.original.almacen_nombre ? ` - ${row.original.almacen_nombre}` : ""} */}
       </span>
     ),
   },

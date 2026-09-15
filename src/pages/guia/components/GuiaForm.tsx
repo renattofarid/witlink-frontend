@@ -693,14 +693,16 @@ export default function GuiaForm({ mode, guia, onSuccess }: GuiaFormProps) {
         </ul>
       </ConfirmationDialog>
 
-      {/* ── Submit: solo en modo crear ──────────────────────────────────────── */}
-      {mode === "create" && (
-        <div className="flex justify-end">
-          <Button type="submit" disabled={mutation.isPending}>
-            {mutation.isPending ? "Guardando..." : "Crear guía"}
-          </Button>
-        </div>
-      )}
+      {/* ── Submit ──────────────────────────────────────────────────────────── */}
+      <div className="flex justify-end">
+        <Button type="submit" disabled={mutation.isPending}>
+          {mutation.isPending
+            ? "Guardando..."
+            : mode === "create"
+              ? "Crear guía"
+              : "Actualizar guía"}
+        </Button>
+      </div>
     </form>
   );
 }

@@ -8,6 +8,7 @@ export interface DespachoResource {
   /** Presente solo en despachos corporativos con SOT asociada. */
   sot: string | null;
   numero_sot?: string | null;
+  tipo?: "OPERATIVO" | "HERRAMIENTAS";
   fecha: string;
   almacen: AlmacenResource;
   usuario: UsuariosResource;
@@ -85,6 +86,7 @@ export interface DespachoProductoDetalleResource {
 export interface DespachoDetailResource {
   id: number;
   numero: string;
+  tipo?: "OPERATIVO" | "HERRAMIENTAS";
   fecha: string;
   almacen_id: number;
   almacen: DespachoAlmacenResource;
@@ -112,6 +114,7 @@ export interface DespachoProductoBody {
 export interface DespachoCreateBody {
   tecnico_id: number;
   sot?: string;
+  tipo?: "OPERATIVO" | "HERRAMIENTAS";
   almacen_id?: number;
   productos?: DespachoProductoBody[];
   series?: string[];

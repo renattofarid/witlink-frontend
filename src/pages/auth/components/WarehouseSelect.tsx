@@ -74,14 +74,14 @@ function getCorporateHeadquarterCode(almacen: AlmacenResource): string | null {
   const code = normalizeAlmacenText(almacen.codigo);
   const name = normalizeAlmacenText(almacen.nombre);
 
-  if (code === "CORP_LALIB" || name.includes("LA LIBERTAD")) {
-    return "CORP_LALIB";
-  }
-  if (code === "CORP_LAMB" || name.includes("LAMBAYEQUE")) {
-    return "CORP_LAMB";
-  }
-  if (code === "CORP_LIMA" || name.includes("LIMA")) {
-    return "CORP_LIMA";
+  if (code === "CORP_LALIB") return "CORP_LALIB";
+  if (code === "CORP_LAMB") return "CORP_LAMB";
+  if (code === "CORP_LIMA") return "CORP_LIMA";
+
+  if (almacen.is_corporativo || name.includes("CORPORATIVO") || code.includes("CORP")) {
+    if (name.includes("LIBERTAD") || code.includes("LALIB")) return "CORP_LALIB";
+    if (name.includes("LAMBAYEQUE") || code.includes("LAMB")) return "CORP_LAMB";
+    if (name.includes("LIMA") || code.includes("LIMA")) return "CORP_LIMA";
   }
 
   return null;

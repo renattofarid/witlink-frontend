@@ -16,6 +16,7 @@ export const despachoProductoSchema = z.object({
 
 export const despachoCreateSchema = z.object({
   tecnico_id: z.string().min(1, "Seleccione un técnico"),
+  tipo: z.enum(["OPERATIVO", "HERRAMIENTAS"]).default("OPERATIVO"),
   productos: z
     .array(despachoProductoSchema)
     .min(1, "Debe agregar al menos un producto"),
@@ -23,6 +24,7 @@ export const despachoCreateSchema = z.object({
 
 export const despachoMasivoSchema = z.object({
   tecnico_id: z.string().min(1, "Seleccione un técnico"),
+  tipo: z.enum(["OPERATIVO", "HERRAMIENTAS"]).default("OPERATIVO"),
   series_text: z.string().min(1, "Ingrese al menos una serie"),
   // Opcional: si se ingresa y la SOT aún no existe, el backend crea automáticamente
   // una liquidación en estado "pendiente" para ella.

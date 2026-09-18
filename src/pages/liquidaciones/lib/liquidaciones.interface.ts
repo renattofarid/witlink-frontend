@@ -94,10 +94,10 @@ export interface DocumentoProductoItem {
   created_at: string;
   updated_at: string;
   series: Array<{
-    serie: SerieProducto;
-    observacion: string;
-    created_at: string;
-    updated_at: string;
+    serie: SerieProducto | null;
+    observacion?: string | null;
+    created_at?: string;
+    updated_at?: string;
   }>;
 }
 
@@ -177,7 +177,7 @@ export interface ProductoLiquidacionItem {
       producto?: ProductoInfo;
       created_at: string;
       updated_at: string;
-    };
+    } | null;
     created_at: string;
     updated_at: string;
   }>;

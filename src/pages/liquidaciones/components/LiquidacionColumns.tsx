@@ -34,6 +34,21 @@ export function getLiquidacionColumns(
       ),
     },
     {
+      id: "despacho",
+      header: "Despacho",
+      cell: ({ row }) => {
+        const desp = row.original.despacho;
+        const despNum = desp?.numero || row.original.observaciones?.match(/DESP-\d+/)?.[0];
+        if (!despNum) return <span className="text-muted-foreground text-xs">—</span>;
+
+        return (
+          <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-300 dark:border-blue-900 font-mono">
+            {despNum}
+          </Badge>
+        );
+      },
+    },
+    {
       accessorKey: "nombre",
       header: "Cliente",
       cell: ({ row }) => (

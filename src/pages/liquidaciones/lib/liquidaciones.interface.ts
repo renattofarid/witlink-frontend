@@ -35,8 +35,6 @@ export interface AlmacenLiquidacion {
   es_subalmacen_corporativo?: boolean;
 }
 
-// ── SOT / Liquidación principal ───────────────────────────────────────────────
-
 export interface LiquidacionResource {
   id: number;
   sot: string;
@@ -60,20 +58,21 @@ export interface LiquidacionResource {
   estado_liquidacion: string | null;
   observaciones: string | null;
   usuario: UsuarioLiquidacion;
-  acta: ActaResource | null;
+  acta?: any;
   productos?: ProductoLiquidacionItem[];
-  /** Presente (no null) solo cuando la liquidación ya se liquidó. */
   guia_remision_pdf?: GuiaRemisionPdfInfo | null;
+  despacho?: {
+    id: number;
+    numero: string;
+    fecha?: string;
+    tipo?: string;
+  } | null;
 }
-
-// ── Guía de remisión PDF (generada al liquidar) ───────────────────────────────
 
 export interface GuiaRemisionPdfInfo {
   preview_url: string;
   file_name: string;
 }
-
-// ── Documentos / equipos retirados ────────────────────────────────────────────
 
 export interface SerieProducto {
   id: number;
@@ -84,27 +83,8 @@ export interface SerieProducto {
   emta_mac: string | null;
   mac: string | null;
   ua: string | null;
-  producto: {
-    id: number;
-    categoria_id: number;
-    sap: string;
-    nombre: string;
-    tipo: string;
-    created_at: string;
-    updated_at: string;
-    deleted_at: string | null;
-    necesita_serie: boolean;
-    necesita_mac: boolean;
-    necesita_emta_mac: boolean;
-    necesita_ua: boolean;
-    origen: string;
-  };
   created_at: string;
   updated_at: string;
-}
-
-export interface ProductoCategoria {
-  [key: string]: unknown;
 }
 
 export interface MaterialProducto {

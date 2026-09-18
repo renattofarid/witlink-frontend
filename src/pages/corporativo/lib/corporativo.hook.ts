@@ -15,7 +15,7 @@ export const useInventarioSeriesCorporativoQuery = (
   useQuery({
     queryKey: [INVENTARIO_SERIES_QUERY_KEY, "corporativo", params],
     queryFn: () => getInventarioSeriesCorporativo(params),
-    enabled: enabled && !!params.almacen_id,
+    enabled,
     refetchOnWindowFocus: true,
   });
 

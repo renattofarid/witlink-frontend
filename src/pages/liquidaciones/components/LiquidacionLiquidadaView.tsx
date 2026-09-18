@@ -12,7 +12,7 @@ import LiquidacionDespachosSotView from "./LiquidacionDespachosSotView";
 function getProductoInfo(item: ProductoLiquidacionItem): ProductoInfo | null {
   if (item.producto) return item.producto;
   if (item.productos) return item.productos;
-  return item.series[0]?.serie?.producto ?? null;
+  return item.series.find((s) => s.serie?.producto)?.serie?.producto ?? null;
 }
 
 function formatPersona(persona: {
@@ -168,9 +168,10 @@ export default function LiquidacionLiquidadaView({
             </p>
             <div className="space-y-1.5">
               {equipos.map((item) => {
-                const prod = item.series[0]?.serie?.producto;
+                const prod = getProductoInfo(item);
                 const seriesStr = item.series
-                  .map((s) => s.serie.serie)
+                  .map((s) => s.serie?.serie)
+                  .filter(Boolean)
                   .join(", ");
                 const cantidad = Number(item.cantidad);
                 return (
@@ -182,19 +183,22 @@ export default function LiquidacionLiquidadaView({
                       <p className="text-sm">
                         {prod?.nombre ?? "Desconocido"}
                       </p>
-                      {seriesStr && (
+                      {seriesStr ? (
                         <p className="text-xs text-muted-foreground font-mono">
                           Serie: {seriesStr}
                         </p>
-                      )}
-                      {item.series.map((serie) => (
-                        <p
-                          key={serie.serie.id}
-                          className="text-xs text-muted-foreground"
-                        >
-                          Almacén Claro: {serie.serie.almacen_claro ?? "Sin dato"}
-                        </p>
-                      ))}
+                      ) : null}
+                      {item.series.map((serieItem, idx) => {
+                        if (!serieItem.serie) return null;
+                        return (
+                          <p
+                            key={serieItem.serie.id ?? idx}
+                            className="text-xs text-muted-foreground"
+                          >
+                            Almacén Claro: {serieItem.serie.almacen_claro ?? "Sin dato"}
+                          </p>
+                        );
+                      })}
                     </div>
                     <span className="text-xs text-muted-foreground shrink-0 mt-0.5">
                       ({cantidad} {cantidad === 1 ? "unidad" : "unidades"})
@@ -228,13 +232,14 @@ export default function LiquidacionLiquidadaView({
                 Equipos retirados
               </p>
               <div className="space-y-1.5">
-                {equiposRetirados.map((item) => {
-                  const seriesStr = item.series
-                    .map((s) => s.serie.serie)
+                {equiposRetirados.map((item, itemIdx) => {
+                  const seriesStr = (item.series ?? [])
+                    .map((s) => s?.serie?.serie)
+                    .filter(Boolean)
                     .join(", ");
                   const cantidad = Number(item.cantidad);
                   return (
-                    <div key={item.id} className="flex items-start gap-2">
+                    <div key={item.id ?? itemIdx} className="flex items-start gap-2">
                       <span className="font-mono text-xs text-muted-foreground shrink-0 w-28 truncate mt-0.5">
                         {item.producto?.sap ?? "—"}
                       </span>
@@ -242,11 +247,11 @@ export default function LiquidacionLiquidadaView({
                         <p className="text-sm">
                           {item.producto?.nombre ?? "Desconocido"}
                         </p>
-                        {seriesStr && (
+                        {seriesStr ? (
                           <p className="text-xs text-muted-foreground font-mono">
                             Serie: {seriesStr}
                           </p>
-                        )}
+                        ) : null}
                       </div>
                       <span className="text-xs text-muted-foreground shrink-0 mt-0.5">
                         ({cantidad} {cantidad === 1 ? "unidad" : "unidades"})

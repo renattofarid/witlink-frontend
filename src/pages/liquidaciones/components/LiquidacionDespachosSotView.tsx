@@ -45,21 +45,24 @@ export default function LiquidacionDespachosSotView({ despachosSot }: Props) {
           </div>
 
           <div className="px-4 py-3 space-y-1.5">
-            {despacho.productos.map((item) => {
-              const seriesStr = item.series.map((s) => s.serie.serie).join(", ");
+            {despacho.productos.map((item, itemIdx) => {
+              const seriesStr = (item.series ?? [])
+                .map((s) => s?.serie?.serie)
+                .filter(Boolean)
+                .join(", ");
               const cantidad = Number(item.cantidad);
               return (
-                <div key={item.id} className="flex items-start gap-2">
+                <div key={item.id ?? itemIdx} className="flex items-start gap-2">
                   <span className="font-mono text-xs text-muted-foreground shrink-0 w-28 truncate mt-0.5">
                     {item.producto?.sap ?? "—"}
                   </span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm">{item.producto?.nombre ?? "Desconocido"}</p>
-                    {seriesStr && (
+                    {seriesStr ? (
                       <p className="text-xs text-muted-foreground font-mono">
                         Serie: {seriesStr}
                       </p>
-                    )}
+                    ) : null}
                   </div>
                   <span className="text-xs text-muted-foreground shrink-0 mt-0.5">
                     ({cantidad} {cantidad === 1 ? "unidad" : "unidades"})

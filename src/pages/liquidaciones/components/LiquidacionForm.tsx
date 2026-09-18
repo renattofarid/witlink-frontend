@@ -76,7 +76,9 @@ export default function LiquidacionForm({
     const cartItems: LiquidacionCartItem[] = liquidacion.productos.map(
       (item) => {
         const prod =
-          item.productos ?? item.producto ?? item.series[0]?.serie?.producto;
+          item.productos ??
+          item.producto ??
+          item.series.find((s) => s.serie?.producto)?.serie?.producto;
         return {
           tempId: `api-${item.id}`,
           detalle_id: item.id,
@@ -87,11 +89,13 @@ export default function LiquidacionForm({
           tecnico_id: item.tecnico_id,
           tecnico_nombre: item.tecnico ?? `Técnico ${item.tecnico_id}`,
           cantidad: Number(item.cantidad),
-          series: item.series.map((s) => ({
-            id: s.serie.id,
-            serie: s.serie.serie,
-            almacen_claro: s.serie.almacen_claro,
-          })),
+          series: item.series
+            .filter((s) => Boolean(s.serie))
+            .map((s) => ({
+              id: s.serie!.id,
+              serie: s.serie!.serie,
+              almacen_claro: s.serie!.almacen_claro,
+            })),
         };
       },
     );

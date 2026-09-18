@@ -86,39 +86,6 @@ export interface SerieProducto {
   created_at: string;
   updated_at: string;
 }
-
-export interface MaterialProducto {
-  id: number;
-  producto_id: number;
-  cantidad: string;
-  created_at: string;
-  updated_at: string;
-  deleted_at: string | null;
-  almacen_id: number;
-}
-
-export interface ProductoDetalle {
-  id: number;
-  sap: string;
-  nombre: string;
-  tipo: string;
-  origen: string;
-  categoria: ProductoCategoria;
-  necesita_serie: boolean;
-  necesita_mac: boolean;
-  necesita_emta_mac: boolean;
-  necesita_ua: boolean;
-  stock: number;
-  material: MaterialProducto | null;
-  series: SerieProducto[];
-  created_at: string;
-  updated_at: string;
-}
-
-export interface DocumentoProductoItem {
-  id: number;
-  producto: ProductoDetalle;
-  cantidad: string;
   created_at: string;
   updated_at: string;
   series: Array<{

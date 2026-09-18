@@ -86,6 +86,11 @@ export interface SerieProducto {
   created_at: string;
   updated_at: string;
 }
+
+export interface DocumentoProductoItem {
+  id?: number;
+  producto?: any;
+  cantidad?: string;
   created_at: string;
   updated_at: string;
   series: Array<{

@@ -136,7 +136,14 @@ export function useGuiaMutation(
       onSuccess?.();
     },
     onError: (error: any) => {
-      errorToast(error.response?.data?.message ?? "Error al guardar la guía.");
+      const data = error.response?.data;
+      let msg = typeof data?.message === "string" ? data.message : null;
+      if (!msg && data?.errors) {
+        const firstErrKey = Object.keys(data.errors)[0];
+        const firstErr = data.errors[firstErrKey];
+        msg = Array.isArray(firstErr) ? firstErr[0] : String(firstErr);
+      }
+      errorToast(msg ?? "Error al guardar la guía.");
     },
   });
 }

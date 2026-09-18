@@ -17,6 +17,12 @@ export interface DespachoResource {
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
+  liquidacion?: {
+    id: number;
+    sot: string;
+    estado_liquidacion?: string | null;
+    estado?: string;
+  } | null;
 }
 
 // ── Tipos anidados para la vista de detalle ──────────────────────────────────

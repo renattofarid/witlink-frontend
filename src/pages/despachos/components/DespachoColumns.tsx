@@ -1,7 +1,8 @@
 import type { ColumnDef } from "@tanstack/react-table";
+import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { ButtonAction } from "@/components/ButtonAction";
-import { Trash2, Edit, Eye, UserCog } from "lucide-react";
+import { Trash2, Edit, Eye, UserCog, ClipboardList } from "lucide-react";
 import ExportButtons from "@/components/ExportButtons";
 import { DespachoProductosModal } from "./DespachoProductosModal";
 import type { DespachoResource } from "../lib/despacho.interface";
@@ -11,14 +12,76 @@ interface ColumnActions {
   onEdit: (row: DespachoResource) => void;
   onView: (row: DespachoResource) => void;
   onReassign: (row: DespachoResource) => void;
+  onViewLiquidacion?: (row: DespachoResource) => void;
 }
 
-export const getDespachoColumns = ({
+function DespachoAccionesCell({
+  item,
   onDelete,
   onEdit,
   onView,
   onReassign,
-}: ColumnActions): ColumnDef<DespachoResource>[] => [
+  onViewLiquidacion,
+}: {
+  item: DespachoResource;
+  onDelete: (row: DespachoResource) => void;
+  onEdit: (row: DespachoResource) => void;
+  onView: (row: DespachoResource) => void;
+  onReassign: (row: DespachoResource) => void;
+  onViewLiquidacion?: (row: DespachoResource) => void;
+}) {
+  const navigate = useNavigate();
+  const isDeleted = !!item.deleted_at;
+  const isOperativo = (item.tipo ?? "OPERATIVO") === "OPERATIVO";
+  const sot = item.sot ?? item.numero_sot;
+
+  const handleGoToLiquidacion = () => {
+    if (onViewLiquidacion) {
+      onViewLiquidacion(item);
+    } else if (sot) {
+      navigate(`/liquidaciones/ver/${encodeURIComponent(sot)}`);
+    } else {
+      navigate(`/liquidaciones`);
+    }
+  };
+
+  return (
+    <div className="flex gap-1 items-center">
+      <ButtonAction icon={Eye} onClick={() => onView(item)} />
+      {isOperativo && (
+        <ButtonAction
+          icon={ClipboardList}
+          onClick={handleGoToLiquidacion}
+          tooltip={sot ? `Ver liquidación (SOT ${sot})` : "Ver liquidaciones"}
+        />
+      )}
+      <ButtonAction
+        icon={Edit}
+        canRender={!isDeleted}
+        onClick={() => onEdit(item)}
+        tooltip="Editar despacho"
+      />
+      <ExportButtons
+        pdfEndpoint={`/despachos/${item.id}/pdf`}
+        pdfFileName={`despacho-${item.numero ?? item.id}.pdf`}
+        variant="separate"
+      />
+      <ButtonAction
+        icon={UserCog}
+        canRender={!isDeleted}
+        onClick={() => onReassign(item)}
+        tooltip="Reasignar técnico"
+      />
+      <ButtonAction
+        icon={Trash2}
+        canRender={!isDeleted}
+        onClick={() => onDelete(item)}
+      />
+    </div>
+  );
+}
+
+export const getDespachoColumns = (actions: ColumnActions): ColumnDef<DespachoResource>[] => [
   {
     accessorKey: "numero",
     header: "Número",
@@ -27,7 +90,7 @@ export const getDespachoColumns = ({
     accessorKey: "sot",
     header: "SOT",
     cell: ({ row }) => (
-      <span className="text-xs text-muted-foreground">
+      <span className="text-xs text-muted-foreground font-mono">
         {row.original.sot ?? row.original.numero_sot ?? "-"}
       </span>
     ),
@@ -107,36 +170,6 @@ export const getDespachoColumns = ({
   {
     id: "acciones",
     header: "Acciones",
-    cell: ({ row }) => {
-      const item = row.original;
-      const isDeleted = !!item.deleted_at;
-      return (
-        <div className="flex gap-1 items-center">
-          <ButtonAction icon={Eye} onClick={() => onView(item)} />
-          <ButtonAction
-            icon={Edit}
-            canRender={!isDeleted}
-            onClick={() => onEdit(item)}
-            tooltip="Editar despacho"
-          />
-          <ExportButtons
-            pdfEndpoint={`/despachos/${item.id}/pdf`}
-            pdfFileName={`despacho-${item.numero ?? item.id}.pdf`}
-            variant="separate"
-          />
-          <ButtonAction
-            icon={UserCog}
-            canRender={!isDeleted}
-            onClick={() => onReassign(item)}
-            tooltip="Reasignar técnico"
-          />
-          <ButtonAction
-            icon={Trash2}
-            canRender={!isDeleted}
-            onClick={() => onDelete(item)}
-          />
-        </div>
-      );
-    },
+    cell: ({ row }) => <DespachoAccionesCell item={row.original} {...actions} />,
   },
 ];

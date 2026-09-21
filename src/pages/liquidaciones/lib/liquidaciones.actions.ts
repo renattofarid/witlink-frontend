@@ -59,6 +59,13 @@ export interface ImportarUbicacionesClaroResponse {
   mensaje: string;
 }
 
+export interface ImportarAdpResponsablesResponse {
+  total: number;
+  creados: number;
+  actualizados: number;
+  mensaje: string;
+}
+
 export const descargarPlantillaUbicacionesClaro = async (): Promise<ExcelResponse> => {
   const { data } = await api.get<ExcelResponse>(
     `${LiquidacionesComplete.ENDPOINT}/ubicaciones-claro/plantilla`,
@@ -76,6 +83,27 @@ export const importarUbicacionesClaro = async (
 
   const { data } = await api.post<ImportarUbicacionesClaroResponse>(
     `${LiquidacionesComplete.ENDPOINT}/ubicaciones-claro/importar`,
+    formData,
+    { headers: { "Content-Type": "multipart/form-data" }, timeout: 180_000 },
+  );
+  return data;
+};
+
+export const descargarPlantillaAdpResponsables = async (): Promise<ExcelResponse> => {
+  const { data } = await api.get<ExcelResponse>(
+    `${LiquidacionesComplete.ENDPOINT}/adp-responsables/plantilla`,
+  );
+  return data;
+};
+
+export const importarAdpResponsables = async (
+  archivo: File,
+): Promise<ImportarAdpResponsablesResponse> => {
+  const formData = new FormData();
+  formData.append("archivo", archivo);
+
+  const { data } = await api.post<ImportarAdpResponsablesResponse>(
+    `${LiquidacionesComplete.ENDPOINT}/adp-responsables/importar`,
     formData,
     { headers: { "Content-Type": "multipart/form-data" }, timeout: 180_000 },
   );

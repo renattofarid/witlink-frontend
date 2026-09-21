@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTabParams } from "@/hooks/useTabParams";
 import { useNavigate } from "react-router-dom";
-import { MapPinned, Plus, RefreshCw, Upload } from "lucide-react";
+import { MapPinned, Plus, RefreshCw, Upload, UserCheck } from "lucide-react";
 import PageWrapper from "@/components/PageWrapper";
 import TitleComponent from "@/components/TitleComponent";
 import ActionsWrapper from "@/components/ActionsWrapper";
@@ -20,6 +20,7 @@ import ImportarActasDialog from "../components/ImportarActasDialog";
 import ActualizarAtendidasDialog from "../components/ActualizarAtendidasDialog";
 import LiquidacionesExportButtons from "../components/LiquidacionesExportButtons";
 import ImportarUbicacionesClaroDialog from "../components/ImportarUbicacionesClaroDialog";
+import ImportarAdpResponsablesDialog from "../components/ImportarAdpResponsablesDialog";
 import { EditarObservacionModal } from "../components/EditarObservacionModal";
 import type { LiquidacionResource } from "../lib/liquidaciones.interface";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
@@ -32,6 +33,7 @@ export default function LiquidacionesPage() {
   const [actasDialogOpen, setActasDialogOpen] = useState(false);
   const [atendidasDialogOpen, setAtendidasDialogOpen] = useState(false);
   const [ubicacionesClaroDialogOpen, setUbicacionesClaroDialogOpen] = useState(false);
+  const [adpDialogOpen, setAdpDialogOpen] = useState(false);
   const [selectedRowForObservaciones, setSelectedRowForObservaciones] =
     useState<LiquidacionResource | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
@@ -138,6 +140,15 @@ export default function LiquidacionesPage() {
           <Button
             variant="outline"
             size="sm"
+            onClick={() => setAdpDialogOpen(true)}
+            title="Importar Excel con asignación de ADP a su Responsable"
+          >
+            <UserCheck className="size-4 mr-1 text-emerald-600 dark:text-emerald-400" />
+            Cargar ADP / Responsables
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => setUbicacionesClaroDialogOpen(true)}
             title="Importar Excel con ubicación de series (P4G9)"
           >
@@ -215,6 +226,11 @@ export default function LiquidacionesPage() {
       <ImportarUbicacionesClaroDialog
         open={ubicacionesClaroDialogOpen}
         onClose={() => setUbicacionesClaroDialogOpen(false)}
+      />
+
+      <ImportarAdpResponsablesDialog
+        open={adpDialogOpen}
+        onClose={() => setAdpDialogOpen(false)}
       />
 
       <GeneralModal

@@ -27,7 +27,6 @@ import { useAuthStore } from "@/pages/auth/lib/auth.store";
 
 export default function LiquidacionesPage() {
   const navigate = useNavigate();
-  const almacen_id = useAuthStore((s) => s.almacen_id);
   const isCorporativo = useAuthStore((s) => !!s.user?.is_corporativo);
 
   const [actasDialogOpen, setActasDialogOpen] = useState(false);
@@ -48,20 +47,16 @@ export default function LiquidacionesPage() {
       estado: "",
       estado_liquidacion: "",
       sots: "",
-      ...(almacen_id ? { almacen_id: String(almacen_id) } : {}),
+      almacen_id: "",
     },
   );
 
   useEffect(() => {
-    if (almacen_id) {
-      setParams((prev) => {
-        if (prev.almacen_id !== String(almacen_id)) {
-          return { ...prev, almacen_id: String(almacen_id), page: "1" };
-        }
-        return prev;
-      });
-    }
-  }, [almacen_id, setParams]);
+    setParams((prev) => {
+      if (!prev.almacen_id) return prev;
+      return { ...prev, almacen_id: "", page: "1" };
+    });
+  }, [setParams]);
 
   useEffect(() => {
     if (isCorporativo && params.estado) {

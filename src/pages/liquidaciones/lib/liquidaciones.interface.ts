@@ -57,6 +57,8 @@ export interface LiquidacionResource {
   tecnico2: TecnicoPersona | null;
   estado_liquidacion: string | null;
   observaciones: string | null;
+  adp?: string | null;
+  responsable?: string | null;
   usuario: UsuarioLiquidacion;
   acta?: any;
   productos?: ProductoLiquidacionItem[];

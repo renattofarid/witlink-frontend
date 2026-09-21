@@ -86,6 +86,35 @@ export function getLiquidacionColumns(
       },
     },
     {
+      accessorKey: "tipo_trabajo",
+      header: "Tipo trabajo",
+      cell: ({ row }) => (
+        <span className="text-xs">{row.original.tipo_trabajo || "—"}</span>
+      ),
+    },
+    {
+      accessorKey: "adp",
+      header: "ADP",
+      cell: ({ row }) => (
+        <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
+          {row.original.adp || "—"}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "responsable",
+      header: "Responsable",
+      cell: ({ row }) => {
+        const resp = row.original.responsable;
+        if (!resp) return <span className="text-muted-foreground text-xs">—</span>;
+        return (
+          <Badge variant="outline" className="text-xs bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900 font-medium">
+            {resp}
+          </Badge>
+        );
+      },
+    },
+    {
       id: "tecnico",
       header: "Técnico",
       cell: ({ row }) => {
@@ -114,13 +143,6 @@ export function getLiquidacionColumns(
           </div>
         );
       },
-    },
-    {
-      accessorKey: "tipo_trabajo",
-      header: "Tipo trabajo",
-      cell: ({ row }) => (
-        <span className="text-xs">{row.original.tipo_trabajo || "—"}</span>
-      ),
     },
     {
       accessorKey: "observaciones",

@@ -135,16 +135,15 @@ export default function LiquidacionesPage() {
       >
         <ActionsWrapper>
           <LiquidacionesExportButtons filters={params} />
-          {isCorporativo && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setUbicacionesClaroDialogOpen(true)}
-            >
-              <MapPinned className="size-4 mr-1" />
-              Ubicaciones Claro
-            </Button>
-          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setUbicacionesClaroDialogOpen(true)}
+            title="Importar Excel con ubicación de series (P4G9)"
+          >
+            <MapPinned className="size-4 mr-1 text-primary" />
+            Subir Excel Ubicaciones
+          </Button>
           <Button
             variant="outline"
             size="sm"

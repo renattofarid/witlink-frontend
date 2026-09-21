@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Download, FileSpreadsheet, Upload, UserCheck, X } from "lucide-react";
+import { Download, FileSpreadsheet, Upload, X } from "lucide-react";
 import { GeneralModal } from "@/components/GeneralModal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

@@ -110,8 +110,8 @@ export default function ImportarUbicacionesClaroDialog({ open, onClose }: Props)
     <GeneralModal
       open={open}
       onClose={handleClose}
-      title="Ubicaciones Claro"
-      subtitle="Carga la ubicaci&oacute;n real de equipos seriados."
+      title="Importar Excel de Ubicaciones"
+      subtitle="Carga la ubicación de equipos seriados desde reportes como P4G9.xlsx"
       icon="MapPinned"
       size="2xl"
       childrenFooter={

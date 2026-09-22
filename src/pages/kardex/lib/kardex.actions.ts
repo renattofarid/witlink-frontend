@@ -12,7 +12,7 @@ function buildKardexBody(params: Record<string, string>) {
 
   if (page) body.page = Number(page);
   if (per_page) body.per_page = Number(per_page);
-  if (almacen_id) body.almacen_id = almacen_id.split(",").filter(Boolean);
+  if (almacen_id) body.almacen_id = Number(almacen_id);
   if (productos) body.productos = productos.split(",").filter(Boolean);
 
   return body;

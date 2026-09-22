@@ -37,6 +37,7 @@ import { SITUACION } from "@/pages/serie/components/SerieColumns";
 import InventarioSeriesFilters from "../components/InventarioSeriesFilters";
 import InventarioMaterialesFilters from "../components/InventarioMaterialesFilters";
 import InventarioSerieHistorialSheet from "../components/InventarioSerieHistorialSheet";
+import InventarioMaterialHistorialSheet from "../components/InventarioMaterialHistorialSheet";
 import { DevolverClaroDialog } from "../components/DevolverClaroDialog";
 import type {
   InventarioMaterialResource,
@@ -108,6 +109,9 @@ export default function InventarioPage() {
   const [historialOpen, setHistorialOpen] = useState(false);
   const [historialSerie, setHistorialSerie] =
     useState<InventarioSerieResource | null>(null);
+  const [historialMaterialOpen, setHistorialMaterialOpen] = useState(false);
+  const [historialMaterial, setHistorialMaterial] =
+    useState<InventarioMaterialResource | null>(null);
   const [selectedSerieClaro, setSelectedSerieClaro] =
     useState<InventarioSerieResource | null>(null);
   const [devolverClaroOpen, setDevolverClaroOpen] = useState(false);
@@ -331,6 +335,11 @@ export default function InventarioPage() {
   const handleHistorial = (row: InventarioSerieResource) => {
     setHistorialSerie(row);
     setHistorialOpen(true);
+  };
+
+  const handleHistorialMaterial = (row: InventarioMaterialResource) => {
+    setHistorialMaterial(row);
+    setHistorialMaterialOpen(true);
   };
 
   const handleDevolverClaro = (row: InventarioSerieResource) => {
@@ -620,6 +629,7 @@ export default function InventarioPage() {
     isClaro,
     onReservarSot: handleReservarMaterial,
     onVerReservas: handleVerReservasMaterial,
+    onVerHistorial: handleHistorialMaterial,
   });
 
   const handleSeriesPageChange = (page: number) =>
@@ -1042,6 +1052,26 @@ export default function InventarioPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <InventarioSerieHistorialSheet
+        open={historialOpen}
+        onClose={() => setHistorialOpen(false)}
+        serie={historialSerie}
+      />
+
+      <InventarioMaterialHistorialSheet
+        open={historialMaterialOpen}
+        onClose={() => setHistorialMaterialOpen(false)}
+        material={
+          historialMaterial
+            ? {
+                producto_id: historialMaterial.producto_id,
+                sap: historialMaterial.sap ?? "",
+                producto: historialMaterial.producto ?? "",
+                almacen_id: almacen_id ? String(almacen_id) : undefined,
+              }
+            : null
+        }
+      />
     </PageWrapper>
   );
 }

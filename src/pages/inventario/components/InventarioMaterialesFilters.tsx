@@ -40,6 +40,8 @@ export default function InventarioMaterialesFilters({
     [user, almacenesAll],
   );
 
+  const isClaro = user?.tipo_usuario?.nombre === "Claro";
+
   const handleExport = async () => {
     const res = await exportarInventarioMaterialesExcel(params);
     downloadExcelFromBase64(res);
@@ -47,19 +49,21 @@ export default function InventarioMaterialesFilters({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <FilterWrapper>
-        <SearchableSelect
-          placeholder="Almacenes"
-          options={almacenOptions}
-          value={params.almacen_id || "all"}
-          onChange={(v) =>
-            setParams((prev) => ({
-              ...prev,
-              almacen_id: v === "all" ? "" : v,
-              page: "1",
-            }))
-          }
-        />
+      <FilterWrapper maxVisible={isClaro ? 2 : 4}>
+        {!isClaro && (
+          <SearchableSelect
+            placeholder="Almacenes"
+            options={almacenOptions}
+            value={params.almacen_id || "all"}
+            onChange={(v) =>
+              setParams((prev) => ({
+                ...prev,
+                almacen_id: v === "all" ? "" : v,
+                page: "1",
+              }))
+            }
+          />
+        )}
         <SearchInput
           value={params.search ?? ""}
           onChange={(v) =>
@@ -72,18 +76,20 @@ export default function InventarioMaterialesFilters({
           onChange={(v) => setParams((prev) => ({ ...prev, sot: v, page: "1" }))}
           placeholder="Buscar por SOT..."
         />
-        <SearchableSelect
-          placeholder="Filtrar Retirados"
-          options={BOOL_OPTIONS}
-          value={params.retirados || "all"}
-          onChange={(v) =>
-            setParams((prev) => ({
-              ...prev,
-              retirados: v === "all" ? "" : v,
-              page: "1",
-            }))
-          }
-        />
+        {!isClaro && (
+          <SearchableSelect
+            placeholder="Filtrar Retirados"
+            options={BOOL_OPTIONS}
+            value={params.retirados || "all"}
+            onChange={(v) =>
+              setParams((prev) => ({
+                ...prev,
+                retirados: v === "all" ? "" : v,
+                page: "1",
+              }))
+            }
+          />
+        )}
       </FilterWrapper>
 
       <ExportExcelButton

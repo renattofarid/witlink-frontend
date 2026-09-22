@@ -158,6 +158,8 @@ export function TeamSwitcher() {
   const almacen_id = useAuthStore((s) => s.almacen_id);
   const setAlmacenId = useAuthStore((s) => s.setAlmacenId);
   const authenticate = useAuthStore((s) => s.authenticate);
+  const user = useAuthStore((s) => s.user);
+  const isClaro = user?.tipo_usuario?.nombre === "Claro";
   const [switching, setSwitching] = useState<number | null>(null);
   const queryClient = useQueryClient();
 
@@ -216,10 +218,10 @@ export function TeamSwitcher() {
 
     return {
       headquarterList: Array.from(hqsMap.values()),
-      regionalesList: regionales,
+      regionalesList: isClaro ? [] : regionales,
       totalDisponibles: almacenesAll.length,
     };
-  }, [almacenesAll]);
+  }, [almacenesAll, isClaro]);
 
   const handleSelect = async (id: number) => {
     if (id === almacen_id || switching !== null) return;

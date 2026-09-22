@@ -93,6 +93,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const navItems = useMemo(() => {
     if (!user) return [];
 
+    const isClaro = user?.tipo_usuario?.nombre === "Claro";
+
     const fixedItem = {
       title: "Inicio",
       url: "/inicio",
@@ -112,7 +114,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         })),
       }));
 
-    const devItems = import.meta.env.DEV
+    const devItems = isClaro ? [] : (import.meta.env.DEV
       ? [
           {
             title: MenuComplete.MODEL.plural ?? MenuComplete.MODEL.name,
@@ -126,9 +128,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             url: MenuComplete.ABSOLUTE_ROUTE,
             icon: MenuComplete.ICON,
           },
-        ];
+        ]);
 
-    return [fixedItem, ...groupItems, ...devItems];
+    return [...(isClaro ? [] : [fixedItem]), ...groupItems, ...devItems];
   }, [user]);
 
   if (!user) return null;

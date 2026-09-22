@@ -23,11 +23,16 @@ export async function login(body: LoginBody): Promise<AuthResponse> {
   try {
     const { data } = await api.post<AuthResponse>("/auth/login", body);
 
-    const { setToken, setUser } = useAuthStore.getState();
+    const { setToken, setUser, setAlmacenId } = useAuthStore.getState();
 
-    // Limpiar almacen_id anterior para forzar la selección de almacén tras cada login
-    localStorage.removeItem("almacen_id");
-    useAuthStore.setState({ almacen_id: null });
+    const defaultAlmacenId = data.data.usuario.almacen_id;
+    if (defaultAlmacenId) {
+      setAlmacenId(defaultAlmacenId);
+    } else {
+      // Limpiar almacen_id anterior para forzar la selección de almacén tras cada login si no tiene por defecto
+      localStorage.removeItem("almacen_id");
+      useAuthStore.setState({ almacen_id: null });
+    }
 
     setToken(data.data.token);
     setUser(data.data.usuario);
@@ -44,10 +49,13 @@ export async function login(body: LoginBody): Promise<AuthResponse> {
 export async function authenticate(): Promise<AuthenticateResponse> {
   try {
     const { data } = await api.get<AuthenticateResponse>("/auth/me");
-    const { setUser, setAlmacenId } = useAuthStore.getState();
+    const { setUser, setAlmacenId, almacen_id: currentAlmacenId } = useAuthStore.getState();
 
     setUser(data.data);
-    setAlmacenId(data.data.almacen_id);
+    
+    if (!currentAlmacenId && data.data.almacen_id) {
+      setAlmacenId(data.data.almacen_id);
+    }
 
     await loadAllowedRoutes(data.data.tipo_usuario.id);
 

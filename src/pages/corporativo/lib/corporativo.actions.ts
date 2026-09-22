@@ -9,17 +9,39 @@ import type {
   ReservaSotMasivoResponse,
 } from "./corporativo.interface";
 
+function buildSeriesBody(params: Record<string, string>) {
+  const { almacen_id, productos, page, per_page, ...rest } = params;
+  const body: Record<string, unknown> = {};
+
+  for (const [key, value] of Object.entries(rest)) {
+    if (value !== "") body[key] = value;
+  }
+
+  if (page) body.page = Number(page);
+  if (per_page) body.per_page = Number(per_page);
+  if (almacen_id) body.almacen_id = almacen_id.split(",").filter(Boolean);
+  if (productos) body.productos = productos.split(",").filter(Boolean);
+
+  return body;
+}
+
 export const getInventarioSeriesCorporativo = async (
   params: Record<string, string>,
 ): Promise<CorporativoInventarioSerieResponse> => {
-  const { data } = await api.get("/corporativo/inventarios/series", { params });
+  const { data } = await api.post(
+    "/corporativo/inventarios/series",
+    buildSeriesBody(params),
+  );
   return data;
 };
 
 export const getInventarioMaterialesCorporativo = async (
   params: Record<string, string>,
 ): Promise<CorporativoInventarioMaterialResponse> => {
-  const { data } = await api.get("/corporativo/inventarios/materiales", { params });
+  const { data } = await api.post(
+    "/corporativo/inventarios/materiales",
+    buildSeriesBody(params),
+  );
   return data;
 };
 

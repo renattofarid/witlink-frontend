@@ -24,6 +24,7 @@ interface ColumnActions {
   onDevolverClaro: (row: InventarioSerieResource) => void;
   onStatusSot: (row: InventarioSerieResource) => void;
   isCorporativo?: boolean;
+  isClaro?: boolean;
   onReservarSot?: (row: InventarioSerieResource) => void;
   onLiberarSot?: (row: InventarioSerieResource) => void;
   onCambiarUbicacion?: (row: InventarioSerieResource) => void;
@@ -43,6 +44,7 @@ export const getInventarioSeriesColumns = ({
   onCambiarUbicacion,
   onEliminarDuplicado,
   enableSeleccionMasiva,
+  isClaro,
 }: ColumnActions): ColumnDef<InventarioSerieResource>[] => [
   ...(enableSeleccionMasiva
     ? [
@@ -172,13 +174,17 @@ export const getInventarioSeriesColumns = ({
     header: "Ubicación",
     cell: ({ row }) => <span>{row.original.ubicacion ?? "Sin Ubicación"}</span>,
   },
-  {
-    accessorKey: "tecnico",
-    header: "Técnico",
-    cell: ({ row }) => (
-      <span className="text-xs">{row.original.tecnico ?? "—"}</span>
-    ),
-  },
+  ...(isClaro
+    ? []
+    : [
+        {
+          accessorKey: "tecnico",
+          header: "Técnico",
+          cell: ({ row }) => (
+            <span className="text-xs">{row.original.tecnico ?? "—"}</span>
+          ),
+        } satisfies ColumnDef<InventarioSerieResource>,
+      ]),
   ...(isCorporativo
     ? [
         {
@@ -235,73 +241,77 @@ export const getInventarioSeriesColumns = ({
       </p>
     ),
   },
-  {
-    id: "acciones",
-    header: "Acciones",
-    cell: ({ row }) => (
-      <div className="flex gap-1">
-        <ButtonAction
-          icon={History}
-          tooltip="Ver historial"
-          canRender
-          onClick={() => onHistorial(row.original)}
-        />
-        <ButtonAction
-          icon={Undo2}
-          color="red"
-          tooltip="Devolver serie"
-          canRender={row.original.situacion_label === SITUACION.DESPACHADO}
-          onClick={() => onDevolver(row.original)}
-        />
-        <ButtonAction
-          icon={PackageCheck}
-          color="indigo"
-          tooltip="Devolver a Claro"
-          canRender={
-            row.original.situacion_label === SITUACION.DISPONIBLE ||
-            row.original.situacion_label === SITUACION.RETIRADO
-          }
-          onClick={() => onDevolverClaro(row.original)}
-        />
-        <ButtonAction
-          icon={Lock}
-          color="amber"
-          tooltip="Reservar por SOT"
-          canRender={
-            !!isCorporativo &&
-            !!onReservarSot &&
-            !row.original.reserva_sot &&
-            // La reserva de SOT solo aplica a series Disponibles.
-            row.original.situacion_label === SITUACION.DISPONIBLE
-          }
-          onClick={() => onReservarSot?.(row.original)}
-        />
-        <ButtonAction
-          icon={Unlock}
-          variant="default"
-          color="amber"
-          tooltip="Liberar reserva"
-          canRender={
-            !!isCorporativo && !!onLiberarSot && !!row.original.reserva_sot
-          }
-          onClick={() => onLiberarSot?.(row.original)}
-        />
-        <ButtonAction
-          icon={MapPinned}
-          tooltip="Cambiar ubicación"
-          canRender={!!isCorporativo && !!onCambiarUbicacion}
-          onClick={() => onCambiarUbicacion?.(row.original)}
-        />
-        <ButtonAction
-          icon={Trash2}
-          color="red"
-          tooltip="Eliminar registro duplicado"
-          canRender={
-            !!onEliminarDuplicado && Number(row.original.duplicados ?? 0) > 1
-          }
-          onClick={() => onEliminarDuplicado?.(row.original)}
-        />
-      </div>
-    ),
-  },
+  ...(isClaro
+    ? []
+    : [
+        {
+          id: "acciones",
+          header: "Acciones",
+          cell: ({ row }) => (
+            <div className="flex gap-1">
+              <ButtonAction
+                icon={History}
+                tooltip="Ver historial"
+                canRender
+                onClick={() => onHistorial(row.original)}
+              />
+              <ButtonAction
+                icon={Undo2}
+                color="red"
+                tooltip="Devolver serie"
+                canRender={row.original.situacion_label === SITUACION.DESPACHADO}
+                onClick={() => onDevolver(row.original)}
+              />
+              <ButtonAction
+                icon={PackageCheck}
+                color="indigo"
+                tooltip="Devolver a Claro"
+                canRender={
+                  row.original.situacion_label === SITUACION.DISPONIBLE ||
+                  row.original.situacion_label === SITUACION.RETIRADO
+                }
+                onClick={() => onDevolverClaro(row.original)}
+              />
+              <ButtonAction
+                icon={Lock}
+                color="amber"
+                tooltip="Reservar por SOT"
+                canRender={
+                  !!isCorporativo &&
+                  !!onReservarSot &&
+                  !row.original.reserva_sot &&
+                  // La reserva de SOT solo aplica a series Disponibles.
+                  row.original.situacion_label === SITUACION.DISPONIBLE
+                }
+                onClick={() => onReservarSot?.(row.original)}
+              />
+              <ButtonAction
+                icon={Unlock}
+                variant="default"
+                color="amber"
+                tooltip="Liberar reserva"
+                canRender={
+                  !!isCorporativo && !!onLiberarSot && !!row.original.reserva_sot
+                }
+                onClick={() => onLiberarSot?.(row.original)}
+              />
+              <ButtonAction
+                icon={MapPinned}
+                tooltip="Cambiar ubicación"
+                canRender={!!isCorporativo && !!onCambiarUbicacion}
+                onClick={() => onCambiarUbicacion?.(row.original)}
+              />
+              <ButtonAction
+                icon={Trash2}
+                color="red"
+                tooltip="Eliminar registro duplicado"
+                canRender={
+                  !!onEliminarDuplicado && Number(row.original.duplicados ?? 0) > 1
+                }
+                onClick={() => onEliminarDuplicado?.(row.original)}
+              />
+            </div>
+          ),
+        } satisfies ColumnDef<InventarioSerieResource>,
+      ]),
 ];

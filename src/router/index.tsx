@@ -93,7 +93,7 @@ import { SotRemisionComplete } from "@/pages/sots-remision/lib/sot-remision.cons
 import SotsRemisionPage from "@/pages/sots-remision/pages/SotsRemisionPage";
 
 function ProtectedRoute({ children }: { children: JSX.Element }) {
-  const { token, allowedRoutes, almacen_id } = useAuthStore();
+  const { token, allowedRoutes, almacen_id, user } = useAuthStore();
   const location = useLocation();
 
   if (!token) {

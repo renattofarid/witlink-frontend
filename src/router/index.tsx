@@ -104,9 +104,12 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
     return <Navigate to="/seleccionar-almacen" replace />;
   }
 
+  const isClaro = user?.tipo_usuario?.nombre === "Claro";
+  const homeRoute = isClaro ? "/inventario" : "/inicio";
+
   if (ENABLE_PERMISSION_VALIDATION) {
     const publicPaths = [
-      "/inicio",
+      homeRoute,
       "/",
       ...(import.meta.env.DEV
         ? [MenuComplete.ABSOLUTE_ROUTE]
@@ -119,7 +122,7 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
         (r) => location.pathname === r || location.pathname.startsWith(r + "/"),
       );
     if (!hasAccess) {
-      return <Navigate to="/inicio" replace />;
+      return <Navigate to={homeRoute} replace />;
     }
   }
 
@@ -127,7 +130,11 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
 }
 
 export default function AppRoutes() {
-  const { token, almacen_id } = useAuthStore();
+  const { token, almacen_id, user } = useAuthStore();
+  
+  const isClaro = user?.tipo_usuario?.nombre === "Claro";
+  const homeRoute = isClaro ? "/inventario" : "/inicio";
+
   return (
     <Routes>
       {/* Ruta pública */}
@@ -136,7 +143,7 @@ export default function AppRoutes() {
         element={
           token ? (
             almacen_id ? (
-              <Navigate to="/inicio" replace />
+              <Navigate to={homeRoute} replace />
             ) : (
               <Navigate to="/seleccionar-almacen" replace />
             )
@@ -153,14 +160,14 @@ export default function AppRoutes() {
           !token ? (
             <Navigate to="/login" replace />
           ) : almacen_id ? (
-            <Navigate to="/inicio" replace />
+            <Navigate to={homeRoute} replace />
           ) : (
             <WarehouseSelectPage />
           )
         }
       />
 
-      <Route path="/" element={<Navigate to="/inicio" />} />
+      <Route path="/" element={<Navigate to={homeRoute} />} />
 
       {/* Rutas protegidas */}
       <Route

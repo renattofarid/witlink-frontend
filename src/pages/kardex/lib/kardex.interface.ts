@@ -15,6 +15,7 @@ export interface KardexResource {
   pedido: string;
   stock_anterior: string;
   stock_actual: string;
+  usuario?: string;
 }
 
 export type KardexResponse = PaginationResponse<KardexResource>;

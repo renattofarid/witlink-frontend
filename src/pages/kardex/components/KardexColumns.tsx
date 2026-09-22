@@ -99,6 +99,18 @@ export const getKardexColumns = (): ColumnDef<KardexResource>[] => [
     },
   },
   {
+    accessorKey: "usuario",
+    header: "Usuario",
+    cell: ({ getValue }) => {
+      const usuario = getValue() as string | null | undefined;
+      return usuario && usuario.trim() !== "" ? (
+        <span className="text-xs uppercase">{usuario}</span>
+      ) : (
+        "-"
+      );
+    },
+  },
+  {
     accessorKey: "serie",
     header: "Serie",
     cell: ({ getValue }) => {

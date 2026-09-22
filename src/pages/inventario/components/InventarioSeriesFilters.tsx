@@ -46,6 +46,8 @@ export default function InventarioSeriesFilters({
     [user, almacenesAll],
   );
 
+  const isClaro = user?.tipo_usuario?.nombre === "Claro";
+
   const productosSeleccionados = params.productos
     ? params.productos.split(",").filter(Boolean)
     : [];
@@ -108,19 +110,21 @@ export default function InventarioSeriesFilters({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <FilterWrapper maxVisible={5} activeExtraCount={activeExtraCount}>
-        <SearchableSelect
-          placeholder="Almacenes"
-          options={almacenOptions}
-          value={params.almacen_id || "all"}
-          onChange={(v) =>
-            setParams((prev) => ({
-              ...prev,
-              almacen_id: v === "all" ? "" : v,
-              page: "1",
-            }))
-          }
-        />
+      <FilterWrapper maxVisible={isClaro ? 3 : 5} activeExtraCount={isClaro ? 0 : activeExtraCount}>
+        {!isClaro && (
+          <SearchableSelect
+            placeholder="Almacenes"
+            options={almacenOptions}
+            value={params.almacen_id || "all"}
+            onChange={(v) =>
+              setParams((prev) => ({
+                ...prev,
+                almacen_id: v === "all" ? "" : v,
+                page: "1",
+              }))
+            }
+          />
+        )}
         <SearchInput
           value={params.serie ?? ""}
           onChange={(v) =>
@@ -135,22 +139,24 @@ export default function InventarioSeriesFilters({
           }
           placeholder="Filtrar por SOT..."
         />
-        <SearchableSelect
-          placeholder="Situación"
-          options={[
-            { value: "all", label: "Todas las situaciones" },
-            { value: "DISPONIBLE", label: "DISPONIBLE" },
-            { value: "DESPACHADO", label: "DESPACHADO" },
-            { value: "INSTALADO", label: "INSTALADO" },
-            { value: "RETIRADO", label: "RETIRADO" },
-            { value: "DEVUELTO", label: "DEVUELTO" },
-            { value: "DEVUELTO A CLARO", label: "DEVUELTO A CLARO" },
-            { value: "PENDIENTE", label: "PENDIENTE" },
-            { value: "TRASLADO", label: "TRASLADO" },
-          ]}
-          value={params.situacion || "all"}
-          onChange={(v) => set("situacion", v)}
-        />
+        {!isClaro && (
+          <SearchableSelect
+            placeholder="Situación"
+            options={[
+              { value: "all", label: "Todas las situaciones" },
+              { value: "DISPONIBLE", label: "DISPONIBLE" },
+              { value: "DESPACHADO", label: "DESPACHADO" },
+              { value: "INSTALADO", label: "INSTALADO" },
+              { value: "RETIRADO", label: "RETIRADO" },
+              { value: "DEVUELTO", label: "DEVUELTO" },
+              { value: "DEVUELTO A CLARO", label: "DEVUELTO A CLARO" },
+              { value: "PENDIENTE", label: "PENDIENTE" },
+              { value: "TRASLADO", label: "TRASLADO" },
+            ]}
+            value={params.situacion || "all"}
+            onChange={(v) => set("situacion", v)}
+          />
+        )}
         <SearchInput
           value={params.producto ?? ""}
           onChange={(v) =>
@@ -158,66 +164,70 @@ export default function InventarioSeriesFilters({
           }
           placeholder="Buscar producto o SAP..."
         />
-        <SearchableSelect
-          placeholder="Filtrar Reservas"
-          options={[
-            { value: "all", label: "Todas" },
-            { value: "true", label: "Reservadas" },
-            { value: "false", label: "Libres (Sin reserva)" },
-          ]}
-          value={params.reservados || "all"}
-          onChange={(v) => set("reservados", v)}
-        />
-        <SearchableSelect
-          placeholder="Filtrar Retirados"
-          options={[
-            { value: "all", label: "Todos" },
-            { value: "true", label: "Retirados" },
-            { value: "false", label: "No retirados" },
-          ]}
-          value={params.retirados || "all"}
-          onChange={(v) => set("retirados", v)}
-        />
-        <SearchableSelect
-          placeholder="Devueltos"
-          options={[
-            { value: "all", label: "Todos" },
-            { value: "true", label: "Devueltos" },
-            { value: "false", label: "No devueltos" },
-          ]}
-          value={params.devuelto || "all"}
-          onChange={(v) => set("devuelto", v)}
-        />
-        <SearchableSelect
-          placeholder="Cliente"
-          options={[
-            { value: "all", label: "Todos" },
-            { value: "true", label: "Cliente" },
-            { value: "false", label: "Sin cliente" },
-          ]}
-          value={params.cliente || "all"}
-          onChange={(v) => set("cliente", v)}
-        />
-        <SearchableSelect
-          placeholder="Externos"
-          options={[
-            { value: "all", label: "Todos" },
-            { value: "true", label: "Externos" },
-            { value: "false", label: "No externos" },
-          ]}
-          value={params.externos || "all"}
-          onChange={(v) => set("externos", v)}
-        />
-        <SearchableSelect
-          placeholder="Técnicos"
-          options={[
-            { value: "all", label: "Todos" },
-            { value: "true", label: "Técnicos" },
-            { value: "false", label: "No técnicos" },
-          ]}
-          value={params.tecnicos || "all"}
-          onChange={(v) => set("tecnicos", v)}
-        />
+        {!isClaro && (
+          <>
+            <SearchableSelect
+              placeholder="Filtrar Reservas"
+              options={[
+                { value: "all", label: "Todas" },
+                { value: "true", label: "Reservadas" },
+                { value: "false", label: "Libres (Sin reserva)" },
+              ]}
+              value={params.reservados || "all"}
+              onChange={(v) => set("reservados", v)}
+            />
+            <SearchableSelect
+              placeholder="Filtrar Retirados"
+              options={[
+                { value: "all", label: "Todos" },
+                { value: "true", label: "Retirados" },
+                { value: "false", label: "No retirados" },
+              ]}
+              value={params.retirados || "all"}
+              onChange={(v) => set("retirados", v)}
+            />
+            <SearchableSelect
+              placeholder="Devueltos"
+              options={[
+                { value: "all", label: "Todos" },
+                { value: "true", label: "Devueltos" },
+                { value: "false", label: "No devueltos" },
+              ]}
+              value={params.devuelto || "all"}
+              onChange={(v) => set("devuelto", v)}
+            />
+            <SearchableSelect
+              placeholder="Cliente"
+              options={[
+                { value: "all", label: "Todos" },
+                { value: "true", label: "Cliente" },
+                { value: "false", label: "Sin cliente" },
+              ]}
+              value={params.cliente || "all"}
+              onChange={(v) => set("cliente", v)}
+            />
+            <SearchableSelect
+              placeholder="Externos"
+              options={[
+                { value: "all", label: "Todos" },
+                { value: "true", label: "Externos" },
+                { value: "false", label: "No externos" },
+              ]}
+              value={params.externos || "all"}
+              onChange={(v) => set("externos", v)}
+            />
+            <SearchableSelect
+              placeholder="Técnicos"
+              options={[
+                { value: "all", label: "Todos" },
+                { value: "true", label: "Técnicos" },
+                { value: "false", label: "No técnicos" },
+              ]}
+              value={params.tecnicos || "all"}
+              onChange={(v) => set("tecnicos", v)}
+            />
+          </>
+        )}
       </FilterWrapper>
 
       <div className="flex items-center gap-1">

@@ -86,6 +86,7 @@ const SITUACIONES_UBICACION = [
 export default function InventarioPage() {
   const { almacen_id, user } = useAuthStore();
   const isCorporativo = !!user?.is_corporativo;
+  const isClaro = user?.tipo_usuario?.nombre === "Claro";
   const queryClient = useQueryClient();
 
   const { data: almacenesAll = [] } = useQuery({
@@ -607,6 +608,7 @@ export default function InventarioPage() {
     onDevolverClaro: handleDevolverClaro,
     onStatusSot: handleUpdateSot,
     isCorporativo,
+    isClaro,
     onReservarSot: handleReservarSerie,
     onLiberarSot: handleLiberarSerie,
     onCambiarUbicacion: handleCambiarUbicacion,
@@ -615,6 +617,7 @@ export default function InventarioPage() {
   });
   const materialesColumns = getInventarioMaterialesColumns({
     isCorporativo,
+    isClaro,
     onReservarSot: handleReservarMaterial,
     onVerReservas: handleVerReservasMaterial,
   });

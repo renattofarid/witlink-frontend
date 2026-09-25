@@ -84,43 +84,87 @@ export default function TraspasoContrataDetalleSheet({ item, onClose }: Props) {
             <DocField label="Observaciones" value={detalle.observaciones} />
           </div>
 
-          <div className="space-y-1.5">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-              Materiales
-            </p>
-            <div className="border rounded-md overflow-x-auto">
-              <table className="w-full text-xs">
-                <thead className="bg-muted/50">
-                  <tr>
-                    <th className="text-left px-2 py-1.5 font-medium">SAP</th>
-                    <th className="text-left px-2 py-1.5 font-medium">
-                      Producto
-                    </th>
-                    <th className="text-left px-2 py-1.5 font-medium">
-                      Cantidad
-                    </th>
-                    <th className="text-left px-2 py-1.5 font-medium">
-                      Movimiento
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(detalle.materiales ?? []).map((m) => (
-                    <tr key={m.producto_id} className="border-t">
-                      <td className="px-2 py-1.5 whitespace-nowrap">
-                        {m.sap}
-                      </td>
-                      <td className="px-2 py-1.5">{m.producto}</td>
-                      <td className="px-2 py-1.5">{m.cantidad}</td>
-                      <td className="px-2 py-1.5 font-mono text-muted-foreground">
-                        {m.movimiento_id}
-                      </td>
+          {detalle.series && detalle.series.length > 0 && (
+            <div className="space-y-1.5">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                Equipos Seriados ({detalle.series.length})
+              </p>
+              <div className="border rounded-md overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead className="bg-muted/50">
+                    <tr>
+                      <th className="text-left px-2 py-1.5 font-medium">Serie</th>
+                      <th className="text-left px-2 py-1.5 font-medium">SAP</th>
+                      <th className="text-left px-2 py-1.5 font-medium">
+                        Producto
+                      </th>
+                      <th className="text-left px-2 py-1.5 font-medium">MAC</th>
+                      <th className="text-left px-2 py-1.5 font-medium">
+                        Movimiento
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {detalle.series.map((s) => (
+                      <tr key={s.id ?? s.serie_id} className="border-t">
+                        <td className="px-2 py-1.5 font-mono font-medium whitespace-nowrap">
+                          {s.serie}
+                        </td>
+                        <td className="px-2 py-1.5 whitespace-nowrap">
+                          {s.sap || "-"}
+                        </td>
+                        <td className="px-2 py-1.5">{s.producto || "-"}</td>
+                        <td className="px-2 py-1.5 font-mono">{s.mac || "-"}</td>
+                        <td className="px-2 py-1.5 font-mono text-muted-foreground">
+                          {s.movimiento_id || "-"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
+          )}
+
+          {detalle.materiales && detalle.materiales.length > 0 && (
+            <div className="space-y-1.5">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                Materiales ({detalle.materiales.length})
+              </p>
+              <div className="border rounded-md overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead className="bg-muted/50">
+                    <tr>
+                      <th className="text-left px-2 py-1.5 font-medium">SAP</th>
+                      <th className="text-left px-2 py-1.5 font-medium">
+                        Producto
+                      </th>
+                      <th className="text-left px-2 py-1.5 font-medium">
+                        Cantidad
+                      </th>
+                      <th className="text-left px-2 py-1.5 font-medium">
+                        Movimiento
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {detalle.materiales.map((m) => (
+                      <tr key={m.producto_id} className="border-t">
+                        <td className="px-2 py-1.5 whitespace-nowrap">
+                          {m.sap}
+                        </td>
+                        <td className="px-2 py-1.5">{m.producto}</td>
+                        <td className="px-2 py-1.5">{m.cantidad}</td>
+                        <td className="px-2 py-1.5 font-mono text-muted-foreground">
+                          {m.movimiento_id}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </GeneralSheet>

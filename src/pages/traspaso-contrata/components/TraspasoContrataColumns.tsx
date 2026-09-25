@@ -47,6 +47,16 @@ export const getTraspasoContrataColumns = (
     ),
   },
   {
+    id: "series",
+    header: "Series",
+    size: 90,
+    cell: ({ row }) => (
+      <span className="text-muted-foreground">
+        {row.original.series?.length ?? 0}
+      </span>
+    ),
+  },
+  {
     id: "materiales",
     header: "Materiales",
     size: 90,

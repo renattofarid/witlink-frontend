@@ -24,6 +24,16 @@ export const getTraspasoContrata = async (
   return data;
 };
 
+export const getSeriesDisponiblesTraspasoContrata = async (
+  params?: Record<string, any>,
+) => {
+  const { data } = await api.get(
+    `${TraspasoContrataComplete.ENDPOINT}/series-disponibles`,
+    { params },
+  );
+  return data;
+};
+
 export const createTraspasoContrata = async (
   body: TraspasoContrataCreateBody,
 ): Promise<TraspasoContrataResource> => {

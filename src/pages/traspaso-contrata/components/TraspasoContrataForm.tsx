@@ -24,9 +24,11 @@ import {
   createTraspasoContrata,
   updateTraspasoContrata,
 } from "../lib/traspaso-contrata.actions";
+import { useSeriesDisponiblesTraspasoContrataQuery } from "../lib/traspaso-contrata.hook";
 import type {
   TraspasoContrataCreateBody,
   TraspasoContrataResource,
+  TraspasoContrataSerieAvailable,
 } from "../lib/traspaso-contrata.interface";
 
 interface MaterialRow {
@@ -35,6 +37,17 @@ interface MaterialRow {
   nombre: string;
   cantidad: number;
   stock: number;
+}
+
+interface SerieRow {
+  id: number;
+  serie: string;
+  mac?: string | null;
+  emta_mac?: string | null;
+  ua?: string | null;
+  producto_id?: number;
+  sap?: string | null;
+  producto?: string | null;
 }
 
 interface Props {
@@ -48,9 +61,13 @@ export default function TraspasoContrataForm({ mode, guia, onSuccess }: Props) {
   const today = format(new Date(), "yyyy-MM-dd");
 
   const [materiales, setMateriales] = useState<MaterialRow[]>([]);
+  const [series, setSeries] = useState<SerieRow[]>([]);
   const [materialesError, setMaterialesError] = useState<string | null>(null);
+  const [generalError, setGeneralError] = useState<string | null>(null);
   const [selectedProducto, setSelectedProducto] =
     useState<ProductoResource | null>(null);
+  const [selectedSerie, setSelectedSerie] =
+    useState<TraspasoContrataSerieAvailable | null>(null);
 
   const form = useForm<TraspasoContrataHeaderFormValues>({
     resolver: zodResolver(traspasoContrataHeaderSchema),
@@ -82,6 +99,7 @@ export default function TraspasoContrataForm({ mode, guia, onSuccess }: Props) {
       direccion_contrata: guia.direccion_contrata,
       observaciones: guia.observaciones ?? "",
     });
+
     setMateriales(
       (guia.materiales ?? []).map((m) => ({
         producto_id: m.producto_id,
@@ -91,11 +109,29 @@ export default function TraspasoContrataForm({ mode, guia, onSuccess }: Props) {
         stock: 0,
       })),
     );
+
+    setSeries(
+      (guia.series ?? []).map((s) => ({
+        id: s.serie_id,
+        serie: s.serie ?? "",
+        mac: s.mac ?? null,
+        emta_mac: s.emta_mac ?? null,
+        ua: s.ua ?? null,
+        producto_id: s.producto_id ?? 0,
+        sap: s.sap ?? "",
+        producto: s.producto ?? "",
+      })),
+    );
   }, [form, guia, mode]);
 
   const materialForm = useForm<TraspasoContrataMaterialFormValues>({
     resolver: zodResolver(traspasoContrataMaterialSchema) as any,
     defaultValues: { producto_id: "", cantidad: 1 },
+    mode: "onChange",
+  });
+
+  const serieForm = useForm<{ serie_id: string }>({
+    defaultValues: { serie_id: "" },
     mode: "onChange",
   });
 
@@ -128,12 +164,49 @@ export default function TraspasoContrataForm({ mode, guia, onSuccess }: Props) {
       },
     ]);
     setMaterialesError(null);
+    setGeneralError(null);
     materialForm.reset({ producto_id: "", cantidad: 1 });
     setSelectedProducto(null);
   });
 
   const handleRemoveMaterial = (producto_id: number) => {
     setMateriales((prev) => prev.filter((m) => m.producto_id !== producto_id));
+  };
+
+  const handleAddSerie = serieForm.handleSubmit((values) => {
+    const serieId = Number(values.serie_id);
+    if (!serieId || !selectedSerie) {
+      serieForm.setError("serie_id", {
+        message: "Seleccione una serie",
+      });
+      return;
+    }
+    if (series.some((s) => s.id === serieId)) {
+      serieForm.setError("serie_id", {
+        message: "Esta serie ya fue agregada",
+      });
+      return;
+    }
+    setSeries((prev) => [
+      ...prev,
+      {
+        id: selectedSerie.id,
+        serie: selectedSerie.serie,
+        mac: selectedSerie.mac,
+        emta_mac: selectedSerie.emta_mac,
+        ua: selectedSerie.ua,
+        producto_id: selectedSerie.producto_id,
+        sap: selectedSerie.sap,
+        producto: selectedSerie.producto,
+      },
+    ]);
+    setGeneralError(null);
+    serieForm.reset({ serie_id: "" });
+    setSelectedSerie(null);
+  });
+
+  const handleRemoveSerie = (id: number) => {
+    setSeries((prev) => prev.filter((s) => s.id !== id));
   };
 
   const mutation = useMutation({
@@ -163,10 +236,11 @@ export default function TraspasoContrataForm({ mode, guia, onSuccess }: Props) {
   });
 
   const handleSubmit = form.handleSubmit((values) => {
-    if (materiales.length === 0) {
-      setMaterialesError("Agregue al menos un material.");
+    if (materiales.length === 0 && series.length === 0) {
+      setGeneralError("Agregue al menos un material o una serie.");
       return;
     }
+    setGeneralError(null);
     setMaterialesError(null);
 
     const body: TraspasoContrataCreateBody = {
@@ -179,6 +253,7 @@ export default function TraspasoContrataForm({ mode, guia, onSuccess }: Props) {
         producto_id: m.producto_id,
         cantidad: m.cantidad,
       })),
+      series: series.map((s) => s.id),
     };
 
     mutation.mutate(body);
@@ -236,11 +311,92 @@ export default function TraspasoContrataForm({ mode, guia, onSuccess }: Props) {
         </div>
       </div>
 
+      {/* Equipos Seriados */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground whitespace-nowrap">
+            Equipos Seriados ({series.length})
+          </h3>
+          <Separator className="flex-1" />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-2 items-end border rounded-lg p-3 bg-muted/20">
+          <FormSelectAsync
+            name="serie_id"
+            label="Serie / Equipo"
+            control={serieForm.control}
+            placeholder="Buscar por SAP, producto o serie..."
+            useQueryHook={useSeriesDisponiblesTraspasoContrataQuery}
+            mapOptionFn={(item: TraspasoContrataSerieAvailable) => ({
+              value: String(item.id),
+              label: item.serie,
+              description: [
+                item.sap ? `SAP: ${item.sap}` : null,
+                item.producto,
+                item.mac ? `MAC: ${item.mac}` : null,
+              ]
+                .filter(Boolean)
+                .join(" | "),
+            })}
+            onValueChange={(_, item: TraspasoContrataSerieAvailable) => {
+              setSelectedSerie(item ?? null);
+            }}
+          />
+          <Button type="button" size="sm" onClick={handleAddSerie}>
+            <Plus className="size-3.5 mr-1" />
+            Agregar Serie
+          </Button>
+        </div>
+
+        {series.length > 0 && (
+          <div className="border rounded-md overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead className="bg-muted/50">
+                <tr>
+                  <th className="text-left px-2 py-1.5 font-medium">Serie</th>
+                  <th className="text-left px-2 py-1.5 font-medium">SAP</th>
+                  <th className="text-left px-2 py-1.5 font-medium">
+                    Producto
+                  </th>
+                  <th className="text-left px-2 py-1.5 font-medium">MAC</th>
+                  <th className="text-left px-2 py-1.5 font-medium"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {series.map((s) => (
+                  <tr key={s.id} className="border-t">
+                    <td className="px-2 py-1.5 font-mono font-medium">
+                      {s.serie}
+                    </td>
+                    <td className="px-2 py-1.5 whitespace-nowrap">
+                      {s.sap || "-"}
+                    </td>
+                    <td className="px-2 py-1.5">{s.producto || "-"}</td>
+                    <td className="px-2 py-1.5 font-mono">{s.mac || "-"}</td>
+                    <td className="px-2 py-1.5 text-right">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="size-6 text-destructive hover:text-destructive"
+                        onClick={() => handleRemoveSerie(s.id)}
+                      >
+                        <Trash2 className="size-3" />
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
       {/* Materiales */}
       <div className="space-y-2">
         <div className="flex items-center gap-2">
           <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground whitespace-nowrap">
-            Materiales
+            Materiales ({materiales.length})
           </h3>
           <Separator className="flex-1" />
         </div>
@@ -261,7 +417,6 @@ export default function TraspasoContrataForm({ mode, guia, onSuccess }: Props) {
             onValueChange={(_, item: ProductoResource) => {
               setSelectedProducto(item ?? null);
             }}
-            required
           />
           <FormInput
             name="cantidad"
@@ -269,11 +424,10 @@ export default function TraspasoContrataForm({ mode, guia, onSuccess }: Props) {
             control={materialForm.control}
             type="number"
             min={1}
-            required
           />
           <Button type="button" size="sm" onClick={handleAddMaterial}>
             <Plus className="size-3.5 mr-1" />
-            Agregar
+            Agregar Material
           </Button>
         </div>
 
@@ -319,6 +473,10 @@ export default function TraspasoContrataForm({ mode, guia, onSuccess }: Props) {
           <p className="text-xs text-destructive">{materialesError}</p>
         )}
       </div>
+
+      {generalError && (
+        <p className="text-xs text-destructive font-medium">{generalError}</p>
+      )}
 
       <div className="flex justify-end">
         <Button type="submit" disabled={mutation.isPending}>

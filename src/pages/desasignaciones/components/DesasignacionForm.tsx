@@ -140,6 +140,7 @@ export default function DesasignacionForm({ onSuccess }: DesasignacionFormProps)
     }
     if (materialCount > 0) {
       body.materiales = Object.values(materialSelections).map(({ material, cantidad }) => ({
+        inventario_id: material.id,
         producto_id: material.material.producto.id,
         cantidad,
       }));

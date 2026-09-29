@@ -152,6 +152,7 @@ export default function InventarioSeriesFilters({
               { value: "DEVUELTO A CLARO", label: "DEVUELTO A CLARO" },
               { value: "PENDIENTE", label: "PENDIENTE" },
               { value: "TRASLADO", label: "TRASLADO" },
+              { value: "TS", label: "TRASPASO" },
             ]}
             value={params.situacion || "all"}
             onChange={(v) => set("situacion", v)}

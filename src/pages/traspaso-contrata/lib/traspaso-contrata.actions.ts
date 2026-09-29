@@ -51,3 +51,31 @@ export const updateTraspasoContrata = async (
   );
   return data;
 };
+
+export const descargarGuiaTraspasoContrata = async (
+  traspaso: Pick<TraspasoContrataResource, "id" | "numero">,
+): Promise<void> => {
+  const response = await api.get(
+    `${TraspasoContrataComplete.ENDPOINT}/${traspaso.id}/pdf`,
+    {
+      responseType: "blob",
+      headers: { Accept: "application/pdf" },
+    },
+  );
+  const disposition = String(response.headers["content-disposition"] ?? "");
+  const encodedName = disposition.match(/filename\*=UTF-8''([^;]+)/i)?.[1];
+  const plainName = disposition.match(/filename="?([^";]+)"?/i)?.[1];
+  const fileName = encodedName
+    ? decodeURIComponent(encodedName)
+    : plainName || `guia_traspaso_${traspaso.numero || traspaso.id}.pdf`;
+  const url = window.URL.createObjectURL(
+    new Blob([response.data], { type: "application/pdf" }),
+  );
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+};

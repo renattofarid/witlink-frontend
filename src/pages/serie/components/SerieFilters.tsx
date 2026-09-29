@@ -24,6 +24,7 @@ const SITUACION_OPTIONS = [
   { value: "DE", label: "Despachado" },
   { value: "IN", label: "Liquidado" },
   { value: "RE", label: "Retirado" },
+  { value: "TS", label: "Traspaso" },
 ];
 
 const SORT_OPTIONS = [

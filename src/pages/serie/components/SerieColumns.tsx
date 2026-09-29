@@ -14,7 +14,9 @@ export const SITUACION = {
   RETIRADO: "RETIRADO",
   DEVUELTO: "DEVUELTO",
   DEVUELTO_A_CLARO: "DEVUELTO A CLARO",
-  INSTALADO: "INSTALADO"
+  INSTALADO: "INSTALADO",
+  TRASLADO: "TRASLADO",
+  TRASPASO: "TRASPASO",
 } as const;
 
 export type SituacionLabel = SerieResource["situacion_label"];
@@ -27,7 +29,9 @@ const SITUACION_COLOR: Record<SituacionLabel, BadgeColor> = {
   RETIRADO: "gray",
   DEVUELTO: "orange",
   "DEVUELTO A CLARO": "indigo",
-  INSTALADO : "amber"
+  INSTALADO: "amber",
+  TRASLADO: "purple",
+  TRASPASO: "indigo",
 };
 
 function getSituacionColor(situacion: string): BadgeColor {
@@ -135,7 +139,7 @@ export const getSerieColumns = ({
         />
         <ButtonAction
           icon={Trash2}
-          canRender={true}
+          canRender={row.original.situacion !== "TS"}
           onClick={() => onDelete(row.original)}
         />
       </div>

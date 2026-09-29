@@ -243,6 +243,9 @@ export default function AddProductosModal({
   };
 
   const addExternSerie = (serie: SelectedExternSerie) => {
+    if (serie.situacion_label === "TRASPASO" || serie.situacion_label === "TS") {
+      return;
+    }
     setSelectedExternSeries((prev) => {
       if (prev.some((s) => s.serie_id === serie.serie_id)) return prev;
       return [...prev, serie];
@@ -570,6 +573,12 @@ export default function AddProductosModal({
                 <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
                   {selectedExternSeries
                     .filter((serie) => {
+                      if (
+                        serie.situacion_label === "TRASPASO" ||
+                        serie.situacion_label === "TS"
+                      ) {
+                        return false;
+                      }
                       if (!notRepetidos) return true;
 
                       return (
@@ -804,6 +813,12 @@ function SerieAsyncSearch({
             ) : (
               results
                 .filter((serie) => {
+                  if (
+                    serie.situacion === "TS" ||
+                    serie.situacion_label === "TRASPASO"
+                  ) {
+                    return false;
+                  }
                   if (!notRepetidos) return true;
 
                   return (

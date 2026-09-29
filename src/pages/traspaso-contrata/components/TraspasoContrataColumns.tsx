@@ -1,12 +1,15 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
-import { Download, Edit, Eye } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Download, Edit, Eye, FileCheck2, Upload } from "lucide-react";
 import type { TraspasoContrataResource } from "../lib/traspaso-contrata.interface";
 
 interface ColumnActions {
   onView: (item: TraspasoContrataResource) => void;
   onEdit: (item: TraspasoContrataResource) => void;
   onDownload: (item: TraspasoContrataResource) => void;
+  onUploadSigned: (item: TraspasoContrataResource) => void;
+  onDownloadSigned: (item: TraspasoContrataResource) => void;
 }
 
 function formatISODate(iso: string | null | undefined): string {
@@ -68,8 +71,20 @@ export const getTraspasoContrataColumns = (
     ),
   },
   {
+    id: "regularizacion",
+    header: "Regularización",
+    size: 125,
+    cell: ({ row }) =>
+      row.original.tiene_documento_firmado ? (
+        <Badge color="green">Firmada</Badge>
+      ) : (
+        <Badge color="amber">Pendiente</Badge>
+      ),
+  },
+  {
     id: "acciones",
-    size: 150,
+    header: "Acciones",
+    size: 310,
     cell: ({ row }) => (
       <div className="flex items-center gap-1">
         <Button
@@ -79,6 +94,29 @@ export const getTraspasoContrataColumns = (
           onClick={() => actions.onDownload(row.original)}
         >
           <Download className="size-3.5" />
+        </Button>
+        {row.original.tiene_documento_firmado ? (
+          <Button
+            size="sm"
+            variant="outline"
+            tooltip="Descargar guía firmada"
+            onClick={() => actions.onDownloadSigned(row.original)}
+          >
+            <FileCheck2 className="size-3.5" />
+          </Button>
+        ) : null}
+        <Button
+          size="sm"
+          variant={row.original.tiene_documento_firmado ? "ghost" : "default"}
+          tooltip={
+            row.original.tiene_documento_firmado
+              ? "Reemplazar guía firmada"
+              : "Subir guía firmada"
+          }
+          onClick={() => actions.onUploadSigned(row.original)}
+        >
+          <Upload className="size-3.5" />
+          {!row.original.tiene_documento_firmado && "Subir firmado"}
         </Button>
         <Button
           size="sm"

@@ -79,3 +79,44 @@ export const descargarGuiaTraspasoContrata = async (
   link.remove();
   window.URL.revokeObjectURL(url);
 };
+
+export const subirDocumentoFirmadoTraspaso = async (
+  id: number,
+  archivo: File,
+): Promise<TraspasoContrataResource> => {
+  const formData = new FormData();
+  formData.append("archivo", archivo);
+  const { data } = await api.post(
+    `${TraspasoContrataComplete.ENDPOINT}/${id}/documento-firmado`,
+    formData,
+  );
+  return data;
+};
+
+export const descargarDocumentoFirmadoTraspaso = async (
+  traspaso: Pick<TraspasoContrataResource, "id" | "numero" | "documento_firmado">,
+): Promise<void> => {
+  const response = await api.get(
+    `${TraspasoContrataComplete.ENDPOINT}/${traspaso.id}/documento-firmado`,
+    { responseType: "blob" },
+  );
+  const disposition = String(response.headers["content-disposition"] ?? "");
+  const encodedName = disposition.match(/filename\*=UTF-8''([^;]+)/i)?.[1];
+  const plainName = disposition.match(/filename="?([^";]+)"?/i)?.[1];
+  const extension = traspaso.documento_firmado?.extension || "pdf";
+  const fileName = encodedName
+    ? decodeURIComponent(encodedName)
+    : plainName || `guia_traspaso_${traspaso.numero}_firmado.${extension}`;
+  const url = window.URL.createObjectURL(
+    new Blob([response.data], {
+      type: response.headers["content-type"] || "application/octet-stream",
+    }),
+  );
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+};

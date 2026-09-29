@@ -76,6 +76,9 @@ export default function TraspasoContrataForm({ mode, guia, onSuccess }: Props) {
       ruc_contrata: "",
       descripcion_contrata: "",
       direccion_contrata: "",
+      conductor: "",
+      licencia_conducir: "",
+      placa_vehiculo: "",
       observaciones: "",
     },
     mode: "onChange",
@@ -97,6 +100,9 @@ export default function TraspasoContrataForm({ mode, guia, onSuccess }: Props) {
       ruc_contrata: guia.ruc_contrata,
       descripcion_contrata: guia.descripcion_contrata,
       direccion_contrata: guia.direccion_contrata,
+      conductor: guia.conductor ?? "",
+      licencia_conducir: guia.licencia_conducir ?? "",
+      placa_vehiculo: guia.placa_vehiculo ?? "",
       observaciones: guia.observaciones ?? "",
     });
 
@@ -248,6 +254,9 @@ export default function TraspasoContrataForm({ mode, guia, onSuccess }: Props) {
       ruc_contrata: values.ruc_contrata,
       descripcion_contrata: values.descripcion_contrata,
       direccion_contrata: values.direccion_contrata,
+      conductor: values.conductor || null,
+      licencia_conducir: values.licencia_conducir || null,
+      placa_vehiculo: values.placa_vehiculo || null,
       observaciones: values.observaciones || null,
       materiales: materiales.map((m) => ({
         producto_id: m.producto_id,
@@ -307,6 +316,42 @@ export default function TraspasoContrataForm({ mode, guia, onSuccess }: Props) {
             label="Observaciones"
             control={form.control}
             placeholder="Notas internas..."
+          />
+        </div>
+      </div>
+
+      {/* Datos de transporte: pueden completarse al crear o posteriormente al editar. */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground whitespace-nowrap">
+            Datos del transporte
+          </h3>
+          <Separator className="flex-1" />
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Son opcionales. Puede completar estos datos después, antes de descargar la guía definitiva.
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <FormInput
+            name="conductor"
+            label="Conductor"
+            control={form.control}
+            placeholder="Nombres y apellidos"
+            uppercase
+          />
+          <FormInput
+            name="licencia_conducir"
+            label="Licencia de conducir"
+            control={form.control}
+            placeholder="Q12345678"
+            uppercase
+          />
+          <FormInput
+            name="placa_vehiculo"
+            label="Placa del vehículo"
+            control={form.control}
+            placeholder="ABC-123"
+            uppercase
           />
         </div>
       </div>

@@ -5,6 +5,9 @@ export const traspasoContrataHeaderSchema = z.object({
   ruc_contrata: z.string().regex(/^\d{11}$/, "El RUC debe tener 11 dígitos"),
   descripcion_contrata: z.string().min(1, "Requerido"),
   direccion_contrata: z.string().min(1, "Requerido"),
+  conductor: z.string().max(255, "Máximo 255 caracteres").optional(),
+  licencia_conducir: z.string().max(50, "Máximo 50 caracteres").optional(),
+  placa_vehiculo: z.string().max(20, "Máximo 20 caracteres").optional(),
   observaciones: z.string().optional(),
 });
 

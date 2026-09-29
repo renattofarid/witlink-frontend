@@ -53,7 +53,7 @@ export default function LiquidacionBitacoraSheet({ open, onClose, liquidacion }:
               <p className="mt-1 font-semibold">{data.liquidacion.almacen?.nombre ?? "Sin dato"}</p>
             </div>
             <div className="rounded-lg border p-3">
-              <p className="text-xs text-muted-foreground">Registrada por</p>
+              <p className="text-xs text-muted-foreground">Responsable guardado actualmente</p>
               <p className="mt-1 font-semibold">{data.liquidacion.usuario_registrado}</p>
               <p className="text-xs text-muted-foreground">{formatDateTime(data.liquidacion.created_at)}</p>
             </div>
@@ -81,6 +81,10 @@ export default function LiquidacionBitacoraSheet({ open, onClose, liquidacion }:
             </div>
           </section>
 
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
+            Para auditoría, considera como evidencia directa los eventos con usuario, fecha e IP. Las explicaciones marcadas como “Evidencia probable” o “Evidencia incompleta” son reconstrucciones del sistema y no identifican por sí solas a un responsable.
+          </div>
+
           <section>
             <div className="mb-2 flex items-center gap-2">
               {data.resumen.tiene_inconsistencias ? <AlertTriangle className="size-5 text-red-600" /> : <CheckCircle2 className="size-5 text-emerald-600" />}
@@ -93,7 +97,7 @@ export default function LiquidacionBitacoraSheet({ open, onClose, liquidacion }:
                     <th className="p-2">SAP / Producto</th>
                     <th className="p-2">Tipo</th>
                     <th className="p-2">Serie / Cantidad</th>
-                    <th className="p-2">Almacén del producto</th>
+                    <th className="p-2">Almacén actual del producto</th>
                     <th className="p-2">Almacén del movimiento</th>
                     <th className="p-2">Resultado</th>
                   </tr>

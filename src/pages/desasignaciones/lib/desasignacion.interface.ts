@@ -59,6 +59,7 @@ export interface DesasignacionDetailResource {
 // ── Creación ──────────────────────────────────────────────────────────────
 
 export interface DesasignacionMaterialBody {
+  inventario_id?: number;
   producto_id: number;
   cantidad: number;
 }

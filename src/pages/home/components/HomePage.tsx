@@ -20,6 +20,7 @@ const MOVIMIENTO_COLORS: Record<string, BadgeColor> = {
   "INGRESO CONFIRMADO": "green",
   SALIDA: "red",
   TRASLADO: "blue",
+  TRASPASO: "indigo",
   DESPACHADO: "green",
   LIQUIDADO: "purple",
   RETIRADO: "red",

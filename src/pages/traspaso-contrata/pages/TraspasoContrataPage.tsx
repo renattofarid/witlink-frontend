@@ -14,6 +14,8 @@ import { getTraspasoContrataColumns } from "../components/TraspasoContrataColumn
 import TraspasoContrataButtons from "../components/TraspasoContrataButtons";
 import TraspasoContrataDetalleSheet from "../components/TraspasoContrataDetalleSheet";
 import type { TraspasoContrataResource } from "../lib/traspaso-contrata.interface";
+import { descargarGuiaTraspasoContrata } from "../lib/traspaso-contrata.actions";
+import { errorToast } from "@/lib/core.function";
 
 export default function TraspasoContrataPage() {
   const navigate = useNavigate();
@@ -35,6 +37,16 @@ export default function TraspasoContrataPage() {
     onView: (item) => setViewItem(item),
     onEdit: (item) =>
       navigate(`${TraspasoContrataComplete.ROUTE_UPDATE}/${item.id}`),
+    onDownload: async (item) => {
+      try {
+        await descargarGuiaTraspasoContrata(item);
+      } catch (error: any) {
+        errorToast(
+          error.response?.data?.message ??
+            "No se pudo descargar la guía de traspaso.",
+        );
+      }
+    },
   });
 
   return (
@@ -68,6 +80,16 @@ export default function TraspasoContrataPage() {
       <TraspasoContrataDetalleSheet
         item={viewItem}
         onClose={() => setViewItem(null)}
+        onDownload={async (item) => {
+          try {
+            await descargarGuiaTraspasoContrata(item);
+          } catch (error: any) {
+            errorToast(
+              error.response?.data?.message ??
+                "No se pudo descargar la guía de traspaso.",
+            );
+          }
+        }}
       />
     </PageWrapper>
   );

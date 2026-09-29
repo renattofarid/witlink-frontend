@@ -14,6 +14,7 @@ const movimientoBadgeColor: Record<string, BadgeColor> = {
   LIQUIDACION_INSTALADO: "yellow",
   RETIRADO: "gray",
   TRASLADO: "purple",
+  TRASPASO: "indigo",
   DEVUELTO: "blue",
 };
 

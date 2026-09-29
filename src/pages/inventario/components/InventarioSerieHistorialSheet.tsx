@@ -36,6 +36,8 @@ const TIPO_BADGE: Record<string, string> = {
     "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300",
   LIQUIDADO:
     "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300",
+  "TRASPASO A CONTRATA":
+    "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300",
 };
 
 function tipoClass(tipo: string) {
@@ -57,6 +59,7 @@ const movimientoBadgeColor: Record<string, BadgeColor> = {
   DEVOLUCION: "blue",
   LIQUIDACION_INSTALADO: "yellow",
   RETIRADO: "gray",
+  TRASPASO: "indigo",
 };
 
 const kardexColumns: ColumnDef<SerieHistorialKardexItem>[] = [
@@ -175,6 +178,17 @@ export default function InventarioSerieHistorialSheet({
                         👤 {m.usuario}
                       </span>
                     </div>
+                    {m.tipo === "traspaso_contrata" && m.detalle && (
+                      <div className="rounded-md border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs text-indigo-800 dark:border-indigo-900 dark:bg-indigo-950/30 dark:text-indigo-200">
+                        <p className="font-semibold">
+                          Contrata: {String(m.detalle.contrata ?? "Sin dato")}
+                        </p>
+                        <p>RUC: {String(m.detalle.ruc_contrata ?? "Sin dato")}</p>
+                        {m.detalle.observaciones ? (
+                          <p>Observaciones: {String(m.detalle.observaciones)}</p>
+                        ) : null}
+                      </div>
+                    )}
                   </div>
                 </li>
               ))}

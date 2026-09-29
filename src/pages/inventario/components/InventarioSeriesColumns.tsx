@@ -218,6 +218,10 @@ export const getInventarioSeriesColumns = ({
         <ButtonAction
           icon={PackageCheck}
           tooltip="Cambiar SOT"
+          canRender={
+            row.original.situacion !== "TS" &&
+            row.original.situacion_label !== SITUACION.TRASPASO
+          }
           onClick={() => onStatusSot(row.original)}
         />
       </div>
@@ -259,7 +263,10 @@ export const getInventarioSeriesColumns = ({
                 icon={Undo2}
                 color="red"
                 tooltip="Devolver serie"
-                canRender={row.original.situacion_label === SITUACION.DESPACHADO}
+                canRender={
+                  row.original.situacion !== "TS" &&
+                  row.original.situacion_label === SITUACION.DESPACHADO
+                }
                 onClick={() => onDevolver(row.original)}
               />
               <ButtonAction
@@ -267,8 +274,9 @@ export const getInventarioSeriesColumns = ({
                 color="indigo"
                 tooltip="Devolver a Claro"
                 canRender={
-                  row.original.situacion_label === SITUACION.DISPONIBLE ||
-                  row.original.situacion_label === SITUACION.RETIRADO
+                  row.original.situacion !== "TS" &&
+                  (row.original.situacion_label === SITUACION.DISPONIBLE ||
+                    row.original.situacion_label === SITUACION.RETIRADO)
                 }
                 onClick={() => onDevolverClaro(row.original)}
               />
@@ -279,6 +287,7 @@ export const getInventarioSeriesColumns = ({
                 canRender={
                   !!isCorporativo &&
                   !!onReservarSot &&
+                  row.original.situacion !== "TS" &&
                   !row.original.reserva_sot &&
                   // La reserva de SOT solo aplica a series Disponibles.
                   row.original.situacion_label === SITUACION.DISPONIBLE
@@ -291,14 +300,21 @@ export const getInventarioSeriesColumns = ({
                 color="amber"
                 tooltip="Liberar reserva"
                 canRender={
-                  !!isCorporativo && !!onLiberarSot && !!row.original.reserva_sot
+                  !!isCorporativo &&
+                  !!onLiberarSot &&
+                  row.original.situacion !== "TS" &&
+                  !!row.original.reserva_sot
                 }
                 onClick={() => onLiberarSot?.(row.original)}
               />
               <ButtonAction
                 icon={MapPinned}
                 tooltip="Cambiar ubicación"
-                canRender={!!isCorporativo && !!onCambiarUbicacion}
+                canRender={
+                  !!isCorporativo &&
+                  !!onCambiarUbicacion &&
+                  row.original.situacion !== "TS"
+                }
                 onClick={() => onCambiarUbicacion?.(row.original)}
               />
               <ButtonAction
@@ -306,7 +322,9 @@ export const getInventarioSeriesColumns = ({
                 color="red"
                 tooltip="Eliminar registro duplicado"
                 canRender={
-                  !!onEliminarDuplicado && Number(row.original.duplicados ?? 0) > 1
+                  !!onEliminarDuplicado &&
+                  row.original.situacion !== "TS" &&
+                  Number(row.original.duplicados ?? 0) > 1
                 }
                 onClick={() => onEliminarDuplicado?.(row.original)}
               />

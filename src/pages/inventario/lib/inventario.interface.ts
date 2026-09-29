@@ -13,6 +13,8 @@ export interface InventarioSerieResource {
     | "DESPACHADO"
     | "LIQUIDADO"
     | "RETIRADO"
+    | "TRASLADO"
+    | "TRASPASO"
     | "DEVUELTO"
     | "DEVUELTO A CLARO";
   fecha: string;

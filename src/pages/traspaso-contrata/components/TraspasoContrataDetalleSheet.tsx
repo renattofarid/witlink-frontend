@@ -1,6 +1,6 @@
 import GeneralSheet from "@/components/GeneralSheet";
 import { Button } from "@/components/ui/button";
-import { Edit } from "lucide-react";
+import { Download, Edit } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTraspasoContrataDetailQuery } from "../lib/traspaso-contrata.hook";
 import { TraspasoContrataComplete } from "../lib/traspaso-contrata.constants";
@@ -36,9 +36,14 @@ function DocField({ label, value, mono }: Field) {
 interface Props {
   item: TraspasoContrataResource | null;
   onClose: () => void;
+  onDownload: (item: TraspasoContrataResource) => void | Promise<void>;
 }
 
-export default function TraspasoContrataDetalleSheet({ item, onClose }: Props) {
+export default function TraspasoContrataDetalleSheet({
+  item,
+  onClose,
+  onDownload,
+}: Props) {
   const navigate = useNavigate();
   const { data, isLoading } = useTraspasoContrataDetailQuery(item?.id ?? null);
   const detalle = data ?? item;
@@ -54,16 +59,26 @@ export default function TraspasoContrataDetalleSheet({ item, onClose }: Props) {
       size="lg"
       childrenFooter={
         detalle ? (
-          <Button
-            type="button"
-            onClick={() => {
-              onClose();
-              navigate(`${TraspasoContrataComplete.ROUTE_UPDATE}/${detalle.id}`);
-            }}
-          >
-            <Edit className="size-3.5" />
-            Editar
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onDownload(detalle)}
+            >
+              <Download className="size-3.5" />
+              Descargar guía
+            </Button>
+            <Button
+              type="button"
+              onClick={() => {
+                onClose();
+                navigate(`${TraspasoContrataComplete.ROUTE_UPDATE}/${detalle.id}`);
+              }}
+            >
+              <Edit className="size-3.5" />
+              Editar
+            </Button>
+          </div>
         ) : null
       }
     >

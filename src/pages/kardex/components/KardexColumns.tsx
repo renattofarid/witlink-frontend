@@ -67,6 +67,18 @@ export const getKardexColumns = (): ColumnDef<KardexResource>[] => [
     },
   },
   {
+    accessorKey: "referencia",
+    header: "Referencia",
+    cell: ({ getValue }) => {
+      const referencia = String(getValue() ?? "").trim();
+      return referencia ? (
+        <span className="font-mono text-xs font-semibold">{referencia}</span>
+      ) : (
+        "-"
+      );
+    },
+  },
+  {
     accessorKey: "cantidad",
     header: "Cantidad",
     cell: ({ row }) => {

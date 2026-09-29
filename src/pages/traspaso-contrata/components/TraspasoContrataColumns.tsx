@@ -69,7 +69,7 @@ export const getTraspasoContrataColumns = (
   },
   {
     id: "acciones",
-    size: 110,
+    size: 150,
     cell: ({ row }) => (
       <div className="flex items-center gap-1">
         <Button

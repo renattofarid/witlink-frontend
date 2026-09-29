@@ -22,6 +22,7 @@ import LiquidacionesExportButtons from "../components/LiquidacionesExportButtons
 import ImportarUbicacionesClaroDialog from "../components/ImportarUbicacionesClaroDialog";
 import ImportarAdpResponsablesDialog from "../components/ImportarAdpResponsablesDialog";
 import { EditarObservacionModal } from "../components/EditarObservacionModal";
+import LiquidacionBitacoraSheet from "../components/LiquidacionBitacoraSheet";
 import type { LiquidacionResource } from "../lib/liquidaciones.interface";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
 
@@ -35,6 +36,8 @@ export default function LiquidacionesPage() {
   const [ubicacionesClaroDialogOpen, setUbicacionesClaroDialogOpen] = useState(false);
   const [adpDialogOpen, setAdpDialogOpen] = useState(false);
   const [selectedRowForObservaciones, setSelectedRowForObservaciones] =
+    useState<LiquidacionResource | null>(null);
+  const [selectedRowForBitacora, setSelectedRowForBitacora] =
     useState<LiquidacionResource | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [pdfSot, setPdfSot] = useState<string>("");
@@ -127,6 +130,7 @@ export default function LiquidacionesPage() {
   const columns = getLiquidacionColumns({
     onGetActa: handleGetActa,
     onEditObservacion: (row) => setSelectedRowForObservaciones(row),
+    onBitacora: (row) => setSelectedRowForBitacora(row),
     isCorporativo,
   });
 
@@ -269,6 +273,12 @@ export default function LiquidacionesPage() {
         open={!!selectedRowForObservaciones}
         onClose={() => setSelectedRowForObservaciones(null)}
         liquidacion={selectedRowForObservaciones}
+      />
+
+      <LiquidacionBitacoraSheet
+        open={!!selectedRowForBitacora}
+        onClose={() => setSelectedRowForBitacora(null)}
+        liquidacion={selectedRowForBitacora}
       />
     </PageWrapper>
   );

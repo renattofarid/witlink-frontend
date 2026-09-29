@@ -71,6 +71,61 @@ export interface LiquidacionResource {
   } | null;
 }
 
+export interface LiquidacionBitacoraAlmacen {
+  id: number | null;
+  nombre: string;
+}
+
+export interface LiquidacionBitacoraResponse {
+  liquidacion: {
+    id: number;
+    sot: string;
+    codigo: string;
+    estado: string | null;
+    fecha: string | null;
+    created_at: string | null;
+    updated_at: string | null;
+    usuario_registrado: string;
+    almacen: LiquidacionBitacoraAlmacen | null;
+    origen_almacen: {
+      tipo: string;
+      certeza: "confirmado" | "probable" | "sin_evidencia_completa";
+      referencia: string | null;
+      explicacion: string;
+    };
+  };
+  resumen: {
+    total_productos: number;
+    coinciden: number;
+    diferencias: number;
+    tiene_inconsistencias: boolean;
+  };
+  productos: Array<{
+    detalle_id: number;
+    producto_id: number;
+    sap: string;
+    producto: string;
+    tipo: "SERIE" | "MATERIAL";
+    cantidad: number;
+    serie: string | null;
+    almacen_producto: LiquidacionBitacoraAlmacen | null;
+    almacen_movimiento: LiquidacionBitacoraAlmacen | null;
+    coincide_almacen_liquidacion: boolean;
+    eliminado: boolean;
+    registrado_en: string;
+  }>;
+  eventos: Array<{
+    tipo: string;
+    titulo: string;
+    fecha: string;
+    usuario: string;
+    almacen: LiquidacionBitacoraAlmacen | null;
+    detalle: string | null;
+    estado: string;
+    ip: string | null;
+  }>;
+}
+
 export interface GuiaRemisionPdfInfo {
   preview_url: string;
   file_name: string;

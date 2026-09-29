@@ -1,6 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { useNavigate } from "react-router-dom";
-import { Download, Eye, FileText, MessageSquare, Pencil, Sheet } from "lucide-react";
+import { Download, Eye, FileText, History, MessageSquare, Pencil, Sheet } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { LiquidacionResource } from "../lib/liquidaciones.interface";
@@ -15,6 +15,7 @@ interface ColumnOptions {
   onExport?: (row: LiquidacionResource) => void;
   onGetActa?: (row: LiquidacionResource) => void;
   onEditObservacion?: (row: LiquidacionResource) => void;
+  onBitacora?: (row: LiquidacionResource) => void;
   isCorporativo?: boolean;
 }
 
@@ -212,6 +213,7 @@ export function getLiquidacionColumns(
           onExport={options.onExport}
           onGetActa={options.onGetActa}
           onEditObservacion={options.onEditObservacion}
+          onBitacora={options.onBitacora}
         />
       ),
     },
@@ -232,11 +234,13 @@ function LiquidacionRowActions({
   onExport,
   onGetActa,
   onEditObservacion,
+  onBitacora,
 }: {
   row: LiquidacionResource;
   onExport?: (row: LiquidacionResource) => void;
   onGetActa?: (row: LiquidacionResource) => void;
   onEditObservacion?: (row: LiquidacionResource) => void;
+  onBitacora?: (row: LiquidacionResource) => void;
 }) {
   const navigate = useNavigate();
   const isLiquidada =
@@ -245,6 +249,14 @@ function LiquidacionRowActions({
 
   return (
     <div className="flex gap-1">
+      {onBitacora && (
+        <ButtonAction
+          icon={History}
+          color="blue"
+          tooltip="Ver bitácora y trazabilidad"
+          onClick={() => onBitacora(row)}
+        />
+      )}
       {onEditObservacion && (
         <ButtonAction
           icon={MessageSquare}

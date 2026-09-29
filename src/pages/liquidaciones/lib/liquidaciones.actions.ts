@@ -10,6 +10,7 @@ import type {
   SaveProductosLiquidacionResult,
   UpdateProductosBody,
   ActaResource,
+  LiquidacionBitacoraResponse,
 } from "./liquidaciones.interface";
 
 /**
@@ -45,6 +46,15 @@ export const getLiquidaciones = async (
   const { data } = await api.post(
     LiquidacionesComplete.ENDPOINT,
     buildLiquidacionesBody(params),
+  );
+  return data;
+};
+
+export const getLiquidacionBitacora = async (
+  identificador: string | number,
+): Promise<LiquidacionBitacoraResponse> => {
+  const { data } = await api.get<LiquidacionBitacoraResponse>(
+    `${LiquidacionesComplete.ENDPOINT}/${encodeURIComponent(identificador)}/bitacora`,
   );
   return data;
 };

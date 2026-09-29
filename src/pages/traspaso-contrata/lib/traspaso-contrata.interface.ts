@@ -34,6 +34,9 @@ export interface TraspasoContrataCreateBody {
   ruc_contrata: string;
   descripcion_contrata: string;
   direccion_contrata: string;
+  conductor?: string | null;
+  licencia_conducir?: string | null;
+  placa_vehiculo?: string | null;
   observaciones?: string | null;
   materiales?: TraspasoContrataMaterialBody[];
   series?: number[];
@@ -55,7 +58,16 @@ export interface TraspasoContrataResource {
   ruc_contrata: string;
   descripcion_contrata: string;
   direccion_contrata: string;
+  conductor: string | null;
+  licencia_conducir: string | null;
+  placa_vehiculo: string | null;
   observaciones: string | null;
+  tiene_documento_firmado: boolean;
+  documento_firmado: {
+    extension: string;
+    subido_at: string;
+    usuario: string | null;
+  } | null;
   materiales?: TraspasoContrataMaterialResource[];
   series?: TraspasoContrataSerieResource[];
 }

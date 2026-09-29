@@ -1,6 +1,7 @@
 import GeneralSheet from "@/components/GeneralSheet";
 import { Button } from "@/components/ui/button";
-import { Download, Edit } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Download, Edit, FileCheck2, Upload } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTraspasoContrataDetailQuery } from "../lib/traspaso-contrata.hook";
 import { TraspasoContrataComplete } from "../lib/traspaso-contrata.constants";
@@ -37,12 +38,16 @@ interface Props {
   item: TraspasoContrataResource | null;
   onClose: () => void;
   onDownload: (item: TraspasoContrataResource) => void | Promise<void>;
+  onUploadSigned: (item: TraspasoContrataResource) => void;
+  onDownloadSigned: (item: TraspasoContrataResource) => void | Promise<void>;
 }
 
 export default function TraspasoContrataDetalleSheet({
   item,
   onClose,
   onDownload,
+  onUploadSigned,
+  onDownloadSigned,
 }: Props) {
   const navigate = useNavigate();
   const { data, isLoading } = useTraspasoContrataDetailQuery(item?.id ?? null);
@@ -67,6 +72,24 @@ export default function TraspasoContrataDetalleSheet({
             >
               <Download className="size-3.5" />
               Descargar guía
+            </Button>
+            {detalle.tiene_documento_firmado ? (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onDownloadSigned(detalle)}
+              >
+                <FileCheck2 className="size-3.5" />
+                Ver firmado
+              </Button>
+            ) : null}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onUploadSigned(detalle)}
+            >
+              <Upload className="size-3.5" />
+              {detalle.tiene_documento_firmado ? "Reemplazar" : "Subir firmado"}
             </Button>
             <Button
               type="button"
@@ -97,6 +120,37 @@ export default function TraspasoContrataDetalleSheet({
               value={detalle.direccion_contrata}
             />
             <DocField label="Observaciones" value={detalle.observaciones} />
+          </div>
+
+          <div className="rounded-md border p-3 space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-xs font-semibold uppercase text-muted-foreground">
+                Regularización
+              </p>
+              <Badge color={detalle.tiene_documento_firmado ? "green" : "amber"}>
+                {detalle.tiene_documento_firmado ? "Guía firmada" : "Pendiente de firma"}
+              </Badge>
+            </div>
+            {detalle.documento_firmado ? (
+              <p className="text-xs text-muted-foreground">
+                Subida el {detalle.documento_firmado.subido_at} por {detalle.documento_firmado.usuario || "usuario no identificado"}.
+              </p>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Descargue la guía, obtenga las firmas y luego adjunte el archivo escaneado.
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+              Datos del transporte
+            </p>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <DocField label="Conductor" value={detalle.conductor} />
+              <DocField label="Licencia" value={detalle.licencia_conducir} mono />
+              <DocField label="Placa" value={detalle.placa_vehiculo} mono />
+            </div>
           </div>
 
           {detalle.series && detalle.series.length > 0 && (

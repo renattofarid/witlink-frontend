@@ -1,11 +1,14 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { useTabParams } from "@/hooks/useTabParams";
 import PageWrapper from "@/components/PageWrapper";
 import TitleComponent from "@/components/TitleComponent";
 import ActionsWrapper from "@/components/ActionsWrapper";
 import { DataTable } from "@/components/DataTable";
 import DataTablePagination from "@/components/DataTablePagination";
+import FilterWrapper from "@/components/FilterWrapper";
+import { SearchableSelect } from "@/components/SearchableSelect";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 
 import { TraspasoContrataComplete } from "../lib/traspaso-contrata.constants";
@@ -14,11 +17,18 @@ import { getTraspasoContrataColumns } from "../components/TraspasoContrataColumn
 import TraspasoContrataButtons from "../components/TraspasoContrataButtons";
 import TraspasoContrataDetalleSheet from "../components/TraspasoContrataDetalleSheet";
 import type { TraspasoContrataResource } from "../lib/traspaso-contrata.interface";
-import { descargarGuiaTraspasoContrata } from "../lib/traspaso-contrata.actions";
-import { errorToast } from "@/lib/core.function";
+import {
+  descargarDocumentoFirmadoTraspaso,
+  descargarGuiaTraspasoContrata,
+  subirDocumentoFirmadoTraspaso,
+} from "../lib/traspaso-contrata.actions";
+import { errorToast, successToast } from "@/lib/core.function";
 
 export default function TraspasoContrataPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const signedFileInputRef = useRef<HTMLInputElement>(null);
+  const signedUploadTargetRef = useRef<TraspasoContrataResource | null>(null);
   const [viewItem, setViewItem] = useState<TraspasoContrataResource | null>(
     null,
   );
@@ -32,6 +42,47 @@ export default function TraspasoContrataPage() {
   );
 
   const { data, isLoading } = useTraspasoContrataQuery(params);
+
+  const requestSignedUpload = (item: TraspasoContrataResource) => {
+    signedUploadTargetRef.current = item;
+    if (signedFileInputRef.current) {
+      signedFileInputRef.current.value = "";
+      signedFileInputRef.current.click();
+    }
+  };
+
+  const handleSignedFile = async (file?: File) => {
+    const item = signedUploadTargetRef.current;
+    if (!file || !item) return;
+    if (file.size > 10 * 1024 * 1024) {
+      errorToast("La guía firmada no debe superar los 10 MB.");
+      return;
+    }
+    try {
+      const updated = await subirDocumentoFirmadoTraspaso(item.id, file);
+      await queryClient.invalidateQueries({
+        queryKey: [TraspasoContrataComplete.QUERY_KEY],
+      });
+      if (viewItem?.id === updated.id) setViewItem(updated);
+      successToast(
+        item.tiene_documento_firmado
+          ? "Guía firmada reemplazada correctamente."
+          : "Guía firmada subida correctamente.",
+      );
+    } catch (error: any) {
+      errorToast(
+        error.response?.data?.message ?? "No se pudo subir la guía firmada.",
+      );
+    }
+  };
+
+  const downloadSigned = async (item: TraspasoContrataResource) => {
+    try {
+      await descargarDocumentoFirmadoTraspaso(item);
+    } catch {
+      errorToast("No se pudo descargar la guía firmada.");
+    }
+  };
 
   const columns = getTraspasoContrataColumns({
     onView: (item) => setViewItem(item),
@@ -47,10 +98,19 @@ export default function TraspasoContrataPage() {
         );
       }
     },
+    onUploadSigned: requestSignedUpload,
+    onDownloadSigned: downloadSigned,
   });
 
   return (
     <PageWrapper>
+      <input
+        ref={signedFileInputRef}
+        type="file"
+        accept="application/pdf,image/jpeg,image/png,.pdf,.jpg,.jpeg,.png"
+        className="hidden"
+        onChange={(event) => void handleSignedFile(event.target.files?.[0])}
+      />
       <TitleComponent
         title={
           TraspasoContrataComplete.MODEL.plural ??
@@ -63,6 +123,25 @@ export default function TraspasoContrataPage() {
           <TraspasoContrataButtons />
         </ActionsWrapper>
       </TitleComponent>
+
+      <FilterWrapper>
+        <SearchableSelect
+          placeholder="Regularización"
+          options={[
+            { value: "all", label: "Todas" },
+            { value: "pendiente", label: "Pendiente de guía firmada" },
+            { value: "firmada", label: "Guía firmada" },
+          ]}
+          value={params.estado_firma || "all"}
+          onChange={(value) =>
+            setParams((prev) => ({
+              ...prev,
+              estado_firma: value === "all" ? "" : value,
+              page: "1",
+            }))
+          }
+        />
+      </FilterWrapper>
 
       <DataTable columns={columns} data={data?.data ?? []} isLoading={isLoading} />
 
@@ -90,6 +169,8 @@ export default function TraspasoContrataPage() {
             );
           }
         }}
+        onUploadSigned={requestSignedUpload}
+        onDownloadSigned={downloadSigned}
       />
     </PageWrapper>
   );

@@ -349,9 +349,17 @@ export default function DespachoForm({
             <span className="text-muted-foreground text-xs">Sin series</span>
           );
         return (
-          <Badge variant="default" className="text-xs">
-            {series.length} serie{series.length !== 1 ? "s" : ""}
-          </Badge>
+          <div className="flex max-w-md flex-wrap gap-1">
+            {series.map((serie, index) => (
+              <Badge
+                key={`${serie.serie_id ?? serie.serie}-${index}`}
+                variant="outline"
+                className="font-mono text-xs"
+              >
+                {serie.serie}
+              </Badge>
+            ))}
+          </div>
         );
       },
     },

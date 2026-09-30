@@ -117,8 +117,11 @@ export default function AddProductosModal({
   const [almacenBusquedaId, setAlmacenBusquedaId] = useState("");
 
   const [tecnicoId, setTecnicoId] = useState(
-    selectedInventoryTecnicoId ||
+    (liquidacion.despacho?.tecnico?.id
+        ? String(liquidacion.despacho.tecnico.id)
+        : "") ||
       initialTecnicoId ||
+      selectedInventoryTecnicoId ||
       (liquidacion.tecnico1 ? String(liquidacion.tecnico1.id) : ""),
   );
   const [tecnicoNombre, setTecnicoNombre] = useState("");
@@ -137,6 +140,38 @@ export default function AddProductosModal({
 
   const [serieSearch, setSerieSearch] = useState("");
   const [showBuscarGlobal, setShowBuscarGlobal] = useState(false);
+
+  // Cada vez que se abre el modal se prioriza al técnico real del formulario
+  // o del despacho de la SOT. Evita reutilizar el técnico seleccionado en una
+  // liquidación anterior, que hacía que las series parecieran inexistentes.
+  useEffect(() => {
+    if (!open) return;
+    const tecnicoDespacho = liquidacion.despacho?.tecnico?.id
+      ? String(liquidacion.despacho.tecnico.id)
+      : "";
+    const tecnicoPreferido =
+      tecnicoDespacho ||
+      initialTecnicoId ||
+      (liquidacion.tecnico1 ? String(liquidacion.tecnico1.id) : "") ||
+      selectedInventoryTecnicoId;
+
+    if (tecnicoPreferido) {
+      setTecnicoId(tecnicoPreferido);
+      setSelectedInventoryTecnico(tecnicoPreferido);
+      setMaterialSelections({});
+      setSelectedExternSeries([]);
+    }
+    // Solo se resincroniza al abrir o al cambiar la liquidación/técnico origen;
+    // no al elegir manualmente otro técnico dentro del modal.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    open,
+    initialTecnicoId,
+    liquidacion.id,
+    liquidacion.despacho?.tecnico?.id,
+    liquidacion.tecnico1?.id,
+    setSelectedInventoryTecnico,
+  ]);
 
   const { data: inventario, isLoading } = useInventarioTecnicoLiquidacionQuery(
     tecnicoId || null,

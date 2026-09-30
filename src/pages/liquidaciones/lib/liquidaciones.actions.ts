@@ -369,14 +369,35 @@ export async function openGuiaRemisionPdf(
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = fileName ?? `guia_remision_${identificador}${area ? `_${area.toLowerCase()}` : ""}.pdf`;
+      a.download =
+        fileName ??
+        `guia_remision_${identificador}${area ? `_${area.toLowerCase()}` : ""}.pdf`;
       a.click();
       window.open(url);
+    })
+    .catch(async (error) => {
+      const responseData = error?.response?.data;
+      let message = "Error al obtener la guía de remisión";
+
+      if (responseData instanceof Blob) {
+        try {
+          const payload = JSON.parse(await responseData.text());
+          message = payload?.message || message;
+        } catch {
+          // El backend no devolvió un error JSON legible.
+        }
+      } else if (responseData?.message) {
+        message = responseData.message;
+      }
+
+      throw new Error(message);
     });
   promiseToast(promise, {
     loading: "Generando guía de remisión...",
     success: "Guía de remisión lista",
-    error: "Error al obtener la guía de remisión",
+    error: (error) => error instanceof Error
+      ? error.message
+      : "Error al obtener la guía de remisión",
   });
   return promise;
 }

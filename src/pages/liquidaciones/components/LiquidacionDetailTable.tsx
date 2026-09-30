@@ -44,11 +44,9 @@ export default function LiquidacionDetailTable({
         if (!series.length)
           return <span className="text-muted-foreground text-xs">—</span>;
         return (
-          <div className="flex flex-wrap gap-1">
+          <div className="flex flex-col gap-1">
             {series.map((s) => (
-              <Badge key={s.id} variant="outline" className="text-xs font-mono">
-                {s.serie}
-              </Badge>
+              <div key={s.id} className="flex items-center"><Badge variant="outline" className="h-5 px-1.5 font-mono text-xs">{s.serie}</Badge></div>
             ))}
           </div>
         );

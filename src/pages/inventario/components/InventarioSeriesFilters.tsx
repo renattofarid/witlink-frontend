@@ -153,6 +153,7 @@ export default function InventarioSeriesFilters({
               { value: "PENDIENTE", label: "PENDIENTE" },
               { value: "TRASLADO", label: "TRASLADO" },
               { value: "TS", label: "TRASPASO" },
+              { value: "PD", label: "PERDIDO" },
             ]}
             value={params.situacion || "all"}
             onChange={(v) => set("situacion", v)}

@@ -212,7 +212,10 @@ export default function LiquidacionForm({
       const guiaRemisionPdfUrl =
         "guiaRemisionPdfUrl" in data ? data.guiaRemisionPdfUrl : null;
       if (guiaRemisionPdfUrl && liquidacion) {
-        openGuiaRemisionPdf(liquidacion.sot);
+        const area = currentSot?.meta?.modo_operativo === "pext_por_despacho"
+          ? "PEXT"
+          : "PINT";
+        openGuiaRemisionPdf(liquidacion.sot, undefined, area);
       }
 
       onSuccess?.();

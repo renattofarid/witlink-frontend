@@ -9,6 +9,13 @@ import {
   LIQUIDACION_ROUTE_EDIT,
 } from "../lib/liquidaciones.constants";
 import { ButtonAction } from "@/components/ButtonAction";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { openGuiaRemisionPdf } from "../lib/liquidaciones.actions";
 
 interface ColumnOptions {
@@ -275,12 +282,30 @@ function LiquidacionRowActions({
           onClick={() => onEditObservacion(row)}
         />
       )}
-      <ButtonAction
-        icon={Download}
-        tooltip="Descargar guía de remisión"
-        canRender={isLiquidada}
-        onClick={() => openGuiaRemisionPdf(row.sot)}
-      />
+      {isLiquidada && row.guia_remision_pdf && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <ButtonAction
+              icon={Download}
+              tooltip="Descargar guía por área"
+            />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-52">
+            <DropdownMenuLabel>Guía exclusiva</DropdownMenuLabel>
+            {(row.guia_remision_pdf.versiones ?? []).map((guia) => (
+              <DropdownMenuItem
+                key={guia.area}
+                onClick={() =>
+                  openGuiaRemisionPdf(row.sot, guia.file_name, guia.area)
+                }
+              >
+                <FileText className="size-4" />
+                {guia.area} solamente
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
       <ButtonAction
         icon={Eye}
         tooltip="Ver detalle"

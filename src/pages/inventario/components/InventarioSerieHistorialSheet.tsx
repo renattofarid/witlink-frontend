@@ -38,6 +38,8 @@ const TIPO_BADGE: Record<string, string> = {
     "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300",
   "TRASPASO A CONTRATA":
     "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300",
+  PERDIDO:
+    "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
 };
 
 function tipoClass(tipo: string) {
@@ -60,6 +62,7 @@ const movimientoBadgeColor: Record<string, BadgeColor> = {
   LIQUIDACION_INSTALADO: "yellow",
   RETIRADO: "gray",
   TRASPASO: "indigo",
+  PERDIDO: "red",
 };
 
 const kardexColumns: ColumnDef<SerieHistorialKardexItem>[] = [

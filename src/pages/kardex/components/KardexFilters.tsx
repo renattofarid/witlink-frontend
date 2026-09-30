@@ -23,6 +23,7 @@ const TIPO_MOVIMIENTO_OPTIONS = [
   { value: "devolucion", label: "Devolución" },
   { value: "traslado", label: "Traslado" },
   { value: "traspaso", label: "Traspaso" },
+  { value: "perdido", label: "Perdido" },
 ];
 
 export default function KardexFilters({ params, setParams }: KardexFiltersProps) {

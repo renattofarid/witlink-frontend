@@ -25,6 +25,7 @@ const SITUACION_OPTIONS = [
   { value: "IN", label: "Liquidado" },
   { value: "RE", label: "Retirado" },
   { value: "TS", label: "Traspaso" },
+  { value: "PD", label: "Perdido" },
 ];
 
 const SORT_OPTIONS = [

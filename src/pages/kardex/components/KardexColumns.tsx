@@ -16,6 +16,7 @@ const movimientoBadgeColor: Record<string, BadgeColor> = {
   TRASLADO: "purple",
   TRASPASO: "indigo",
   DEVUELTO: "blue",
+  PERDIDO: "red",
 };
 
 export const getKardexColumns = (): ColumnDef<KardexResource>[] => [

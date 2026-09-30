@@ -15,6 +15,7 @@ export interface InventarioSerieResource {
     | "RETIRADO"
     | "TRASLADO"
     | "TRASPASO"
+    | "PERDIDO"
     | "DEVUELTO"
     | "DEVUELTO A CLARO";
   fecha: string;

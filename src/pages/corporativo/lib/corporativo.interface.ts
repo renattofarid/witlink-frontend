@@ -42,7 +42,7 @@ export interface ReservaSotMasivoResponse {
 
 export interface CambiarUbicacionMasivoBody {
   series: number[];
-  situacion: "DI" | "DE" | "IN" | "RE" | "TR";
+  situacion: "DI" | "DE" | "IN" | "RE" | "TR" | "PD";
   sot?: string;
 }
 

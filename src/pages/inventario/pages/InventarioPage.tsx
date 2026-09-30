@@ -82,6 +82,7 @@ const SITUACIONES_UBICACION = [
   { value: "IN", label: "Instalado / Cliente" },
   { value: "RE", label: "Retirado" },
   { value: "TR", label: "En traslado" },
+  { value: "PD", label: "Perdido" },
 ];
 
 export default function InventarioPage() {
@@ -480,7 +481,7 @@ export default function InventarioPage() {
     mutationFn: () =>
       cambiarUbicacionMasivo({
         series: [ubicacionSerie!.serie_id ?? ubicacionSerie!.id!],
-        situacion: ubicacionSituacion as "DI" | "DE" | "IN" | "RE" | "TR",
+        situacion: ubicacionSituacion as "DI" | "DE" | "IN" | "RE" | "TR" | "PD",
         ...(ubicacionSituacion === "IN" ? { sot: ubicacionSot } : {}),
       }),
     onSuccess: () => {

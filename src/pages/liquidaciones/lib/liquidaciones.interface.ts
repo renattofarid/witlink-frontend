@@ -68,6 +68,7 @@ export interface LiquidacionResource {
     numero: string;
     fecha?: string;
     tipo?: string;
+    tecnico?: TecnicoPersona | null;
   } | null;
 }
 

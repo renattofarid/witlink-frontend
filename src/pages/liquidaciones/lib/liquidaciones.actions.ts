@@ -357,17 +357,19 @@ export const getActaBlob = async (rutaArchivo: string): Promise<Blob> => {
 export async function openGuiaRemisionPdf(
   identificador: string | number,
   fileName?: string,
+  area?: "PINT" | "PEXT",
 ) {
   const promise = api
     .get(`${LiquidacionesComplete.ENDPOINT}/${encodeURIComponent(String(identificador))}/guia-remision-pdf`, {
       responseType: "blob",
+      params: area ? { area } : undefined,
     })
     .then((response) => {
       const blob = response.data as Blob;
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = fileName ?? `guia_remision_${identificador}.pdf`;
+      a.download = fileName ?? `guia_remision_${identificador}${area ? `_${area.toLowerCase()}` : ""}.pdf`;
       a.click();
       window.open(url);
     });

@@ -85,21 +85,19 @@ export default function LiquidacionDetailPage() {
         icon="ClipboardList"
         backRoute={LiquidacionesComplete.ABSOLUTE_ROUTE}
       >
-        {liquidacion.guia_remision_pdf && (
+        {liquidacion.guia_remision_pdf?.versiones?.map((guia) => (
           <Button
+            key={guia.area}
             variant="outline"
             size="sm"
             onClick={() =>
-              openGuiaRemisionPdf(
-                liquidacion.sot,
-                liquidacion.guia_remision_pdf?.file_name,
-              )
+              openGuiaRemisionPdf(liquidacion.sot, guia.file_name, guia.area)
             }
           >
             <FileText className="size-4 mr-1" />
-            Previsualizar guía de remisión
+            Guía exclusiva {guia.area}
           </Button>
-        )}
+        ))}
       </TitleFormComponent>
 
       <LiquidacionHeaderInfo liquidacion={liquidacion} />

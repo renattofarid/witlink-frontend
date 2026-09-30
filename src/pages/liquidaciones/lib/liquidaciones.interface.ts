@@ -130,6 +130,14 @@ export interface LiquidacionBitacoraResponse {
 export interface GuiaRemisionPdfInfo {
   preview_url: string;
   file_name: string;
+  versiones?: GuiaRemisionPdfVersion[];
+}
+
+export interface GuiaRemisionPdfVersion {
+  area: "PINT" | "PEXT";
+  label: string;
+  preview_url: string;
+  file_name: string;
 }
 
 export interface SerieProducto {

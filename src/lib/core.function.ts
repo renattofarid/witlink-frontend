@@ -58,6 +58,42 @@ export const loadingToast = (body: string = "Cargando...") => {
   return toast.loading(body);
 };
 
+export const getApiErrorMessage = (
+  error: any,
+  fallback = "OcurriÃ³ un error inesperado.",
+): string => {
+  const data = error?.response?.data;
+  if (typeof data?.message === "string" && data.message.trim()) {
+    return data.message;
+  }
+
+  if (data?.errors && typeof data.errors === "object") {
+    const first = Object.values(data.errors)[0];
+    if (Array.isArray(first) && first[0]) return String(first[0]);
+    if (first) return String(first);
+  }
+
+  if (typeof data === "string" && data.trim() && !data.includes("<html")) {
+    return data.trim().slice(0, 500);
+  }
+
+  const status = error?.response?.status;
+  if (status === 413) {
+    return "La guÃ­a contiene demasiados datos o el archivo supera el lÃ­mite permitido por el servidor.";
+  }
+  if (status) {
+    return `${fallback} (HTTP ${status})`;
+  }
+  if (error?.code === "ECONNABORTED") {
+    return "El servidor tardÃ³ demasiado en procesar la guÃ­a.";
+  }
+  if (typeof error?.message === "string" && error.message !== "Network Error") {
+    return error.message;
+  }
+
+  return "No se pudo conectar con el servidor. Verifica la conexiÃ³n e intÃ©ntalo nuevamente.";
+};
+
 export const promiseToast = <T>(
   promise: Promise<T>,
   messages: {

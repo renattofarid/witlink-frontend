@@ -31,6 +31,7 @@ interface SerieDetalle {
   producto_id: number;
   serie: string;
   almacen_claro?: string | null;
+  lote?: string | null;
   situacion: string;
   mac: string | null;
   ua: string | null;

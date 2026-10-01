@@ -195,7 +195,7 @@ export default function LiquidacionLiquidadaView({
                             key={serieItem.serie.id ?? idx}
                             className="text-xs text-muted-foreground"
                           >
-                            Almacén Claro: {serieItem.serie.almacen_claro ?? "Sin dato"}
+                            Almacén Claro: {serieItem.serie.almacen_claro ?? "Sin dato"}{serieItem.serie.lote ? ` · Lote: ${serieItem.serie.lote}` : ""}
                           </p>
                         );
                       })}

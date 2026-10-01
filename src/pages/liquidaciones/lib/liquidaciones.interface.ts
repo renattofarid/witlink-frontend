@@ -146,6 +146,7 @@ export interface SerieProducto {
   situacion_label?: string;
   serie: string;
   almacen_claro?: string | null;
+  lote?: string | null;
   emta_mac: string | null;
   mac: string | null;
   ua: string | null;
@@ -237,6 +238,7 @@ export interface ProductoLiquidacionItem {
       situacion_label?: string;
       serie: string;
       almacen_claro?: string | null;
+      lote?: string | null;
       emta_mac: string | null;
       mac: string | null;
       ua: string | null;
@@ -284,7 +286,7 @@ export interface LiquidacionCartItem {
   tecnico_id: number;
   tecnico_nombre: string;
   cantidad: number;
-  series: Array<{ id: number; serie: string; almacen_claro?: string | null }>;
+  series: Array<{ id: number; serie: string; almacen_claro?: string | null; lote?: string | null }>;
 }
 
 // ── Payloads ──────────────────────────────────────────────────────────────────

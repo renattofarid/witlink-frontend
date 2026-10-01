@@ -44,11 +44,9 @@ export default function LiquidacionDetailTable({
         if (!series.length)
           return <span className="text-muted-foreground text-xs">—</span>;
         return (
-          <div className="flex flex-wrap gap-1">
+          <div className="flex flex-col gap-1">
             {series.map((s) => (
-              <Badge key={s.id} variant="outline" className="text-xs font-mono">
-                {s.serie}
-              </Badge>
+              <div key={s.id} className="flex items-center"><Badge variant="outline" className="h-5 px-1.5 font-mono text-xs">{s.serie}</Badge></div>
             ))}
           </div>
         );
@@ -75,6 +73,27 @@ export default function LiquidacionDetailTable({
               <div key={serie.id} className="flex items-center text-xs">
                 <Badge variant="outline" className="h-5 px-1.5 font-mono text-xs">
                   {serie.almacen_claro ?? "Sin dato"}
+                </Badge>
+              </div>
+            ))}
+          </div>
+        );
+      },
+    },
+    {
+      id: "lote",
+      header: "Lote",
+      cell: ({ row }) => {
+        if (row.original.tipo !== "serie") {
+          return <span className="text-xs text-muted-foreground">—</span>;
+        }
+
+        return (
+          <div className="flex flex-col gap-1">
+            {row.original.series.map((serie) => (
+              <div key={serie.id} className="flex items-center text-xs">
+                <Badge variant="outline" className="h-5 px-1.5 font-mono text-xs">
+                  {serie.lote ?? "Sin dato"}
                 </Badge>
               </div>
             ))}

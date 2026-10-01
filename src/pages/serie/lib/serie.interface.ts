@@ -20,6 +20,7 @@ export interface SerieResource {
   situacion_label: SituationLabel;
   serie?: string;
   almacen_claro?: string | null;
+  lote?: string | null;
   almacen?: {
     id: number;
     nombre: string;

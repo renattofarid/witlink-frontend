@@ -255,7 +255,10 @@ export default function AddProductosModal({
   const handleMaterialQty = (item: MaterialInventarioItem, delta: number) => {
     setMaterialSelections((prev) => {
       const current = prev[item.id]?.cantidad ?? 0;
-      const next = Math.max(0, current + delta);
+      const key = `${Number(tecnicoId)}-${item.material.producto.id}`;
+      const pendingInCart = pendingQtyByMaterial.get(key) ?? 0;
+      const maxSelectable = Math.max(0, Number(item.cantidad) - pendingInCart);
+      const next = Math.min(maxSelectable, Math.max(0, current + delta));
       if (next === 0) {
         const { [item.id]: _, ...rest } = prev;
         return rest;
@@ -268,7 +271,10 @@ export default function AddProductosModal({
     item: MaterialInventarioItem,
     val: string,
   ) => {
-    const n = Math.max(0, Number(val) || 0);
+    const key = `${Number(tecnicoId)}-${item.material.producto.id}`;
+    const pendingInCart = pendingQtyByMaterial.get(key) ?? 0;
+    const maxSelectable = Math.max(0, Number(item.cantidad) - pendingInCart);
+    const n = Math.min(maxSelectable, Math.max(0, Number(val) || 0));
     setMaterialSelections((prev) => {
       if (n === 0) {
         const { [item.id]: _, ...rest } = prev;

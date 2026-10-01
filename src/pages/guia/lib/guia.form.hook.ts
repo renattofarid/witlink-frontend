@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { successToast, errorToast } from "@/lib/core.function";
+import {
+  successToast,
+  errorToast,
+  getApiErrorMessage,
+} from "@/lib/core.function";
 import {
   createGuia,
   updateGuia,
@@ -136,14 +140,7 @@ export function useGuiaMutation(
       onSuccess?.();
     },
     onError: (error: any) => {
-      const data = error.response?.data;
-      let msg = typeof data?.message === "string" ? data.message : null;
-      if (!msg && data?.errors) {
-        const firstErrKey = Object.keys(data.errors)[0];
-        const firstErr = data.errors[firstErrKey];
-        msg = Array.isArray(firstErr) ? firstErr[0] : String(firstErr);
-      }
-      errorToast(msg ?? "Error al guardar la guía.");
+      errorToast(getApiErrorMessage(error, "Error al guardar la guía."));
     },
   });
 }

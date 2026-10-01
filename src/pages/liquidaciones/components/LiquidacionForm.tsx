@@ -95,6 +95,7 @@ export default function LiquidacionForm({
               id: s.serie!.id,
               serie: s.serie!.serie,
               almacen_claro: s.serie!.almacen_claro,
+              lote: s.serie!.lote,
             })),
         };
       },

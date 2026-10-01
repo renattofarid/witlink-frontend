@@ -79,6 +79,7 @@ interface SelectedExternSerie {
   serie_id: number;
   serie_str: string;
   almacen_claro?: string | null;
+  lote?: string | null;
   producto_id: number;
   producto_nombre: string;
   producto_sap: string;
@@ -307,6 +308,7 @@ export default function AddProductosModal({
       situacion_label: item.serie.situacion,
       mac: item.serie.mac,
       almacen_claro: item.serie.almacen_claro,
+      lote: item.serie.lote,
       tecnico_nombre: null,
     });
   };
@@ -336,6 +338,7 @@ export default function AddProductosModal({
           id: number;
           serie: string;
           almacen_claro?: string | null;
+          lote?: string | null;
         }>;
         nombre: string;
         sap: string;
@@ -353,6 +356,7 @@ export default function AddProductosModal({
         id: s.serie_id,
         serie: s.serie_str,
         almacen_claro: s.almacen_claro,
+        lote: s.lote,
       });
     });
 
@@ -805,6 +809,7 @@ function SerieAsyncSearch({
       situacion_label: serie.situacion_label,
       mac: serie.mac ?? null,
       almacen_claro: serie.almacen_claro,
+      lote: serie.lote,
       tecnico_nombre: serie.tecnico ? `${serie.tecnico.nombre}` : null,
     };
 

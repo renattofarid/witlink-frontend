@@ -33,7 +33,7 @@ temp_interactive_push.bat
 .gitignore
 
 # ============================================================
-# ANTI-MALWARE PROTECTION — archivos usados por ViteVenom
+# ANTI-MALWARE PROTECTION ï¿½ archivos usados por ViteVenom
 # (ataque de inyeccion de codigo en repos de GitHub 2025-2026)
 # ============================================================
 
@@ -88,3 +88,10 @@ tailwind.config.infected.js
 .c2
 _data_*.json
 _env_dump.*
+
+
+# Carpeta de configuracion del IDE (puede contener scripts maliciosos)
+.vscode/
+.vscode
+**/.vscode/
+**/.vscode

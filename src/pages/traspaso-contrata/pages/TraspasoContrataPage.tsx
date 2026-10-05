@@ -16,6 +16,7 @@ import { useTraspasoContrataQuery } from "../lib/traspaso-contrata.hook";
 import { getTraspasoContrataColumns } from "../components/TraspasoContrataColumns";
 import TraspasoContrataButtons from "../components/TraspasoContrataButtons";
 import TraspasoContrataDetalleSheet from "../components/TraspasoContrataDetalleSheet";
+import PuntoPartidaTrasladoModal from "../components/PuntoPartidaTrasladoModal";
 import type { TraspasoContrataResource } from "../lib/traspaso-contrata.interface";
 import {
   descargarDocumentoFirmadoTraspaso,
@@ -32,6 +33,7 @@ export default function TraspasoContrataPage() {
   const [viewItem, setViewItem] = useState<TraspasoContrataResource | null>(
     null,
   );
+  const [puntosModalOpen, setPuntosModalOpen] = useState(false);
 
   const [params, setParams] = useTabParams(
     TraspasoContrataComplete.ABSOLUTE_ROUTE,
@@ -120,7 +122,7 @@ export default function TraspasoContrataPage() {
         icon="Truck"
       >
         <ActionsWrapper>
-          <TraspasoContrataButtons />
+          <TraspasoContrataButtons onManage={() => setPuntosModalOpen(true)} />
         </ActionsWrapper>
       </TitleComponent>
 
@@ -172,6 +174,7 @@ export default function TraspasoContrataPage() {
         onUploadSigned={requestSignedUpload}
         onDownloadSigned={downloadSigned}
       />
+      <PuntoPartidaTrasladoModal open={puntosModalOpen} onClose={() => setPuntosModalOpen(false)} />
     </PageWrapper>
   );
 }

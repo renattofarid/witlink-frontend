@@ -4,7 +4,14 @@ import {
   getTraspasosContrata,
   getTraspasoContrata,
   getSeriesDisponiblesTraspasoContrata,
+  getPuntosPartidaTraslado,
 } from "./traspaso-contrata.actions";
+
+export const usePuntosPartidaTrasladoQuery = () => useQuery({
+  queryKey: [TraspasoContrataComplete.QUERY_KEY, "puntos-partida"],
+  queryFn: getPuntosPartidaTraslado,
+  staleTime: 60_000,
+});
 
 export const useTraspasoContrataQuery = (params: Record<string, string>) => {
   return useQuery({

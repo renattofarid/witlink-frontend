@@ -1,10 +1,30 @@
 import { api } from "@/lib/config";
 import { TraspasoContrataComplete } from "./traspaso-contrata.constants";
+import type { PuntoPartidaTraslado } from "./traspaso-contrata.interface";
 import type {
   TraspasoContrataCreateBody,
   TraspasoContrataResource,
   TraspasoContrataResponse,
 } from "./traspaso-contrata.interface";
+
+export const getPuntosPartidaTraslado = async (): Promise<PuntoPartidaTraslado[]> => {
+  const { data } = await api.get("/guias-salida/puntos-partida-traslado");
+  return data.data;
+};
+
+export const createPuntoPartidaTraslado = async (descripcion: string) => {
+  const { data } = await api.post("/guias-salida/puntos-partida-traslado", { descripcion });
+  return data.data as PuntoPartidaTraslado;
+};
+
+export const updatePuntoPartidaTraslado = async (id: number, descripcion: string) => {
+  const { data } = await api.put(`/guias-salida/puntos-partida-traslado/${id}`, { descripcion });
+  return data.data as PuntoPartidaTraslado;
+};
+
+export const deletePuntoPartidaTraslado = async (id: number) => {
+  await api.delete(`/guias-salida/puntos-partida-traslado/${id}`);
+};
 
 export const getTraspasosContrata = async (
   params: Record<string, string>,

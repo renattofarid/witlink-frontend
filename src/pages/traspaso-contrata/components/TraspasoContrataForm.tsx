@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { FormInput } from "@/components/FormInput";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
+import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import { successToast, errorToast } from "@/lib/core.function";
 import { useProductoQuery } from "@/pages/producto/lib/producto.hook";
@@ -24,7 +25,7 @@ import {
   createTraspasoContrata,
   updateTraspasoContrata,
 } from "../lib/traspaso-contrata.actions";
-import { useSeriesDisponiblesTraspasoContrataQuery } from "../lib/traspaso-contrata.hook";
+import { usePuntosPartidaTrasladoQuery, useSeriesDisponiblesTraspasoContrataQuery } from "../lib/traspaso-contrata.hook";
 import type {
   TraspasoContrataCreateBody,
   TraspasoContrataResource,
@@ -68,6 +69,7 @@ export default function TraspasoContrataForm({ mode, guia, onSuccess }: Props) {
     useState<ProductoResource | null>(null);
   const [selectedSerie, setSelectedSerie] =
     useState<TraspasoContrataSerieAvailable | null>(null);
+  const { data: puntosPartida = [] } = usePuntosPartidaTrasladoQuery();
 
   const form = useForm<TraspasoContrataHeaderFormValues>({
     resolver: zodResolver(traspasoContrataHeaderSchema),
@@ -76,6 +78,7 @@ export default function TraspasoContrataForm({ mode, guia, onSuccess }: Props) {
       ruc_contrata: "",
       descripcion_contrata: "",
       direccion_contrata: "",
+      punto_partida_id: "",
       conductor: "",
       licencia_conducir: "",
       placa_vehiculo: "",
@@ -100,6 +103,7 @@ export default function TraspasoContrataForm({ mode, guia, onSuccess }: Props) {
       ruc_contrata: guia.ruc_contrata,
       descripcion_contrata: guia.descripcion_contrata,
       direccion_contrata: guia.direccion_contrata,
+      punto_partida_id: guia.punto_partida?.id ? String(guia.punto_partida.id) : "",
       conductor: guia.conductor ?? "",
       licencia_conducir: guia.licencia_conducir ?? "",
       placa_vehiculo: guia.placa_vehiculo ?? "",
@@ -254,6 +258,7 @@ export default function TraspasoContrataForm({ mode, guia, onSuccess }: Props) {
       ruc_contrata: values.ruc_contrata,
       descripcion_contrata: values.descripcion_contrata,
       direccion_contrata: values.direccion_contrata,
+      punto_partida_id: Number(values.punto_partida_id),
       conductor: values.conductor || null,
       licencia_conducir: values.licencia_conducir || null,
       placa_vehiculo: values.placa_vehiculo || null,
@@ -292,6 +297,18 @@ export default function TraspasoContrataForm({ mode, guia, onSuccess }: Props) {
             placeholder="20512345678"
             required
             maxLength={11}
+          />
+          <FormSelect
+            name="punto_partida_id"
+            label="Punto de partida"
+            control={form.control}
+            required
+            placeholder="Seleccione el punto de partida"
+            options={puntosPartida.map((punto) => ({
+              value: String(punto.id),
+              label: punto.descripcion,
+            }))}
+            strictFilter
           />
           <FormInput
             name="descripcion_contrata"

@@ -79,24 +79,30 @@ export default function LiquidacionForm({
           item.productos ??
           item.producto ??
           item.series.find((s) => s.serie?.producto)?.serie?.producto;
-        return {
-          tempId: `api-${item.id}`,
-          detalle_id: item.id,
-          tipo: prod?.necesita_serie ? "serie" : "material",
-          producto_id: prod?.id ?? item.producto_id ?? 0,
-          producto_nombre: prod?.nombre ?? "Desconocido",
-          producto_sap: prod?.sap ?? "",
-          tecnico_id: item.tecnico_id,
-          tecnico_nombre: item.tecnico ?? `Técnico ${item.tecnico_id}`,
-          cantidad: Number(item.cantidad),
-          series: item.series
+        const seriesMapeadas = item.series
             .filter((s) => Boolean(s.serie))
             .map((s) => ({
               id: s.serie!.id,
               serie: s.serie!.serie,
               almacen_claro: s.serie!.almacen_claro,
               lote: s.serie!.lote,
-            })),
+            }));
+        // Si hay series, es un equipo. Si la cantidad guardada es 0 usar el conteo de series.
+        const tienesSeries = seriesMapeadas.length > 0;
+        const cantidadCalculada = tienesSeries
+          ? Math.max(Number(item.cantidad), seriesMapeadas.length)
+          : Number(item.cantidad);
+        return {
+          tempId: `api-${item.id}`,
+          detalle_id: item.id,
+          tipo: tienesSeries || prod?.necesita_serie ? "serie" : "material",
+          producto_id: prod?.id ?? item.producto_id ?? 0,
+          producto_nombre: prod?.nombre ?? "Desconocido",
+          producto_sap: prod?.sap ?? "",
+          tecnico_id: item.tecnico_id,
+          tecnico_nombre: item.tecnico ?? `Técnico ${item.tecnico_id}`,
+          cantidad: cantidadCalculada,
+          series: seriesMapeadas,
         };
       },
     );

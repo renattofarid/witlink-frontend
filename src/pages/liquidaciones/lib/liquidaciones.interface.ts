@@ -225,7 +225,7 @@ export interface ProductoInfo {
 }
 
 export interface ProductoLiquidacionItem {
-  id: number;
+  id: number | null;
   liquidacion_id: number;
   tecnico_id: number;
   tecnico?: string;
@@ -254,6 +254,7 @@ export interface ProductoLiquidacionItem {
   producto?: ProductoInfo;
   // La API también devuelve el objeto producto como "productos" (plural) para materiales
   productos?: ProductoInfo;
+  requiere_sincronizacion_despacho?: boolean;
 }
 
 // ── Detalle de liquidación (response del guardado) ────────────────────────────
@@ -287,6 +288,7 @@ export interface LiquidacionCartItem {
   tecnico_nombre: string;
   cantidad: number;
   series: Array<{ id: number; serie: string; almacen_claro?: string | null; lote?: string | null }>;
+  requiere_sincronizacion_despacho?: boolean;
 }
 
 // ── Payloads ──────────────────────────────────────────────────────────────────

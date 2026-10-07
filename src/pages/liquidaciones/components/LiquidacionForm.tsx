@@ -75,6 +75,7 @@ export default function LiquidacionForm({
 
     const cartItems: LiquidacionCartItem[] = liquidacion.productos.map(
       (item) => {
+        const detalleId = item.id && item.id > 0 ? item.id : undefined;
         const prod =
           item.productos ??
           item.producto ??
@@ -93,8 +94,10 @@ export default function LiquidacionForm({
           ? Math.max(Number(item.cantidad), seriesMapeadas.length)
           : Number(item.cantidad);
         return {
-          tempId: `api-${item.id}`,
-          detalle_id: item.id,
+          tempId: detalleId
+            ? `api-${detalleId}`
+            : `despacho-${item.producto_id}-${seriesMapeadas.map((serie) => serie.id).join("-")}`,
+          detalle_id: detalleId,
           tipo: tienesSeries || prod?.necesita_serie ? "serie" : "material",
           producto_id: prod?.id ?? item.producto_id ?? 0,
           producto_nombre: prod?.nombre ?? "Desconocido",
@@ -103,6 +106,8 @@ export default function LiquidacionForm({
           tecnico_nombre: item.tecnico ?? `Técnico ${item.tecnico_id}`,
           cantidad: cantidadCalculada,
           series: seriesMapeadas,
+          requiere_sincronizacion_despacho:
+            item.requiere_sincronizacion_despacho ?? false,
         };
       },
     );
@@ -237,7 +242,9 @@ export default function LiquidacionForm({
   });
 
   const tecnico1Value = form.watch("tecnico1");
-  const hasUnsaved = items.some((item) => !item.detalle_id);
+  const hasUnsaved = items.some(
+    (item) => !item.detalle_id || item.requiere_sincronizacion_despacho,
+  );
 
   const handleSave = form.handleSubmit(
     () => {

@@ -91,7 +91,7 @@ export default function LiquidacionDetailPage() {
             variant="outline"
             size="sm"
             onClick={() =>
-              openGuiaRemisionPdf(liquidacion.sot, guia.file_name, guia.area)
+              openGuiaRemisionPdf(liquidacion.id, guia.file_name, guia.area)
             }
           >
             <FileText className="size-4 mr-1" />

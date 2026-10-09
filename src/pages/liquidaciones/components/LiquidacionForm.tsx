@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -39,6 +39,7 @@ export default function LiquidacionForm({
   allowSotEdit = false,
 }: LiquidacionFormProps) {
   const queryClient = useQueryClient();
+  const [hasLocalChanges, setHasLocalChanges] = useState(false);
   const {
     currentSot,
     sotSearched,
@@ -75,7 +76,6 @@ export default function LiquidacionForm({
 
     const cartItems: LiquidacionCartItem[] = liquidacion.productos.map(
       (item) => {
-        const detalleId = item.id && item.id > 0 ? item.id : undefined;
         const prod =
           item.productos ??
           item.producto ??
@@ -94,10 +94,8 @@ export default function LiquidacionForm({
           ? Math.max(Number(item.cantidad), seriesMapeadas.length)
           : Number(item.cantidad);
         return {
-          tempId: detalleId
-            ? `api-${detalleId}`
-            : `despacho-${item.producto_id}-${seriesMapeadas.map((serie) => serie.id).join("-")}`,
-          detalle_id: detalleId,
+          tempId: `api-${item.id}`,
+          detalle_id: item.id,
           tipo: tienesSeries || prod?.necesita_serie ? "serie" : "material",
           producto_id: prod?.id ?? item.producto_id ?? 0,
           producto_nombre: prod?.nombre ?? "Desconocido",
@@ -106,8 +104,6 @@ export default function LiquidacionForm({
           tecnico_nombre: item.tecnico ?? `Técnico ${item.tecnico_id}`,
           cantidad: cantidadCalculada,
           series: seriesMapeadas,
-          requiere_sincronizacion_despacho:
-            item.requiere_sincronizacion_despacho ?? false,
         };
       },
     );
@@ -216,6 +212,7 @@ export default function LiquidacionForm({
       });
     },
     onSuccess: (data) => {
+      setHasLocalChanges(false);
       queryClient.invalidateQueries({
         queryKey: [LiquidacionesComplete.QUERY_KEY],
       });
@@ -227,7 +224,7 @@ export default function LiquidacionForm({
         const area = currentSot?.meta?.modo_operativo === "pext_por_despacho"
           ? "PEXT"
           : "PINT";
-        openGuiaRemisionPdf(liquidacion.sot, undefined, area);
+        openGuiaRemisionPdf(liquidacion.id, undefined, area);
       }
 
       onSuccess?.();
@@ -242,9 +239,7 @@ export default function LiquidacionForm({
   });
 
   const tecnico1Value = form.watch("tecnico1");
-  const hasUnsaved = items.some(
-    (item) => !item.detalle_id || item.requiere_sincronizacion_despacho,
-  );
+  const hasUnsaved = hasLocalChanges || items.some((item) => !item.detalle_id);
 
   const handleSave = form.handleSubmit(
     () => {
@@ -263,6 +258,12 @@ export default function LiquidacionForm({
 
   const handleAddItems = (newItems: LiquidacionCartItem[]) => {
     addItems(newItems);
+    setHasLocalChanges(true);
+  };
+
+  const handleRemoveItem = (tempId: string) => {
+    removeItem(tempId);
+    setHasLocalChanges(true);
   };
 
   if (!liquidacion) return null;
@@ -371,7 +372,7 @@ export default function LiquidacionForm({
 
       <LiquidacionDetailTable
         items={items}
-        onRemove={removeItem}
+        onRemove={handleRemoveItem}
         onAddProducts={openProductModal}
         onSave={handleSave}
         isSaving={saveMutation.isPending}

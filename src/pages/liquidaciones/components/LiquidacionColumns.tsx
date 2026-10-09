@@ -296,7 +296,7 @@ function LiquidacionRowActions({
               <DropdownMenuItem
                 key={guia.area}
                 onClick={() =>
-                  openGuiaRemisionPdf(row.sot, guia.file_name, guia.area)
+                  openGuiaRemisionPdf(row.id, guia.file_name, guia.area)
                 }
               >
                 <FileText className="size-4" />
@@ -309,12 +309,12 @@ function LiquidacionRowActions({
       <ButtonAction
         icon={Eye}
         tooltip="Ver detalle"
-        onClick={() => navigate(`${LIQUIDACION_ROUTE_VIEW}/${row.sot}`)}
+        onClick={() => navigate(`${LIQUIDACION_ROUTE_VIEW}/${row.id}`)}
       />
       <ButtonAction
         icon={Pencil}
         tooltip="Editar"
-        onClick={() => navigate(`${LIQUIDACION_ROUTE_EDIT}/${row.sot}`)}
+        onClick={() => navigate(`${LIQUIDACION_ROUTE_EDIT}/${row.id}`)}
       />
       {onExport && (
         <ButtonAction

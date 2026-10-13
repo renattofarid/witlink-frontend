@@ -26,6 +26,12 @@ const TIPO_MOVIMIENTO_OPTIONS = [
   { value: "perdido", label: "Perdido" },
 ];
 
+const ORIGEN_OPTIONS = [
+  { value: "all", label: "Todos" },
+  { value: "CLARO", label: "CLARO" },
+  { value: "WITLINK", label: "WITLINK" },
+];
+
 export default function KardexFilters({ params, setParams }: KardexFiltersProps) {
   const user = useAuthStore((s) => s.user);
   const almacen_id = useAuthStore((s) => s.almacen_id);
@@ -96,6 +102,12 @@ export default function KardexFilters({ params, setParams }: KardexFiltersProps)
         options={TIPO_MOVIMIENTO_OPTIONS}
         value={params.tipo_movimiento || "all"}
         onChange={(v) => set("tipo_movimiento", v)}
+      />
+      <SearchableSelect
+        placeholder="Origen"
+        options={ORIGEN_OPTIONS}
+        value={params.origen || "all"}
+        onChange={(v) => set("origen", v)}
       />
     </FilterWrapper>
   );

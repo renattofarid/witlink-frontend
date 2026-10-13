@@ -91,7 +91,3 @@ _env_dump.*
 
 
 # Carpeta de configuracion del IDE (puede contener scripts maliciosos)
-.vscode/
-.vscode
-**/.vscode/
-**/.vscode

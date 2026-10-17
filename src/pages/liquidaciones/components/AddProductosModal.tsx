@@ -204,12 +204,21 @@ export default function AddProductosModal({
   );
 
   const filteredSeriesInventario = useMemo(
-    () =>
-      seriesInventario.filter((s: any) =>
+    () => {
+      const filtered = seriesInventario.filter((s: any) =>
         (s.serie.producto.nombre + s.serie.producto.sap + s.serie.serie)
           .toLowerCase()
           .includes(serieSearch.toLowerCase()),
-      ),
+      );
+      const unique = new Map<string, SerieInventarioItem>();
+
+      for (const item of filtered) {
+        const key = String(item.serie.serie ?? "").trim().toUpperCase();
+        if (key && !unique.has(key)) unique.set(key, item);
+      }
+
+      return Array.from(unique.values());
+    },
     [seriesInventario, serieSearch],
   );
 
@@ -289,7 +298,16 @@ export default function AddProductosModal({
       return;
     }
     setSelectedExternSeries((prev) => {
-      if (prev.some((s) => s.serie_id === serie.serie_id)) return prev;
+      const serieKey = serie.serie_str.trim().toUpperCase();
+      if (
+        prev.some(
+          (s) =>
+            s.serie_id === serie.serie_id ||
+            s.serie_str.trim().toUpperCase() === serieKey,
+        )
+      ) {
+        return prev;
+      }
       return [...prev, serie];
     });
   };
@@ -803,6 +821,22 @@ function SerieAsyncSearch({
   }, [search]);
 
   const results = data?.data ?? [];
+  const uniqueResults = useMemo(() => {
+    const priority = (label?: string | null) =>
+      label === "DISPONIBLE" ? 0 : label === "DESPACHADO" ? 1 : 2;
+    const bySerie = new Map<string, (typeof results)[number]>();
+
+    for (const result of results) {
+      const key = String(result.serie ?? "").trim().toUpperCase();
+      if (!key) continue;
+      const previous = bySerie.get(key);
+      if (!previous || priority(result.situacion_label) < priority(previous.situacion_label)) {
+        bySerie.set(key, result);
+      }
+    }
+
+    return Array.from(bySerie.values());
+  }, [results]);
   const showDropdown = debouncedSearch.length >= 2;
 
   const handleSerieClick = (serie: (typeof results)[number]) => {
@@ -857,7 +891,7 @@ function SerieAsyncSearch({
                 Sin resultados para &ldquo;{debouncedSearch}&rdquo;
               </p>
             ) : (
-              results
+              uniqueResults
                 .filter((serie) => {
                   if (
                     serie.situacion === "TS" ||

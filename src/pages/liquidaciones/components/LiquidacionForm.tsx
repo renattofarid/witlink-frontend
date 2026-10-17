@@ -388,6 +388,7 @@ export default function LiquidacionForm({
           onConfirm={handleAddItems}
           initialTecnicoId={tecnico1Value || undefined}
           notRepetidos={true}
+          despachosSot={currentSot?.despachos_sot}
         />
       )}
     </div>

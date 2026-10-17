@@ -50,6 +50,7 @@ import { useLiquidacionStore } from "../lib/liquidaciones.store";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
 import { getAlmacenes } from "@/pages/auth/lib/auth.actions";
 import type {
+  DespachoSotItem,
   LiquidacionCartItem,
   LiquidacionResource,
 } from "../lib/liquidaciones.interface";
@@ -68,6 +69,8 @@ interface AddProductosModalProps {
   onConfirm: (items: LiquidacionCartItem[]) => void;
   initialTecnicoId?: string;
   notRepetidos?: boolean;
+  /** Materiales del despacho PEXT, usados como respaldo si el inventario del técnico está vacío. */
+  despachosSot?: DespachoSotItem[];
 }
 
 interface MaterialSelection {
@@ -96,6 +99,7 @@ export default function AddProductosModal({
   onConfirm,
   initialTecnicoId,
   notRepetidos,
+  despachosSot = [],
 }: AddProductosModalProps) {
   const { selectedInventoryTecnicoId, setSelectedInventoryTecnico } =
     useLiquidacionStore();
@@ -180,7 +184,68 @@ export default function AddProductosModal({
     liquidacion.almacen_id,
   );
 
-  const materiales: MaterialInventarioItem[] = inventario?.materiales ?? [];
+  const materialesDelDespacho = useMemo<MaterialInventarioItem[]>(() => {
+    if (despachosSot.length === 0) return [];
+
+    const agrupados = new Map<
+      number,
+      { producto: NonNullable<DespachoSotItem["productos"][number]["producto"]>; cantidad: number }
+    >();
+
+    for (const despacho of despachosSot) {
+      for (const detalle of despacho.productos ?? []) {
+        const producto = detalle.producto;
+        if (!producto || String(producto.tipo ?? "").toUpperCase() !== "MATERIAL") {
+          continue;
+        }
+
+        const productoId = Number(producto.id);
+        const actual = agrupados.get(productoId);
+        agrupados.set(productoId, {
+          producto,
+          cantidad: (actual?.cantidad ?? 0) + Number(detalle.cantidad ?? 0),
+        });
+      }
+    }
+
+    return Array.from(agrupados.entries())
+      .map(([productoId, { producto, cantidad }]) => {
+        const yaSeleccionado = currentItems
+          .filter((item) => item.tipo === "material" && item.producto_id === productoId)
+          .reduce((total, item) => total + Number(item.cantidad || 0), 0);
+        const pendiente = Math.max(0, cantidad - yaSeleccionado);
+
+        if (pendiente <= 0) return null;
+
+        return {
+          id: -productoId,
+          tecnico_id: Number(tecnicoId),
+          material_id: -productoId,
+          cantidad: pendiente,
+          created_at: "",
+          updated_at: "",
+          material: {
+            id: -productoId,
+            producto_id: productoId,
+            cantidad: String(pendiente),
+            almacen_id: liquidacion.almacen_id,
+            producto: {
+              id: productoId,
+              sap: producto.sap ?? "",
+              nombre: producto.nombre ?? "",
+              tipo: producto.tipo ?? "MATERIAL",
+              necesita_serie: false,
+            },
+          },
+        } satisfies MaterialInventarioItem;
+      })
+      .filter((item): item is MaterialInventarioItem => item !== null);
+  }, [despachosSot, currentItems, tecnicoId, liquidacion.almacen_id]);
+
+  const materiales: MaterialInventarioItem[] =
+    (inventario?.materiales?.length ?? 0) > 0
+      ? inventario?.materiales ?? []
+      : materialesDelDespacho;
   const seriesInventario: SerieInventarioItem[] = inventario?.series ?? [];
 
   const filteredMateriales = useMemo(

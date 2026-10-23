@@ -38,13 +38,13 @@ export default function NoRecurrentesPage() {
     <PageWrapper>
       <TitleComponent
         title="No Recurrentes"
-        subtitle="Descarga de plantilla para equipos no recurrentes"
+        subtitle="Series instaladas del almacén activo"
         icon="FileSpreadsheet"
       >
         <ActionsWrapper>
           <Button onClick={handleDownload} disabled={loading}>
             <Download className="mr-1 size-4" />
-            {loading ? "Descargando..." : "Descargar plantilla"}
+            {loading ? "Generando..." : "Descargar Excel"}
           </Button>
         </ActionsWrapper>
       </TitleComponent>

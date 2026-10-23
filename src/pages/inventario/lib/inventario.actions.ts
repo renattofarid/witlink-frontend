@@ -92,9 +92,12 @@ export const exportarInventarioMaterialesExcel = async (
   return data;
 };
 
-export const descargarPlantillaNoRecurrentes = async (): Promise<ExcelResponse> => {
+export const descargarPlantillaNoRecurrentes = async (
+  productos: string[],
+): Promise<ExcelResponse> => {
   const { data } = await api.get<ExcelResponse>(
     "/inventarios/no-recurrentes/plantilla",
+    { params: { "productos[]": productos } },
   );
   return data;
 };

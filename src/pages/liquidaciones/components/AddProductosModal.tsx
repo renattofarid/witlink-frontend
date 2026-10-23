@@ -234,7 +234,7 @@ export default function AddProductosModal({
               sap: producto.sap ?? "",
               nombre: producto.nombre ?? "",
               tipo: producto.tipo ?? "MATERIAL",
-              necesita_serie: false,
+              necesita_serie: Boolean(producto.necesita_serie),
             },
           },
         } satisfies MaterialInventarioItem;

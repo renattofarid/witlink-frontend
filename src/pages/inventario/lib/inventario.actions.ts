@@ -1,6 +1,7 @@
 import { api } from "@/lib/config";
 import type { ExcelResponse } from "@/lib/exportExcel";
 import type {
+  InventarioSerieResource,
   InventarioSerieResponse,
   InventarioMaterialResponse,
   SerieMovimientoResource,
@@ -94,10 +95,28 @@ export const exportarInventarioMaterialesExcel = async (
 
 export const descargarPlantillaNoRecurrentes = async (
   productos: string[],
+  situacion = "IN",
 ): Promise<ExcelResponse> => {
   const { data } = await api.get<ExcelResponse>(
     "/inventarios/no-recurrentes/plantilla",
-    { params: { "productos[]": productos } },
+    { params: { "productos[]": productos, situacion } },
+  );
+  return data;
+};
+
+export const getNoRecurrentesSeries = async (
+  productos: string[],
+  almacenId: number,
+  situacion: string,
+): Promise<InventarioSerieResource[]> => {
+  const { data } = await api.post<InventarioSerieResource[]>(
+    "/inventarios/series",
+    {
+      productos,
+      almacen_id: [almacenId],
+      situacion,
+      all: true,
+    },
   );
   return data;
 };

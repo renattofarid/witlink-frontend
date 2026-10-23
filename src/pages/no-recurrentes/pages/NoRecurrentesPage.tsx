@@ -20,11 +20,29 @@ const NO_RECURRENTES = [
 
 export default function NoRecurrentesPage() {
   const [loading, setLoading] = useState(false);
+  const [selectedSaps, setSelectedSaps] = useState<string[]>(
+    NO_RECURRENTES.map(([sap]) => sap),
+  );
+
+  const allSelected = selectedSaps.length === NO_RECURRENTES.length;
+
+  const toggleSap = (sap: string) => {
+    setSelectedSaps((current) =>
+      current.includes(sap)
+        ? current.filter((selected) => selected !== sap)
+        : [...current, sap],
+    );
+  };
 
   const handleDownload = async () => {
+    if (selectedSaps.length === 0) {
+      errorToast("Seleccione al menos un código SAP.");
+      return;
+    }
+
     setLoading(true);
     try {
-      const data = await descargarPlantillaNoRecurrentes();
+      const data = await descargarPlantillaNoRecurrentes(selectedSaps);
       downloadExcelFromBase64(data);
       successToast("Plantilla descargada correctamente.");
     } catch {
@@ -38,7 +56,7 @@ export default function NoRecurrentesPage() {
     <PageWrapper>
       <TitleComponent
         title="No Recurrentes"
-        subtitle="Series instaladas del almacén activo"
+        subtitle="Selecciona códigos SAP para exportar sus series instaladas"
         icon="FileSpreadsheet"
       >
         <ActionsWrapper>
@@ -53,9 +71,9 @@ export default function NoRecurrentesPage() {
         <div className="mb-4 flex items-center gap-2">
           <FileSpreadsheet className="size-5 text-primary" />
           <div>
-            <h2 className="font-semibold">Productos incluidos</h2>
+            <h2 className="font-semibold">Códigos SAP disponibles</h2>
             <p className="text-sm text-muted-foreground">
-              La descarga conserva el formato oficial de la plantilla adjunta.
+              Solo se exportarán las series instaladas del almacén activo.
             </p>
           </div>
         </div>
@@ -63,6 +81,18 @@ export default function NoRecurrentesPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b text-left">
+                <th className="w-12 px-3 py-2">
+                  <input
+                    type="checkbox"
+                    aria-label="Seleccionar todos los códigos SAP"
+                    checked={allSelected}
+                    onChange={() =>
+                      setSelectedSaps(
+                        allSelected ? [] : NO_RECURRENTES.map(([sap]) => sap),
+                      )
+                    }
+                  />
+                </th>
                 <th className="px-3 py-2">Código SAP</th>
                 <th className="px-3 py-2">Descripción</th>
               </tr>
@@ -70,6 +100,14 @@ export default function NoRecurrentesPage() {
             <tbody>
               {NO_RECURRENTES.map(([sap, descripcion]) => (
                 <tr key={sap} className="border-b last:border-0">
+                  <td className="px-3 py-2">
+                    <input
+                      type="checkbox"
+                      aria-label={`Seleccionar SAP ${sap}`}
+                      checked={selectedSaps.includes(sap)}
+                      onChange={() => toggleSap(sap)}
+                    />
+                  </td>
                   <td className="px-3 py-2 font-medium">{sap}</td>
                   <td className="px-3 py-2">{descripcion}</td>
                 </tr>

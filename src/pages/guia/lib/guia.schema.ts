@@ -21,6 +21,15 @@ export const serieSchema = z
     }
   });
 
+function hasSeriesData(series: z.infer<typeof serieSchema>): boolean {
+  return Boolean(
+    series.serie_id ||
+      [series.serie, series.mac, series.emta_mac, series.ua].some(
+        (value) => String(value ?? "").trim() !== "",
+      ),
+  );
+}
+
 export const productoSchema = z
   .object({
     productos_guia_id: z.number().optional().nullable(),
@@ -42,7 +51,8 @@ export const productoSchema = z
   .superRefine((p, ctx) => {
     // Series requeridas solo para equipos con necesita_serie = true
     if (p.tipo !== "EQUIPO" || !p.necesita_serie) return;
-    if ((p.series?.length ?? 0) !== p.cantidad) {
+    const filledSeriesCount = (p.series ?? []).filter(hasSeriesData).length;
+    if (filledSeriesCount !== p.cantidad) {
       ctx.addIssue({
         code: "custom",
         message: `Este producto es un equipo y debe tener ${p.cantidad} serie(s) asociada(s).`,

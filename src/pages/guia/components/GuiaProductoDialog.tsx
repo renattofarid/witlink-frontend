@@ -22,6 +22,15 @@ function isRequiredFlag(value: unknown): boolean {
   return value === true || value === 1 || value === "1";
 }
 
+function hasSeriesData(series: SerieFormValues): boolean {
+  return Boolean(
+    series.serie_id ||
+      [series.serie, series.mac, series.emta_mac, series.ua].some(
+        (value) => String(value ?? "").trim() !== "",
+      ),
+  );
+}
+
 interface GuiaProductoDialogProps {
   open: boolean;
   editingIndex: number | null;
@@ -134,12 +143,14 @@ export function GuiaProductoDialog({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEquipo, needsSeries]);
 
-  // Sincroniza cantidad = series.length automáticamente
+  const filledSeriesCount = watchedSeries.filter(hasSeriesData).length;
+
+  // Sincroniza cantidad únicamente con las filas que tienen datos.
   useEffect(() => {
     if (!isEquipo || !needsSeries) return;
-    productSubForm.setValue("cantidad", watchedSeries.length, { shouldValidate: false });
+    productSubForm.setValue("cantidad", filledSeriesCount, { shouldValidate: false });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [watchedSeries.length, isEquipo, needsSeries]);
+  }, [filledSeriesCount, isEquipo, needsSeries]);
 
   // Avanza el foco al siguiente campo habilitado; al final de fila crea una nueva
   const handleAdvance = useCallback(

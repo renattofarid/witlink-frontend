@@ -96,10 +96,19 @@ export const exportarInventarioMaterialesExcel = async (
 export const descargarPlantillaNoRecurrentes = async (
   productos: string[],
   situacion = "IN",
+  fechaDesde?: string,
+  fechaHasta?: string,
 ): Promise<ExcelResponse> => {
   const { data } = await api.get<ExcelResponse>(
     "/inventarios/no-recurrentes/plantilla",
-    { params: { "productos[]": productos, situacion } },
+    {
+      params: {
+        "productos[]": productos,
+        situacion,
+        ...(fechaDesde ? { fecha_desde: fechaDesde } : {}),
+        ...(fechaHasta ? { fecha_hasta: fechaHasta } : {}),
+      },
+    },
   );
   return data;
 };
@@ -108,14 +117,17 @@ export const getNoRecurrentesSeries = async (
   productos: string[],
   almacenId: number,
   situacion: string,
+  fechaDesde?: string,
+  fechaHasta?: string,
 ): Promise<InventarioSerieResource[]> => {
   const { data } = await api.post<InventarioSerieResource[]>(
-    "/inventarios/series",
+    "/inventarios/no-recurrentes/series",
     {
       productos,
       almacen_id: [almacenId],
       situacion,
-      all: true,
+      fecha_desde: fechaDesde || undefined,
+      fecha_hasta: fechaHasta || undefined,
     },
   );
   return data;

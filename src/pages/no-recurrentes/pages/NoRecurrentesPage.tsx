@@ -6,6 +6,7 @@ import TitleComponent from "@/components/TitleComponent";
 import ActionsWrapper from "@/components/ActionsWrapper";
 import { Button } from "@/components/ui/button";
 import { SearchableSelect } from "@/components/SearchableSelect";
+import { Input } from "@/components/ui/input";
 import { successToast, errorToast } from "@/lib/core.function";
 import { downloadExcelFromBase64 } from "@/lib/exportExcel";
 import { descargarPlantillaNoRecurrentes } from "@/pages/inventario/lib/inventario.actions";
@@ -26,6 +27,8 @@ export default function NoRecurrentesPage() {
   const almacenId = useAuthStore((state) => state.almacen_id);
   const [loading, setLoading] = useState(false);
   const [situacion, setSituacion] = useState("IN");
+  const [fechaDesde, setFechaDesde] = useState("");
+  const [fechaHasta, setFechaHasta] = useState("");
   const [selectedSaps, setSelectedSaps] = useState<string[]>(
     NO_RECURRENTES.map(([sap]) => sap),
   );
@@ -33,8 +36,22 @@ export default function NoRecurrentesPage() {
   const allSelected = selectedSaps.length === NO_RECURRENTES.length;
 
   const { data: series = [], isLoading: loadingSeries } = useQuery({
-    queryKey: ["no-recurrentes-series", almacenId, selectedSaps, situacion],
-    queryFn: () => getNoRecurrentesSeries(selectedSaps, almacenId!, situacion),
+    queryKey: [
+      "no-recurrentes-series",
+      almacenId,
+      selectedSaps,
+      situacion,
+      fechaDesde,
+      fechaHasta,
+    ],
+    queryFn: () =>
+      getNoRecurrentesSeries(
+        selectedSaps,
+        almacenId!,
+        situacion,
+        fechaDesde,
+        fechaHasta,
+      ),
     enabled: Boolean(almacenId && selectedSaps.length > 0),
   });
 
@@ -51,10 +68,19 @@ export default function NoRecurrentesPage() {
       errorToast("Seleccione al menos un código SAP.");
       return;
     }
+    if (fechaDesde && fechaHasta && fechaDesde > fechaHasta) {
+      errorToast("La fecha Desde no puede ser mayor que la fecha Hasta.");
+      return;
+    }
 
     setLoading(true);
     try {
-      const data = await descargarPlantillaNoRecurrentes(selectedSaps, situacion);
+      const data = await descargarPlantillaNoRecurrentes(
+        selectedSaps,
+        situacion,
+        fechaDesde,
+        fechaHasta,
+      );
       downloadExcelFromBase64(data);
       successToast("Plantilla descargada correctamente.");
     } catch {
@@ -111,6 +137,24 @@ export default function NoRecurrentesPage() {
           <span className="text-sm text-muted-foreground">
             {selectedSaps.length} de {NO_RECURRENTES.length} códigos SAP seleccionados
           </span>
+        </div>
+        <div className="mb-4 flex flex-wrap items-end gap-2">
+          <label className="text-sm">
+            <span className="mb-1 block text-muted-foreground">Desde</span>
+            <Input
+              type="date"
+              value={fechaDesde}
+              onChange={(event) => setFechaDesde(event.target.value)}
+            />
+          </label>
+          <label className="text-sm">
+            <span className="mb-1 block text-muted-foreground">Hasta</span>
+            <Input
+              type="date"
+              value={fechaHasta}
+              onChange={(event) => setFechaHasta(event.target.value)}
+            />
+          </label>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">

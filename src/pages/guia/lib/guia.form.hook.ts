@@ -42,8 +42,17 @@ function mapSeries(series: any[]) {
   );
 }
 
+function hasSeriesData(series: any): boolean {
+  return Boolean(
+    series?.serie_id ||
+      [series?.serie, series?.mac, series?.emta_mac, series?.ua].some(
+        (value) => String(value ?? "").trim() !== "",
+      ),
+  );
+}
+
 function buildProductoNuevo(p: any): GuiaProductoBody {
-  const series = mapSeries(p.series ?? []);
+  const series = mapSeries((p.series ?? []).filter(hasSeriesData));
   return {
     producto_id: Number(p.producto_id),
     tipo: p.tipo ?? null,
@@ -80,7 +89,7 @@ function buildGuiaEditBody(values: GuiaCreateFormValues): GuiaEditBody {
       series: {
         actualizar:
           p.series
-            ?.filter((s) => !!s.serie_id)
+            ?.filter((s) => hasSeriesData(s) && !!s.serie_id)
             .map((s) => ({
               serie_id: Number(s.serie_id),
               serie: s.serie ?? null,
@@ -91,7 +100,7 @@ function buildGuiaEditBody(values: GuiaCreateFormValues): GuiaEditBody {
             })) ?? null,
         añadir:
           p.series
-            ?.filter((s) => !s.serie_id)
+            ?.filter((s) => hasSeriesData(s) && !s.serie_id)
             .map((s) => ({
               serie_id: null,
               serie: s.serie ?? null,

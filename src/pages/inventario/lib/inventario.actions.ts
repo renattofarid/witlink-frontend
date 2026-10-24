@@ -98,6 +98,7 @@ export const descargarPlantillaNoRecurrentes = async (
   situacion = "IN",
   fechaDesde?: string,
   fechaHasta?: string,
+  almacenId?: number | null,
 ): Promise<ExcelResponse> => {
   const { data } = await api.get<ExcelResponse>(
     "/inventarios/no-recurrentes/plantilla",
@@ -105,6 +106,7 @@ export const descargarPlantillaNoRecurrentes = async (
       params: {
         "productos[]": productos,
         situacion,
+        ...(almacenId ? { almacen_id: almacenId } : {}),
         ...(fechaDesde ? { fecha_desde: fechaDesde } : {}),
         ...(fechaHasta ? { fecha_hasta: fechaHasta } : {}),
       },

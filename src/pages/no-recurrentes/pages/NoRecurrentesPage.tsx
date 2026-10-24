@@ -80,6 +80,7 @@ export default function NoRecurrentesPage() {
         situacion,
         fechaDesde,
         fechaHasta,
+        almacenId,
       );
       downloadExcelFromBase64(data);
       successToast("Plantilla descargada correctamente.");

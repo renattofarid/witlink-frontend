@@ -277,8 +277,15 @@ export default function InventarioPage() {
   });
 
   const devolverClaroMutation = useMutation({
-    mutationFn: (contabilizado: string) =>
-      devolverClaroInventarioSerie(selectedSerieClaro!.serie_id, contabilizado),
+    mutationFn: (contabilizado: string) => {
+      const serieId = selectedSerieClaro?.serie_id ?? selectedSerieClaro?.id;
+
+      if (!serieId) {
+        throw new Error("No se encontró el ID de la serie seleccionada.");
+      }
+
+      return devolverClaroInventarioSerie(serieId, contabilizado);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [INVENTARIO_SERIES_QUERY_KEY],

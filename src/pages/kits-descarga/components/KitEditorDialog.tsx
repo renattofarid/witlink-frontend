@@ -48,7 +48,7 @@ export default function KitEditorDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[min(92vh,820px)] w-[calc(100%-1rem)] max-w-4xl flex-col gap-0 overflow-hidden p-0 sm:w-[calc(100%-3rem)]">
+      <DialogContent className="flex max-h-[min(94vh,900px)] w-[calc(100%-1rem)] max-w-6xl flex-col gap-0 overflow-hidden p-0 sm:w-[calc(100%-3rem)]">
         <DialogHeader className="shrink-0 border-b bg-muted/20 px-5 py-4 pr-14 sm:px-6">
           <DialogTitle className="flex items-center gap-2 text-lg">
             <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary"><Package className="size-5" /></span>
@@ -83,10 +83,10 @@ export default function KitEditorDialog({
                 <div className="relative w-full sm:max-w-xs"><Input className="pl-3" placeholder="Buscar por SAP o nombre..." value={productSearch} onChange={(event) => setProductSearch(event.target.value)} /></div>
                 <Button type="button" variant="outline" size="sm" onClick={addDetail}><Plus className="mr-1 size-4" />Agregar producto</Button>
               </div>
-              <div className="hidden grid-cols-[minmax(0,1fr)_100px_130px_36px] gap-3 border-b px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground sm:grid"><span>Producto</span><span>Cantidad</span><span>Unidad</span><span /></div>
+              <div className="hidden grid-cols-[minmax(360px,1fr)_120px_160px_44px] gap-4 border-b px-4 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground sm:grid"><span>Producto</span><span>Cantidad</span><span>Unidad</span><span /></div>
               <div className="divide-y">
                 {form.detalles.map((detail, index) => (
-                  <div className="grid gap-3 p-3 sm:grid-cols-[minmax(0,1fr)_100px_130px_36px] sm:items-center" key={`${index}-${detail.producto_id}`}>
+                  <div className="grid gap-3 p-4 sm:grid-cols-[minmax(360px,1fr)_120px_160px_44px] sm:items-center" key={`${index}-${detail.producto_id}`}>
                     <Field label={`Producto ${index + 1}`} compact>
                       <select className="h-9 w-full min-w-0 rounded-lg border border-input bg-background px-3 text-sm outline-none focus:border-ring focus:ring-3 focus:ring-ring/50" value={detail.producto_id || ""} onChange={(event) => updateDetail(index, { producto_id: Number(event.target.value) })}>
                         <option value="">{productsLoading ? "Cargando productos..." : "Seleccione un producto"}</option>

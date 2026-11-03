@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArchiveRestore,
@@ -13,14 +13,12 @@ import {
   Search,
   Trash2,
   Upload,
-  X,
 } from "lucide-react";
 import PageWrapper from "@/components/PageWrapper";
 import TitleComponent from "@/components/TitleComponent";
 import ActionsWrapper from "@/components/ActionsWrapper";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -34,7 +32,6 @@ import {
 import { successToast, errorToast } from "@/lib/core.function";
 import { downloadExcelFromBase64 } from "@/lib/exportExcel";
 import { getProductosAll } from "@/pages/producto/lib/producto.actions";
-import type { ProductoResource } from "@/pages/producto/lib/producto.interface";
 import {
   createCategoria,
   createKit,
@@ -156,11 +153,6 @@ export default function KitsDescargaPage() {
     refetchOnWindowFocus: false,
   });
 
-  const filteredProducts = useMemo(() => {
-    const term = productSearch.trim().toLowerCase();
-    return productos.filter((p) => !term || `${p.sap} ${p.nombre}`.toLowerCase().includes(term)).slice(0, 100);
-  }, [productos, productSearch]);
-
   const invalidate = () => queryClient.invalidateQueries({ queryKey: [KitsDescargaComplete.QUERY_KEY] });
   const useActionMutation = (fn: (...args: any[]) => Promise<any>, ok: string, fail: string, after = invalidate) => useMutation({ mutationFn: fn, onSuccess: () => { successToast(ok); after(); }, onError: (e: any) => errorToast(errorMessage(e, fail)) });
   const saveKit = useMutation({
@@ -184,10 +176,6 @@ export default function KitsDescargaPage() {
     setKitForm({ tipo_trabajo_id: kit.tipo_trabajo_id, modalidad: kit.modalidad ?? "", paquete: kit.paquete ?? "", version: kit.version, vigencia_desde: kit.vigencia_desde ?? "", vigencia_hasta: kit.vigencia_hasta ?? "", activo: kit.activo, observaciones: kit.observaciones ?? "", detalles: kit.detalles.map((d) => ({ producto_id: d.producto_id, cantidad: d.cantidad, unidad_medida: d.unidad_medida ?? "UNIDAD" })) });
     setProductSearch(""); setKitModal(true);
   };
-  const addDetail = () => setKitForm((v) => ({ ...v, detalles: [...v.detalles, { producto_id: 0, cantidad: 1, unidad_medida: "UNIDAD" }] }));
-  const removeDetail = (index: number) => setKitForm((v) => ({ ...v, detalles: v.detalles.filter((_, i) => i !== index) }));
-  const updateDetail = (index: number, patch: Partial<KitBody["detalles"][number]>) => setKitForm((v) => ({ ...v, detalles: v.detalles.map((d, i) => i === index ? { ...d, ...patch } : d) }));
-
   const openCatalog = (kind: "categoria" | "tipo", row?: CategoriaTrabajo | TipoTrabajo) => {
     setCatalogModal(kind);
     if (kind === "categoria") { const item = row as CategoriaTrabajo | undefined; setEditingCategoria(item ?? null); setEditingTipo(null); setCatalogForm({ codigo: item?.codigo ?? "", nombre: item?.nombre ?? "", tecnologia: "", categoriaId: 0, activo: item?.activo ?? true }); }

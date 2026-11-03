@@ -1,4 +1,4 @@
-import type { Dispatch, SetStateAction } from "react";
+import type { Dispatch, ReactNode, SetStateAction } from "react";
 import { CalendarDays, Package, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -117,6 +117,6 @@ function SectionTitle({ number, title, description }: { number: string; title: s
   return <div className="flex items-start gap-3"><span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">{number}</span><div><h3 className="font-semibold">{title}</h3><p className="text-xs text-muted-foreground">{description}</p></div></div>;
 }
 
-function Field({ label, required, compact, children }: { label: string; required?: boolean; compact?: boolean; children: React.ReactNode }) {
+function Field({ label, required, compact, children }: { label: string; required?: boolean; compact?: boolean; children: ReactNode }) {
   return <div className={compact ? "space-y-1 sm:space-y-0" : "space-y-1.5"}><Label className={compact ? "text-xs text-muted-foreground sm:hidden" : "text-sm"}>{label}{required && <span className="ml-1 text-destructive">*</span>}</Label>{children}</div>;
 }

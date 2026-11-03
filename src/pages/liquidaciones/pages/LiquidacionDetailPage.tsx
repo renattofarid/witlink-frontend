@@ -10,6 +10,7 @@ import { LiquidacionesComplete } from "../lib/liquidaciones.constants";
 import { searchSot, openGuiaRemisionPdf } from "../lib/liquidaciones.actions";
 import LiquidacionHeaderInfo from "../components/LiquidacionHeaderInfo";
 import LiquidacionLiquidadaView from "../components/LiquidacionLiquidadaView";
+import LiquidacionKitPanel from "@/pages/kits-descarga/components/LiquidacionKitPanel";
 
 function DetailSkeleton() {
   return (
@@ -101,6 +102,8 @@ export default function LiquidacionDetailPage() {
       </TitleFormComponent>
 
       <LiquidacionHeaderInfo liquidacion={liquidacion} />
+
+      <LiquidacionKitPanel liquidacionId={liquidacion.id} sot={liquidacion.sot} />
 
       {liquidacion.estado_liquidacion === "liquidada" ? (
         <LiquidacionLiquidadaView

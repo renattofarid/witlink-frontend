@@ -41,6 +41,8 @@ import { MaterialesComplete } from "../pages/materiales/lib/materiales.constants
 import InventarioPage from "../pages/inventario/pages/InventarioPage";
 import { InventarioComplete } from "../pages/inventario/lib/inventario.constants";
 import NoRecurrentesPage from "../pages/no-recurrentes/pages/NoRecurrentesPage";
+import KitsDescargaPage from "../pages/kits-descarga/pages/KitsDescargaPage";
+import { KitsDescargaComplete } from "../pages/kits-descarga/lib/kits-descarga.constants";
 import DespachosPage from "../pages/despachos/pages/DespachosPage";
 import DespachoAddPage from "../pages/despachos/pages/DespachoAddPage";
 import DespachoEditPage from "../pages/despachos/pages/DespachoEditPage";
@@ -323,6 +325,15 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <NoRecurrentesPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path={KitsDescargaComplete.ROUTE}
+        element={
+          <ProtectedRoute>
+            <KitsDescargaPage />
           </ProtectedRoute>
         }
       />

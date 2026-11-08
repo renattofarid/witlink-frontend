@@ -75,7 +75,7 @@ export default function LiquidacionKitPanel({ liquidacionId, sot }: Props) {
           <>
             <div className="flex flex-wrap items-center gap-2 text-sm">
               <span>Kit actual:</span>
-              <Badge variant={comparison?.kit ? "default" : "outline"}>{comparison?.kit ? `${comparison.kit.paquete || "Sin paquete"} · v${comparison.kit.version}` : "Sin kit asociado"}</Badge>
+              <Badge variant={comparison?.kit ? "default" : "outline"}>{comparison?.kit ? `${comparison.kit.tipo_trabajo?.nombre || `Tipo #${comparison.kit.tipo_trabajo_id}`} · v${comparison.kit.version}` : "Sin kit asociado"}</Badge>
               {comparison?.origen_kit && <span className="text-xs text-muted-foreground">Origen: {comparison.origen_kit}</span>}
             </div>
             <div className="grid gap-2 sm:grid-cols-4">
@@ -87,7 +87,7 @@ export default function LiquidacionKitPanel({ liquidacionId, sot }: Props) {
             <div className="flex flex-wrap gap-2">
               <select className="h-9 min-w-72 rounded-md border bg-background px-3 text-sm" value={selectedKit} onChange={(event) => setSelectedKit(event.target.value)} disabled={kitsQuery.isLoading}>
                 <option value="">Seleccionar kit publicado...</option>
-                {kits.map((kit: KitDescarga) => <option key={kit.id} value={kit.id}>{kit.paquete || "Sin paquete"} · v{kit.version} · {kit.tipo_trabajo?.nombre || `Tipo #${kit.tipo_trabajo_id}`}</option>)}
+                {kits.map((kit: KitDescarga) => <option key={kit.id} value={kit.id}>{kit.tipo_trabajo?.nombre || `Tipo #${kit.tipo_trabajo_id}`} · v{kit.version} · {kit.tipo_trabajo?.tecnologia || "Sin tecnología"}</option>)}
               </select>
               <Button onClick={() => saveMutation.mutate()} disabled={!selectedKit || saveMutation.isPending}><CheckCircle2 className="mr-1 size-4" />Asociar kit</Button>
               {comparison?.kit && <Button variant="outline" onClick={() => removeMutation.mutate()} disabled={removeMutation.isPending}><Unlink className="mr-1 size-4" />Quitar kit</Button>}

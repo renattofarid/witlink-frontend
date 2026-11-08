@@ -66,8 +66,6 @@ export interface KitDetalleBody {
 
 export interface KitBody {
   tipo_trabajo_id: number;
-  modalidad?: string | null;
-  paquete?: string | null;
   version: number;
   vigencia_desde?: string | null;
   vigencia_hasta?: string | null;
@@ -138,6 +136,14 @@ export interface ReporteLiquidaciones {
     fecha: string | null;
     kit_descarga_id: number | null;
     producto_id: number | null;
+    sap?: string | null;
+    producto?: string | null;
+    unidad_medida?: string | null;
+    kit?: {
+      tipo_trabajo?: { nombre?: string | null; tecnologia?: string | null } | null;
+      observaciones?: string | null;
+      version?: number | null;
+    } | null;
     cantidad_estandar: number;
     cantidad_real: number;
     diferencia: number;
@@ -163,7 +169,13 @@ export interface ReporteLiquidaciones {
     sin_kit: number;
     porcentaje_con_kit: number;
   };
-  meta: Record<string, unknown>;
+  meta: {
+    current_page?: number;
+    per_page?: number;
+    last_page?: number;
+    total?: number;
+    [key: string]: unknown;
+  };
 }
 
 export interface ExcelFileResponse {

@@ -54,6 +54,7 @@ export default function KitEditorDialog({
     .slice(0, 100);
 
   const update = (patch: Partial<KitBody>) => setForm((current) => ({ ...current, ...patch }));
+  const selectedType = types.find((type) => Number(type.id) === Number(form.tipo_trabajo_id));
   const addDetail = () => setForm((current) => ({ ...current, detalles: [...current.detalles, { producto_id: 0, cantidad: 1, unidad_medida: "UNIDAD" }] }));
   const removeDetail = (index: number) => setForm((current) => ({ ...current, detalles: current.detalles.filter((_, itemIndex) => itemIndex !== index) }));
   const updateDetail = (index: number, patch: Partial<KitBody["detalles"][number]>) => setForm((current) => ({ ...current, detalles: current.detalles.map((detail, detailIndex) => detailIndex === index ? { ...detail, ...patch } : detail) }));
@@ -83,21 +84,20 @@ export default function KitEditorDialog({
           ) : (
             <>
           <section className="space-y-4">
-            <SectionTitle number="1" title="Datos generales" description="Identifica el tipo de trabajo, paquete y vigencia del kit." />
+            <SectionTitle number="1" title="Datos generales" description="Selecciona el tipo de trabajo, la versión y la vigencia del kit." />
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Tipo de trabajo" required>
                 <select className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus:border-ring focus:ring-3 focus:ring-ring/50" value={form.tipo_trabajo_id || ""} onChange={(event) => update({ tipo_trabajo_id: Number(event.target.value) })}>
                   <option value="">Seleccione un tipo de trabajo</option>
-                  {types.filter((type) => type.activo).map((type) => <option key={type.id} value={type.id}>{type.codigo} · {type.nombre}</option>)}
+                  {types.filter((type) => type.activo || Number(type.id) === Number(form.tipo_trabajo_id)).map((type) => <option key={type.id} value={type.id}>{type.nombre} · {type.tecnologia || "Sin tecnología"}</option>)}
                 </select>
               </Field>
-              <Field label="Paquete"><Input placeholder="Ej. PCO2 - SIN SERVICIO" value={form.paquete ?? ""} onChange={(event) => update({ paquete: event.target.value })} /></Field>
-              <Field label="Modalidad"><Input placeholder="Ej. FTTH, HFC, SIAC" value={form.modalidad ?? ""} onChange={(event) => update({ modalidad: event.target.value })} /></Field>
+              <Field label="Tecnología"><div className="flex h-9 items-center rounded-lg border border-input bg-muted/30 px-3 text-sm text-muted-foreground">{selectedType?.tecnologia || "Se obtiene del tipo de trabajo"}</div></Field>
               <Field label="Versión" required><Input type="number" min={1} step={1} value={form.version} onChange={(event) => update({ version: Number(event.target.value) })} /></Field>
               <Field label="Vigencia desde"><div className="relative"><CalendarDays className="pointer-events-none absolute left-3 top-2 size-4 text-muted-foreground" /><Input className="pl-9" type="date" value={form.vigencia_desde ?? ""} onChange={(event) => update({ vigencia_desde: event.target.value })} /></div></Field>
               <Field label="Vigencia hasta"><div className="relative"><CalendarDays className="pointer-events-none absolute left-3 top-2 size-4 text-muted-foreground" /><Input className="pl-9" type="date" value={form.vigencia_hasta ?? ""} onChange={(event) => update({ vigencia_hasta: event.target.value })} /></div></Field>
             </div>
-            <Field label="Observaciones"><textarea className="min-h-20 w-full resize-y rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus:border-ring focus:ring-3 focus:ring-ring/50" placeholder="Agrega una nota interna para identificar este kit..." value={form.observaciones ?? ""} onChange={(event) => update({ observaciones: event.target.value })} /></Field>
+            <Field label="Observaciones"><textarea maxLength={2000} className="min-h-20 w-full resize-y rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus:border-ring focus:ring-3 focus:ring-ring/50" placeholder="Ej.: CASA, EDIFICIO LIBERADO o una anotación adicional." value={form.observaciones ?? ""} onChange={(event) => update({ observaciones: event.target.value })} /><p className="text-xs text-muted-foreground">{(form.observaciones ?? "").length}/2000 caracteres</p></Field>
           </section>
 
           <section className="space-y-4">

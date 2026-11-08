@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArchiveRestore,
@@ -33,6 +33,7 @@ import {
 import { successToast, errorToast } from "@/lib/core.function";
 import { downloadExcelFromBase64 } from "@/lib/exportExcel";
 import { getProductosAll } from "@/pages/producto/lib/producto.actions";
+import { getPersonas } from "@/pages/persona/lib/persona.actions";
 import {
   createCategoria,
   createKit,
@@ -74,8 +75,6 @@ import KitEditorDialog from "../components/KitEditorDialog";
 
 const EMPTY_KIT: KitBody = {
   tipo_trabajo_id: 0,
-  modalidad: "",
-  paquete: "",
   version: 1,
   vigencia_desde: "",
   vigencia_hasta: "",
@@ -128,7 +127,7 @@ function Metric({ label, value, tone = "default" }: { label: string; value: numb
   );
 }
 
-function ImportResultView({ result, status }: { result: any; status: ImportStatus }) {
+function ImportResultView({ result, status, onViewKits }: { result: any; status: ImportStatus; onViewKits?: () => void }) {
   const data = importData(result);
   const errors = importErrors(result);
   const warnings = importWarnings(result);
@@ -181,6 +180,8 @@ function ImportResultView({ result, status }: { result: any; status: ImportStatu
 
       {status === "completed" && Number(data.kits_por_crear ?? 0) === 0 && Number(data.kits_omitidos ?? 0) > 0 && <p className="mt-4 rounded-lg bg-muted/30 p-3 text-sm text-muted-foreground">El archivo ya está importado; no hay kits nuevos.</p>}
 
+      {status === "completed" && onViewKits && <Button className="mt-4" variant="outline" onClick={onViewKits}>Ver kits</Button>}
+
       {isValid && status !== "completed" && (preview.categorias?.length > 0 || preview.tipos_trabajo?.length > 0) && <div className="mt-5 grid gap-4 lg:grid-cols-2">
         {preview.categorias?.length > 0 && <div className="rounded-lg border p-3"><p className="font-medium">Categorías previstas</p><ul className="mt-2 space-y-1 text-sm text-muted-foreground">{preview.categorias.map((item: any, index: number) => <li key={`${item.codigo ?? item.nombre}-${index}`}>{item.nombre ?? item.codigo} <span className="text-xs">({item.accion ?? "crear"})</span></li>)}</ul></div>}
         {preview.tipos_trabajo?.length > 0 && <div className="rounded-lg border p-3"><p className="font-medium">Tipos de trabajo previstos</p><ul className="mt-2 space-y-1 text-sm text-muted-foreground">{preview.tipos_trabajo.map((item: any, index: number) => <li key={`${item.codigo ?? item.nombre}-${index}`}>{item.nombre ?? item.codigo} <span className="text-xs">({item.accion ?? "crear"})</span></li>)}</ul></div>}
@@ -194,6 +195,7 @@ export default function KitsDescargaPage() {
   const [tab, setTab] = useState("kits");
   const [search, setSearch] = useState("");
   const [estado, setEstado] = useState("");
+  const [tecnologia, setTecnologia] = useState("");
   const [page, setPage] = useState(1);
   const [kitModal, setKitModal] = useState(false);
   const [editingKit, setEditingKit] = useState<KitDescarga | null>(null);
@@ -210,35 +212,47 @@ export default function KitsDescargaPage() {
   const [editLoading, setEditLoading] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
   const [reportFilters, setReportFilters] = useState<Record<string, string>>({});
+  const [reportRequested, setReportRequested] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const editRequestRef = useRef(0);
 
-  const kitQuery = useKitsQuery({ page: String(page), per_page: "15", ...(search ? { search } : {}), ...(estado ? { estado } : {}) });
+  const kitQuery = useKitsQuery({ page: String(page), per_page: "15", ...(search ? { search } : {}), ...(estado ? { estado } : {}), ...(tecnologia ? { tecnologia } : {}) });
+  useEffect(() => {
+    const lastPage = kitQuery.data?.meta?.last_page ?? 1;
+    if (!kitQuery.isLoading && page > lastPage) setPage(lastPage);
+  }, [kitQuery.data?.meta?.last_page, kitQuery.isLoading, page]);
   const { data: categorias = [] } = useCategoriasAllQuery();
   const { data: tipos = [] } = useTiposTrabajoAllQuery();
   const { data: productos = [], isLoading: productsLoading } = useQuery({
     queryKey: ["kits-productos", "all"],
     queryFn: () => getProductosAll({ all: "true" }),
-    enabled: kitModal,
+    enabled: kitModal || tab === "reportes",
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
+  const { data: tecnicosResponse } = useQuery({
+    queryKey: ["kits-report-tecnicos"],
+    queryFn: () => getPersonas({ tipo_empleado: "Técnico", all: "true" }),
+    enabled: tab === "reportes",
+    staleTime: 5 * 60 * 1000,
+  });
+  const tecnicos = Array.isArray(tecnicosResponse) ? tecnicosResponse : tecnicosResponse?.data ?? [];
   const { data: history = [], isLoading: historyLoading } = useQuery<KitHistorialEvent[]>({
     queryKey: ["kit-history", historyKit?.id],
     queryFn: () => getKitHistory(historyKit!.id),
     enabled: !!historyKit,
     refetchOnWindowFocus: false,
   });
-  const { data: report, isFetching: reportLoading, refetch: refetchReport } = useQuery({
+  const { data: report, isFetching: reportLoading, isError: reportError } = useQuery({
     queryKey: ["kits-report", reportFilters],
     queryFn: () => getReportLiquidaciones(reportFilters),
-    enabled: tab === "reportes",
+    enabled: tab === "reportes" && reportRequested,
     refetchOnWindowFocus: false,
   });
-  const { data: resumen } = useQuery({
+  const { data: resumen, isError: resumenError } = useQuery({
     queryKey: ["kits-report-summary", reportFilters],
     queryFn: () => getReportResumen(reportFilters),
-    enabled: tab === "reportes",
+    enabled: tab === "reportes" && reportRequested,
     refetchOnWindowFocus: false,
   });
 
@@ -249,10 +263,16 @@ export default function KitsDescargaPage() {
       const details = kitForm.detalles.filter((d) => d.producto_id > 0 && Number(d.cantidad) > 0).map((d) => ({ ...d, cantidad: Number(d.cantidad) }));
       if (!kitForm.tipo_trabajo_id) throw new Error("Seleccione un tipo de trabajo.");
       if (!details.length) throw new Error("Agregue al menos un producto al kit.");
+      if (kitForm.vigencia_desde && kitForm.vigencia_hasta && kitForm.vigencia_hasta < kitForm.vigencia_desde) {
+        throw new Error("La fecha final no puede ser anterior a la fecha inicial.");
+      }
       const body = {
         ...kitForm,
         version: Number(kitForm.version),
         tipo_trabajo_id: Number(kitForm.tipo_trabajo_id),
+        vigencia_desde: kitForm.vigencia_desde || null,
+        vigencia_hasta: kitForm.vigencia_hasta || null,
+        observaciones: kitForm.observaciones?.trim() || null,
         detalles: details.map(({ producto_id, cantidad, unidad_medida }) => ({ producto_id, cantidad, unidad_medida })),
       };
       return editingKit ? updateKit(editingKit.id, body) : createKit(body);
@@ -275,8 +295,6 @@ export default function KitsDescargaPage() {
 
   const mapKitToForm = (kit: KitDescarga): KitBody => ({
     tipo_trabajo_id: kit.tipo_trabajo_id,
-    modalidad: kit.modalidad ?? "",
-    paquete: kit.paquete ?? "",
     version: kit.version,
     vigencia_desde: kit.vigencia_desde ?? "",
     vigencia_hasta: kit.vigencia_hasta ?? "",
@@ -353,6 +371,7 @@ export default function KitsDescargaPage() {
       setImportStatus("completed");
       successToast("Importación completada correctamente.");
       invalidate();
+      queryClient.invalidateQueries({ queryKey: ["kits-productos"] });
       queryClient.invalidateQueries({ queryKey: ["categorias-trabajo"] });
       queryClient.invalidateQueries({ queryKey: ["tipos-trabajo"] });
     } catch (error: any) {
@@ -383,11 +402,12 @@ export default function KitsDescargaPage() {
 
         <TabsContent value="kits" className="mt-4 space-y-4">
           <div className="flex flex-wrap gap-2 rounded-xl border bg-card p-3">
-            <div className="relative min-w-64 flex-1"><Search className="absolute left-3 top-2.5 size-4 text-muted-foreground" /><Input className="pl-9" placeholder="Buscar kit, paquete o tecnología..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} /></div>
+            <div className="relative min-w-64 flex-1"><Search className="absolute left-3 top-2.5 size-4 text-muted-foreground" /><Input className="pl-9" placeholder="Buscar por tipo de trabajo u observaciones..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} /></div>
             <select className="h-9 rounded-md border bg-background px-3 text-sm" value={estado} onChange={(e) => { setEstado(e.target.value); setPage(1); }}><option value="">Todos los estados</option>{KIT_ESTADOS.map((x) => <option key={x.value} value={x.value}>{x.label}</option>)}</select>
+            <select className="h-9 rounded-md border bg-background px-3 text-sm" value={tecnologia} onChange={(e) => { setTecnologia(e.target.value); setPage(1); }}><option value="">HFC / FTTH</option><option value="HFC">HFC</option><option value="FTTH">FTTH</option></select>
           </div>
-          <div className="overflow-x-auto rounded-xl border bg-card"><table className="w-full text-sm"><thead className="bg-muted/60 text-left"><tr><th className="p-3">Kit</th><th className="p-3">Tipo de trabajo</th><th className="p-3">Vigencia</th><th className="p-3">Detalle</th><th className="p-3">Estado</th><th className="p-3 text-right">Acciones</th></tr></thead><tbody>
-            {(kitQuery.data?.data ?? []).map((kit) => <tr key={kit.id} className="border-t align-top"><td className="p-3"><p className="font-semibold">{kit.paquete || "Sin paquete"}</p><p className="text-xs text-muted-foreground">Versión {kit.version} · {kit.modalidad || "Sin modalidad"}</p></td><td className="p-3"><p>{kit.tipo_trabajo?.nombre || `Tipo #${kit.tipo_trabajo_id}`}</p><p className="text-xs text-muted-foreground">{kit.tipo_trabajo?.tecnologia || "Sin tecnología"}</p></td><td className="p-3 text-xs">{kit.vigencia_desde || "Sin inicio"}<br />{kit.vigencia_hasta ? `hasta ${kit.vigencia_hasta}` : "Sin vencimiento"}</td><td className="p-3">{kit.detalles?.length ?? 0} productos</td><td className="p-3">{statusBadge(kit.estado)}</td><td className="p-3"><div className="flex justify-end gap-1"><Button size="icon" variant="ghost" title="Editar" onClick={() => openEditKit(kit)}><Edit3 className="size-4" /></Button><Button size="icon" variant="ghost" title="Historial" onClick={() => setHistoryKit(kit)}><History className="size-4" /></Button>{kit.estado === "BORRADOR" && <Button size="icon" variant="ghost" title="Publicar" onClick={() => publish.mutate(kit.id)}><Power className="size-4 text-emerald-600" /></Button>}{kit.estado === "PUBLICADO" && <Button size="icon" variant="ghost" title="Desactivar" onClick={() => deactivate.mutate(kit.id)}><Power className="size-4 text-amber-600" /></Button>}{kit.estado !== "PUBLICADO" && !kit.deleted_at && <Button size="icon" variant="ghost" title="Eliminar" onClick={() => window.confirm("¿Eliminar este kit?") && remove.mutate(kit.id)}><Trash2 className="size-4 text-red-600" /></Button>}</div></td></tr>)}
+          <div className="overflow-x-auto rounded-xl border bg-card"><table className="w-full text-sm"><thead className="bg-muted/60 text-left"><tr><th className="p-3">Tipo de trabajo</th><th className="p-3">Observaciones / versión</th><th className="p-3">Vigencia</th><th className="p-3">Detalle</th><th className="p-3">Estado</th><th className="p-3 text-right">Acciones</th></tr></thead><tbody>
+            {(kitQuery.data?.data ?? []).map((kit) => <tr key={kit.id} className="border-t align-top"><td className="p-3"><p className="font-semibold">{kit.tipo_trabajo?.nombre || `Tipo #${kit.tipo_trabajo_id}`}</p><p className="text-xs text-muted-foreground">{kit.tipo_trabajo?.tecnologia || "Sin tecnología"} · Versión {kit.version}</p></td><td className="p-3"><p className="max-w-sm">{kit.observaciones || "Sin observaciones"}</p></td><td className="p-3 text-xs">{kit.vigencia_desde || "Sin fecha de inicio"}<br />{kit.vigencia_hasta ? `hasta ${kit.vigencia_hasta}` : "Sin vencimiento"}</td><td className="p-3">{kit.detalles?.length ?? 0} {kit.detalles?.length === 1 ? "producto" : "productos"}</td><td className="p-3">{statusBadge(kit.estado)}</td><td className="p-3"><div className="flex justify-end gap-1">{kit.estado === "BORRADOR" && <Button size="icon" variant="ghost" title="Editar borrador" onClick={() => openEditKit(kit)}><Edit3 className="size-4" /></Button>}<Button size="icon" variant="ghost" title="Historial" onClick={() => setHistoryKit(kit)}><History className="size-4" /></Button>{kit.estado === "BORRADOR" && <Button size="icon" variant="ghost" title="Publicar" onClick={() => window.confirm("¿Publicar este kit? Después de publicarlo solo podrá desactivarse.") && publish.mutate(kit.id)}><Power className="size-4 text-emerald-600" /></Button>}{kit.estado === "PUBLICADO" && <Button size="icon" variant="ghost" title="Desactivar" onClick={() => window.confirm("¿Desactivar este kit?") && deactivate.mutate(kit.id)}><Power className="size-4 text-amber-600" /></Button>}{kit.estado !== "PUBLICADO" && !kit.deleted_at && <Button size="icon" variant="ghost" title="Eliminar" onClick={() => window.confirm("¿Eliminar este kit?") && remove.mutate(kit.id)}><Trash2 className="size-4 text-red-600" /></Button>}</div></td></tr>)}
             {!kitQuery.isLoading && !(kitQuery.data?.data ?? []).length && <tr><td colSpan={6} className="p-10 text-center text-muted-foreground">No se encontraron kits con los filtros actuales.</td></tr>}
           </tbody></table></div>
           <div className="flex items-center justify-between text-sm text-muted-foreground"><span>{kitQuery.data?.meta?.total ?? 0} kits</span><div className="flex gap-2"><Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((v) => v - 1)}>Anterior</Button><span className="rounded-md border px-3 py-1.5">{page} / {kitQuery.data?.meta?.last_page ?? 1}</span><Button variant="outline" size="sm" disabled={page >= (kitQuery.data?.meta?.last_page ?? 1)} onClick={() => setPage((v) => v + 1)}>Siguiente</Button></div></div>
@@ -409,22 +429,44 @@ export default function KitsDescargaPage() {
               <Button variant="secondary" onClick={handleImport} disabled={!file || importStatus !== "ready"}>{importStatus === "importing" ? "Importando..." : "Importar kits"}</Button>
             </div>
           </div>
-          {importResult && <ImportResultView result={importResult} status={importStatus} />}
+          {importResult && <ImportResultView result={importResult} status={importStatus} onViewKits={() => setTab("kits")} />}
         </TabsContent>
 
-        <TabsContent value="reportes" className="mt-4 space-y-4"><div className="grid gap-2 rounded-xl border bg-card p-4 md:grid-cols-4"><Input placeholder="SOT" value={reportFilters.sot ?? ""} onChange={(e) => setReportFilters((v) => ({ ...v, sot: e.target.value }))} /><Input placeholder="ID técnico" value={reportFilters.tecnico_id ?? ""} onChange={(e) => setReportFilters((v) => ({ ...v, tecnico_id: e.target.value }))} /><Input placeholder="ID categoría" value={reportFilters.categoria_id ?? ""} onChange={(e) => setReportFilters((v) => ({ ...v, categoria_id: e.target.value }))} /><Input placeholder="ID tipo de trabajo" value={reportFilters.tipo_trabajo_id ?? ""} onChange={(e) => setReportFilters((v) => ({ ...v, tipo_trabajo_id: e.target.value }))} /><Input placeholder="ID producto" value={reportFilters.producto_id ?? ""} onChange={(e) => setReportFilters((v) => ({ ...v, producto_id: e.target.value }))} /><Input placeholder="Tecnología" value={reportFilters.tecnologia ?? ""} onChange={(e) => setReportFilters((v) => ({ ...v, tecnologia: e.target.value }))} /><Input type="date" value={reportFilters.fecha_desde ?? ""} onChange={(e) => setReportFilters((v) => ({ ...v, fecha_desde: e.target.value }))} /><Input type="date" value={reportFilters.fecha_hasta ?? ""} onChange={(e) => setReportFilters((v) => ({ ...v, fecha_hasta: e.target.value }))} /><select className="h-9 rounded-md border bg-background px-3 text-sm" value={reportFilters.resultado ?? ""} onChange={(e) => setReportFilters((v) => ({ ...v, resultado: e.target.value }))}><option value="">Todos los resultados</option>{KIT_RESULTADOS.map((x) => <option key={x.value} value={x.value}>{x.label}</option>)}</select><Input type="number" min={2} max={100} placeholder="Mín. recurrencias" value={reportFilters.min_recurrencias ?? ""} onChange={(e) => setReportFilters((v) => ({ ...v, min_recurrencias: e.target.value }))} /><Button onClick={() => refetchReport()} disabled={reportLoading}><Search className="mr-1 size-4" />Consultar</Button></div><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6"><Metric label="Liquidaciones" value={resumen?.resumen?.total_liquidaciones ?? report?.resumen?.total_liquidaciones ?? 0} /><Metric label="Registros" value={resumen?.resumen?.total_registros ?? report?.resumen?.total_registros ?? 0} /><Metric label="Conformes" value={resumen?.resumen?.conformes ?? 0} tone="success" /><Metric label="Excesos" value={resumen?.resumen?.excesos ?? 0} tone="danger" /><Metric label="Menor consumo" value={resumen?.resumen?.menores_consumos ?? 0} /><Metric label="Cobertura" value={`${resumen?.cobertura?.porcentaje_con_kit ?? 0}%`} /></div><div className="overflow-x-auto rounded-xl border bg-card"><table className="w-full text-sm"><thead className="bg-muted/60 text-left"><tr><th className="p-3">SOT</th><th className="p-3">Fecha</th><th className="p-3">Kit</th><th className="p-3">Cantidad estándar</th><th className="p-3">Cantidad real</th><th className="p-3">Diferencia</th><th className="p-3">Resultado</th></tr></thead><tbody>{(report?.data ?? []).map((r, i) => <tr key={`${r.liquidacion_id}-${r.producto_id}-${i}`} className="border-t"><td className="p-3 font-mono">{r.sot}</td><td className="p-3">{r.fecha || "-"}</td><td className="p-3">#{r.kit_descarga_id ?? "-"}</td><td className="p-3">{r.cantidad_estandar}</td><td className="p-3">{r.cantidad_real}</td><td className="p-3">{r.diferencia}</td><td className="p-3">{r.resultado}</td></tr>)}{!report?.data?.length && <tr><td colSpan={7} className="p-10 text-center text-muted-foreground">Ejecute la consulta para ver resultados.</td></tr>}</tbody></table></div></TabsContent>
+        <TabsContent value="reportes" className="mt-4 space-y-4">
+          <div className="grid gap-2 rounded-xl border bg-card p-4 md:grid-cols-3 lg:grid-cols-4">
+            <Input placeholder="Buscar por SOT" value={reportFilters.sot ?? ""} onChange={(e) => setReportFilters((v) => ({ ...v, sot: e.target.value }))} />
+            <select className="h-9 rounded-md border bg-background px-3 text-sm" value={reportFilters.tecnico_id ?? ""} onChange={(e) => setReportFilters((v) => ({ ...v, tecnico_id: e.target.value }))}><option value="">Todos los técnicos</option>{tecnicos.map((tecnico: any) => <option key={tecnico.id} value={tecnico.id}>{[tecnico.nombre, tecnico.apellido_paterno, tecnico.apellido_materno].filter(Boolean).join(" ")}</option>)}</select>
+            <select className="h-9 rounded-md border bg-background px-3 text-sm" value={reportFilters.categoria_id ?? ""} onChange={(e) => setReportFilters((v) => ({ ...v, categoria_id: e.target.value }))}><option value="">Todas las categorías</option>{categorias.filter((item) => item.activo).map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}</select>
+            <select className="h-9 rounded-md border bg-background px-3 text-sm" value={reportFilters.tipo_trabajo_id ?? ""} onChange={(e) => setReportFilters((v) => ({ ...v, tipo_trabajo_id: e.target.value }))}><option value="">Todos los tipos de trabajo</option>{tipos.filter((item) => item.activo).map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}</select>
+            <select className="h-9 rounded-md border bg-background px-3 text-sm" value={reportFilters.producto_id ?? ""} onChange={(e) => setReportFilters((v) => ({ ...v, producto_id: e.target.value }))}><option value="">Todos los productos</option>{productos.map((item) => <option key={item.id} value={item.id}>{item.sap} · {item.nombre}</option>)}</select>
+            <select className="h-9 rounded-md border bg-background px-3 text-sm" value={reportFilters.tecnologia ?? ""} onChange={(e) => setReportFilters((v) => ({ ...v, tecnologia: e.target.value }))}><option value="">HFC / FTTH</option><option value="HFC">HFC</option><option value="FTTH">FTTH</option></select>
+            <div><Label className="text-xs text-muted-foreground">Desde</Label><Input type="date" value={reportFilters.fecha_desde ?? ""} onChange={(e) => setReportFilters((v) => ({ ...v, fecha_desde: e.target.value }))} /></div>
+            <div><Label className="text-xs text-muted-foreground">Hasta</Label><Input type="date" value={reportFilters.fecha_hasta ?? ""} onChange={(e) => setReportFilters((v) => ({ ...v, fecha_hasta: e.target.value }))} /></div>
+            <select className="h-9 rounded-md border bg-background px-3 text-sm" value={reportFilters.resultado ?? ""} onChange={(e) => setReportFilters((v) => ({ ...v, resultado: e.target.value }))}><option value="">Todos los resultados</option>{KIT_RESULTADOS.map((x) => <option key={x.value} value={x.value}>{x.label}</option>)}</select>
+            <div><Label className="text-xs text-muted-foreground">Recurrencias mínimas</Label><Input type="number" min={2} max={100} placeholder="2 a 100" value={reportFilters.min_recurrencias ?? ""} onChange={(e) => setReportFilters((v) => ({ ...v, min_recurrencias: e.target.value }))} /></div>
+            <Button onClick={() => setReportRequested(true)} disabled={reportLoading}>{reportLoading ? "Consultando..." : "Consultar"}</Button>
+          </div>
+
+          {!reportRequested && <div className="rounded-xl border bg-card p-10 text-center text-sm text-muted-foreground">Aún no se consultó. Seleccione los filtros y presione Consultar.</div>}
+          {reportRequested && reportError ? <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-center text-sm text-destructive">No se pudo consultar el reporte. Revise los filtros e inténtelo nuevamente.</div> : reportRequested && <><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6"><Metric label="Liquidaciones" value={resumen?.resumen?.total_liquidaciones ?? 0} /><Metric label="Registros" value={resumen?.resumen?.total_registros ?? 0} /><Metric label="Conformes" value={resumen?.resumen?.conformes ?? 0} tone="success" /><Metric label="Excesos" value={resumen?.resumen?.excesos ?? 0} tone="danger" /><Metric label="Menor consumo" value={resumen?.resumen?.menores_consumos ?? 0} /><Metric label="Cobertura" value={`${resumen?.cobertura?.porcentaje_con_kit ?? 0}%`} /></div>
+            {resumenError && <p className="rounded-lg border border-amber-300/50 bg-amber-50/50 p-3 text-sm text-amber-800">No se pudo cargar el resumen; el detalle del reporte sigue disponible.</p>}
+            <div className="overflow-x-auto rounded-xl border bg-card"><table className="w-full text-sm"><thead className="bg-muted/60 text-left"><tr><th className="p-3">SOT</th><th className="p-3">Fecha</th><th className="p-3">Producto</th><th className="p-3">Unidad</th><th className="p-3">Kit</th><th className="p-3">Estándar</th><th className="p-3">Real</th><th className="p-3">Diferencia</th><th className="p-3">Resultado</th></tr></thead><tbody>{(report?.data ?? []).map((r, i) => <tr key={`${r.liquidacion_id}-${r.producto_id}-${i}`} className="border-t"><td className="p-3 font-mono">{r.sot}</td><td className="p-3">{r.fecha || "-"}</td><td className="p-3"><span className="font-medium">{r.sap || "Sin SAP"}</span><br /><span className="text-xs text-muted-foreground">{r.producto || `Producto #${r.producto_id ?? "-"}`}</span></td><td className="p-3">{r.unidad_medida || "Sin unidad"}</td><td className="p-3">{r.kit?.tipo_trabajo?.nombre || (r.kit_descarga_id ? `Kit #${r.kit_descarga_id}` : "Fuera del kit")}{r.kit?.observaciones && <span className="block text-xs text-muted-foreground">{r.kit.observaciones} · v{r.kit.version}</span>}</td><td className="p-3">{r.cantidad_estandar}</td><td className="p-3">{r.cantidad_real}</td><td className="p-3">{r.diferencia}</td><td className="p-3">{({ conforme: "Conforme", exceso: "Exceso", menor_consumo: "Menor consumo", fuera_de_kit: "Fuera del kit" } as Record<string, string>)[r.resultado] ?? r.resultado}</td></tr>)}{!reportLoading && reportRequested && !report?.data?.length && <tr><td colSpan={9} className="p-10 text-center text-muted-foreground">Sin resultados con los filtros seleccionados.</td></tr>}</tbody></table></div>
+            {report?.meta?.last_page && report.meta.last_page > 1 && <div className="flex items-center justify-between text-sm text-muted-foreground"><span>{report.meta.total ?? 0} registros</span><div className="flex gap-2"><Button variant="outline" size="sm" disabled={Number(report.meta.current_page) <= 1} onClick={() => setReportFilters((v) => ({ ...v, page: String(Math.max(1, Number(report.meta.current_page ?? 1) - 1)) }))}>Anterior</Button><span className="rounded-md border px-3 py-1.5">{report.meta.current_page} / {report.meta.last_page}</span><Button variant="outline" size="sm" disabled={Number(report.meta.current_page) >= Number(report.meta.last_page)} onClick={() => setReportFilters((v) => ({ ...v, page: String(Number(report.meta.current_page ?? 1) + 1) }))}>Siguiente</Button></div></div>}
+            {(resumen?.alertas ?? []).length > 0 && <div className="rounded-xl border bg-card p-4"><h3 className="font-semibold">Alertas de recurrencia</h3><div className="mt-2 grid gap-2 md:grid-cols-2">{resumen.alertas.map((alerta: any, index: number) => <div key={`${alerta.tecnico_id}-${alerta.producto_id}-${index}`} className="rounded-lg border p-3 text-sm"><p className="font-medium">{alerta.tecnico || `Técnico #${alerta.tecnico_id}`} · {alerta.sap || `Producto #${alerta.producto_id}`}</p><p className="text-muted-foreground">{alerta.sots_con_exceso} SOT con exceso · acumulado {alerta.exceso_acumulado}</p></div>)}</div></div>}
+          </>}
+        </TabsContent>
       </Tabs>
 
       <KitEditorDialog open={kitModal} onOpenChange={(open) => { setKitModal(open); if (!open) { editRequestRef.current += 1; setEditingKit(null); setEditError(null); setEditLoading(false); } }} editingKit={editingKit} form={kitForm} setForm={setKitForm} types={tipos} products={productos} productsLoading={productsLoading} productSearch={productSearch} setProductSearch={setProductSearch} onSave={() => saveKit.mutate()} saving={saveKit.isPending} loading={editLoading} loadError={editError} onRetry={() => editingKit && void loadKitForEdit(editingKit)} />
 
       <Dialog open={!!catalogModal} onOpenChange={(v) => !v && setCatalogModal(null)}><DialogContent><DialogHeader><DialogTitle>{editingCategoria || editingTipo ? "Editar" : "Nuevo"} {catalogModal === "categoria" ? "categoría" : "tipo de trabajo"}</DialogTitle></DialogHeader><div className="space-y-3"><div><Label>Código *</Label><Input className="mt-1" value={catalogForm.codigo} onChange={(e) => setCatalogForm((v) => ({ ...v, codigo: e.target.value.toUpperCase() }))} /></div><div><Label>Nombre *</Label><Input className="mt-1" value={catalogForm.nombre} onChange={(e) => setCatalogForm((v) => ({ ...v, nombre: e.target.value }))} /></div>{catalogModal === "tipo" && <><div><Label>Categoría *</Label><select className="mt-1 h-10 w-full rounded-md border bg-background px-3 text-sm" value={catalogForm.categoriaId || ""} onChange={(e) => setCatalogForm((v) => ({ ...v, categoriaId: Number(e.target.value) }))}><option value="">Seleccione...</option>{categorias.filter((c) => c.activo).map((c) => <option key={c.id} value={c.id}>{c.codigo} · {c.nombre}</option>)}</select></div><div><Label>Tecnología</Label><Input className="mt-1" value={catalogForm.tecnologia} onChange={(e) => setCatalogForm((v) => ({ ...v, tecnologia: e.target.value.toUpperCase() }))} /></div></>}</div><DialogFooter><Button variant="outline" onClick={() => setCatalogModal(null)}>Cancelar</Button><Button onClick={saveCatalog}>Guardar</Button></DialogFooter></DialogContent></Dialog>
 
-      <Dialog open={!!historyKit} onOpenChange={(v) => !v && setHistoryKit(null)}><DialogContent className="max-h-[85vh] max-w-3xl overflow-y-auto"><DialogHeader><DialogTitle>Historial del kit</DialogTitle><DialogDescription>{historyKit?.paquete || "Kit"}</DialogDescription></DialogHeader>{historyLoading ? <p className="p-6 text-center text-muted-foreground">Cargando historial...</p> : <div className="space-y-3">{history.map((event) => <div key={event.id} className="rounded-lg border p-3"><div className="flex justify-between gap-2"><Badge>{event.accion}</Badge><span className="text-xs text-muted-foreground">{new Date(event.created_at).toLocaleString("es-PE")}</span></div><pre className="mt-2 overflow-auto text-xs text-muted-foreground">{JSON.stringify({ anteriores: event.datos_anteriores, nuevos: event.datos_nuevos }, null, 2)}</pre></div>)}{!history.length && <p className="p-6 text-center text-muted-foreground">No hay eventos registrados.</p>}</div>}</DialogContent></Dialog>
+      <Dialog open={!!historyKit} onOpenChange={(v) => !v && setHistoryKit(null)}><DialogContent className="max-h-[85vh] max-w-3xl overflow-y-auto"><DialogHeader><DialogTitle>Historial del kit</DialogTitle><DialogDescription>{historyKit?.tipo_trabajo?.nombre || `Tipo #${historyKit?.tipo_trabajo_id ?? "-"}`} · versión {historyKit?.version}</DialogDescription></DialogHeader>{historyLoading ? <p className="p-6 text-center text-muted-foreground">Cargando historial...</p> : <div className="space-y-3">{history.map((event) => <div key={event.id} className="rounded-lg border p-3"><div className="flex justify-between gap-2"><Badge>{event.accion}</Badge><span className="text-xs text-muted-foreground">{new Date(event.created_at).toLocaleString("es-PE")}</span></div><pre className="mt-2 overflow-auto text-xs text-muted-foreground">{JSON.stringify({ anteriores: event.datos_anteriores, nuevos: event.datos_nuevos }, null, 2)}</pre></div>)}{!history.length && <p className="p-6 text-center text-muted-foreground">No hay eventos registrados.</p>}</div>}</DialogContent></Dialog>
     </PageWrapper>
   );
 }
 
 function CatalogCard({ title, rows, onAdd, onEdit, onDelete, onRestore }: { title: string; rows: Array<CategoriaTrabajo | TipoTrabajo>; onAdd: () => void; onEdit: (row: any) => void; onDelete: (id: number) => void; onRestore: (id: number) => void }) {
-  return <div className="rounded-xl border bg-card"><div className="flex items-center justify-between border-b p-4"><h2 className="font-semibold">{title}</h2><Button size="sm" onClick={onAdd}><Plus className="mr-1 size-4" />Nuevo</Button></div><div className="divide-y">{rows.map((row) => <div key={row.id} className="flex items-center justify-between gap-3 p-3"><div><p className="font-medium">{row.codigo} · {row.nombre}</p><p className="text-xs text-muted-foreground">{"tecnologia" in row ? row.tecnologia || "Sin tecnología" : row.activo ? "Activo" : "Inactivo"}</p></div><div className="flex items-center gap-1">{row.activo ? <Badge className="bg-emerald-100 text-emerald-700">Activo</Badge> : <Badge variant="outline">Inactivo</Badge>}<Button size="icon" variant="ghost" onClick={() => onEdit(row)}><Edit3 className="size-4" /></Button>{row.deleted_at ? <Button size="icon" variant="ghost" onClick={() => onRestore(row.id)}><ArchiveRestore className="size-4" /></Button> : <Button size="icon" variant="ghost" onClick={() => onDelete(row.id)}><Trash2 className="size-4 text-red-600" /></Button>}</div></div>)}{!rows.length && <p className="p-8 text-center text-sm text-muted-foreground">No hay registros.</p>}</div></div>;
+  return <div className="rounded-xl border bg-card"><div className="flex items-center justify-between border-b p-4"><h2 className="font-semibold">{title}</h2><Button size="sm" onClick={onAdd}><Plus className="mr-1 size-4" />Nuevo</Button></div><div className="divide-y">{rows.map((row) => <div key={row.id} className="flex items-center justify-between gap-3 p-3"><div><p className="font-medium">{row.nombre}</p><p className="text-xs text-muted-foreground">Código: {row.codigo} · {"tecnologia" in row ? row.tecnologia || "Sin tecnología" : row.activo ? "Activo" : "Inactivo"}</p></div><div className="flex items-center gap-1">{row.activo ? <Badge className="bg-emerald-100 text-emerald-700">Activo</Badge> : <Badge variant="outline">Inactivo</Badge>}<Button size="icon" variant="ghost" onClick={() => onEdit(row)}><Edit3 className="size-4" /></Button>{row.deleted_at ? <Button size="icon" variant="ghost" onClick={() => onRestore(row.id)}><ArchiveRestore className="size-4" /></Button> : <Button size="icon" variant="ghost" onClick={() => onDelete(row.id)}><Trash2 className="size-4 text-red-600" /></Button>}</div></div>)}{!rows.length && <p className="p-8 text-center text-sm text-muted-foreground">No hay registros.</p>}</div></div>;
 }
 

@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { ProductoResource } from "@/pages/producto/lib/producto.interface";
-import type { KitBody, KitDescarga, TipoTrabajo } from "../lib/kits-descarga.interface";
+import type { KitBody, KitDescarga, KitDetalleBody, TipoTrabajo } from "../lib/kits-descarga.interface";
 
 interface Props {
   open: boolean;
@@ -20,6 +20,9 @@ interface Props {
   setProductSearch: (value: string) => void;
   onSave: () => void;
   saving: boolean;
+  loading: boolean;
+  loadError: string | null;
+  onRetry: () => void;
 }
 
 export default function KitEditorDialog({
@@ -35,9 +38,18 @@ export default function KitEditorDialog({
   setProductSearch,
   onSave,
   saving,
+  loading,
+  loadError,
+  onRetry,
 }: Props) {
   const term = productSearch.trim().toLowerCase();
-  const filteredProducts = products
+  const selectedProducts = form.detalles
+    .map((detail) => detail.producto)
+    .filter((product): product is NonNullable<KitDetalleBody["producto"]> => Boolean(product));
+  const productOptions = Array.from(
+    new Map([...products, ...selectedProducts].map((product) => [String(product.id), product])).values(),
+  );
+  const filteredProducts = productOptions
     .filter((product) => !term || `${product.sap ?? ""} ${product.nombre}`.toLowerCase().includes(term))
     .slice(0, 100);
 
@@ -58,6 +70,18 @@ export default function KitEditorDialog({
         </DialogHeader>
 
         <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-5 py-5 sm:px-6">
+          {loading ? (
+            <div className="rounded-xl border bg-muted/20 p-8 text-center text-sm text-muted-foreground">
+              Cargando la composición completa del kit...
+            </div>
+          ) : loadError ? (
+            <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-5 text-sm">
+              <p className="font-medium text-destructive">No se pudo cargar el kit.</p>
+              <p className="mt-1 text-muted-foreground">{loadError}</p>
+              <Button type="button" variant="outline" size="sm" className="mt-4" onClick={onRetry}>Reintentar</Button>
+            </div>
+          ) : (
+            <>
           <section className="space-y-4">
             <SectionTitle number="1" title="Datos generales" description="Identifica el tipo de trabajo, paquete y vigencia del kit." />
             <div className="grid gap-4 sm:grid-cols-2">
@@ -90,8 +114,10 @@ export default function KitEditorDialog({
                     <Field label={`Producto ${index + 1}`} compact>
                       <select className="h-9 w-full min-w-0 rounded-lg border border-input bg-background px-3 text-sm outline-none focus:border-ring focus:ring-3 focus:ring-ring/50" value={detail.producto_id || ""} onChange={(event) => updateDetail(index, { producto_id: Number(event.target.value) })}>
                         <option value="">{productsLoading ? "Cargando productos..." : "Seleccione un producto"}</option>
+                        {detail.producto_id > 0 && !productOptions.some((product) => Number(product.id) === Number(detail.producto_id)) && <option value={detail.producto_id}>Producto ID {detail.producto_id} · No encontrado en el catálogo</option>}
                         {filteredProducts.map((product) => <option key={product.id} value={product.id}>{product.sap || "SIN SAP"} · {product.nombre}</option>)}
                       </select>
+                      {detail.producto_id > 0 && !detail.producto && <p className="text-xs text-amber-600">El producto no llegó en la respuesta; se conservará su ID para revisarlo.</p>}
                     </Field>
                     <Field label="Cantidad" compact><Input type="number" min={0.0001} step="any" value={detail.cantidad} onChange={(event) => updateDetail(index, { cantidad: Number(event.target.value) })} /></Field>
                     <Field label="Unidad" compact><Input placeholder="UNIDAD" value={detail.unidad_medida ?? ""} onChange={(event) => updateDetail(index, { unidad_medida: event.target.value })} /></Field>
@@ -102,11 +128,13 @@ export default function KitEditorDialog({
               {!form.detalles.length && <p className="p-6 text-center text-sm text-muted-foreground">Agrega al menos un producto al kit.</p>}
             </div>
           </section>
+            </>
+          )}
         </div>
 
         <DialogFooter className="shrink-0 border-t bg-background px-5 py-3 sm:px-6">
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button type="button" onClick={onSave} disabled={saving}>{saving ? "Guardando..." : "Guardar borrador"}</Button>
+          <Button type="button" onClick={onSave} disabled={saving || loading || Boolean(loadError)}>{saving ? "Guardando..." : "Guardar borrador"}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

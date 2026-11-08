@@ -61,6 +61,7 @@ export interface KitDetalleBody {
   producto_id: number;
   cantidad: number;
   unidad_medida?: string | null;
+  producto?: KitDetalle["producto"];
 }
 
 export interface KitBody {

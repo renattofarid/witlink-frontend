@@ -44,6 +44,7 @@ import {
   downloadImportTemplate,
   exportReport,
   getKitHistory,
+  getKit,
   getReportLiquidaciones,
   getReportResumen,
   importKits,
@@ -65,6 +66,7 @@ import type {
   CategoriaTrabajo,
   KitBody,
   KitDescarga,
+  KitDetalleBody,
   KitHistorialEvent,
   TipoTrabajo,
 } from "../lib/kits-descarga.interface";
@@ -91,6 +93,27 @@ const errorMessage = (error: any, fallback: string) => {
   return error?.response?.data?.message ?? fallback;
 };
 
+type ImportStatus = "idle" | "validating" | "ready" | "invalid" | "importing" | "completed" | "error";
+
+const importData = (result: any) => result?.data ?? {};
+
+const importErrors = (result: any): Array<{ fila?: number | string; hoja?: string; campo?: string; motivo?: string; message?: string }> => {
+  const data = importData(result);
+  const errors = data.errores ?? result?.errors ?? data.errors ?? [];
+  if (Array.isArray(errors)) return errors;
+  if (errors && typeof errors === "object") {
+    return Object.entries(errors).flatMap(([field, messages]) =>
+      (Array.isArray(messages) ? messages : [messages]).map((message) => ({ campo: field, motivo: String(message) })),
+    );
+  }
+  return [];
+};
+
+const importWarnings = (result: any): string[] => {
+  const warnings = importData(result).advertencias ?? importData(result).warnings ?? [];
+  return Array.isArray(warnings) ? warnings.map(String) : [];
+};
+
 function statusBadge(status: string) {
   const color = status === "PUBLICADO" ? "bg-emerald-100 text-emerald-700" : status === "INACTIVO" ? "bg-slate-200 text-slate-700" : "bg-amber-100 text-amber-700";
   return <Badge className={color}>{status}</Badge>;
@@ -101,6 +124,67 @@ function Metric({ label, value, tone = "default" }: { label: string; value: numb
     <div className="rounded-xl border bg-card p-4 shadow-sm">
       <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
       <p className={`mt-1 text-2xl font-bold ${tone === "danger" ? "text-red-600" : tone === "success" ? "text-emerald-600" : ""}`}>{value}</p>
+    </div>
+  );
+}
+
+function ImportResultView({ result, status }: { result: any; status: ImportStatus }) {
+  const data = importData(result);
+  const errors = importErrors(result);
+  const warnings = importWarnings(result);
+  const preview = data.vista_previa ?? {};
+  const counters = [
+    ["Filas revisadas", data.filas_leidas],
+    ["Filas correctas", data.filas_validas],
+    ["Filas rechazadas", data.filas_rechazadas],
+    ["Kits detectados", data.kits_detectados],
+    ["Kits por crear", data.kits_por_crear],
+    ["Kits creados", data.kits_creados],
+    ["Kits ya existentes", data.kits_omitidos],
+    ["Productos por crear", data.productos_por_crear],
+    ["Productos creados", data.productos_creados],
+  ].filter(([, value]) => value !== undefined && value !== null);
+  const isValid = status === "ready" || status === "completed";
+  const title = status === "completed"
+    ? "Importación completada"
+    : isValid
+      ? "Archivo listo para importar"
+      : "Hay datos por corregir";
+  const description = status === "completed"
+    ? "Los datos válidos fueron procesados correctamente."
+    : isValid
+      ? "La validación terminó correctamente. Todavía no se guardaron cambios."
+      : "No se importó ningún kit. Revisa las filas indicadas y vuelve a validar el archivo.";
+
+  return (
+    <div className="mt-4 rounded-xl border bg-card p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h3 className="font-semibold">{title}</h3>
+          <p className="mt-1 text-sm text-muted-foreground">{result?.message ?? description}</p>
+        </div>
+        <Badge className={isValid ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}>
+          {status === "completed" ? "Completado" : isValid ? "Válido" : "Revisar"}
+        </Badge>
+      </div>
+
+      {counters.length > 0 && <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        {counters.map(([label, value]) => <div key={String(label)} className="rounded-lg border bg-muted/20 px-3 py-2"><p className="text-xs text-muted-foreground">{label}</p><p className="text-lg font-semibold">{value}</p></div>)}
+      </div>}
+
+      {errors.length > 0 && <div className="mt-5 overflow-x-auto rounded-lg border border-destructive/30">
+        <div className="border-b border-destructive/20 bg-destructive/5 px-3 py-2 font-medium text-destructive">Datos por corregir</div>
+        <table className="w-full text-sm"><thead className="bg-muted/50 text-left text-xs uppercase text-muted-foreground"><tr><th className="p-2">Hoja</th><th className="p-2">Fila</th><th className="p-2">Campo</th><th className="p-2">Qué corregir</th></tr></thead><tbody>{errors.map((error, index) => <tr key={`${error.fila ?? "fila"}-${index}`} className="border-t"><td className="p-2">{error.hoja ?? "-"}</td><td className="p-2">{error.fila ?? "-"}</td><td className="p-2">{error.campo ?? "-"}</td><td className="p-2">{error.motivo ?? error.message ?? "Revisar el valor informado."}</td></tr>)}</tbody></table>
+      </div>}
+
+      {warnings.length > 0 && <div className="mt-4 rounded-lg border border-amber-300/50 bg-amber-50/50 p-3 text-sm text-amber-800"><p className="font-medium">Avisos</p><ul className="mt-1 list-disc pl-5">{warnings.map((warning, index) => <li key={`${warning}-${index}`}>{warning}</li>)}</ul></div>}
+
+      {status === "completed" && Number(data.kits_por_crear ?? 0) === 0 && Number(data.kits_omitidos ?? 0) > 0 && <p className="mt-4 rounded-lg bg-muted/30 p-3 text-sm text-muted-foreground">El archivo ya está importado; no hay kits nuevos.</p>}
+
+      {isValid && status !== "completed" && (preview.categorias?.length > 0 || preview.tipos_trabajo?.length > 0) && <div className="mt-5 grid gap-4 lg:grid-cols-2">
+        {preview.categorias?.length > 0 && <div className="rounded-lg border p-3"><p className="font-medium">Categorías previstas</p><ul className="mt-2 space-y-1 text-sm text-muted-foreground">{preview.categorias.map((item: any, index: number) => <li key={`${item.codigo ?? item.nombre}-${index}`}>{item.nombre ?? item.codigo} <span className="text-xs">({item.accion ?? "crear"})</span></li>)}</ul></div>}
+        {preview.tipos_trabajo?.length > 0 && <div className="rounded-lg border p-3"><p className="font-medium">Tipos de trabajo previstos</p><ul className="mt-2 space-y-1 text-sm text-muted-foreground">{preview.tipos_trabajo.map((item: any, index: number) => <li key={`${item.codigo ?? item.nombre}-${index}`}>{item.nombre ?? item.codigo} <span className="text-xs">({item.accion ?? "crear"})</span></li>)}</ul></div>}
+      </div>}
     </div>
   );
 }
@@ -122,8 +206,12 @@ export default function KitsDescargaPage() {
   const [catalogForm, setCatalogForm] = useState({ codigo: "", nombre: "", tecnologia: "", categoriaId: 0, activo: true });
   const [file, setFile] = useState<File | null>(null);
   const [importResult, setImportResult] = useState<any>(null);
+  const [importStatus, setImportStatus] = useState<ImportStatus>("idle");
+  const [editLoading, setEditLoading] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
   const [reportFilters, setReportFilters] = useState<Record<string, string>>({});
   const fileRef = useRef<HTMLInputElement>(null);
+  const editRequestRef = useRef(0);
 
   const kitQuery = useKitsQuery({ page: String(page), per_page: "15", ...(search ? { search } : {}), ...(estado ? { estado } : {}) });
   const { data: categorias = [] } = useCategoriasAllQuery();
@@ -161,7 +249,12 @@ export default function KitsDescargaPage() {
       const details = kitForm.detalles.filter((d) => d.producto_id > 0 && Number(d.cantidad) > 0).map((d) => ({ ...d, cantidad: Number(d.cantidad) }));
       if (!kitForm.tipo_trabajo_id) throw new Error("Seleccione un tipo de trabajo.");
       if (!details.length) throw new Error("Agregue al menos un producto al kit.");
-      const body = { ...kitForm, version: Number(kitForm.version), tipo_trabajo_id: Number(kitForm.tipo_trabajo_id), detalles: details };
+      const body = {
+        ...kitForm,
+        version: Number(kitForm.version),
+        tipo_trabajo_id: Number(kitForm.tipo_trabajo_id),
+        detalles: details.map(({ producto_id, cantidad, unidad_medida }) => ({ producto_id, cantidad, unidad_medida })),
+      };
       return editingKit ? updateKit(editingKit.id, body) : createKit(body);
     },
     onSuccess: () => { successToast(editingKit ? "Kit actualizado correctamente." : "Kit creado correctamente."); setKitModal(false); invalidate(); },
@@ -171,11 +264,56 @@ export default function KitsDescargaPage() {
   const deactivate = useActionMutation(deactivateKit, "Kit desactivado correctamente.", "No se pudo desactivar el kit.");
   const remove = useActionMutation(deleteKit, "Kit eliminado correctamente.", "No se pudo eliminar el kit.");
 
-  const openNewKit = () => { setEditingKit(null); setKitForm({ ...EMPTY_KIT, detalles: [{ ...EMPTY_KIT.detalles[0] }] }); setProductSearch(""); setKitModal(true); };
+  const openNewKit = () => {
+    editRequestRef.current += 1;
+    setEditingKit(null);
+    setEditError(null);
+    setKitForm({ ...EMPTY_KIT, detalles: [{ ...EMPTY_KIT.detalles[0] }] });
+    setProductSearch("");
+    setKitModal(true);
+  };
+
+  const mapKitToForm = (kit: KitDescarga): KitBody => ({
+    tipo_trabajo_id: kit.tipo_trabajo_id,
+    modalidad: kit.modalidad ?? "",
+    paquete: kit.paquete ?? "",
+    version: kit.version,
+    vigencia_desde: kit.vigencia_desde ?? "",
+    vigencia_hasta: kit.vigencia_hasta ?? "",
+    activo: kit.activo,
+    observaciones: kit.observaciones ?? "",
+    detalles: (kit.detalles ?? []).map((detail): KitDetalleBody => ({
+      producto_id: Number(detail.producto_id),
+      cantidad: detail.cantidad,
+      unidad_medida: detail.unidad_medida,
+      producto: detail.producto ?? undefined,
+    })),
+  });
+
+  const loadKitForEdit = async (kit: KitDescarga) => {
+    const requestId = ++editRequestRef.current;
+    setEditLoading(true);
+    setEditError(null);
+    try {
+      const detail = await getKit(kit.id);
+      if (requestId !== editRequestRef.current) return;
+      setEditingKit(detail);
+      setKitForm(mapKitToForm(detail));
+    } catch (error: any) {
+      if (requestId !== editRequestRef.current) return;
+      setEditError(errorMessage(error, "No se pudo cargar la composición del kit."));
+    } finally {
+      if (requestId === editRequestRef.current) setEditLoading(false);
+    }
+  };
+
   const openEditKit = (kit: KitDescarga) => {
     setEditingKit(kit);
-    setKitForm({ tipo_trabajo_id: kit.tipo_trabajo_id, modalidad: kit.modalidad ?? "", paquete: kit.paquete ?? "", version: kit.version, vigencia_desde: kit.vigencia_desde ?? "", vigencia_hasta: kit.vigencia_hasta ?? "", activo: kit.activo, observaciones: kit.observaciones ?? "", detalles: kit.detalles.map((d) => ({ producto_id: d.producto_id, cantidad: d.cantidad, unidad_medida: d.unidad_medida ?? "UNIDAD" })) });
-    setProductSearch(""); setKitModal(true);
+    setKitForm({ ...EMPTY_KIT, detalles: [] });
+    setProductSearch("");
+    setEditError(null);
+    setKitModal(true);
+    void loadKitForEdit(kit);
   };
   const openCatalog = (kind: "categoria" | "tipo", row?: CategoriaTrabajo | TipoTrabajo) => {
     setCatalogModal(kind);
@@ -191,8 +329,38 @@ export default function KitsDescargaPage() {
   };
 
   const handleDownloadTemplate = async () => { try { const r = await downloadImportTemplate(); downloadExcelFromBase64({ ...r, file_base64: r.file_base64 ?? r.base64 ?? "" }); successToast("Plantilla descargada."); } catch (e: any) { errorToast(errorMessage(e, "No se pudo descargar la plantilla.")); } };
-  const handleValidate = async () => { if (!file) return errorToast("Seleccione un archivo Excel."); try { setImportResult(await validateImport(file)); successToast("Validación terminada."); } catch (e: any) { setImportResult(e?.response?.data); errorToast(errorMessage(e, "No se pudo validar el archivo.")); } };
-  const handleImport = async () => { if (!file || !importResult?.data?.valido) return; try { const r = await importKits(file); setImportResult(r); successToast("Importación completada correctamente."); invalidate(); } catch (e: any) { setImportResult(e?.response?.data); errorToast(errorMessage(e, "No se pudo importar el archivo.")); } };
+  const handleValidate = async () => {
+    if (!file) return errorToast("Seleccione un archivo Excel.");
+    setImportStatus("validating");
+    setImportResult(null);
+    try {
+      const result = await validateImport(file);
+      setImportResult(result);
+      setImportStatus(result?.data?.valido ? "ready" : "invalid");
+      successToast(result?.data?.valido ? "Archivo listo para importar." : "Hay datos por corregir.");
+    } catch (error: any) {
+      setImportResult(error?.response?.data ?? { message: errorMessage(error, "No se pudo validar el archivo.") });
+      setImportStatus("error");
+      errorToast(errorMessage(error, "No se pudo validar el archivo."));
+    }
+  };
+  const handleImport = async () => {
+    if (!file || !importResult?.data?.valido || importStatus !== "ready") return;
+    setImportStatus("importing");
+    try {
+      const result = await importKits(file);
+      setImportResult(result);
+      setImportStatus("completed");
+      successToast("Importación completada correctamente.");
+      invalidate();
+      queryClient.invalidateQueries({ queryKey: ["categorias-trabajo"] });
+      queryClient.invalidateQueries({ queryKey: ["tipos-trabajo"] });
+    } catch (error: any) {
+      setImportResult(error?.response?.data ?? { message: errorMessage(error, "No se pudo importar el archivo.") });
+      setImportStatus("error");
+      errorToast(errorMessage(error, "No se pudo importar el archivo."));
+    }
+  };
   const handleExport = async () => { try { const r = await exportReport(reportFilters); downloadExcelFromBase64({ ...r, file_base64: r.file_base64 ?? r.base64 ?? "" }); successToast("Reporte descargado."); } catch (e: any) { errorToast(errorMessage(e, "No se pudo exportar el reporte.")); } };
 
   return (
@@ -230,12 +398,24 @@ export default function KitsDescargaPage() {
           <CatalogCard title="Tipos de trabajo" rows={tipos} onAdd={() => openCatalog("tipo")} onEdit={(r) => openCatalog("tipo", r)} onDelete={(id) => window.confirm("¿Eliminar este tipo de trabajo?") && deleteTipoTrabajo(id).then(() => { successToast("Tipo de trabajo eliminado."); queryClient.invalidateQueries({ queryKey: ["tipos-trabajo"] }); }).catch((e) => errorToast(errorMessage(e, "No se pudo eliminar el tipo de trabajo.")))} onRestore={(id) => restoreTipoTrabajo(id).then(() => { successToast("Tipo de trabajo restaurado."); queryClient.invalidateQueries({ queryKey: ["tipos-trabajo"] }); }).catch((e) => errorToast(errorMessage(e, "No se pudo restaurar el tipo de trabajo.")))} />
         </TabsContent>
 
-        <TabsContent value="importar" className="mt-4 space-y-4"><div className="rounded-xl border bg-card p-5"><div className="flex items-start gap-3"><FileSpreadsheet className="mt-1 size-6 text-primary" /><div><h2 className="font-semibold">Importación segura de kits</h2><p className="text-sm text-muted-foreground">Primero valida el archivo. La validación no guarda cambios y la importación solo se habilita cuando el backend confirma que el archivo es válido.</p></div></div><div className="mt-5 flex flex-wrap items-center gap-3"><input ref={fileRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={(e) => { setFile(e.target.files?.[0] ?? null); setImportResult(null); }} /><Button variant="outline" onClick={() => fileRef.current?.click()}><Upload className="mr-1 size-4" />Seleccionar Excel</Button><span className="text-sm text-muted-foreground">{file?.name || "Ningún archivo seleccionado"}</span><Button onClick={handleValidate} disabled={!file}>Validar archivo</Button><Button variant="secondary" onClick={handleImport} disabled={!file || !importResult?.data?.valido}>Importar kits</Button></div></div>{importResult && <div className="rounded-xl border bg-card p-5"><h3 className="font-semibold">Resultado de la operación</h3><pre className="mt-3 max-h-72 overflow-auto rounded-lg bg-muted p-3 text-xs">{JSON.stringify(importResult, null, 2)}</pre></div>}</TabsContent>
+        <TabsContent value="importar" className="mt-4 space-y-4">
+          <div className="rounded-xl border bg-card p-5">
+            <div className="flex items-start gap-3"><FileSpreadsheet className="mt-1 size-6 text-primary" /><div><h2 className="font-semibold">Importación segura de kits</h2><p className="text-sm text-muted-foreground">Primero valida el archivo. La validación no guarda cambios y la importación solo se habilita cuando el backend confirma que el archivo es válido.</p></div></div>
+            <div className="mt-5 flex flex-wrap items-center gap-3">
+              <input ref={fileRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={(event) => { setFile(event.target.files?.[0] ?? null); setImportResult(null); setImportStatus("idle"); }} />
+              <Button variant="outline" onClick={() => fileRef.current?.click()} disabled={importStatus === "validating" || importStatus === "importing"}><Upload className="mr-1 size-4" />Seleccionar Excel</Button>
+              <span className="text-sm text-muted-foreground">{file?.name || "Ningún archivo seleccionado"}</span>
+              <Button onClick={handleValidate} disabled={!file || importStatus === "validating" || importStatus === "importing"}>{importStatus === "validating" ? "Validando..." : "Validar archivo"}</Button>
+              <Button variant="secondary" onClick={handleImport} disabled={!file || importStatus !== "ready"}>{importStatus === "importing" ? "Importando..." : "Importar kits"}</Button>
+            </div>
+          </div>
+          {importResult && <ImportResultView result={importResult} status={importStatus} />}
+        </TabsContent>
 
         <TabsContent value="reportes" className="mt-4 space-y-4"><div className="grid gap-2 rounded-xl border bg-card p-4 md:grid-cols-4"><Input placeholder="SOT" value={reportFilters.sot ?? ""} onChange={(e) => setReportFilters((v) => ({ ...v, sot: e.target.value }))} /><Input placeholder="ID técnico" value={reportFilters.tecnico_id ?? ""} onChange={(e) => setReportFilters((v) => ({ ...v, tecnico_id: e.target.value }))} /><Input placeholder="ID categoría" value={reportFilters.categoria_id ?? ""} onChange={(e) => setReportFilters((v) => ({ ...v, categoria_id: e.target.value }))} /><Input placeholder="ID tipo de trabajo" value={reportFilters.tipo_trabajo_id ?? ""} onChange={(e) => setReportFilters((v) => ({ ...v, tipo_trabajo_id: e.target.value }))} /><Input placeholder="ID producto" value={reportFilters.producto_id ?? ""} onChange={(e) => setReportFilters((v) => ({ ...v, producto_id: e.target.value }))} /><Input placeholder="Tecnología" value={reportFilters.tecnologia ?? ""} onChange={(e) => setReportFilters((v) => ({ ...v, tecnologia: e.target.value }))} /><Input type="date" value={reportFilters.fecha_desde ?? ""} onChange={(e) => setReportFilters((v) => ({ ...v, fecha_desde: e.target.value }))} /><Input type="date" value={reportFilters.fecha_hasta ?? ""} onChange={(e) => setReportFilters((v) => ({ ...v, fecha_hasta: e.target.value }))} /><select className="h-9 rounded-md border bg-background px-3 text-sm" value={reportFilters.resultado ?? ""} onChange={(e) => setReportFilters((v) => ({ ...v, resultado: e.target.value }))}><option value="">Todos los resultados</option>{KIT_RESULTADOS.map((x) => <option key={x.value} value={x.value}>{x.label}</option>)}</select><Input type="number" min={2} max={100} placeholder="Mín. recurrencias" value={reportFilters.min_recurrencias ?? ""} onChange={(e) => setReportFilters((v) => ({ ...v, min_recurrencias: e.target.value }))} /><Button onClick={() => refetchReport()} disabled={reportLoading}><Search className="mr-1 size-4" />Consultar</Button></div><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6"><Metric label="Liquidaciones" value={resumen?.resumen?.total_liquidaciones ?? report?.resumen?.total_liquidaciones ?? 0} /><Metric label="Registros" value={resumen?.resumen?.total_registros ?? report?.resumen?.total_registros ?? 0} /><Metric label="Conformes" value={resumen?.resumen?.conformes ?? 0} tone="success" /><Metric label="Excesos" value={resumen?.resumen?.excesos ?? 0} tone="danger" /><Metric label="Menor consumo" value={resumen?.resumen?.menores_consumos ?? 0} /><Metric label="Cobertura" value={`${resumen?.cobertura?.porcentaje_con_kit ?? 0}%`} /></div><div className="overflow-x-auto rounded-xl border bg-card"><table className="w-full text-sm"><thead className="bg-muted/60 text-left"><tr><th className="p-3">SOT</th><th className="p-3">Fecha</th><th className="p-3">Kit</th><th className="p-3">Cantidad estándar</th><th className="p-3">Cantidad real</th><th className="p-3">Diferencia</th><th className="p-3">Resultado</th></tr></thead><tbody>{(report?.data ?? []).map((r, i) => <tr key={`${r.liquidacion_id}-${r.producto_id}-${i}`} className="border-t"><td className="p-3 font-mono">{r.sot}</td><td className="p-3">{r.fecha || "-"}</td><td className="p-3">#{r.kit_descarga_id ?? "-"}</td><td className="p-3">{r.cantidad_estandar}</td><td className="p-3">{r.cantidad_real}</td><td className="p-3">{r.diferencia}</td><td className="p-3">{r.resultado}</td></tr>)}{!report?.data?.length && <tr><td colSpan={7} className="p-10 text-center text-muted-foreground">Ejecute la consulta para ver resultados.</td></tr>}</tbody></table></div></TabsContent>
       </Tabs>
 
-      <KitEditorDialog open={kitModal} onOpenChange={setKitModal} editingKit={editingKit} form={kitForm} setForm={setKitForm} types={tipos} products={productos} productsLoading={productsLoading} productSearch={productSearch} setProductSearch={setProductSearch} onSave={() => saveKit.mutate()} saving={saveKit.isPending} />
+      <KitEditorDialog open={kitModal} onOpenChange={(open) => { setKitModal(open); if (!open) { editRequestRef.current += 1; setEditingKit(null); setEditError(null); setEditLoading(false); } }} editingKit={editingKit} form={kitForm} setForm={setKitForm} types={tipos} products={productos} productsLoading={productsLoading} productSearch={productSearch} setProductSearch={setProductSearch} onSave={() => saveKit.mutate()} saving={saveKit.isPending} loading={editLoading} loadError={editError} onRetry={() => editingKit && void loadKitForEdit(editingKit)} />
 
       <Dialog open={!!catalogModal} onOpenChange={(v) => !v && setCatalogModal(null)}><DialogContent><DialogHeader><DialogTitle>{editingCategoria || editingTipo ? "Editar" : "Nuevo"} {catalogModal === "categoria" ? "categoría" : "tipo de trabajo"}</DialogTitle></DialogHeader><div className="space-y-3"><div><Label>Código *</Label><Input className="mt-1" value={catalogForm.codigo} onChange={(e) => setCatalogForm((v) => ({ ...v, codigo: e.target.value.toUpperCase() }))} /></div><div><Label>Nombre *</Label><Input className="mt-1" value={catalogForm.nombre} onChange={(e) => setCatalogForm((v) => ({ ...v, nombre: e.target.value }))} /></div>{catalogModal === "tipo" && <><div><Label>Categoría *</Label><select className="mt-1 h-10 w-full rounded-md border bg-background px-3 text-sm" value={catalogForm.categoriaId || ""} onChange={(e) => setCatalogForm((v) => ({ ...v, categoriaId: Number(e.target.value) }))}><option value="">Seleccione...</option>{categorias.filter((c) => c.activo).map((c) => <option key={c.id} value={c.id}>{c.codigo} · {c.nombre}</option>)}</select></div><div><Label>Tecnología</Label><Input className="mt-1" value={catalogForm.tecnologia} onChange={(e) => setCatalogForm((v) => ({ ...v, tecnologia: e.target.value.toUpperCase() }))} /></div></>}</div><DialogFooter><Button variant="outline" onClick={() => setCatalogModal(null)}>Cancelar</Button><Button onClick={saveCatalog}>Guardar</Button></DialogFooter></DialogContent></Dialog>
 

@@ -301,7 +301,7 @@ export default function KitsDescargaPage() {
     activo: kit.activo,
     observaciones: kit.observaciones ?? "",
     detalles: (kit.detalles ?? []).map((detail): KitDetalleBody => ({
-      producto_id: Number(detail.producto_id),
+      producto_id: Number(detail.producto_id || detail.producto?.id || 0),
       cantidad: detail.cantidad,
       unidad_medida: detail.unidad_medida,
       producto: detail.producto ?? undefined,

@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/dialog";
 import { successToast, errorToast } from "@/lib/core.function";
 import { downloadExcelFromBase64 } from "@/lib/exportExcel";
-import { getProductosAll } from "@/pages/producto/lib/producto.actions";
+import { getProducto, getProductosAll } from "@/pages/producto/lib/producto.actions";
 import { getPersonas } from "@/pages/persona/lib/persona.actions";
 import {
   createCategoria,
@@ -315,8 +315,32 @@ export default function KitsDescargaPage() {
     try {
       const detail = await getKit(kit.id);
       if (requestId !== editRequestRef.current) return;
-      setEditingKit(detail);
-      setKitForm(mapKitToForm(detail));
+      const rawDetails = Array.isArray(detail.detalles)
+        ? detail.detalles
+        : ((detail.detalles as unknown as { data?: KitDescarga["detalles"] })?.data ?? []);
+      const missingProductIds = rawDetails
+        .filter((item) => !item.producto && Number(item.producto_id) > 0)
+        .map((item) => Number(item.producto_id));
+      const recoveredProducts = await Promise.all(missingProductIds.map(async (productId) => {
+        try {
+          const response = await getProducto(productId);
+          const product = (response as unknown as { data?: typeof response })?.data ?? response;
+          return [productId, product] as const;
+        } catch {
+          return [productId, null] as const;
+        }
+      }));
+      if (requestId !== editRequestRef.current) return;
+      const recoveredById = new Map(recoveredProducts.filter(([, product]) => product).map(([id, product]) => [id, product]));
+      const normalizedDetail: KitDescarga = {
+        ...detail,
+        detalles: rawDetails.map((item) => ({
+          ...item,
+          producto: item.producto ?? recoveredById.get(Number(item.producto_id)) ?? undefined,
+        })),
+      };
+      setEditingKit(normalizedDetail);
+      setKitForm(mapKitToForm(normalizedDetail));
     } catch (error: any) {
       if (requestId !== editRequestRef.current) return;
       setEditError(errorMessage(error, "No se pudo cargar la composición del kit."));

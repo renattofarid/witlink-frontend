@@ -112,11 +112,19 @@ export default function KitEditorDialog({
                 {form.detalles.map((detail, index) => (
                   <div className="grid gap-3 p-4 sm:grid-cols-[minmax(360px,1fr)_120px_160px_44px] sm:items-center" key={`${index}-${detail.producto_id}`}>
                     <Field label={`Producto ${index + 1}`} compact>
-                      <select className="h-9 w-full min-w-0 rounded-lg border border-input bg-background px-3 text-sm outline-none focus:border-ring focus:ring-3 focus:ring-ring/50" value={detail.producto_id || ""} onChange={(event) => updateDetail(index, { producto_id: Number(event.target.value) })}>
+                      {(() => {
+                        const selectedProduct = productOptions.find((product) => Number(product.id) === Number(detail.producto_id));
+                        const selectedLabel = selectedProduct
+                          ? `${selectedProduct.sap || "SIN SAP"} · ${selectedProduct.nombre}`
+                          : detail.producto_id > 0
+                            ? `Producto ID ${detail.producto_id} · Cargando catálogo...`
+                            : "Seleccione un producto";
+                        return <select className="h-9 w-full min-w-0 rounded-lg border border-input bg-background px-3 text-sm outline-none focus:border-ring focus:ring-3 focus:ring-ring/50" value={detail.producto_id || ""} onChange={(event) => updateDetail(index, { producto_id: Number(event.target.value) })}>
                         <option value="">{productsLoading ? "Cargando productos..." : "Seleccione un producto"}</option>
-                        {detail.producto_id > 0 && !productOptions.some((product) => Number(product.id) === Number(detail.producto_id)) && <option value={detail.producto_id}>Producto ID {detail.producto_id} · No encontrado en el catálogo</option>}
-                        {filteredProducts.map((product) => <option key={product.id} value={product.id}>{product.sap || "SIN SAP"} · {product.nombre}</option>)}
-                      </select>
+                        {detail.producto_id > 0 && <option value={detail.producto_id}>{selectedLabel}</option>}
+                        {filteredProducts.filter((product) => Number(product.id) !== Number(detail.producto_id)).map((product) => <option key={product.id} value={product.id}>{product.sap || "SIN SAP"} · {product.nombre}</option>)}
+                      </select>;
+                      })()}
                       {detail.producto_id > 0 && !detail.producto && <p className="text-xs text-amber-600">El producto no llegó en la respuesta; se conservará su ID para revisarlo.</p>}
                     </Field>
                     <Field label="Cantidad" compact><Input type="number" min={0.0001} step="any" value={detail.cantidad} onChange={(event) => updateDetail(index, { cantidad: Number(event.target.value) })} /></Field>

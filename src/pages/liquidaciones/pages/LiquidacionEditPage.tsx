@@ -4,6 +4,7 @@ import { AlertCircle } from "lucide-react";
 import FormWrapper from "@/components/FormWrapper";
 import TitleFormComponent from "@/components/TitleFormComponent";
 import LiquidacionForm from "../components/LiquidacionForm";
+import LiquidacionKitPanel from "@/pages/kits-descarga/components/LiquidacionKitPanel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useLiquidacionStore } from "../lib/liquidaciones.store";
@@ -71,7 +72,14 @@ export default function LiquidacionEditPage() {
       )}
 
       {!isLoading && currentSot && (
-        <LiquidacionForm onSuccess={handleSuccess} allowSotEdit />
+        <>
+          <LiquidacionKitPanel
+            liquidacionId={currentSot.liquidacion.id}
+            sot={currentSot.liquidacion.sot}
+            canAssign={(currentSot.liquidacion.estado_liquidacion ?? "").toLowerCase() !== "liquidada"}
+          />
+          <LiquidacionForm onSuccess={handleSuccess} allowSotEdit />
+        </>
       )}
     </FormWrapper>
   );

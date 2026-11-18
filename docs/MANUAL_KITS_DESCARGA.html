@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Manual de usuario — Kits de descarga</title>
+  <style>
+    @page { size: A4; margin: 17mm 15mm 18mm; }
+    :root { --navy:#111827; --blue:#087f9e; --teal:#0786a3; --muted:#5f6b76; --line:#d8e0e6; --soft:#eef7fa; --green:#16834c; --amber:#a86d00; }
+    * { box-sizing:border-box; } body { font-family: Arial, Helvetica, sans-serif; color:var(--navy); line-height:1.45; margin:0; font-size:10.5pt; }
+    h1 { color:var(--teal); font-size:28pt; margin:0 0 8px; line-height:1.1; } h2 { color:var(--teal); font-size:18pt; border-bottom:2px solid var(--teal); padding-bottom:5px; margin:25px 0 12px; } h3 { font-size:13pt; margin:16px 0 6px; }
+    p { margin:6px 0 10px; } ul,ol { margin:6px 0 12px 21px; padding:0; } li { margin:4px 0; }
+    .cover { min-height:245mm; display:flex; flex-direction:column; justify-content:center; padding:18mm; background:linear-gradient(145deg,#f4fbfd,#fff 58%); border:1px solid var(--line); border-radius:14px; }
+    .logo { width:48px; height:48px; border-radius:12px; background:var(--teal); color:#fff; display:flex; align-items:center; justify-content:center; font-size:26px; font-weight:bold; margin-bottom:25px; }
+    .subtitle { color:var(--muted); font-size:15pt; max-width:500px; } .meta { margin-top:55px; color:var(--muted); font-size:9pt; } .note { background:var(--soft); border-left:4px solid var(--teal); padding:10px 12px; margin:12px 0; border-radius:5px; }
+    .warning { background:#fff8e8; border-left-color:#d89000; } .success { background:#edf9f1; border-left-color:var(--green); }
+    .screen { border:1px solid #cbd6dd; border-radius:10px; overflow:hidden; margin:12px 0 16px; box-shadow:0 2px 8px #10212d16; page-break-inside:avoid; }
+    .screen-top { height:25px; background:#182637; display:flex; align-items:center; gap:5px; padding:0 10px; } .dot { width:7px;height:7px;border-radius:50%;background:#8ba0ad; } .screen-body { padding:12px; background:#f9fbfc; } .screen-title { color:var(--teal); font-weight:bold; font-size:14pt; margin-bottom:8px; }
+    .bar { display:flex; gap:7px; margin:8px 0; } .field { height:24px; border:1px solid #c8d3d9; border-radius:5px; background:#fff; flex:1; padding:4px 7px; color:#78858d; font-size:8pt; } .button { background:var(--teal); color:white; border-radius:5px; padding:5px 10px; font-size:8pt; font-weight:bold; }
+    table { border-collapse:collapse; width:100%; margin:10px 0 15px; font-size:9pt; } th { background:#203249; color:#fff; text-align:left; } th,td { border:1px solid var(--line); padding:7px; vertical-align:top; } tr:nth-child(even) td { background:#f7fafb; }
+    .steps { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:12px 0; } .step { border:1px solid var(--line); border-radius:8px; padding:10px; background:#fff; } .num { display:inline-flex; width:25px;height:25px;border-radius:50%; align-items:center; justify-content:center; background:var(--teal); color:#fff; font-weight:bold; margin-bottom:5px; }
+    code { background:#eef2f4; padding:1px 4px; border-radius:3px; font-size:9pt; } .small { color:var(--muted); font-size:9pt; } .page-break { page-break-before:always; }
+    .footer { margin-top:20px; color:#7a8790; font-size:8.5pt; border-top:1px solid var(--line); padding-top:6px; }
+  </style>
+</head>
+<body>
+  <section class="cover">
+    <div class="logo">▦</div>
+    <h1>Manual de usuario<br>Kit de descarga</h1>
+    <p class="subtitle">Guía práctica para configurar kits, validar consumos, asociarlos a liquidaciones y descargar reportes de control.</p>
+    <div class="note success"><strong>Objetivo del módulo</strong><br>Definir los productos esperados para cada tipo de trabajo y comparar lo instalado en una liquidación contra ese estándar.</div>
+    <p class="meta">Witlink · Versión de usuario final<br>Documento preparado para operación diaria</p>
+  </section>
+
+  <section class="page-break">
+    <h2>1. Antes de empezar</h2>
+    <p>El módulo se encuentra en <strong>Gestión → Kits</strong> o <strong>Gestión → Kits de descarga</strong>, según la configuración del menú. La opción depende de los permisos asignados al usuario.</p>
+    <div class="screen"><div class="screen-top"><i class="dot"></i><i class="dot"></i><i class="dot"></i></div><div class="screen-body"><div class="screen-title">Kits de descarga</div><p class="small">Configura kits, valida consumos y controla liquidaciones</p><div class="bar"><span class="button">Kits</span><span class="field">Catálogos</span><span class="field">Importar</span><span class="field">Reportes</span></div></div></div>
+    <div class="note"><strong>Estados principales</strong><br><strong>Borrador:</strong> se puede editar y publicar. <strong>Publicado:</strong> puede utilizarse para comparar liquidaciones. <strong>Inactivo:</strong> dejó de estar disponible para nuevas asociaciones.</div>
+    <h3>Recomendación</h3><p>Antes de crear un kit, confirme el tipo de trabajo, la tecnología y los productos que deben formar parte del consumo estándar.</p>
+  </section>
+
+  <section>
+    <h2>2. Crear un kit</h2>
+    <div class="steps"><div class="step"><span class="num">1</span><br><strong>Nuevo kit</strong><br><span class="small">Abra el formulario desde la pestaña Kits.</span></div><div class="step"><span class="num">2</span><br><strong>Datos generales</strong><br><span class="small">Seleccione tipo, versión y vigencia.</span></div><div class="step"><span class="num">3</span><br><strong>Composición</strong><br><span class="small">Agregue productos, cantidades y unidades.</span></div></div>
+    <ol><li>Presione <strong>Nuevo kit</strong>.</li><li>Seleccione el <strong>tipo de trabajo</strong>. La tecnología se muestra automáticamente cuando está definida en el catálogo.</li><li>Ingrese la <strong>versión</strong>. Use números consecutivos cuando cambie la composición.</li><li>Complete la vigencia desde/hasta si el kit será temporal. La fecha final no puede ser anterior a la inicial.</li><li>Agregue observaciones para orientar al equipo operativo. El límite es de 2,000 caracteres.</li><li>En <strong>Composición del kit</strong>, seleccione cada producto, indique cantidad y unidad de medida.</li><li>Presione <strong>Guardar borrador</strong>.</li></ol>
+    <div class="note warning"><strong>Importante:</strong> no repita un mismo producto dentro del kit. El sistema valida que cada producto aparezca una sola vez.</div>
+    <div class="screen"><div class="screen-top"><i class="dot"></i><i class="dot"></i><i class="dot"></i></div><div class="screen-body"><div class="screen-title">Nuevo kit de descarga</div><div class="bar"><span class="field">Tipo de trabajo · FTTH</span><span class="field">Versión 1</span></div><div class="bar"><span class="field">Observaciones</span></div><div class="bar"><span class="field">4078239 · Decodificador</span><span class="field" style="flex:0 0 70px">1</span><span class="field" style="flex:0 0 80px">UN</span></div><div class="bar"><span class="button">Guardar borrador</span></div></div></div>
+  </section>
+
+  <section class="page-break">
+    <h2>3. Revisar, editar y publicar</h2>
+    <p>En la tabla de kits puede buscar por tipo de trabajo u observaciones y filtrar por estado o tecnología.</p>
+    <table><tr><th>Acción</th><th>Cuándo usarla</th></tr><tr><td><strong>Editar</strong></td><td>Solo para kits en estado Borrador. El sistema carga la composición completa, incluyendo productos, cantidades y unidades.</td></tr><tr><td><strong>Historial</strong></td><td>Permite revisar las operaciones realizadas sobre el kit.</td></tr><tr><td><strong>Publicar</strong></td><td>Confirma que la composición está lista para usarse en comparaciones.</td></tr><tr><td><strong>Desactivar</strong></td><td>Retira un kit publicado de futuras asociaciones sin eliminar su trazabilidad.</td></tr></table>
+    <div class="note success"><strong>Al editar:</strong> espere a que termine la carga. Los productos que vienen en el kit se mantienen seleccionados aunque el catálogo general demore en responder.</div>
+    <p>Una vez publicado, si necesita cambiar la composición, cree una nueva versión. Esto evita alterar los controles históricos.</p>
+  </section>
+
+  <section>
+    <h2>4. Administrar catálogos</h2>
+    <ol><li>Abra la pestaña <strong>Catálogos</strong>.</li><li>Cree primero una <strong>categoría de trabajo</strong>.</li><li>Luego cree el <strong>tipo de trabajo</strong> y asígnelo a una categoría.</li><li>Defina la tecnología cuando corresponda: HFC o FTTH.</li></ol>
+    <div class="note">Los nombres son la referencia principal para el usuario. El código se conserva como identificador interno del catálogo.</div>
+  </section>
+
+  <section>
+    <h2>5. Importar kits desde Excel</h2>
+    <div class="steps"><div class="step"><span class="num">1</span><br>Descargue la plantilla oficial.</div><div class="step"><span class="num">2</span><br>Complete el Excel sin cambiar encabezados.</div><div class="step"><span class="num">3</span><br>Valide y luego importe.</div></div>
+    <ol><li>Abra la pestaña <strong>Importar</strong>.</li><li>Presione <strong>Descargar plantilla</strong>.</li><li>Complete las filas respetando columnas, formatos y nombres.</li><li>Seleccione el archivo <code>.xlsx</code> o <code>.xls</code>.</li><li>Presione <strong>Validar archivo</strong>.</li><li>Revise el resumen: filas correctas, rechazadas, kits detectados, kits existentes y errores.</li><li>Si el archivo es válido, presione <strong>Importar kits</strong>.</li></ol>
+    <div class="note warning"><strong>La validación no guarda cambios.</strong> Si hay errores, corrija el archivo y vuelva a validarlo. La importación se habilita únicamente cuando el backend confirma que el archivo es válido.</div>
+  </section>
+
+  <section class="page-break">
+    <h2>6. Asociar un kit a una liquidación</h2>
+    <ol><li>Abra el detalle de una liquidación.</li><li>Ubique la sección <strong>Kit de descarga</strong>.</li><li>Revise el kit asociado y su origen.</li><li>Si corresponde, seleccione un kit publicado y confirme la asociación.</li><li>Use <strong>Actualizar comparación</strong> para recalcular los resultados.</li></ol>
+    <table><tr><th>Resultado</th><th>Significado</th></tr><tr><td><strong>Conforme</strong></td><td>La cantidad real coincide con el estándar.</td></tr><tr><td><strong>Exceso</strong></td><td>Se utilizó más cantidad que la definida.</td></tr><tr><td><strong>Menor consumo</strong></td><td>Se utilizó menos cantidad que la definida.</td></tr><tr><td><strong>Fuera del kit</strong></td><td>El producto liquidado no está incluido en el kit asociado.</td></tr></table>
+    <div class="note">La comparación muestra producto, unidad, cantidad estándar, cantidad real, diferencia y resultado. La asociación se valida en el servidor.</div>
+  </section>
+
+  <section>
+    <h2>7. Reportes y exportación</h2>
+    <p>En la pestaña <strong>Reportes</strong> seleccione los filtros que necesite:</p>
+    <ul><li>SOT.</li><li>Técnico.</li><li>Categoría y tipo de trabajo.</li><li>Producto.</li><li>Tecnología HFC o FTTH.</li><li>Fecha desde y hasta.</li><li>Resultado.</li><li>Mínimo de recurrencias.</li></ul>
+    <p>Presione <strong>Consultar</strong>. Revise los indicadores, alertas y el detalle por producto. Use <strong>Exportar Excel</strong> para descargar la misma consulta con los filtros aplicados.</p>
+    <div class="note success"><strong>Control recomendado:</strong> use rangos diarios, semanales o quincenales para revisar excesos y productos fuera de kit.</div>
+  </section>
+
+  <section>
+    <h2>8. Problemas frecuentes</h2>
+    <table><tr><th>Mensaje o situación</th><th>Qué hacer</th></tr><tr><td>No puedo ver Kits</td><td>Solicite al administrador el permiso del módulo.</td></tr><tr><td>Error 403</td><td>Su usuario no tiene autorización para la acción.</td></tr><tr><td>Error 422</td><td>Revise los campos indicados; normalmente falta un dato o hay una duplicidad.</td></tr><tr><td>Los productos tardan en aparecer</td><td>Espere la carga del catálogo. Al editar, el producto del kit debe mantenerse seleccionado por su ID.</td></tr><tr><td>No hay resultados en Reportes</td><td>Presione Consultar y revise fechas, tecnología y estado del kit.</td></tr></table>
+    <h3>Buenas prácticas</h3><ul><li>Publique una nueva versión cuando cambie la composición.</li><li>Revise vigencia y tecnología antes de asociar un kit.</li><li>Corrija los errores del Excel antes de importar.</li><li>Revise excesos y productos fuera de kit antes del cierre operativo.</li></ul>
+  </section>
+  <p class="footer">Manual de usuario — Kits de descarga · Witlink</p>
+</body></html>

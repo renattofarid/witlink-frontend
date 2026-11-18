@@ -12,7 +12,7 @@ Ingrese a **Gestión → Kits de descarga**. La opción aparece únicamente cuan
 
 1. En la pestaña **Kits**, seleccione **Nuevo kit**.
 2. Seleccione el tipo de trabajo.
-3. Complete modalidad, paquete, versión y vigencia cuando correspondan.
+3. Seleccione el tipo de trabajo y revise la tecnología que muestra el sistema. Complete versión y vigencia cuando correspondan.
 4. Agregue uno o más productos, indicando cantidad y unidad de medida. No repita el mismo producto dentro del kit.
 5. Presione **Guardar borrador**.
 6. Revise el kit en la tabla y use **Publicar** cuando la composición esté validada.
@@ -34,7 +34,7 @@ La pestaña **Catálogos** permite administrar categorías y tipos de trabajo. P
 
 La validación no guarda información. El sistema verifica el archivo antes de crear los kits y sus detalles. Si existen errores, corríjalos en el Excel y vuelva a validar.
 
-## 4. Comparar una liquidación
+## 4. Asociar y comparar una liquidación
 
 Abra el detalle de una liquidación. En la sección **Kit de descarga** podrá:
 
@@ -64,6 +64,20 @@ Los resultados disponibles son:
 - Revise los excesos y productos fuera de kit antes de cerrar el control operativo.
 - No edite manualmente la plantilla descargada; mantenga sus columnas y nombres.
 - Si aparece un error `403`, solicite al administrador el permiso del módulo. Si aparece `422`, revise los campos indicados por el backend.
+
+## Solución de problemas
+
+### Al editar no aparecen los productos
+
+Espere a que termine de cargar la composición. El sistema conserva los productos que vienen en el kit aunque el catálogo general todavía esté cargando. Si alguno no aparece por nombre, se mostrará temporalmente por ID y podrá solicitar al administrador la revisión del catálogo.
+
+### El reporte no muestra datos
+
+Presione **Consultar** después de seleccionar los filtros. Revise que las fechas estén en el rango correcto y que el tipo de trabajo, producto y tecnología correspondan al kit publicado.
+
+### No puedo editar o publicar
+
+Solo los kits en estado **BORRADOR** pueden editarse y publicarse. Un kit publicado no se edita directamente: se desactiva o se crea una nueva versión para conservar la trazabilidad.
 
 ## Requisitos de despliegue
 

@@ -33,7 +33,7 @@ export default function LiquidacionKitPanel({ liquidacionId, sot, canAssign = tr
   });
   const kitsQuery = useQuery<KitResponse>({
     queryKey: ["kits-descarga", "publicados", "liquidacion"],
-    queryFn: () => getKits({ estado: "PUBLICADO", activo: "true", all: "true", per_page: "100" }),
+    queryFn: () => getKits({ estado: "PUBLICADO", activo: "1", all: "true", per_page: "100" }),
     refetchOnWindowFocus: false,
   });
   const saveMutation = useMutation({

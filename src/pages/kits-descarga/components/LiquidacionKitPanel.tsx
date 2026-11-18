@@ -20,9 +20,10 @@ const errorMessage = (error: any) => error?.response?.data?.message ?? "No se pu
 interface Props {
   liquidacionId: number;
   sot: string;
+  canAssign?: boolean;
 }
 
-export default function LiquidacionKitPanel({ liquidacionId, sot }: Props) {
+export default function LiquidacionKitPanel({ liquidacionId, sot, canAssign = true }: Props) {
   const queryClient = useQueryClient();
   const [selectedKit, setSelectedKit] = useState("");
   const comparisonQuery = useQuery<ComparacionKit>({
@@ -32,7 +33,7 @@ export default function LiquidacionKitPanel({ liquidacionId, sot }: Props) {
   });
   const kitsQuery = useQuery<KitResponse>({
     queryKey: ["kits-descarga", "publicados", "liquidacion"],
-    queryFn: () => getKits({ estado: "PUBLICADO", all: "true", per_page: "100" }),
+    queryFn: () => getKits({ estado: "PUBLICADO", activo: "true", all: "true", per_page: "100" }),
     refetchOnWindowFocus: false,
   });
   const saveMutation = useMutation({
@@ -84,14 +85,15 @@ export default function LiquidacionKitPanel({ liquidacionId, sot }: Props) {
               <Metric label="Excesos" value={comparison?.resumen.excesos ?? 0} tone="danger" />
               <Metric label="Fuera del kit" value={comparison?.resumen.fuera_de_kit ?? 0} tone="danger" />
             </div>
-            <div className="flex flex-wrap gap-2">
-              <select className="h-9 min-w-72 rounded-md border bg-background px-3 text-sm" value={selectedKit} onChange={(event) => setSelectedKit(event.target.value)} disabled={kitsQuery.isLoading}>
-                <option value="">Seleccionar kit publicado...</option>
+            {canAssign ? <div className="flex flex-wrap gap-2">
+              <select aria-label="Asignar kit" className="h-9 min-w-72 rounded-md border bg-background px-3 text-sm" value={selectedKit} onChange={(event) => setSelectedKit(event.target.value)} disabled={kitsQuery.isLoading || kitsQuery.isError || saveMutation.isPending}>
+                <option value="">Asignar kit...</option>
                 {kits.map((kit: KitDescarga) => <option key={kit.id} value={kit.id}>{kit.tipo_trabajo?.nombre || `Tipo #${kit.tipo_trabajo_id}`} · v{kit.version} · {kit.tipo_trabajo?.tecnologia || "Sin tecnología"}</option>)}
               </select>
-              <Button onClick={() => saveMutation.mutate()} disabled={!selectedKit || saveMutation.isPending}><CheckCircle2 className="mr-1 size-4" />Asociar kit</Button>
+              <Button onClick={() => saveMutation.mutate()} disabled={!selectedKit || saveMutation.isPending}><CheckCircle2 className="mr-1 size-4" />Asignar kit</Button>
               {comparison?.kit && <Button variant="outline" onClick={() => removeMutation.mutate()} disabled={removeMutation.isPending}><Unlink className="mr-1 size-4" />Quitar kit</Button>}
-            </div>
+              {kitsQuery.isError && <p className="basis-full text-xs text-red-600">No se pudieron cargar los kits publicados y activos.</p>}
+            </div> : <p className="rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">Esta liquidación está cerrada. La asignación del kit está bloqueada.</p>}
             {!!comparison?.detalles.length && <div className="overflow-x-auto rounded-lg border"><table className="w-full text-sm"><thead className="bg-muted/60 text-left"><tr><th className="p-2">SAP / Producto</th><th className="p-2">Estándar</th><th className="p-2">Real</th><th className="p-2">Diferencia</th><th className="p-2">Resultado</th></tr></thead><tbody>{comparison.detalles.map((detail) => <tr key={detail.producto_id} className="border-t"><td className="p-2"><span className="font-mono">{detail.sap || "-"}</span> <span className="text-muted-foreground">{detail.nombre}</span></td><td className="p-2">{detail.cantidad_estandar}</td><td className="p-2">{detail.cantidad_real}</td><td className="p-2">{detail.diferencia}</td><td className="p-2">{resultLabel[detail.resultado] || detail.resultado}</td></tr>)}</tbody></table></div>}
           </>
         )}

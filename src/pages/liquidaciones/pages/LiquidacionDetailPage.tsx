@@ -104,9 +104,10 @@ export default function LiquidacionDetailPage() {
       <LiquidacionHeaderInfo liquidacion={liquidacion} />
 
       <LiquidacionKitPanel
+        key={liquidacion.id}
         liquidacionId={liquidacion.id}
         sot={liquidacion.sot}
-        canAssign={(liquidacion.estado_liquidacion ?? "").toLowerCase() !== "liquidada"}
+        canAssign={!liquidacion.liquidada_at && (liquidacion.estado_liquidacion ?? "").trim().toLowerCase() !== "liquidada"}
       />
 
       {liquidacion.estado_liquidacion === "liquidada" ? (

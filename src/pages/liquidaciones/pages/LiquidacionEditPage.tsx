@@ -74,9 +74,10 @@ export default function LiquidacionEditPage() {
       {!isLoading && currentSot && (
         <>
           <LiquidacionKitPanel
+            key={currentSot.liquidacion.id}
             liquidacionId={currentSot.liquidacion.id}
             sot={currentSot.liquidacion.sot}
-            canAssign={(currentSot.liquidacion.estado_liquidacion ?? "").toLowerCase() !== "liquidada"}
+            canAssign={!currentSot.liquidacion.liquidada_at && (currentSot.liquidacion.estado_liquidacion ?? "").trim().toLowerCase() !== "liquidada"}
           />
           <LiquidacionForm onSuccess={handleSuccess} allowSotEdit />
         </>

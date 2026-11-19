@@ -1,3 +1,4 @@
+import { isAxiosError } from "axios";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, PackageCheck, RefreshCw, Unlink } from "lucide-react";
@@ -5,8 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { errorToast, successToast } from "@/lib/core.function";
-import { compareLiquidacionKit, assignLiquidacionKit, getKits, removeLiquidacionKit } from "../lib/kits-descarga.actions";
-import type { ComparacionKit, KitDescarga, KitResponse } from "../lib/kits-descarga.interface";
+import { compareLiquidacionKit, assignLiquidacionKit, getAssignableKits, removeLiquidacionKit } from "../lib/kits-descarga.actions";
+import type { ComparacionKit } from "../lib/kits-descarga.interface";
 
 const resultLabel: Record<string, string> = {
   conforme: "Conforme",
@@ -31,9 +32,10 @@ export default function LiquidacionKitPanel({ liquidacionId, sot, canAssign = tr
     queryFn: () => compareLiquidacionKit(liquidacionId),
     refetchOnWindowFocus: false,
   });
-  const kitsQuery = useQuery<KitResponse>({
+  const kitsQuery = useQuery({
     queryKey: ["kits-descarga", "publicados", "liquidacion"],
-    queryFn: () => getKits({ estado: "PUBLICADO", activo: "1", all: "true", per_page: "100" }),
+    queryFn: getAssignableKits,
+    enabled: canAssign,
     refetchOnWindowFocus: false,
   });
   const saveMutation = useMutation({
@@ -41,7 +43,7 @@ export default function LiquidacionKitPanel({ liquidacionId, sot, canAssign = tr
     onSuccess: () => {
       successToast("Kit asociado a la liquidación.");
       setSelectedKit("");
-      void queryClient.invalidateQueries({ queryKey: ["liquidacion-kit-comparison", liquidacionId] });
+      return queryClient.invalidateQueries({ queryKey: ["liquidacion-kit-comparison", liquidacionId] });
     },
     onError: (error: any) => errorToast(errorMessage(error)),
   });
@@ -49,13 +51,18 @@ export default function LiquidacionKitPanel({ liquidacionId, sot, canAssign = tr
     mutationFn: () => removeLiquidacionKit(liquidacionId),
     onSuccess: () => {
       successToast("Kit retirado de la liquidación.");
-      void queryClient.invalidateQueries({ queryKey: ["liquidacion-kit-comparison", liquidacionId] });
+      return queryClient.invalidateQueries({ queryKey: ["liquidacion-kit-comparison", liquidacionId] });
     },
     onError: (error: any) => errorToast(errorMessage(error)),
   });
 
   const comparison = comparisonQuery.data;
-  const kits = kitsQuery.data?.data ?? [];
+  const comparisonError = comparisonQuery.error;
+  const comparisonErrorMessage = isAxiosError<{ message?: string }>(comparisonError) && comparisonError.response?.status === 404
+    ? comparisonError.response.data?.message
+    : undefined;
+  const kits = kitsQuery.data ?? [];
+  const isUpdatingKit = saveMutation.isPending || removeMutation.isPending;
 
   return (
     <Card className="mt-4">
@@ -72,7 +79,38 @@ export default function LiquidacionKitPanel({ liquidacionId, sot, canAssign = tr
         </Button>
       </CardHeader>
       <CardContent className="space-y-4">
-        {comparisonQuery.isLoading ? <p className="text-sm text-muted-foreground">Consultando kit...</p> : comparisonQuery.isError ? <p className="text-sm text-red-600">No se pudo consultar la comparación del kit.</p> : (
+        {canAssign ? (
+          <div className="flex flex-wrap gap-2">
+            <select
+              aria-label="Asignar kit"
+              className="h-9 w-full rounded-md border bg-background px-3 text-sm sm:w-auto sm:min-w-72"
+              value={selectedKit}
+              onChange={(event) => setSelectedKit(event.target.value)}
+              disabled={kitsQuery.isLoading || kitsQuery.isError || kits.length === 0 || isUpdatingKit}
+            >
+              <option value="">Asignar kit...</option>
+              {kits.map((kit) => (
+                <option key={kit.id} value={kit.id}>
+                  {kit.tipo_trabajo?.nombre || `Tipo #${kit.tipo_trabajo_id}`} · v{kit.version} · {kit.tipo_trabajo?.tecnologia || "Sin tecnología"}
+                </option>
+              ))}
+            </select>
+            <Button onClick={() => saveMutation.mutate()} disabled={!kits.some((kit) => String(kit.id) === selectedKit) || kitsQuery.isError || isUpdatingKit}>
+              <CheckCircle2 className="mr-1 size-4" />Asignar kit
+            </Button>
+            {!comparisonQuery.isError && comparison?.kit && (
+              <Button variant="outline" onClick={() => removeMutation.mutate()} disabled={isUpdatingKit}>
+                <Unlink className="mr-1 size-4" />Quitar kit
+              </Button>
+            )}
+            {kitsQuery.isLoading && <p className="basis-full text-xs text-muted-foreground">Cargando kits publicados y activos...</p>}
+            {kitsQuery.isError && <p className="basis-full text-xs text-red-600">No se pudieron cargar los kits publicados y activos.</p>}
+            {kitsQuery.isSuccess && kits.length === 0 && <p className="basis-full text-xs text-muted-foreground">No hay kits publicados y activos.</p>}
+          </div>
+        ) : (
+          <p className="rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">Esta liquidación está cerrada. La asignación del kit está bloqueada.</p>
+        )}
+        {comparisonQuery.isLoading ? <p className="text-sm text-muted-foreground">Consultando kit...</p> : comparisonQuery.isError ? <p className="text-sm text-red-600">{comparisonErrorMessage ?? "No se pudo consultar la comparación del kit."}</p> : (
           <>
             <div className="flex flex-wrap items-center gap-2 text-sm">
               <span>Kit actual:</span>
@@ -85,15 +123,6 @@ export default function LiquidacionKitPanel({ liquidacionId, sot, canAssign = tr
               <Metric label="Excesos" value={comparison?.resumen.excesos ?? 0} tone="danger" />
               <Metric label="Fuera del kit" value={comparison?.resumen.fuera_de_kit ?? 0} tone="danger" />
             </div>
-            {canAssign ? <div className="flex flex-wrap gap-2">
-              <select aria-label="Asignar kit" className="h-9 min-w-72 rounded-md border bg-background px-3 text-sm" value={selectedKit} onChange={(event) => setSelectedKit(event.target.value)} disabled={kitsQuery.isLoading || kitsQuery.isError || saveMutation.isPending}>
-                <option value="">Asignar kit...</option>
-                {kits.map((kit: KitDescarga) => <option key={kit.id} value={kit.id}>{kit.tipo_trabajo?.nombre || `Tipo #${kit.tipo_trabajo_id}`} · v{kit.version} · {kit.tipo_trabajo?.tecnologia || "Sin tecnología"}</option>)}
-              </select>
-              <Button onClick={() => saveMutation.mutate()} disabled={!selectedKit || saveMutation.isPending}><CheckCircle2 className="mr-1 size-4" />Asignar kit</Button>
-              {comparison?.kit && <Button variant="outline" onClick={() => removeMutation.mutate()} disabled={removeMutation.isPending}><Unlink className="mr-1 size-4" />Quitar kit</Button>}
-              {kitsQuery.isError && <p className="basis-full text-xs text-red-600">No se pudieron cargar los kits publicados y activos.</p>}
-            </div> : <p className="rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">Esta liquidación está cerrada. La asignación del kit está bloqueada.</p>}
             {!!comparison?.detalles.length && <div className="overflow-x-auto rounded-lg border"><table className="w-full text-sm"><thead className="bg-muted/60 text-left"><tr><th className="p-2">SAP / Producto</th><th className="p-2">Estándar</th><th className="p-2">Real</th><th className="p-2">Diferencia</th><th className="p-2">Resultado</th></tr></thead><tbody>{comparison.detalles.map((detail) => <tr key={detail.producto_id} className="border-t"><td className="p-2"><span className="font-mono">{detail.sap || "-"}</span> <span className="text-muted-foreground">{detail.nombre}</span></td><td className="p-2">{detail.cantidad_estandar}</td><td className="p-2">{detail.cantidad_real}</td><td className="p-2">{detail.diferencia}</td><td className="p-2">{resultLabel[detail.resultado] || detail.resultado}</td></tr>)}</tbody></table></div>}
           </>
         )}

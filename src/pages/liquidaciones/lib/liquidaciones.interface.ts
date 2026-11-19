@@ -56,6 +56,7 @@ export interface LiquidacionResource {
   tecnico1: TecnicoPersona | null;
   tecnico2: TecnicoPersona | null;
   estado_liquidacion: string | null;
+  liquidada_at?: string | null;
   observaciones: string | null;
   adp?: string | null;
   responsable?: string | null;

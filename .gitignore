@@ -21,7 +21,6 @@ dist-ssr
 *.sln
 *.sw?
 .claude/
-.env*
 .codegraph/
 PROMT.md
 public/

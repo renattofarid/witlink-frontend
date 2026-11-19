@@ -23,6 +23,13 @@ const unwrap = <T>(response: T | { data?: T }): T =>
 export const getKits = async (params: Record<string, string>): Promise<KitResponse> =>
   (await api.get("/kits-descarga", { params })).data;
 
+export const getAssignableKits = async (): Promise<KitDescarga[]> => {
+  const { data } = await api.get<KitDescarga[] | KitResponse>("/kits-descarga", {
+    params: { estado: "PUBLICADO", activo: "1", all: "true" },
+  });
+  return unwrap<KitDescarga[]>(data);
+};
+
 export const getKit = async (id: number): Promise<KitDescarga> =>
   unwrap((await api.get(`/kits-descarga/${id}`)).data);
 

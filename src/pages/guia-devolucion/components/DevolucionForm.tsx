@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -13,6 +14,9 @@ import { FormInput } from "@/components/FormInput";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import { SearchableSelect } from "@/components/SearchableSelect";
 import { successToast, errorToast } from "@/lib/core.function";
+import { useAuthStore } from "@/pages/auth/lib/auth.store";
+import { getAlmacenes } from "@/pages/auth/lib/auth.actions";
+import { isCorporateAlmacen } from "@/pages/auth/lib/auth.utils";
 
 import {
   devolucionHeaderSchema,
@@ -64,7 +68,18 @@ export default function DevolucionForm({
   const [sotFilter, setSotFilter] = useState(initialSot ?? "");
   const [sotFilterInput, setSotFilterInput] = useState(initialSot ?? "");
   const [despachoIdFilter] = useState(initialDespachoId);
-  const isPext = Boolean(sotFilter || despachoIdFilter);
+  const almacenId = useAuthStore((s) => s.almacen_id);
+  const isCorporativoUsuario = useAuthStore((s) => !!s.user?.is_corporativo);
+  const { data: almacenes = [] } = useQuery({
+    queryKey: ["almacenes-list"],
+    queryFn: getAlmacenes,
+    refetchOnWindowFocus: false,
+  });
+  const esCorporativo = useMemo(() => {
+    const actual = almacenes.find((a) => String(a.id) === String(almacenId));
+    return actual ? isCorporateAlmacen(actual) : isCorporativoUsuario;
+  }, [almacenes, almacenId, isCorporativoUsuario]);
+  const isPext = esCorporativo && Boolean(sotFilter || despachoIdFilter);
 
   const [seriesCart, setSeriesCart] = useState<DevolucionSerieCartItem[]>(
     guia?.productos.flatMap((p) =>
@@ -372,59 +387,65 @@ export default function DevolucionForm({
           </h3>
           <Separator className="flex-1" />
         </div>
-        <div className="space-y-1.5">
-          <Label className="text-xs md:text-sm font-medium text-muted-foreground">
-            Filtrar por SOT (modo PEXT)
-          </Label>
-          <div className="flex items-center gap-2">
-            <div className="relative flex-1 max-w-xs">
-              <Input
-                value={sotFilterInput}
-                onChange={(e) => setSotFilterInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key !== "Enter") return;
-                  e.preventDefault();
-                  setSotFilter(sotFilterInput.trim());
-                }}
-                placeholder="Ingrese SOT..."
-                disabled={Boolean(despachoIdFilter)}
-                className="pr-8"
-              />
-              {sotFilterInput && !despachoIdFilter && (
-                <button
-                  type="button"
-                  className="absolute right-2 top-2.5 text-muted-foreground hover:text-foreground"
-                  onClick={() => {
-                    setSotFilterInput("");
-                    setSotFilter("");
+        {esCorporativo ? (
+          <div className="space-y-1.5">
+            <Label className="text-xs md:text-sm font-medium text-muted-foreground">
+              Filtrar por SOT (modo PEXT)
+            </Label>
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1 max-w-xs">
+                <Input
+                  value={sotFilterInput}
+                  onChange={(e) => setSotFilterInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key !== "Enter") return;
+                    e.preventDefault();
+                    setSotFilter(sotFilterInput.trim());
                   }}
-                >
-                  <XIcon className="size-3.5" />
-                </button>
-              )}
+                  placeholder="Ingrese SOT..."
+                  disabled={Boolean(despachoIdFilter)}
+                  className="pr-8"
+                />
+                {sotFilterInput && !despachoIdFilter && (
+                  <button
+                    type="button"
+                    className="absolute right-2 top-2.5 text-muted-foreground hover:text-foreground"
+                    onClick={() => {
+                      setSotFilterInput("");
+                      setSotFilter("");
+                    }}
+                  >
+                    <XIcon className="size-3.5" />
+                  </button>
+                )}
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={Boolean(despachoIdFilter)}
+                onClick={() => setSotFilter(sotFilterInput.trim())}
+              >
+                <Search className="size-3.5 mr-1" />
+                Aplicar
+              </Button>
             </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={Boolean(despachoIdFilter)}
-              onClick={() => setSotFilter(sotFilterInput.trim())}
-            >
-              <Search className="size-3.5 mr-1" />
-              Aplicar
-            </Button>
+            {isPext ? (
+              <p className="text-xs text-muted-foreground bg-muted/40 border rounded-md px-3 py-1.5">
+                Modo PEXT: la búsqueda de series se filtra por{" "}
+                {despachoIdFilter ? `despacho #${despachoIdFilter}` : `SOT ${sotFilter}`}.
+              </p>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Ingrese una SOT y presione Enter para filtrar las series disponibles por despacho de origen.
+              </p>
+            )}
           </div>
-          {isPext ? (
-            <p className="text-xs text-muted-foreground bg-muted/40 border rounded-md px-3 py-1.5">
-              Modo PEXT: la búsqueda de series se filtra por{" "}
-              {despachoIdFilter ? `despacho #${despachoIdFilter}` : `SOT ${sotFilter}`}.
-            </p>
-          ) : (
-            <p className="text-xs text-muted-foreground">
-              Ingrese una SOT y presione Enter para filtrar las series disponibles por despacho de origen.
-            </p>
-          )}
-        </div>
+        ) : (
+          <p className="text-xs text-muted-foreground">
+            Se buscan series retiradas del almacén en el que estás.
+          </p>
+        )}
         <DevolucionSeriesInput
           items={seriesCart}
           onAdd={(item) => {

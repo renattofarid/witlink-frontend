@@ -17,3 +17,10 @@ export const GuiaDevolucionComplete: ModelComplete = {
 };
 
 export const MOTIVO_TRASLADO_DEFAULT = "13-DEVOLUCION CLARO";
+
+export const DESCRIPCION_SOLICITUD_OPTIONS = [
+  { value: "POST VENTA", label: "POST VENTA" },
+  { value: "CAMBIO POR INCIDENCIA", label: "CAMBIO POR INCIDENCIA" },
+] as const;
+
+export const DESCRIPCION_SOLICITUD_DEFAULT = "POST VENTA";

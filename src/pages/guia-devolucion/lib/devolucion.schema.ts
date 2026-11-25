@@ -9,6 +9,9 @@ export const devolucionHeaderSchema = z.object({
   telefono: z.string().optional(),
   observacion: z.string().optional(),
   motivo_traslado: z.string().min(1, "Requerido"),
+  descripcion_solicitud: z.enum(["POST VENTA", "CAMBIO POR INCIDENCIA"], {
+    error: "Seleccione POST VENTA o CAMBIO POR INCIDENCIA",
+  }),
   numero_guia_referencia: z.string().optional(),
   transportista_nombre: z.string().optional(),
   transportista_documento: z.string().optional(),

@@ -138,6 +138,7 @@ export default function DevolucionDetalleSheet({ guia }: Props) {
           {/* ── Motivo / referencia ──────────────────────────────────────── */}
           <div className="grid grid-cols-1 gap-3 border-b p-3 md:grid-cols-3">
             <DocField label="Motivo de traslado" value={guia.motivo_traslado} />
+            <DocField label="Descripción de la solicitud" value={guia.descripcion_solicitud} />
             <DocField label="N.° guía de referencia" value={guia.numero_guia_referencia} mono />
             <DocField label="Observación" value={guia.observacion} />
           </div>

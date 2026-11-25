@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { FormInput } from "@/components/FormInput";
+import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import { SearchableSelect } from "@/components/SearchableSelect";
 import { successToast, errorToast } from "@/lib/core.function";
@@ -23,6 +24,8 @@ import {
   type DevolucionHeaderFormValues,
 } from "../lib/devolucion.schema";
 import {
+  DESCRIPCION_SOLICITUD_DEFAULT,
+  DESCRIPCION_SOLICITUD_OPTIONS,
   GuiaDevolucionComplete,
   MOTIVO_TRASLADO_DEFAULT,
 } from "../lib/devolucion.constants";
@@ -90,6 +93,9 @@ export default function DevolucionForm({
         producto: p.producto ?? "",
         sap: p.sap ?? "",
         marca: p.marca ?? "",
+        componente: s.componente === "IN" ? "IN" : "CO",
+        sot: s.sot ?? null,
+        tipoSolicitud: s.tipo_solicitud ?? null,
       })),
     ) ?? [],
   );
@@ -122,6 +128,10 @@ export default function DevolucionForm({
       telefono: guia?.telefono ?? "",
       observacion: guia?.observacion ?? "",
       motivo_traslado: guia?.motivo_traslado ?? MOTIVO_TRASLADO_DEFAULT,
+      descripcion_solicitud:
+        guia?.descripcion_solicitud === "CAMBIO POR INCIDENCIA"
+          ? "CAMBIO POR INCIDENCIA"
+          : DESCRIPCION_SOLICITUD_DEFAULT,
       numero_guia_referencia: guia?.numero_guia_referencia ?? "",
       transportista_nombre: guia?.transportista?.nombre ?? "",
       transportista_documento: guia?.transportista?.documento ?? "",
@@ -253,8 +263,14 @@ export default function DevolucionForm({
       telefono: values.telefono || null,
       observacion: values.observacion || null,
       motivo_traslado: values.motivo_traslado,
+      descripcion_solicitud: values.descripcion_solicitud,
       numero_guia_referencia: values.numero_guia_referencia || null,
-      series: seriesCart.map((s) => s.id),
+      series: seriesCart.map((s) => ({
+        id: s.id,
+        componente: s.componente === "IN" ? "IN" : "CO",
+        sot: s.sot || null,
+        tipo_solicitud: s.tipoSolicitud || null,
+      })),
     };
 
     if (includeTransportista) {
@@ -315,12 +331,20 @@ export default function DevolucionForm({
             control={form.control}
             required
           />
-          <FormInput
-            name="observacion"
-            label="Observación"
+          <FormSelect
+            name="descripcion_solicitud"
+            label="Descripción de la solicitud"
             control={form.control}
+            options={[...DESCRIPCION_SOLICITUD_OPTIONS]}
+            placeholder="Seleccionar..."
+            required
           />
         </div>
+        <FormInput
+          name="observacion"
+          label="Observación"
+          control={form.control}
+        />
       </div>
 
       {/* Destinatario */}
@@ -454,6 +478,11 @@ export default function DevolucionForm({
           }}
           onRemove={(id) =>
             setSeriesCart((prev) => prev.filter((i) => i.id !== id))
+          }
+          onComponenteChange={(id, componente) =>
+            setSeriesCart((prev) =>
+              prev.map((item) => (item.id === id ? { ...item, componente } : item)),
+            )
           }
           extraParams={
             isPext

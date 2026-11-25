@@ -117,13 +117,15 @@ export const getDevolucionColumns = (
   },
   {
     id: "acciones",
-    size: 140,
+    size: 180,
     cell: ({ row }) => {
       const item = row.original;
       return (
         <div className="flex items-center gap-1">
           <DevolucionDetalleSheet guia={item} />
           <ExportButtons
+            excelEndpoint={`/guias-devolucion/${item.id}/excel`}
+            excelFileName={`guia-devolucion-${item.numero ?? item.id}.xlsx`}
             pdfEndpoint={`/guias-devolucion/${item.id}/pdf`}
             pdfFileName={`guia-devolucion-${item.numero ?? item.id}.pdf`}
             variant="separate"

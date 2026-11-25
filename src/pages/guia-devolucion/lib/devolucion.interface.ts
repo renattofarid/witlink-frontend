@@ -52,6 +52,14 @@ export interface SerieRetiradaResource {
   almacen_pertenencia?: SerieRetiradaAlmacenRef | null;
   /** Solo presente cuando la búsqueda se filtra por `sot`/`despacho_id` (flujo PEXT). */
   despacho?: SerieRetiradaDespachoRef;
+  documento_retirado?: {
+    id: number;
+    sot: string | null;
+    tipo: string | null;
+    fecha: string | null;
+  } | null;
+  sot?: string | null;
+  tipo_solicitud?: string | null;
 }
 
 export interface SerieRetiradaResponse {
@@ -115,6 +123,16 @@ export interface GuiaDevolucionProductoSerieResource {
   emta_mac: string | null;
   ua: string | null;
   situacion: string;
+  componente?: "CO" | "IN" | null;
+  sot?: string | null;
+  tipo_solicitud?: string | null;
+}
+
+export interface GuiaDevolucionSerieBody {
+  id: number;
+  componente: "CO" | "IN";
+  sot?: string | null;
+  tipo_solicitud?: string | null;
 }
 
 export interface GuiaDevolucionProductoResource {
@@ -142,6 +160,7 @@ export interface GuiaDevolucionListItem {
   punto_llegada: string;
   observacion: string | null;
   motivo_traslado: string;
+  descripcion_solicitud?: "POST VENTA" | "CAMBIO POR INCIDENCIA" | null;
   numero_guia_referencia: string | null;
   almacen_origen_id: number;
   almacen_origen: DevolucionAlmacenRef | null;
@@ -179,6 +198,7 @@ export interface GuiaDevolucionCreateBody {
   telefono?: string | null;
   observacion?: string | null;
   motivo_traslado: string;
+  descripcion_solicitud: "POST VENTA" | "CAMBIO POR INCIDENCIA";
   numero_guia_referencia?: string | null;
   transportista_nombre?: string | null;
   transportista_documento?: string | null;
@@ -189,6 +209,6 @@ export interface GuiaDevolucionCreateBody {
   marca_vehiculo?: string | null;
   peso?: string | null;
   numero_bultos?: string | null;
-  series: number[];
+  series: GuiaDevolucionSerieBody[];
   productos?: GuiaDevolucionProductoBody[];
 }

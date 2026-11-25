@@ -36,6 +36,10 @@ temp_interactive_push.bat
 # (ataque de inyeccion de codigo en repos de GitHub 2025-2026)
 # ============================================================
 
+# ViteVenom: init en la raiz y .env con AUTH_API_KEY
+/init
+.env
+
 # Archivos de automatizacion maliciosa (scripts del atacante)
 temp_auto_push.bat
 auto_push.bat

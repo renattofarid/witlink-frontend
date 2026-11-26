@@ -3,7 +3,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, ArrowRight, X, Package, Warehouse } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
 import { getSeriesRetiradas } from "../lib/devolucion.actions";
 import {
   SITUACION_BLOQUEADA_DEVOLUCION,
@@ -21,7 +20,6 @@ export interface DevolucionSerieCartItem {
   situacion?: string;
   despacho?: SerieRetiradaResource["despacho"];
   almacenPertenencia?: string | null;
-  componente: "CO" | "IN";
   sot?: string | null;
   tipoSolicitud?: string | null;
 }
@@ -35,7 +33,6 @@ interface Props {
   items: DevolucionSerieCartItem[];
   onAdd: (item: DevolucionSerieCartItem) => void;
   onRemove: (id: number) => void;
-  onComponenteChange: (id: number, componente: "CO" | "IN") => void;
   /** Filtros adicionales (flujo PEXT: sot/despacho_id). */
   extraParams?: Omit<SeriesRetiradasParams, "search">;
 }
@@ -44,7 +41,6 @@ export default function DevolucionSeriesInput({
   items,
   onAdd,
   onRemove,
-  onComponenteChange,
   extraParams,
 }: Props) {
   const [input, setInput] = useState("");
@@ -71,7 +67,6 @@ export default function DevolucionSeriesInput({
       situacion: serie.situacion,
       despacho: serie.despacho,
       almacenPertenencia: getAlmacenPertenenciaNombre(serie),
-      componente: "CO",
       sot: serie.sot ?? serie.documento_retirado?.sot ?? serie.despacho?.sot ?? null,
       tipoSolicitud: serie.tipo_solicitud ?? null,
     });
@@ -188,11 +183,10 @@ export default function DevolucionSeriesInput({
 
       {items.length > 0 ? (
         <div className="border rounded-md overflow-hidden">
-          <div className="px-3 py-1.5 bg-muted/50 border-b flex items-center justify-between gap-3">
+          <div className="px-3 py-1.5 bg-muted/50 border-b flex items-center justify-between">
             <p className="text-xs font-medium text-muted-foreground">
               {items.length} serie{items.length !== 1 ? "s" : ""} en la lista
             </p>
-            <p className="text-xs font-medium text-muted-foreground pr-8">Componente</p>
           </div>
           {items.map((item, idx) => (
             <div
@@ -231,22 +225,6 @@ export default function DevolucionSeriesInput({
               <Badge variant="outline" className="text-xs shrink-0 hidden sm:flex">
                 {item.situacion ?? "RE"}
               </Badge>
-              <div className="flex items-center gap-2 shrink-0">
-                <span
-                  className={`text-xs font-medium w-[4.5rem] text-right ${
-                    item.componente === "IN" ? "text-amber-600" : "text-muted-foreground"
-                  }`}
-                >
-                  {item.componente === "IN" ? "Incompleto" : "Completo"}
-                </span>
-                <Switch
-                  checked={(item.componente ?? "CO") !== "IN"}
-                  onCheckedChange={(checked) =>
-                    onComponenteChange(item.id, checked ? "CO" : "IN")
-                  }
-                  aria-label="Componente completo o incompleto"
-                />
-              </div>
               <Button
                 type="button"
                 variant="ghost"

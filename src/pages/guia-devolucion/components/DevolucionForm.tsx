@@ -93,7 +93,6 @@ export default function DevolucionForm({
         producto: p.producto ?? "",
         sap: p.sap ?? "",
         marca: p.marca ?? "",
-        componente: s.componente === "IN" ? "IN" : "CO",
         sot: s.sot ?? null,
         tipoSolicitud: s.tipo_solicitud ?? null,
       })),
@@ -267,7 +266,6 @@ export default function DevolucionForm({
       numero_guia_referencia: values.numero_guia_referencia || null,
       series: seriesCart.map((s) => ({
         id: s.id,
-        componente: s.componente === "IN" ? "IN" : "CO",
         sot: s.sot || null,
         tipo_solicitud: s.tipoSolicitud || null,
       })),
@@ -478,11 +476,6 @@ export default function DevolucionForm({
           }}
           onRemove={(id) =>
             setSeriesCart((prev) => prev.filter((i) => i.id !== id))
-          }
-          onComponenteChange={(id, componente) =>
-            setSeriesCart((prev) =>
-              prev.map((item) => (item.id === id ? { ...item, componente } : item)),
-            )
           }
           extraParams={
             isPext

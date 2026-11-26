@@ -130,7 +130,7 @@ export interface GuiaDevolucionProductoSerieResource {
 
 export interface GuiaDevolucionSerieBody {
   id: number;
-  componente: "CO" | "IN";
+  componente?: "CO" | "IN";
   sot?: string | null;
   tipo_solicitud?: string | null;
 }

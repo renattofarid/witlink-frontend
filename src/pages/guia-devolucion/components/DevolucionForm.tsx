@@ -11,7 +11,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { FormInput } from "@/components/FormInput";
-import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import { SearchableSelect } from "@/components/SearchableSelect";
 import { successToast, errorToast } from "@/lib/core.function";
@@ -24,8 +23,6 @@ import {
   type DevolucionHeaderFormValues,
 } from "../lib/devolucion.schema";
 import {
-  DESCRIPCION_SOLICITUD_DEFAULT,
-  DESCRIPCION_SOLICITUD_OPTIONS,
   GuiaDevolucionComplete,
   MOTIVO_TRASLADO_DEFAULT,
 } from "../lib/devolucion.constants";
@@ -127,10 +124,9 @@ export default function DevolucionForm({
       telefono: guia?.telefono ?? "",
       observacion: guia?.observacion ?? "",
       motivo_traslado: guia?.motivo_traslado ?? MOTIVO_TRASLADO_DEFAULT,
-      descripcion_solicitud:
-        guia?.descripcion_solicitud === "CAMBIO POR INCIDENCIA"
-          ? "CAMBIO POR INCIDENCIA"
-          : DESCRIPCION_SOLICITUD_DEFAULT,
+      numero_solicitud: /^\d{8}$/.test(guia?.numero_solicitud ?? "")
+        ? guia!.numero_solicitud!
+        : "",
       numero_guia_referencia: guia?.numero_guia_referencia ?? "",
       transportista_nombre: guia?.transportista?.nombre ?? "",
       transportista_documento: guia?.transportista?.documento ?? "",
@@ -262,7 +258,7 @@ export default function DevolucionForm({
       telefono: values.telefono || null,
       observacion: values.observacion || null,
       motivo_traslado: values.motivo_traslado,
-      descripcion_solicitud: values.descripcion_solicitud,
+      numero_solicitud: values.numero_solicitud,
       numero_guia_referencia: values.numero_guia_referencia || null,
       series: seriesCart.map((s) => ({
         id: s.id,
@@ -329,13 +325,15 @@ export default function DevolucionForm({
             control={form.control}
             required
           />
-          <FormSelect
-            name="descripcion_solicitud"
-            label="Descripción de la solicitud"
+          <FormInput
+            name="numero_solicitud"
+            label="Número de solicitud"
             control={form.control}
-            options={[...DESCRIPCION_SOLICITUD_OPTIONS]}
-            placeholder="Seleccionar..."
+            placeholder="12345678"
+            inputMode="numeric"
+            maxLength={8}
             required
+            transform={(value) => value.replace(/\D/g, "").slice(0, 8)}
           />
         </div>
         <FormInput

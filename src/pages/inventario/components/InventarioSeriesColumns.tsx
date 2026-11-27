@@ -113,7 +113,14 @@ export const getInventarioSeriesColumns = ({
     id: "situacion_label",
     header: "Situación",
     cell: ({ row }) => (
-      <SituacionBadge situacion={row.original.situacion_label} />
+      <div className="flex flex-col items-start gap-0.5">
+        <SituacionBadge situacion={row.original.situacion_label} />
+        {row.original.numero_solicitud && (
+          <span className="text-[11px] font-mono text-muted-foreground">
+            {row.original.numero_solicitud}
+          </span>
+        )}
+      </div>
     ),
   },
   {

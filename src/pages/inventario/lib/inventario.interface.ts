@@ -18,6 +18,7 @@ export interface InventarioSerieResource {
     | "PERDIDO"
     | "DEVUELTO"
     | "DEVUELTO A CLARO";
+  numero_solicitud?: string | null;
   fecha: string;
   guia: string;
   sap: string;

@@ -160,7 +160,7 @@ export interface GuiaDevolucionListItem {
   punto_llegada: string;
   observacion: string | null;
   motivo_traslado: string;
-  descripcion_solicitud?: "POST VENTA" | "CAMBIO POR INCIDENCIA" | null;
+  numero_solicitud?: string | null;
   numero_guia_referencia: string | null;
   almacen_origen_id: number;
   almacen_origen: DevolucionAlmacenRef | null;
@@ -198,7 +198,7 @@ export interface GuiaDevolucionCreateBody {
   telefono?: string | null;
   observacion?: string | null;
   motivo_traslado: string;
-  descripcion_solicitud: "POST VENTA" | "CAMBIO POR INCIDENCIA";
+  numero_solicitud: string;
   numero_guia_referencia?: string | null;
   transportista_nombre?: string | null;
   transportista_documento?: string | null;
